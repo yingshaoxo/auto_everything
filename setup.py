@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='auto_everything',
-        version='0.2',
+        version='0.3',
         description='do automate thing on Linux',
         classifiers=[
             'Operating System :: POSIX :: Linux',
