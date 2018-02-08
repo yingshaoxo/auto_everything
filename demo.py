@@ -14,7 +14,7 @@ import logging
 current_dir = os.path.abspath(os.path.dirname(__file__))
 logging.basicConfig(filename=os.path.join(current_dir, 'whatsup.log'), level=logging.INFO)
 
-from auto_everything import Base, Batch
+from auto_everything import Base, Batch, Super
 base = Base()
 batch = Batch()
 
@@ -38,6 +38,12 @@ if args[0] == 'boot':
     status = base.is_running('chrome')
     if status != True:
         base.run_program(chrome_path)
+
+elif args[0] == 'www':
+    s = Super()
+    if not base.is_running('chrome'):
+        base.run_program('google-chrome-stable')
+        s.keep_running('www')
 
 elif args[0] == 'ffmpeg':
     import shlex
@@ -91,6 +97,5 @@ elif args[0] == 'ffmpeg':
     else:
         print('what function you would like? speedup or convert?')
         exit()
-
 
 logging.info('done')
