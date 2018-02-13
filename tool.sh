@@ -25,6 +25,17 @@ publish() {
 twine upload dist/*
 }
 
+pull() {
+    git fetch --all
+    git reset --hard origin/master
+}
+
+push() {
+    git add .
+    git commit -m "update"
+    git push origin
+}
+
 
 if [ "$1" == "clear" ]; then
     clear
@@ -35,9 +46,17 @@ elif [ "$1" == "test" ]; then
 elif [ "$1" == "publish" ]; then
     publish
 
+elif [ "$1" == "pull" ]; then
+    pull
+
+elif [ "$1" == "push" ]; then
+    push
+
 elif [ "$1" == "" ]; then
     echo "clear
 test
-publish"
+publish
+pull
+push"
 
 fi

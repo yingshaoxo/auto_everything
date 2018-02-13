@@ -10,21 +10,15 @@ else:
     print(args)
 
 import os
-import logging
-current_dir = os.path.abspath(os.path.dirname(__file__))
-logging.basicConfig(filename=os.path.join(current_dir, 'whatsup.log'), level=logging.INFO)
 
 from auto_everything import Base, Batch, Super
 base = Base()
 batch = Batch()
-
-logging.info('start')
-
+super_ = Super()
 
 if args[0] == 'boot':
     ssr_path = '/opt/shadowsocksr/shadowsocks/local_run.sh'
     v2ray_path = '/opt/v2ray/v2ray'
-    chrome_path = '/opt/google/chrome/google-chrome'
 
     # open ssr
     base.run_program('sudo bash ' + ssr_path)
@@ -37,13 +31,12 @@ if args[0] == 'boot':
     # open chrome
     status = base.is_running('chrome')
     if status != True:
-        base.run_program(chrome_path)
+        base.run_program('google-chrome-stable')
 
 elif args[0] == 'www':
-    s = Super()
     if not base.is_running('chrome'):
         base.run_program('google-chrome-stable')
-        s.keep_running('www')
+        super_.keep_running(1, 'www')
 
 elif args[0] == 'ffmpeg':
     import shlex
@@ -97,5 +90,3 @@ elif args[0] == 'ffmpeg':
     else:
         print('what function you would like? speedup or convert?')
         exit()
-
-logging.info('done')

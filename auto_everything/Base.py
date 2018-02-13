@@ -30,9 +30,8 @@ class Base():
         p = subprocess.Popen(args_list)
 
     def run_py(self, file_path):
-        process_name = os.path.join(*file_path.split(os.sep)[-2:])
-        if process_name not in self.run_command('ps x'):
-            self.run_program('python{version} {path} &'.format(version=self.py_version, path=os.path.abspath(file_path)))
+        if file_path not in self.run_command('ps x'):
+            self.run_program('/usr/bin/python{version} {path} &'.format(version=self.py_version, path=os.path.abspath(file_path)))
 
     def is_running(self, name):
         if name in self.run_command('ps x'):
@@ -109,12 +108,12 @@ class Super():
     def __restart_crontab(self):
         self.__base.run_command('sudo service cron restart')
 
-    def keep_running(self, args=''):
+    def keep_running(self, time=1, args=''):
         if not self.__root:
             print('Super class need root permission.')
             return
 
-        command = '*/1 * * * * export DISPLAY=:0; /usr/bin/python{py_version} {path} {args}'.format(py_version=self.__base.py_version, path=self.__base._current_file_path, args=args)
+        command = '*/{time} * * * * export DISPLAY=:0; /usr/bin/python{py_version} {path} {args}'.format(py_version=self.__base.py_version, path=self.__base._current_file_path, time=time, args=args)
 
         dict_ = self.__crontab_text_to_dict()
         dict_.update({self.__id: command})
