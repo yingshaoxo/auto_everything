@@ -33,6 +33,11 @@ if args[0] == 'boot':
     if status != True:
         base.run_program('google-chrome-stable')
 
+    # open terminal
+    status = base.is_running('gnome-terminal')
+    if status != True:
+        base.run_program('gnome-terminal')
+
 elif args[0] == 'www':
     if not base.is_running('chrome'):
         base.run_program('google-chrome-stable')
