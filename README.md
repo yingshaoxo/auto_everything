@@ -27,25 +27,25 @@ print(reply)
 
 #### Detect if a program or script is running
 ```
-status = base.is_running('terminal')
+status = b.is_running('terminal')
 print(status)
 ```
 
 #### Demo
 ```
 from auto_everything import Base
-base = Base()
+b = Base()
 
 v2ray_path = '/opt/v2ray/v2ray'
 chrome_path = '/opt/google/chrome/google-chrome'
 
 # open v2ray
-status = base.is_running('v2ray')
+status = b.is_running('v2ray')
 if status != True:
-    base.run_program(v2ray_path)
+    b.run_program(v2ray_path)
 
 # open chrome
-status = base.is_running('chrome')
+status = b.is_running('chrome')
 if status != True:
-    base.run_program(chrome_path)
+    b.run_program(chrome_path)
 ```
