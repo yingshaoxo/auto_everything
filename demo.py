@@ -21,7 +21,8 @@ if args[0] == 'boot':
     v2ray_path = '/opt/v2ray/v2ray'
 
     # open ssr
-    base.run_program('sudo bash ' + ssr_path)
+    #base.run_program('sudo bash ' + ssr_path)
+    base.run_sh(ssr_path)
 
     # open v2ray
     status = base.is_running('v2ray')
@@ -32,11 +33,6 @@ if args[0] == 'boot':
     status = base.is_running('chrome')
     if status != True:
         base.run_program('google-chrome-stable')
-
-    # open terminal
-    status = base.is_running('gnome-terminal')
-    if status != True:
-        base.run_program('gnome-terminal')
 
 elif args[0] == 'www':
     if not base.is_running('chrome'):
@@ -95,3 +91,6 @@ elif args[0] == 'ffmpeg':
     else:
         print('what function you would like? speedup or convert?')
         exit()
+
+elif args[0] == 'clear':
+    base.run_sh('tool.sh clear')

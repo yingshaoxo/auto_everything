@@ -21,17 +21,33 @@ class Base():
 
     def run_command(self, c):
         args_list = shlex.split(c)
-        result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, timeout=15)
+        result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=self.current_dir, universal_newlines=True, timeout=15)
         return str(result.stdout)
 
     def run_program(self, name):
         args_list = shlex.split(name)
         args_list = ['nohup'] + args_list
-        p = subprocess.Popen(args_list)
+        p = subprocess.Popen(args_list, cwd=self.current_dir)
 
-    def run_py(self, file_path):
-        if file_path not in self.run_command('ps x'):
-            self.run_program('/usr/bin/python{version} {path} &'.format(version=self.py_version, path=os.path.abspath(file_path)))
+    def __split_args(self, file_path_with_command):
+        args_list = shlex.split(file_path_with_command)
+        file_path = os.path.abspath(args_list[0])
+        if len(file_path) > 1:
+            args = ' '.join(args_list[1:])
+        else:
+            args = ''
+        return file_path, args
+
+    def run_py(self, file_path_with_command):
+        if file_path_with_command not in self.run_command('ps x'):
+            path, args = self.__split_args(file_path_with_command)
+            self.run_program('/usr/bin/python{version} {path} {args} &'.format(version=self.py_version, path=path, args=args))
+
+    def run_sh(self, file_path_with_command):
+        if file_path_with_command not in self.run_command('ps x'):
+            path, args = self.__split_args(file_path_with_command)
+            command = 'bash {path} {args} &'.format(path=path, args=args)
+            self.run_program(command)
 
     def is_running(self, name):
         if name in self.run_command('ps x'):

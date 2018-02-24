@@ -14,7 +14,7 @@ sudo rm -fr auto_everything/__pycache__
 }
 
 test() {
-sudo pip3 uninstall auto_everything
+sudo pip3 uninstall -y auto_everything
 python3 setup.py sdist bdist_wheel
 cd dist
 sudo pip3 install auto_everything*

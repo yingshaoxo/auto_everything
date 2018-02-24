@@ -7,22 +7,23 @@ Linux system automation
 #### Import
 ```
 from auto_everything import Base
-base = Base()
+b = Base()
 ```
 
 #### Run command & get reply
 ```
-reply = base.run_command('uname -a')
+reply = b.run_command('uname -a')
 print(reply)
 ```
 
 #### Run program
-`base.run_program('firefox')`
-
+`b.run_program('firefox')`
 
 #### Run python script
-`base.run_py('your_python_file_path')`
+`b.run_py('your_python_file_path')`
 
+#### Run bash script
+`b.run_sh('your_.sh_file_path')`
 
 #### Detect if a program or script is running
 ```
