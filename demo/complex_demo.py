@@ -11,8 +11,8 @@ else:
 
 import os
 
-from auto_everything import Base, Batch, Super
-base = Base()
+from auto_everything.base import Terminal, Batch, Super
+t = Terminal()
 batch = Batch()
 super_ = Super()
 
@@ -21,22 +21,22 @@ if args[0] == 'boot':
     v2ray_path = '/opt/v2ray/v2ray'
 
     # open ssr
-    #base.run_program('sudo bash ' + ssr_path)
-    base.run_sh(ssr_path)
+    #t.run_program('sudo bash ' + ssr_path)
+    t.run_sh(ssr_path)
 
     # open v2ray
-    status = base.is_running('v2ray')
+    status = t.is_running('v2ray')
     if status != True:
-       base.run_program(v2ray_path)
+       t.run_program(v2ray_path)
 
     # open chrome
-    status = base.is_running('chrome')
+    status = t.is_running('chrome')
     if status != True:
-        base.run_program('google-chrome-stable')
+        t.run_program('google-chrome-stable')
 
 elif args[0] == 'www':
-    if not base.is_running('chrome'):
-        base.run_program('google-chrome-stable')
+    if not t.is_running('chrome'):
+        t.run_program('google-chrome-stable')
         super_.keep_running(1, 'www')
 
 elif args[0] == 'ffmpeg':
@@ -53,7 +53,7 @@ elif args[0] == 'ffmpeg':
     def make_sure_env():
         global convert_command, speedup_command, is_folder
         try:
-            if 'not installed' in base.run_command('ffmpeg'):
+            if 'not installed' in t.run_command('ffmpeg'):
                 print('apt install ffmpeg')
                 exit()
             if os.path.isfile(args[2]):
@@ -74,9 +74,9 @@ elif args[0] == 'ffmpeg':
             files = batch.get_current_directory_files(args[2]) 
             for f in files:
                 get_command(f)
-                base.run_program(convert_command)
+                t.run_program(convert_command)
         else:
-            base.run_program(convert_command)
+            t.run_program(convert_command)
 
     elif args[1] == 'speedup':
         make_sure_env()
@@ -84,13 +84,13 @@ elif args[0] == 'ffmpeg':
             files = batch.get_current_directory_files(args[2]) 
             for f in files:
                 get_command(f)
-                base.run_program(speedup_command)
+                t.run_program(speedup_command)
         else:
-            base.run_program(speedup_command)
+            t.run_program(speedup_command)
 
     else:
         print('what function you would like? speedup or convert?')
         exit()
 
 elif args[0] == 'clear':
-    base.run_sh('tool.sh clear')
+    t.run_sh('tool.sh clear')

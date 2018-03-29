@@ -6,7 +6,7 @@ import re
 import getpass
 
 
-class Base():
+class Terminal():
     def __init__(self):
         self.py_version = '{major}.{minor}'.format(major=str(sys.version_info[0]), minor=str(sys.version_info[1])) 
         if float(self.py_version) < 3.5:
@@ -19,9 +19,9 @@ class Base():
         # if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
         #     os.remove(os.path.join(self.current_dir, 'nohup.out'))
 
-    def run_command(self, c):
+    def run_command(self, c, timeout=15):
         args_list = shlex.split(c)
-        result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=self.current_dir, universal_newlines=True, timeout=15)
+        result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=self.current_dir, universal_newlines=True, timeout=timeout)
         return str(result.stdout)
 
     def run_program(self, name):

@@ -6,46 +6,51 @@ Linux system automation
 
 #### Import
 ```
-from auto_everything import Base
-b = Base()
+from auto_everything.base import Terminal
+t = Terminal()
 ```
 
 #### Run command & get reply
 ```
-reply = b.run_command('uname -a')
+reply = t.run_command('uname -a')
 print(reply)
 ```
 
 #### Run program
-`b.run_program('firefox')`
+`t.run_program('firefox')`
 
 #### Run python script
-`b.run_py('your_python_file_path')`
+`t.run_py('your_python_file_path')`
 
 #### Run bash script
-`b.run_sh('your_.sh_file_path')`
+`t.run_sh('your_.sh_file_path')`
 
 #### Detect if a program or script is running
 ```
-status = b.is_running('terminal')
+status = t.is_running('terminal')
 print(status)
 ```
 
-#### Demo
+#### Web automation
 ```
-from auto_everything import Base
-b = Base()
+from auto_everything.web import Selenium
+from time import sleep
 
-v2ray_path = '/opt/v2ray/v2ray'
-chrome_path = '/opt/google/chrome/google-chrome'
+my_selenium = Selenium("https://www.google.com")
+d = my_selenium.driver
 
-# open v2ray
-status = b.is_running('v2ray')
-if status != True:
-    b.run_program(v2ray_path)
+# get input box
+xpath = '//*[@id="lst-ib"]'
+element = my_selenium.wait_until_exists(xpath)
 
-# open chrome
-status = b.is_running('chrome')
-if status != True:
-    b.run_program(chrome_path)
+# text inputing
+element.send_keys('\b' * 20, "yingshaoxo")
+
+# click search button
+element = my_selenium.wait_until_exists('//*[@id="tsf"]/div[2]/div[3]/center/input[1]')
+element.click() # d.execute_script("arguments[0].click();", element)
+
+# exit
+sleep(3)
+d.quit()
 ```
