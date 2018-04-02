@@ -74,7 +74,7 @@ class Batch():
 
 class Super():
     def __init__(self, username=os.getlogin()): #getpass.getuser()):
-        self.__base = Base()
+        self.__base = Terminal()
         self.__id = '# ' + self.__base._current_file_path
         self.__username = username
         self.__crontab_path = '/var/spool/cron/crontabs/{username}'.format(username=self.__username) 
@@ -151,7 +151,7 @@ class Super():
         
     
 if __name__ == "__main__":
-    b = Base()
+    b = Terminal()
     s = Super()
     #if b.is_running('firefox'):
     #    b.kill('firefox')
