@@ -60,6 +60,14 @@ class Terminal():
         result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, timeout=15)
         return str(result.stdout)
 
+    def get_args(self):
+        args = sys.argv[1:]
+        if len(args) == 0:
+            # print('no args are giving')
+            return None
+        else:
+            return args
+
 
 class Batch():
     def __init__(self):
@@ -78,7 +86,6 @@ class Super():
         self.__id = '# ' + self.__base._current_file_path
         self.__username = username
         self.__crontab_path = '/var/spool/cron/crontabs/{username}'.format(username=self.__username) 
-        
         if os.geteuid() != 0:
             self.__root = False
         else:
