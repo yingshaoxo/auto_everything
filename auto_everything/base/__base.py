@@ -17,7 +17,7 @@ class Terminal():
             exit()
 
         self.current_dir = os.getcwd()
-        self.temp_sh = os.path.join(self.current_dir, 'temp.sh')
+        self._temp_sh = os.path.join(self.current_dir, 'temp.sh')
         self._current_file_path = os.path.join(self.current_dir, sys.argv[0])
 
         # if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
@@ -31,9 +31,9 @@ class Terminal():
         return os.path.exists(path)
 
     def __text_to_sh(self, text):
-        with open(self.temp_sh, 'w', encoding="utf-8") as f:
+        with open(self._temp_sh, 'w', encoding="utf-8") as f:
             f.write(text)
-        return "bash {path} &".format(path=self.temp_sh)
+        return "bash {path} &".format(path=self._temp_sh)
 
     def run(self, c, cwd=None, wait=False):
         """
@@ -59,7 +59,7 @@ class Terminal():
                 line = p.stdout.readline().strip(' ')
                 print(line)
             try:
-                os.remove(self.temp_sh)
+                os.remove(self._temp_sh)
             except:
                 pass
 
