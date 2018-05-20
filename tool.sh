@@ -32,6 +32,8 @@ pull() {
 }
 
 push() {
+    git config --global user.email "yingshaoxo@gmail.com"
+    git config --global user.name "yingshaoxo"
     git add .
     git commit -m "update"
     git push origin
