@@ -12,7 +12,6 @@ c = """
 sudo apt install -y build-essential cmake
 sudo apt install -y python3-dev
 sudo apt install -y python3-pip
-sudo pip3 install -y auto_everything
 sudo apt install -y vim
 sudo apt install -y git
 """
@@ -97,3 +96,16 @@ b.run(c, wait=True)
 
 
 print("\n\nfinished...")
+
+
+
+last = """
+\n\n\n
+There just left one thing you have to do:
+    start vim
+        then type
+            `:PluginInstall`
+
+After this, enjoy!
+"""
+print(last)
