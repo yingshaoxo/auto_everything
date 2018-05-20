@@ -84,6 +84,16 @@ au FileType sh map <F5> :w<CR>:!bash %<CR>
 "autopep8"
 autocmd FileType python noremap <buffer> <F8> :call Autopep8()<CR>
 let g:autopep8_disable_show_diff=1
+
+"input behavior"
+au BufNewFile,BufRead *
+\ set tabstop=4 |
+\ set softtabstop=4 |
+\ set shiftwidth=4 |
+\ set expandtab |
+\ set fileformat=unix
+"\ set autoindent |
+" autoindent may cause bad behavior when you paste in vim
 """
 with open(b.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
     f.write(vimrc)
