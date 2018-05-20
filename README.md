@@ -10,6 +10,11 @@ from auto_everything.base import Terminal
 t = Terminal()
 ```
 
+#### Run command
+```
+t.run('sudo apt update', wait=True)
+```
+
 #### Run command & get reply
 ```
 reply = t.run_command('uname -a')
