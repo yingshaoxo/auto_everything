@@ -1,0 +1,13 @@
+README.md
+setup.py
+auto_everything/__init__.py
+auto_everything.egg-info/PKG-INFO
+auto_everything.egg-info/SOURCES.txt
+auto_everything.egg-info/dependency_links.txt
+auto_everything.egg-info/top_level.txt
+auto_everything/base/__base.py
+auto_everything/base/__init__.py
+auto_everything/math/__init__.py
+auto_everything/math/__math.py
+auto_everything/web/__init__.py
+auto_everything/web/__web.py
