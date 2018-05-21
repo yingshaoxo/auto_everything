@@ -32,6 +32,7 @@ pull() {
 }
 
 push() {
+    clear
     git config --global user.email "yingshaoxo@gmail.com"
     git config --global user.name "yingshaoxo"
     git add .
