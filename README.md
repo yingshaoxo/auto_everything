@@ -2,7 +2,11 @@
 Linux system automation
 
 #### Installation
-`pip3 install auto_everything`
+```
+sudo apt install python3
+sudo apt install python3-pip
+pip3 install auto_everything
+```
 
 #### Import
 ```
@@ -34,6 +38,15 @@ print(reply)
 ```
 status = t.is_running('terminal')
 print(status)
+```
+
+#### Create a systemd serviece
+```
+from auto_everything.base import Super
+s = Super(username="yingshaoxo")
+
+s.start_service("service_name", "your_python_file_path")
+#s.stop_service("service_name")
 ```
 
 #### Web automation
