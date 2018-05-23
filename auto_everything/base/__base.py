@@ -9,6 +9,9 @@ import time
 
 
 class IO():
+    """
+    This is for normal IO process
+    """
     def __init__(self):
         self.current_dir = os.getcwd()
         self.__log_path = os.path.join(self.current_dir, 'log')
@@ -34,129 +37,151 @@ class IO():
 
 class Terminal():
     def __init__(self):
-        self.py_version='{major}.{minor}'.format(
-            major = str(sys.version_info[0]), minor = str(sys.version_info[1]))
+        self.py_version = '{major}.{minor}'.format(
+            major=str(sys.version_info[0]), minor=str(sys.version_info[1]))
         if float(self.py_version) < 3.5:
             print('We only support Python >= 3.5 Versions')
             exit()
 
-        self.current_dir=os.getcwd()
-        self._temp_sh=os.path.join(self.current_dir, 'temp.sh')
-        self._current_file_path=os.path.join(self.current_dir, sys.argv[0])
+        self.current_dir = os.getcwd()
+        self._temp_sh = os.path.join(self.current_dir, 'temp.sh')
+        self._current_file_path = os.path.join(self.current_dir, sys.argv[0])
 
         # if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
         #     os.remove(os.path.join(self.current_dir, 'nohup.out'))
 
-    def fix_path(self, path, username = None):
+    def fix_path(self, path, username=None):
+        """
+        path: string, which contains ~
+        """
         if username == None:
-            path=path.replace('~', os.path.expanduser('~'))
+            path = path.replace('~', os.path.expanduser('~'))
         elif username == 'root':
-            path=path.replace('~', "/root")
+            path = path.replace('~', "/root")
         else:
-            path=path.replace(
+            path = path.replace(
                 '~', "/home/{username}".format(username=username))
         return path
 
     def exists(self, path):
-        path=self.fix_path(path)
+        """
+        cheack if a file or directory exists
+        """
+        path = self.fix_path(path)
         return os.path.exists(path)
 
     def __text_to_sh(self, text):
-        with open(self._temp_sh, 'w', encoding = "utf-8") as f:
+        with open(self._temp_sh, 'w', encoding="utf-8") as f:
             f.write(text)
-        return "bash {path} &".format(path = self._temp_sh)
+        return "bash {path} &".format(path=self._temp_sh)
 
-    def run(self, c, cwd = None, wait = True):
+    def run(self, c, cwd=None, wait=True):
         """
         c: shell command
         cwd: current working directory
         wait: True may running forever
         """
         if cwd == None:
-            cwd=self.current_dir
+            cwd = self.current_dir
         else:
-            cwd=self.fix_path(cwd)
+            cwd = self.fix_path(cwd)
 
         if '\n' in c:
-            c=self.__text_to_sh(c)
+            c = self.__text_to_sh(c)
 
-        args_list=shlex.split(c)
-        p=subprocess.Popen(args_list, stdout = subprocess.PIPE,
-                             stderr = subprocess.STDOUT, universal_newlines = True, cwd = cwd)
+        args_list = shlex.split(c)
+        p = subprocess.Popen(args_list, stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT, universal_newlines=True, cwd=cwd)
 
         if wait == True:
             print('')
             while p.poll() == None:
-                line=p.stdout.readline().strip(' \n')
+                line = p.stdout.readline().strip(' \n')
                 print(line)
             try:
                 os.remove(self._temp_sh)
             except:
                 pass
 
-    def run_command(self, c, timeout = 15):
-        c=self.fix_path(c)
-        args_list=shlex.split(c)
-        result=subprocess.run(args_list, stdout = subprocess.PIPE, stderr = subprocess.STDOUT,
-                                cwd = self.current_dir, universal_newlines = True, timeout = timeout)
+    def run_command(self, c, timeout=15):
+        """
+        c: shell command
+        timeout: seconds. how long this command will take
+        """
+        c = self.fix_path(c)
+        args_list = shlex.split(c)
+        result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                cwd=self.current_dir, universal_newlines=True, timeout=timeout)
         return str(result.stdout)
 
-    def run_program(self, name, cwd = None):
-        args_list=shlex.split(name)
-        args_list=['nohup'] + args_list
+    def run_program(self, name, cwd=None):
+        """
+        name: shell command or program path, for example: firefox or /opt/v2ray/v2ray
+        cwd: current working directory
+
+        This function will not wait program to finish
+        """
+        args_list = shlex.split(name)
+        args_list = ['nohup'] + args_list
 
         if cwd == None:
-            cwd=self.current_dir
+            cwd = self.current_dir
 
-        p=subprocess.Popen(args_list, cwd = cwd)
+        p = subprocess.Popen(args_list, cwd=cwd)
 
     def __split_args(self, file_path_with_command):
-        args_list=shlex.split(file_path_with_command)
-        file_path=os.path.abspath(args_list[0])
+        args_list = shlex.split(file_path_with_command)
+        file_path = os.path.abspath(args_list[0])
         if len(file_path) > 1:
-            args=' '.join(args_list[1:])
+            args = ' '.join(args_list[1:])
         else:
-            args=''
+            args = ''
         return file_path, args
 
-    def run_py(self, file_path_with_command, working_dir = None, wait = False):
+    def run_py(self, file_path_with_command, working_dir=None, wait=False):
         if working_dir == None:
-            working_dir=self.current_dir
+            working_dir = self.current_dir
 
-        path, args=self.__split_args(file_path_with_command)
-        path=self.fix_path(path)
-        command='/usr/bin/python{version} {path} {args} &'.format(
-            version = self.py_version, path = path, args = args)
+        path, args = self.__split_args(file_path_with_command)
+        path = self.fix_path(path)
+        command = '/usr/bin/python{version} {path} {args} &'.format(
+            version=self.py_version, path=path, args=args)
 
         if wait == False:
-            self.run_program(command, cwd = working_dir)
+            self.run_program(command, cwd=working_dir)
         elif wait == True:
-            self.run(command, cwd = working_dir, wait = True)
+            self.run(command, cwd=working_dir, wait=True)
 
-    def run_sh(self, file_path_with_command, working_dir = None, wait = False):
+    def run_sh(self, file_path_with_command, working_dir=None, wait=False):
         if working_dir == None:
-            working_dir=self.current_dir
+            working_dir = self.current_dir
 
-        path, args=self.__split_args(file_path_with_command)
-        path=self.fix_path(path)
-        command='bash {path} {args} &'.format(
-            path = self.fix_path(path), args = args)
+        path, args = self.__split_args(file_path_with_command)
+        path = self.fix_path(path)
+        command = 'bash {path} {args} &'.format(
+            path=self.fix_path(path), args=args)
 
         if wait == False:
-            self.run_program(command, cwd = working_dir)
+            self.run_program(command, cwd=working_dir)
         elif wait == True:
-            self.run(command, cwd = working_dir, wait = True)
+            self.run(command, cwd=working_dir, wait=True)
 
     def is_running(self, name):
+        """
+        cheack if a program is running, this depends on `ps x`
+        """
         if name in self.run_command('ps x'):
             return True
         else:
             return False
 
     def kill(self, name):
-        args_list=shlex.split('sudo pkill {name}'.format(name=name))
-        result=subprocess.run(args_list, stdout = subprocess.PIPE,
-                                stderr = subprocess.STDOUT, universal_newlines = True, timeout = 15)
+        """
+        kill a program by its name, this depends on `pkill program`
+        """
+        args_list = shlex.split('sudo pkill {name}'.format(name=name))
+        result = subprocess.run(args_list, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, universal_newlines=True, timeout=15)
         return str(result.stdout)
 
 
@@ -165,29 +190,29 @@ class Batch():
         pass
 
     def get_current_directory_files(self, directory):
-        directory=os.path.abspath(directory)
-        files_and_dir=os.listdir(directory)
-        files=[os.path.join(directory, f) for f in files_and_dir if os.path.isfile(
+        directory = os.path.abspath(directory)
+        files_and_dir = os.listdir(directory)
+        files = [os.path.join(directory, f) for f in files_and_dir if os.path.isfile(
             os.path.join(directory, f))]
         return files
 
 
 class Super():
-    def __init__(self, username = "root"):
-        self.__username=username
+    def __init__(self, username="root"):
+        self.__username = username
         if os.getuid() != 0:
             print("\n I only got my super power if you run me with sudo!")
             exit()
         if not os.path.exists("/home/{username}".format(username=self.__username)) and self.__username != 'root':
             print("\n You just give me a wroung username!")
             exit()
-        self._io=IO()
-        self._t=Terminal()
+        self._io = IO()
+        self._t = Terminal()
 
     def __get_service_config(self, py_file_path):
         # working_dir = os.path.abspath(os.path.dirname(py_file_path))
-        working_dir=os.path.dirname(py_file_path)
-        content="""
+        working_dir = os.path.dirname(py_file_path)
+        content = """
 [Unit]
 Description=auto_everything deamon
 After=re-local.service
@@ -205,19 +230,23 @@ StartLimitInterval=1s
 
 [Install]
 WantedBy=multi-user.target
-""".format(username = self.__username, working_dir = working_dir, py_file_path = py_file_path)
+""".format(username=self.__username, working_dir=working_dir, py_file_path=py_file_path)
         if self.__username == "root":
             content.replace("Environment=DISPLAY=:0.0\n", "")
         return content
 
-    def start_service(self, name, py_file_path = None):
-        service_path="/etc/systemd/system/{name}.service".format(name = name)
+    def start_service(self, name, py_file_path=None):
+        """
+        name: service name
+        py_file_path: a path leads to a python script
+        """
+        service_path = "/etc/systemd/system/{name}.service".format(name=name)
 
-        reload_command="systemctl daemon-reload\n"
-        enable_command="systemctl enable {name}\n".format(name = name)
-        restart_command="systemctl restart {name}\n".format(name = name)
-        stop_command="systemctl stop {name}\n".format(name = name)
-        cheack_command="systemctl status {name} | cat\n".format(name = name)
+        reload_command = "systemctl daemon-reload\n"
+        enable_command = "systemctl enable {name}\n".format(name=name)
+        restart_command = "systemctl restart {name}\n".format(name=name)
+        stop_command = "systemctl stop {name}\n".format(name=name)
+        cheack_command = "systemctl status {name} | cat\n".format(name=name)
 
         if py_file_path == None:
             if not self._t.exists(service_path):
@@ -250,10 +279,14 @@ WantedBy=multi-user.target
                     print('\n' + '-'*11 + '\n')
                 else:
                     self._t.run(restart_command)
+            time.sleep(1)
             print("\n".join(self._t.run_command(
                 cheack_command).split("\n")[:6]))
 
     def stop_service(self, name):
+        """
+        name: service name
+        """
         service_path = "/etc/systemd/system/{name}.service".format(name=name)
         stop_command = "systemctl stop {name}\n".format(name=name)
         disable_command = "systemctl disable {name}\n".format(name=name)
@@ -265,5 +298,6 @@ WantedBy=multi-user.target
         else:
             self._t.run(stop_command)
             self._t.run(disable_command)
+            time.sleep(1)
             print("\n".join(self._t.run_command(
                 cheack_command).split("\n")[:6]))
