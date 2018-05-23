@@ -12,6 +12,7 @@ class IO():
     """
     This is for normal IO process
     """
+
     def __init__(self):
         self.current_dir = os.getcwd()
         self.__log_path = os.path.join(self.current_dir, 'log')
@@ -30,9 +31,28 @@ class IO():
             f.write(content)
 
     def log(self, text):
+        text = str(text)
         now = time.asctime(time.localtime(time.time()))
         text = '\n'*2 + text + '   ' + '({})'.format(now)
         self.append(self.__log_path, text)
+
+
+class Python():
+    def __init__(self):
+        self._io = IO()
+
+    def loop(self, func):
+        """
+        func: a function which you want to run forever
+        """
+        def new_function(*args, **kwargs):
+            while 1:
+                try:
+                    func(*args, **kwargs)
+                    time.sleep(1)
+                except Exception as e:
+                    print(e)
+        return new_function
 
 
 class Terminal():
