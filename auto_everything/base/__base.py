@@ -146,6 +146,8 @@ class Terminal():
 
         if cwd == None:
             cwd = self.current_dir
+        else:
+            cwd = self.fix_path(cwd)
 
         p = subprocess.Popen(args_list, cwd=cwd)
 

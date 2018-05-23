@@ -44,6 +44,22 @@ status = t.is_running('terminal')
 print(status)
 ```
 
+#### Keep a function running
+```
+from auto_everything.base import Python
+py = Python()
+
+i = 0
+
+@py.loop
+def count():
+    global i
+    i += 1
+    print(i)
+
+count()
+```
+
 #### Create a systemd serviece
 ```
 from auto_everything.base import Super
