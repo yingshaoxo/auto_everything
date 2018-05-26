@@ -83,8 +83,8 @@ class Terminal():
         self._temp_sh = os.path.join(self.current_dir, 'temp.sh')
         self._current_file_path = os.path.join(self.current_dir, sys.argv[0])
 
-        # if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
-        #     os.remove(os.path.join(self.current_dir, 'nohup.out'))
+        if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
+            os.remove(os.path.join(self.current_dir, 'nohup.out'))
 
     def fix_path(self, path, username=None):
         """
