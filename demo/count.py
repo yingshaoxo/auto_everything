@@ -3,7 +3,7 @@ py = Python()
 
 i = 0
 
-@py.loop(new_thread=False)
+@py.loop(thread=False)
 def count():
     global i
     i += 1

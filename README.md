@@ -3,9 +3,8 @@ Linux system automation
 
 #### Installation
 ```
-sudo apt install python3
-sudo apt install python3-pip
-pip3 install auto_everything
+wget https://github.com/yingshaoxo/auto_everything/raw/master/env_setup.sh
+sudo bash env_setup.sh
 ```
 
 #### Import
@@ -51,7 +50,7 @@ py = Python()
 
 i = 0
 
-@py.loop(new_thread=False)
+@py.loop(thread=False)
 def count():
     global i
     i += 1

@@ -75,6 +75,7 @@ filetype plugin indent on    " required
 
 
 au FileType c map <F5> :w<CR>:!gcc % && ./a.out %<CR>
+au FileType cpp map <F5> :w<CR>:!gcc % && ./a.out %<CR>
 au FileType python map <F5> :w<CR>:!python3.6 %<CR>
 au FileType go map <F5> :w<CR>:!go run %<CR>
 au FileType sh map <F5> :w<CR>:!bash %<CR>

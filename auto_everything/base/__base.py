@@ -44,7 +44,7 @@ class Python():
         self._io = IO()
 
     class loop():
-        def __init__(self, new_thread=False):
+        def __init__(self, thread=False):
             """
             new_thread: do you want to open a new thread? True/False
             """
