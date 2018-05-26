@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from os.path import dirname, join, abspath
 
 setup(name='auto_everything',
-        version='1.4',
+        version='1.5',
         description='do automate things on Linux',
         #long_description=open(join(abspath(dirname(__file__)), "README.md")).read(),
         classifiers=[

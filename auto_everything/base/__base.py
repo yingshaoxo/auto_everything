@@ -48,7 +48,7 @@ class Python():
             """
             new_thread: do you want to open a new thread? True/False
             """
-            self.new_thread = new_thread
+            self.thread = thread
 
         def __call__(self, func):
             """
@@ -63,7 +63,7 @@ class Python():
                         except Exception as e:
                             print(e)
 
-                if self.new_thread == False:
+                if self.thread == False:
                     while_function()
                 else:
                     threading.Thread(target=while_function).start()
