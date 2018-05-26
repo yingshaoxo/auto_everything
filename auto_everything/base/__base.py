@@ -7,6 +7,8 @@ import re
 import getpass
 import time
 
+import threading
+
 
 class IO():
     """
@@ -41,18 +43,32 @@ class Python():
     def __init__(self):
         self._io = IO()
 
-    def loop(self, func):
-        """
-        func: a function which you want to run forever
-        """
-        def new_function(*args, **kwargs):
-            while 1:
-                try:
-                    func(*args, **kwargs)
-                    time.sleep(1)
-                except Exception as e:
-                    print(e)
-        return new_function
+    class loop():
+        def __init__(self, new_thread=False):
+            """
+            new_thread: do you want to open a new thread? True/False
+            """
+            self.new_thread = new_thread
+
+        def __call__(self, func):
+            """
+            func: a function which you want to run forever
+            """
+            def new_function(*args, **kwargs):
+                def while_function():
+                    while 1:
+                        try:
+                            func(*args, **kwargs)
+                            time.sleep(1)
+                        except Exception as e:
+                            print(e)
+
+                if self.new_thread == False:
+                    while_function()
+                else:
+                    threading.Thread(target=while_function).start()
+
+            return new_function
 
 
 class Terminal():
