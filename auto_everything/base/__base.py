@@ -72,7 +72,7 @@ class Python():
 
 
 class Terminal():
-    def __init__(self):
+    def __init__(self, username=None):
         self.py_version = '{major}.{minor}'.format(
             major=str(sys.version_info[0]), minor=str(sys.version_info[1]))
         if float(self.py_version) < 3.5:
@@ -130,7 +130,6 @@ class Terminal():
                              stderr=subprocess.STDOUT, universal_newlines=True, cwd=cwd)
 
         if wait == True:
-            print('')
             while p.poll() == None:
                 line = p.stdout.readline().strip(' \n')
                 print(line)
@@ -169,7 +168,9 @@ class Terminal():
 
     def __split_args(self, file_path_with_command):
         args_list = shlex.split(file_path_with_command)
-        file_path = os.path.abspath(args_list[0])
+        file_path = args_list[0]
+        if file_path[0] != "~":
+            file_path = os.path.abspath(file_path)
         if len(file_path) > 1:
             args = ' '.join(args_list[1:])
         else:
@@ -181,9 +182,9 @@ class Terminal():
             working_dir = self.current_dir
 
         path, args = self.__split_args(file_path_with_command)
-        path = self.fix_path(path)
         command = '/usr/bin/python{version} {path} {args} &'.format(
             version=self.py_version, path=path, args=args)
+        command = self.fix_path(command)
 
         if wait == False:
             self.run_program(command, cwd=working_dir)
@@ -195,9 +196,9 @@ class Terminal():
             working_dir = self.current_dir
 
         path, args = self.__split_args(file_path_with_command)
-        path = self.fix_path(path)
         command = 'bash {path} {args} &'.format(
-            path=self.fix_path(path), args=args)
+            path=path, args=args)
+        command = self.fix_path(command)
 
         if wait == False:
             self.run_program(command, cwd=working_dir)
@@ -248,7 +249,6 @@ class Super():
         self._t = Terminal()
 
     def __get_service_config(self, py_file_path):
-        # working_dir = os.path.abspath(os.path.dirname(py_file_path))
         working_dir = os.path.dirname(py_file_path)
         content = """
 [Unit]
