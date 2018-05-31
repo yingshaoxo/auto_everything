@@ -76,7 +76,7 @@ filetype plugin indent on    " required
 
 au FileType c map <F5> :w<CR>:!gcc % && ./a.out %<CR>
 au FileType cpp map <F5> :w<CR>:!gcc % && ./a.out %<CR>
-au FileType python map <F5> :w<CR>:!python3.6 %<CR>
+au FileType python map <F5> :w<CR>:!python3 %<CR>
 au FileType go map <F5> :w<CR>:!go run %<CR>
 au FileType sh map <F5> :w<CR>:!bash %<CR>
 "<CR> means a Enter key.
@@ -95,6 +95,8 @@ au BufNewFile,BufRead *
 \ set fileformat=unix
 "\ set autoindent |
 " autoindent may cause bad behavior when you paste in vim
+
+syntax on
 """
 with open(b.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
     f.write(vimrc)
