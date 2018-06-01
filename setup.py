@@ -4,7 +4,8 @@ from os.path import dirname, join, abspath
 setup(name='auto_everything',
         version='1.6',
         description='do automate things on Linux',
-        #long_description=open(join(abspath(dirname(__file__)), "README.md")).read(),
+        long_description=open(join(abspath(dirname(__file__)), "README.md")).read(),
+        long_description_content_type='text/markdown',
         classifiers=[
             'Operating System :: POSIX :: Linux',
             'Programming Language :: Python :: 3',
