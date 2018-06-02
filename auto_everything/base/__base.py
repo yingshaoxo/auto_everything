@@ -75,6 +75,7 @@ class Terminal():
     def __init__(self, username=None):
         self.py_version = '{major}.{minor}'.format(
             major=str(sys.version_info[0]), minor=str(sys.version_info[1]))
+        self.machine_type = os.uname().machine
         if float(self.py_version) < 3.5:
             print('We only support Python >= 3.5 Versions')
             exit()

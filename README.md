@@ -7,6 +7,12 @@ wget https://github.com/yingshaoxo/auto_everything/raw/master/env_setup.sh
 sudo bash env_setup.sh
 ```
 
+#### Magic
+```
+wget https://github.com/yingshaoxo/auto_everything/raw/master/demo/install_YouCompleteMe.py
+sudo python3 install_YouCompleteMe.py
+```
+
 #### Import
 ```
 from auto_everything.base import Terminal
