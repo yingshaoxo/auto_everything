@@ -11,4 +11,4 @@ sudo yum -y install python36u-pip
 sudo cp /usr/bin/pip3.6 /usr/bin/pip3
 sudo yum -y install python36u-devel
 
-pip3 install auto_everything
+sudo pip3 install auto_everything
