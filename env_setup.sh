@@ -1,5 +1,5 @@
-sudo apt install python3
-sudo apt install python3-pip
+sudo apt -y install python3
+sudo apt -y install python3-pip
 
 sudo yum -y update
 sudo yum -y install yum-utils

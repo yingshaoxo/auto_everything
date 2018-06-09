@@ -13,8 +13,20 @@ sudo tar -xvf go*linux-amd64.tar.gz
 sudo rm /usr/local/go -fr
 sudo mv go /usr/local
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
+cd
 source ~/.profile
+cd -
 sudo rm go*linux-amd64.tar.gz
 """
 
 b.run(c, wait=True)
+
+print("finised!
+           try this:
+               ```
+               cd 
+               source ~/.profile
+               cd -
+               go
+               ```
+        ")

@@ -102,6 +102,7 @@ with open(b.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
 # 5
 c = """
 sudo pip3 install autopep8
+sudo pip3 install jedi
 """
 b.run(c, wait=True)
 
