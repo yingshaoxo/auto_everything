@@ -264,7 +264,7 @@ Environment=DISPLAY=:0.0
 ExecStart=/usr/bin/python3 {py_file_path}
 Restart=always
 RestartSec=5
-StartLimitBurst=3
+StartLimitBurst=60
 StartLimitInterval=1s
 
 [Install]
