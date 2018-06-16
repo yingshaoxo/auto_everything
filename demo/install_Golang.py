@@ -21,7 +21,7 @@ sudo rm go*linux-amd64.tar.gz
 
 b.run(c, wait=True)
 
-print("finised!
+print("""finised!
            try this:
                ```
                cd 
@@ -29,4 +29,4 @@ print("finised!
                cd -
                go
                ```
-        ")
+        """)
