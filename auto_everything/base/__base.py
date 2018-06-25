@@ -75,7 +75,11 @@ class Terminal():
     def __init__(self, username=None):
         self.py_version = '{major}.{minor}'.format(
             major=str(sys.version_info[0]), minor=str(sys.version_info[1]))
-        self.machine_type = os.uname().machine
+        if os.name == "posix":
+            self.machine_type = os.uname().machine
+            self.system_type = "linux"
+        else:
+            self.system_type = "win"
         if float(self.py_version) < 3.5:
             print('We only support Python >= 3.5 Versions')
             exit()
@@ -328,3 +332,8 @@ WantedBy=multi-user.target
             time.sleep(1)
             print("\n".join(self._t.run_command(
                 cheack_command).split("\n")[:6]))
+
+
+if __name__ == "__main__":
+    t = Terminal()
+    print(t.system_type)

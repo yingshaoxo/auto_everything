@@ -40,6 +40,10 @@ push() {
 	git push origin
 }
 
+write() {
+    vim auto_everything/base/__base.py
+}
+
 
 if [ "$1" == "clear" ]; then
     clear
@@ -56,11 +60,17 @@ elif [ "$1" == "pull" ]; then
 elif [ "$1" == "push" ]; then
     push
 
+elif [ "$1" == "write" ]; then
+    write
+
 elif [ "$1" == "" ]; then
-    echo "clear
+    echo "
+clear
 test
 publish
 pull
-push"
+push
+write
+"
 
 fi
