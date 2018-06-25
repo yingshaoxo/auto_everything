@@ -96,8 +96,6 @@ element = my_selenium.wait_until_exists('//*[@id="tsf"]/div[2]/div[3]/center/inp
 element.click() # d.execute_script("arguments[0].click();", element)
 
 # exit
-"""
-sleep(3)
+sleep(30)
 d.quit()
-"""
 ```

@@ -225,18 +225,6 @@ class Terminal():
         return str(result.stdout)
 
 
-class Batch():
-    def __init__(self):
-        pass
-
-    def get_current_directory_files(self, directory):
-        directory = os.path.abspath(directory)
-        files_and_dir = os.listdir(directory)
-        files = [os.path.join(directory, f) for f in files_and_dir if os.path.isfile(
-            os.path.join(directory, f))]
-        return files
-
-
 class Super():
     def __init__(self, username="root"):
         self.__username = username
