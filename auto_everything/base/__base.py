@@ -42,7 +42,7 @@ class IO():
 class Python():
     def __init__(self):
         self._io = IO()
-
+        
     class loop():
         def __init__(self, thread=False):
             """
@@ -342,4 +342,5 @@ WantedBy=multi-user.target
 
 if __name__ == "__main__":
     t = Terminal()
-    print(t.run_command("ls"))
+    r = t.run_command("ls")
+    print(r)
