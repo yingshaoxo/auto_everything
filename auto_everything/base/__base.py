@@ -75,11 +75,14 @@ class Terminal():
     def __init__(self, username=None):
         self.py_version = '{major}.{minor}'.format(
             major=str(sys.version_info[0]), minor=str(sys.version_info[1]))
+        self.py_executable = sys.executable.replace("\\", "/")
         if os.name == "posix":
             self.machine_type = os.uname().machine
             self.system_type = "linux"
-        else:
+        elif os.name == "nt":
             self.system_type = "win"
+        else:
+            self.system_type = "none"
         if float(self.py_version) < 3.5:
             print('We only support Python >= 3.5 Versions')
             exit()
@@ -102,7 +105,7 @@ class Terminal():
         else:
             path = path.replace(
                 '~', "/home/{username}".format(username=username))
-        return path
+        return path.replace("\\", "/")
 
     def exists(self, path):
         """
@@ -152,7 +155,7 @@ class Terminal():
         args_list = shlex.split(c)
         result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                 cwd=self.current_dir, universal_newlines=True, timeout=timeout)
-        return str(result.stdout)
+        return str(result.stdout).strip(" \n")
 
     def run_program(self, name, cwd=None):
         """
@@ -172,6 +175,7 @@ class Terminal():
         p = subprocess.Popen(args_list, cwd=cwd)
 
     def __split_args(self, file_path_with_command):
+        file_path_with_command = file_path_with_command.replace("\\", "/")
         args_list = shlex.split(file_path_with_command)
         file_path = args_list[0]
         if file_path[0] != "~":
@@ -187,7 +191,9 @@ class Terminal():
             working_dir = self.current_dir
 
         path, args = self.__split_args(file_path_with_command)
-        command = '/usr/bin/python{version} {path} {args} &'.format(
+        # command = '/usr/bin/python{version} {path} {args} &'.format(
+        #     version=self.py_version, path=path, args=args)
+        command = self.py_executable + ' {path} {args} &'.format(
             version=self.py_version, path=path, args=args)
         command = self.fix_path(command)
 
@@ -336,4 +342,4 @@ WantedBy=multi-user.target
 
 if __name__ == "__main__":
     t = Terminal()
-    print(t.system_type)
+    print(t.run_command("ls"))
