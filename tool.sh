@@ -1,5 +1,3 @@
-#!/bin/bash
-
 clear() {
 	sudo rm -fr dist
 	sudo rm -fr build
