@@ -79,6 +79,7 @@ au FileType cpp map <F5> :w<CR>:!gcc % && ./a.out %<CR>
 au FileType python map <F5> :w<CR>:!python3 %<CR>
 au FileType go map <F5> :w<CR>:!go run %<CR>
 au FileType sh map <F5> :w<CR>:!bash %<CR>
+au BufRead *.js map <F5> :w<CR>:!node %<CR>
 "<CR> means a Enter key.
 "For :w<CR>, I don't know its means.
 
