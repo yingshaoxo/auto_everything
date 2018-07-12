@@ -153,9 +153,12 @@ class Terminal():
         """
         c = self.fix_path(c)
         args_list = shlex.split(c)
-        result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        try:
+            result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                 cwd=self.current_dir, universal_newlines=True, timeout=timeout)
-        return str(result.stdout).strip(" \n")
+            return str(result.stdout).strip(" \n")
+        except Exception as e:
+            return str(e)
 
     def run_program(self, name, cwd=None):
         """

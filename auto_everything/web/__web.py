@@ -9,7 +9,11 @@ class Selenium():
             self.driver = webdriver.Chrome()
         except Exception as e:
             print(e)
-            self.driver = webdriver.Firefox()
+            try:
+                self.driver = webdriver.Firefox()
+            except Exception as e:
+                print(e)
+                self.driver = webdriver.PhantomJS()
         self.driver.get(url)
         
     def wait_until_exists(self, xpath, timeout=600):

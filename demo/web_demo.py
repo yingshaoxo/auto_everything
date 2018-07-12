@@ -20,3 +20,17 @@ element.click() # d.execute_script("arguments[0].click();", element)
 sleep(3)
 d.quit()
 """
+
+
+"""
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+options = Options()
+options.add_argument('--headless')
+options.add_argument('--disable-gpu')
+driver = webdriver.Chrome(chrome_options=options)
+driver.get("https://www.baidu.com")
+print(driver.page_source)
+exit()
+"""
