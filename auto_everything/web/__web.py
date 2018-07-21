@@ -20,7 +20,11 @@ class Selenium():
         try:
             w = WebDriverWait(self.driver, timeout)
             w.until(EC.presence_of_element_located((By.XPATH, xpath)))
-            return self.driver.find_element_by_xpath(xpath)
+            elements = self.driver.find_element_by_xpath(xpath)
+            if len(elements) == 1:
+                return elements[0]
+            else:
+                return elements
         except Exception as e:
             print(e)
             return None
