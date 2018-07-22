@@ -2,15 +2,15 @@ from setuptools import setup, find_packages
 from os.path import dirname, join, abspath
 
 setup(name='auto_everything',
-        version='1.8',
+        version='1.9',
         description='do automate things on Linux',
-        long_description=open(join(abspath(dirname(__file__)), "README.md")).read(),
+        long_description=str(open(join(abspath(dirname(__file__)), "README.md")).read()),
         long_description_content_type='text/markdown',
         classifiers=[
             'Operating System :: POSIX :: Linux',
             'Programming Language :: Python :: 3',
             'Topic :: System',
-            'License :: OSI Approved :: GNU General Public License v3'
+            'License :: OSI Approved :: MIT License'
             ],
         keywords='Linux system automation',
         url='http://github.com/yingshaoxo/auto_everything',

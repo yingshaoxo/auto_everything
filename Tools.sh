@@ -21,6 +21,7 @@ test() {
 }
 
 publish() {
+    test
 	twine upload dist/*
 }
 

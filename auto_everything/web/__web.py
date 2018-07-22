@@ -25,3 +25,6 @@ class Selenium():
         except Exception as e:
             print(e)
             return None
+
+    def click(self, element):
+        self.driver.execute_script("arguments[0].click();", element)
