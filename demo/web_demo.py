@@ -1,7 +1,7 @@
 from auto_everything.web import Selenium
 from time import sleep
 
-my_selenium = Selenium("https://www.google.com")
+my_selenium = Selenium("https://www.baidu.com")
 d = my_selenium.driver
 
 # get input box

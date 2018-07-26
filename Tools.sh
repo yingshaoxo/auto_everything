@@ -12,7 +12,9 @@ clear() {
 }
 
 test() {
-	clear
+	sudo rm -fr dist
+	sudo rm -fr build
+
 	sudo pip3 uninstall -y auto_everything
 	python3 setup.py sdist bdist_wheel
 	cd dist
@@ -21,7 +23,7 @@ test() {
 }
 
 publish() {
-    test
+	clear
 	twine upload dist/*
 }
 

@@ -3,6 +3,19 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 
+
+class Net():
+    def wait_until_have_internet(self, test_url="https://baidu.com"):
+        from urllib.request import urlopen
+        from time import sleep
+        while 1:
+            try:
+                urlopen("https://baidu.com")
+                break
+            except Exception as e:
+                sleep(1)
+
+
 class Selenium():
     def __init__(self, url):
         try:
