@@ -23,7 +23,8 @@ test() {
 }
 
 publish() {
-	clear
+    clear
+    test
 	twine upload dist/*
 }
 

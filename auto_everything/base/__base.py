@@ -2,6 +2,7 @@ import os
 import sys
 import shlex
 import subprocess
+import platform as platform
 
 import re
 import getpass
@@ -42,6 +43,25 @@ class IO():
 class Python():
     def __init__(self):
         self._io = IO()
+        self._t = Terminal()
+
+    def install_package(self, package_name):
+        """
+        package_name: the package you want to install ; string
+        """
+        package_name = package_name.strip(" \n").replace('_', '-').lower()
+        installed_packages = self._t.run_command("sudo pip3 list").lower()
+        if package_name not in installed_packages:
+            self._t.run("sudo pip3 install {name}".format(name=package_name))
+
+    def uninstall_package(self, package_name):
+        """
+        package_name: the package you want to uninstall ; string
+        """
+        package_name = package_name.strip(" \n").replace('_', '-').lower()
+        installed_packages = self._t.run_command("sudo pip3 list").lower()
+        if package_name in installed_packages:
+            self._t.run("sudo pip3 uninstall {name} -y".format(name=package_name))
         
     class loop():
         def __init__(self, thread=False):
@@ -77,22 +97,41 @@ class Terminal():
             major=str(sys.version_info[0]), minor=str(sys.version_info[1]))
         self.py_executable = sys.executable.replace("\\", "/")
         if os.name == "posix":
-            self.machine_type = os.uname().machine
             self.system_type = "linux"
         elif os.name == "nt":
             self.system_type = "win"
         else:
             self.system_type = "none"
+        self.machine_type = platform.machine()
         if float(self.py_version) < 3.5:
             print('We only support Python >= 3.5 Versions')
             exit()
 
         self.current_dir = os.getcwd()
-        self._temp_sh = os.path.join(self.current_dir, 'temp.sh')
-        self._current_file_path = os.path.join(self.current_dir, sys.argv[0])
+        self.__temp_sh = os.path.join(self.current_dir, 'temp.sh')
+        self.__current_file_path = os.path.join(self.current_dir, sys.argv[0])
 
         if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
             os.remove(os.path.join(self.current_dir, 'nohup.out'))
+
+    def install_package(self, package_name):
+        """
+        package_name: the package you want to install ; string
+        """
+        package_name = package_name.strip(" \n").replace('_', '-').lower()
+        installed_packages = self.run_command("sudo apt list").lower()
+        if package_name not in installed_packages:
+            self.run("sudo apt install {name} -y".format(name=package_name))
+
+    def uninstall_package(self, package_name):
+        """
+        package_name: the package you want to uninstall ; string
+        """
+        package_name = package_name.strip(" \n").replace('_', '-').lower()
+        installed_packages = self.run_command("sudo apt list").lower()
+        if package_name in installed_packages:
+            self.run("sudo apt purge {name} -y".format(name=package_name))
+
 
     def fix_path(self, path, username=None):
         """
@@ -115,9 +154,9 @@ class Terminal():
         return os.path.exists(path)
 
     def __text_to_sh(self, text):
-        with open(self._temp_sh, 'w', encoding="utf-8") as f:
+        with open(self.__temp_sh, 'w', encoding="utf-8") as f:
             f.write(text)
-        return "bash {path} &".format(path=self._temp_sh)
+        return "bash {path} &".format(path=self.__temp_sh)
 
     def run(self, c, cwd=None, wait=True):
         """
@@ -133,16 +172,24 @@ class Terminal():
         if '\n' in c:
             c = self.__text_to_sh(c)
 
-        args_list = shlex.split(c)
-        p = subprocess.Popen(args_list, stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT, universal_newlines=True, cwd=cwd)
+        try:
+            args_list = shlex.split(c)
+            p = subprocess.Popen(args_list, stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT, universal_newlines=True, cwd=cwd)
+        except Exception as e:
+            print(e)
+            c = self.fix_path(c)
+            args_list = shlex.split(c)
+            p = subprocess.Popen(args_list, stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT, universal_newlines=True, cwd=cwd)
+
 
         if wait == True:
             while p.poll() == None:
                 line = p.stdout.readline().strip(' \n')
                 print(line)
             try:
-                os.remove(self._temp_sh)
+                os.remove(self.__temp_sh)
             except:
                 pass
 
@@ -228,14 +275,45 @@ class Terminal():
         else:
             return False
 
-    def kill(self, name):
+    def kill(self, name, way="soft"):
         """
         kill a program by its name, this depends on `pkill program`
+        """
+        pids = self._get_pids(name)
+        for pid in pids:
+            if way == "soft":
+                self.run_command('sudo kill -s SIGQUIT {num}'.format(num=pid))
+            else:
+                self.run_command('sudo kill -s SIGKILL {num}'.format(num=pid))
+
+        while (self.is_running(name)):
+            time.sleep(1)
         """
         args_list = shlex.split('sudo pkill {name}'.format(name=name))
         result = subprocess.run(args_list, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, universal_newlines=True, timeout=15)
         return str(result.stdout)
+        """
+
+    def _get_pids(self, name):
+        all_running_stuff = self.run_command("ps x")
+
+        lines = all_running_stuff.split("\n")
+        lines = [line for line in lines if line.strip("\n ") != ""]
+
+        target_lines = []
+        for line in lines:
+            if name in line:
+                target_lines.append(line)
+
+        pids = []
+        for line in target_lines:
+            words = line.split(" ")
+            words = [word for word in words if word.strip(" ") != ""]
+            pid = words[0]
+            pids.append(pid)
+
+        return pids
 
 
 class Super():
@@ -265,7 +343,7 @@ Environment=DISPLAY=:0.0
 ExecStart=/usr/bin/python3 {py_file_path}
 Restart=always
 RestartSec=5
-StartLimitBurst=60
+StartLimitBurst=100000
 StartLimitInterval=1s
 
 [Install]
@@ -345,5 +423,4 @@ WantedBy=multi-user.target
 
 if __name__ == "__main__":
     t = Terminal()
-    r = t.run_command("ls")
-    print(r)
+    t._("python")

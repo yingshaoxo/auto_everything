@@ -1,5 +1,6 @@
 from sympy import *
 
+
 class Calculator():
     def __init__(self):
         # init_printing(use_unicode=True)
