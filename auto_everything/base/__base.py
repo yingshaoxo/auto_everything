@@ -277,17 +277,20 @@ class Terminal():
 
     def kill(self, name, way="soft"):
         """
-        kill a program by its name, this depends on `pkill program`
+        name: what's the name of that program you want to kill ; string
+        way: "soft" kill or "force" kill ; string
+
+        Kill a program by its name, depends on `sudo kill pid`
         """
         pids = self._get_pids(name)
         for pid in pids:
             if way == "soft":
                 self.run_command('sudo kill -s SIGQUIT {num}'.format(num=pid))
+                while (self.is_running(name)):
+                    time.sleep(1)
             else:
                 self.run_command('sudo kill -s SIGKILL {num}'.format(num=pid))
 
-        while (self.is_running(name)):
-            time.sleep(1)
         """
         args_list = shlex.split('sudo pkill {name}'.format(name=name))
         result = subprocess.run(args_list, stdout=subprocess.PIPE,
@@ -296,6 +299,11 @@ class Terminal():
         """
 
     def _get_pids(self, name):
+        """
+        name: what's the name of that program ; string
+
+        get a list of pids, only available in Linux ; [string, ...]
+        """
         all_running_stuff = self.run_command("ps x")
 
         lines = all_running_stuff.split("\n")
