@@ -13,6 +13,8 @@ wget https://github.com/yingshaoxo/auto_everything/raw/master/demo/install_YouCo
 sudo python3 install_YouCompleteMe.py
 ```
 
+
+### Basic API
 #### Import
 ```
 from auto_everything.base import Terminal
@@ -49,6 +51,8 @@ status = t.is_running('terminal')
 print(status)
 ```
 
+
+### Advanced API
 #### Keep a function running
 ```
 from auto_everything.base import Python
@@ -67,15 +71,36 @@ count()
 print("Welcome to my world!")
 ```
 
-#### Create a systemd serviece
+#### Create(start) or Cancel(stop) a systemd serviece
 ```
 from auto_everything.base import Super
-s = Super(username="yingshaoxo")
+s = Super(username="root")
 
-s.start_service("service_name", "your_python_file_path")
-#s.stop_service("service_name")
+s.service("service_name", "your_python_file_path")
 ```
 
+
+### Package management
+#### Install or Uninstall a Python package
+```
+from auto_everything.base import Python
+py = Python()
+
+py.install_package("any_package_name")
+py.uninstall_package("any_package_name")
+```
+
+#### Install or Uninstall a Lubuntu package
+```
+from auto_everything.base import Terminal
+t = Terminal()
+
+t.install_package("any_package_name")
+t.uninstall_package("any_package_name")
+```
+
+
+### Anothers
 #### Web automation
 ```
 from auto_everything.web import Selenium

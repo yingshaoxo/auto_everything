@@ -20,6 +20,11 @@ class IO():
         self.current_dir = os.getcwd()
         self.__log_path = os.path.join(self.current_dir, 'log')
 
+    def make_sure_sudo_permission(self):
+        if os.getuid() != 0:
+            print("\n I only got my super power if you run me with sudo!")
+            exit()
+
     def read(self, file_path):
         with open(file_path, 'r', encoding="utf-8", errors="ignore") as f:
             result = f.read()
@@ -49,20 +54,25 @@ class Python():
         """
         package_name: the package you want to install ; string
         """
+        self._io.make_sure_sudo_permission()
+
         package_name = package_name.strip(" \n").replace('_', '-').lower()
         installed_packages = self._t.run_command("sudo pip3 list").lower()
         if package_name not in installed_packages:
-            self._t.run("sudo pip3 install {name}".format(name=package_name))
+            self._t.run("sudo pip3 install {name} --upgrade".format(name=package_name))
 
     def uninstall_package(self, package_name):
         """
         package_name: the package you want to uninstall ; string
         """
+        self._io.make_sure_sudo_permission()
+
         package_name = package_name.strip(" \n").replace('_', '-').lower()
         installed_packages = self._t.run_command("sudo pip3 list").lower()
         if package_name in installed_packages:
-            self._t.run("sudo pip3 uninstall {name} -y".format(name=package_name))
-        
+            self._t.run(
+                "sudo pip3 uninstall {name} -y".format(name=package_name))
+
     class loop():
         def __init__(self, thread=False):
             """
@@ -114,24 +124,7 @@ class Terminal():
         if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
             os.remove(os.path.join(self.current_dir, 'nohup.out'))
 
-    def install_package(self, package_name):
-        """
-        package_name: the package you want to install ; string
-        """
-        package_name = package_name.strip(" \n").replace('_', '-').lower()
-        installed_packages = self.run_command("sudo apt list").lower()
-        if package_name not in installed_packages:
-            self.run("sudo apt install {name} -y".format(name=package_name))
-
-    def uninstall_package(self, package_name):
-        """
-        package_name: the package you want to uninstall ; string
-        """
-        package_name = package_name.strip(" \n").replace('_', '-').lower()
-        installed_packages = self.run_command("sudo apt list").lower()
-        if package_name in installed_packages:
-            self.run("sudo apt purge {name} -y".format(name=package_name))
-
+        self._io = IO()
 
     def fix_path(self, path, username=None):
         """
@@ -154,8 +147,7 @@ class Terminal():
         return os.path.exists(path)
 
     def __text_to_sh(self, text):
-        with open(self.__temp_sh, 'w', encoding="utf-8") as f:
-            f.write(text)
+        self._io.write(self.__temp_sh, text)
         return "bash {path} &".format(path=self.__temp_sh)
 
     def run(self, c, cwd=None, wait=True):
@@ -183,7 +175,6 @@ class Terminal():
             p = subprocess.Popen(args_list, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT, universal_newlines=True, cwd=cwd)
 
-
         if wait == True:
             while p.poll() == None:
                 line = p.stdout.readline().strip(' \n')
@@ -192,6 +183,8 @@ class Terminal():
                 os.remove(self.__temp_sh)
             except:
                 pass
+
+        return p
 
     def run_command(self, c, timeout=15):
         """
@@ -202,7 +195,7 @@ class Terminal():
         args_list = shlex.split(c)
         try:
             result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                cwd=self.current_dir, universal_newlines=True, timeout=timeout)
+                                    cwd=self.current_dir, universal_newlines=True, timeout=timeout)
             return str(result.stdout).strip(" \n")
         except Exception as e:
             return str(e)
@@ -241,8 +234,6 @@ class Terminal():
             working_dir = self.current_dir
 
         path, args = self.__split_args(file_path_with_command)
-        # command = '/usr/bin/python{version} {path} {args} &'.format(
-        #     version=self.py_version, path=path, args=args)
         command = self.py_executable + ' {path} {args} &'.format(
             version=self.py_version, path=path, args=args)
         command = self.fix_path(command)
@@ -275,21 +266,24 @@ class Terminal():
         else:
             return False
 
-    def kill(self, name, way="soft"):
+    def kill(self, name, force=True, wait=False):
         """
         name: what's the name of that program you want to kill ; string
-        way: "soft" kill or "force" kill ; string
+        force: kill it directlly or softly. some program like ffmpeg, should set force=False
+        wait: wait until program quit. useful for something like ffmpeg
 
-        Kill a program by its name, depends on `sudo kill pid`
+        kill a program by its name, depends on `kill pid`
         """
         pids = self._get_pids(name)
         for pid in pids:
-            if way == "soft":
-                self.run_command('sudo kill -s SIGQUIT {num}'.format(num=pid))
-                while (self.is_running(name)):
-                    time.sleep(1)
+            if force:
+                self.run_command('kill -s SIGKILL {num}'.format(num=pid))
             else:
-                self.run_command('sudo kill -s SIGKILL {num}'.format(num=pid))
+                self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
+
+        if wait == True:
+            while (self.is_running(name)):
+                time.sleep(1)
 
         """
         args_list = shlex.split('sudo pkill {name}'.format(name=name))
@@ -322,6 +316,28 @@ class Terminal():
             pids.append(pid)
 
         return pids
+
+    def install_package(self, package_name):
+        """
+        package_name: the package you want to install ; string
+        """
+        self._io.make_sure_sudo_permission()
+
+        package_name = package_name.strip(" \n").replace('_', '-').lower()
+        installed_packages = self.run_command("sudo apt list").lower()
+        if package_name not in installed_packages:
+            self.run("sudo apt install {name} -y --upgrade".format(name=package_name))
+
+    def uninstall_package(self, package_name):
+        """
+        package_name: the package you want to uninstall ; string
+        """
+        self._io.make_sure_sudo_permission()
+
+        package_name = package_name.strip(" \n").replace('_', '-').lower()
+        installed_packages = self.run_command("sudo apt list").lower()
+        if package_name in installed_packages:
+            self.run("sudo apt purge {name} -y".format(name=package_name))
 
 
 class Super():
@@ -414,6 +430,7 @@ WantedBy=multi-user.target
         name: service name
         """
         service_path = "/etc/systemd/system/{name}.service".format(name=name)
+
         stop_command = "systemctl stop {name}\n".format(name=name)
         disable_command = "systemctl disable {name}\n".format(name=name)
         cheack_command = "systemctl status {name} | cat\n".format(name=name)
@@ -427,6 +444,27 @@ WantedBy=multi-user.target
             time.sleep(1)
             print("\n".join(self._t.run_command(
                 cheack_command).split("\n")[:6]))
+
+    def service(self, name, py_file_path):
+        """
+        name: service name
+        py_file_path: a path leads to a python script
+
+        start or stop service, means you can make a python script running forever
+        """
+        service_path = "/etc/systemd/system/{name}.service".format(name=name)
+
+        cheack_command = "systemctl status {name} | cat\n".format(name=name)
+
+        if not self._t.exists(service_path):
+            self.start_service(name, py_file_path)
+        else:
+            status = ": inactive" in "\n".join(self._t.run_command(
+                cheack_command).split("\n")[:5])
+            if status:
+                self.start_service(name)
+            else:
+                self.stop_service(name)
 
 
 if __name__ == "__main__":
