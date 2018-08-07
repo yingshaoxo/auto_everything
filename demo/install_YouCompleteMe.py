@@ -35,6 +35,7 @@ python3 ./install.py
 if not b.exists("~/.vim/bundle/Vundle.vim"):
     c = """
 git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+git clone https://github.com/leafgarland/typescript-vim.git ~/.vim/bundle/typescript-vim
     """
     b.run(c, wait=True)
 
@@ -57,6 +58,7 @@ Plugin 'VundleVim/Vundle.vim'
 " plugin on GitHub repo
 Plugin 'Valloric/YouCompleteMe'
 Plugin 'tell-k/vim-autopep8'
+Plugin 'leafgarland/typescript-vim'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
