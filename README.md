@@ -13,6 +13,8 @@ wget https://github.com/yingshaoxo/auto_everything/raw/master/demo/install_YouCo
 sudo python3 install_YouCompleteMe.py
 ```
 
+___
+
 
 ### Basic API
 #### Import
@@ -51,6 +53,8 @@ status = t.is_running('terminal')
 print(status)
 ```
 
+___
+
 
 ### Advanced API
 #### Keep a function running
@@ -79,6 +83,8 @@ s = Super(username="root")
 s.service("service_name", "your_python_file_path")
 ```
 
+___
+
 
 ### Package management
 #### Install or Uninstall a Python package
@@ -98,6 +104,8 @@ t = Terminal()
 t.install_package("any_package_name")
 t.uninstall_package("any_package_name")
 ```
+
+___
 
 
 ### Anothers
