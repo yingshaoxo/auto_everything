@@ -16,7 +16,7 @@ sudo python3 install_YouCompleteMe.py
 ___
 
 
-### Basic API
+## Basic API
 #### Import
 ```
 from auto_everything.base import Terminal
@@ -56,7 +56,7 @@ print(status)
 ___
 
 
-### Advanced API
+## Advanced API
 #### Keep a function running
 ```
 from auto_everything.base import Python
@@ -86,7 +86,7 @@ s.service("service_name", "your_python_file_path")
 ___
 
 
-### Package management
+## Package management
 #### Install or Uninstall a Python package
 ```
 from auto_everything.base import Python
@@ -108,7 +108,7 @@ t.uninstall_package("any_package_name")
 ___
 
 
-### Anothers
+## Anothers
 #### Web automation
 ```
 from auto_everything.web import Selenium
