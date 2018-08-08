@@ -132,3 +132,16 @@ element.click() # d.execute_script("arguments[0].click();", element)
 sleep(30)
 d.quit()
 ```
+
+#### Simpler IO
+```
+from auto_everything.base import IO
+io = IO()
+
+io.write("hi.txt", "Hello, world!")
+print(io.read("hi.txt"))
+
+io.append("hi.txt", "\n\nI'm yingshaoxo.")
+print(io.read("hi.txt"))
+```
+
