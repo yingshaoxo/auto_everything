@@ -20,6 +20,8 @@ test() {
 	cd dist
 	sudo pip3 install auto_everything*
 	cd ..
+
+    sudo python3 demo/test/main.py
 }
 
 publish() {

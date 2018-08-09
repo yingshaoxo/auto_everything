@@ -229,33 +229,33 @@ class Terminal():
             args = ''
         return file_path, args
 
-    def run_py(self, file_path_with_command, working_dir=None, wait=False):
-        if working_dir == None:
-            working_dir = self.current_dir
-
+    def run_py(self, file_path_with_command, cwd=None, wait=False):
         path, args = self.__split_args(file_path_with_command)
+        path = self.fix_path(path)
         command = self.py_executable + ' {path} {args} &'.format(
             version=self.py_version, path=path, args=args)
-        command = self.fix_path(command)
+
+        if cwd == None:
+            cwd = os.path.dirname(path)
 
         if wait == False:
-            self.run_program(command, cwd=working_dir)
+            self.run_program(command, cwd=cwd)
         elif wait == True:
-            self.run(command, cwd=working_dir, wait=True)
+            self.run(command, cwd=cwd, wait=True)
 
-    def run_sh(self, file_path_with_command, working_dir=None, wait=False):
-        if working_dir == None:
-            working_dir = self.current_dir
-
+    def run_sh(self, file_path_with_command, cwd=None, wait=False):
         path, args = self.__split_args(file_path_with_command)
+        path = self.fix_path(path)
         command = 'bash {path} {args} &'.format(
             path=path, args=args)
-        command = self.fix_path(command)
+
+        if cwd == None:
+            cwd = os.path.dirname(path)
 
         if wait == False:
-            self.run_program(command, cwd=working_dir)
+            self.run_program(command, cwd=cwd)
         elif wait == True:
-            self.run(command, cwd=working_dir, wait=True)
+            self.run(command, cwd=cwd, wait=True)
 
     def is_running(self, name):
         """
