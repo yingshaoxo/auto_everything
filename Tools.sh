@@ -21,7 +21,9 @@ test() {
 	sudo pip3 install auto_everything*
 	cd ..
 
-    sudo python3 demo/test/main.py
+    cd demo/test
+    sudo python3 main.py
+    cd ../..
 }
 
 publish() {

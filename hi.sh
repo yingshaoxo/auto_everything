@@ -1,3 +1,0 @@
-
-echo "python" >> log
-        
