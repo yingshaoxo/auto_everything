@@ -53,6 +53,11 @@ status = t.is_running('terminal')
 print(status)
 ```
 
+#### Kill it
+```
+t.kill('terminal')
+```
+
 ___
 
 
@@ -144,4 +149,3 @@ print(io.read("hi.txt"))
 io.append("hi.txt", "\n\nI'm yingshaoxo.")
 print(io.read("hi.txt"))
 ```
-
