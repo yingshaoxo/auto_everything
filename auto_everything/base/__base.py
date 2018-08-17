@@ -266,7 +266,7 @@ class Terminal():
         else:
             return False
 
-    def kill(self, name, force=True, wait=False):
+    def kill(self, name, force=True, wait=False, timeout=30):
         """
         name: what's the name of that program you want to kill ; string
         force: kill it directlly or softly. some program like ffmpeg, should set force=False
@@ -282,8 +282,11 @@ class Terminal():
                 self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
 
         if wait == True:
-            while (self.is_running(name)):
+            while (self.is_running(name) and timeout > 0):
                 time.sleep(1)
+                timeout -= 1
+            pids = self._get_pids(name)
+            self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
 
         """
         args_list = shlex.split('sudo pkill {name}'.format(name=name))
