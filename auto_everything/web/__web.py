@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -17,9 +18,15 @@ class Net():
 
 
 class Selenium():
-    def __init__(self, url):
+    def __init__(self, url, headless=False):
         try:
-            self.driver = webdriver.Chrome()
+            if headless == False:
+                self.driver = webdriver.Chrome()
+            else:
+                options = Options()
+                options.add_argument('--headless')
+                options.add_argument('--disable-gpu')
+                self.driver = webdriver.Chrome(chrome_options=options)
         except Exception as e:
             print(e)
             try:

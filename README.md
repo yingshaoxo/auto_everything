@@ -119,7 +119,7 @@ ___
 from auto_everything.web import Selenium
 from time import sleep
 
-my_selenium = Selenium("https://www.google.com")
+my_selenium = Selenium("https://www.google.com", headless=False)
 d = my_selenium.driver
 
 # get input box
@@ -130,7 +130,7 @@ element = my_selenium.wait_until_exists(xpath)[0]
 element.send_keys('\b' * 20, "yingshaoxo")
 
 # click search button
-element = my_selenium.wait_until_exists('//*[@id="tsf"]/div[2]/div[3]/center/input[1]')[0]
+element = my_selenium.wait_until_exists('//input[@value="Google Search"]')[0]
 element.click() # d.execute_script("arguments[0].click();", element)
 
 # exit
