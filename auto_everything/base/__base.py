@@ -191,12 +191,20 @@ class Terminal():
         c: shell command
         timeout: seconds. how long this command will take
         """
+        if '\n' in c:
+            c = self.__text_to_sh(c)
+
         c = self.fix_path(c)
         args_list = shlex.split(c)
         try:
             result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                     cwd=self.current_dir, universal_newlines=True, timeout=timeout)
-            return str(result.stdout).strip(" \n")
+            result = str(result.stdout).strip(" \n")
+            try:
+                os.remove(self.__temp_sh)
+            except:
+                pass
+            return result
         except Exception as e:
             return str(e)
 
