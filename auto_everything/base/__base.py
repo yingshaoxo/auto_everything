@@ -183,8 +183,8 @@ class Terminal():
                 os.remove(self.__temp_sh)
             except:
                 pass
-
-        return p
+        else:
+            return p
 
     def run_command(self, c, timeout=15):
         """
