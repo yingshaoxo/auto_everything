@@ -1,11 +1,14 @@
-from auto_everything.base import IO, Python, Terminal
 import unittest
 import time
 
-
+from auto_everything.base import IO, Python, Terminal
 io = IO()
 py = Python()
 t = Terminal()
+
+from auto_everything.math import Password
+passwd = Password("yingshaoxo")
+
 
 io.make_sure_sudo_permission()
 print('\n' * 30)
@@ -59,6 +62,9 @@ echo "python" >> log
         t.run_command("rm log")
         t.run_sh('hi.sh', wait=True)
         self.assertIn("python", io.read("log"))
+
+    def test_passwd(self):
+        self.assertIn("A", passwd.update("hihihi"))
 
 
 unittest.main()

@@ -1,1 +1,1 @@
-from .__math import Calculator
+from .__math import Calculator, Password

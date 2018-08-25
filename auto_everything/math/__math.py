@@ -1,45 +1,79 @@
-from sympy import *
+import hashlib
+
+
+class Password():
+    def __init__(self, base_string):
+        """
+        base_string: a base_string for PassWord generation
+        """
+        self.__base_data = base_string.encode("utf-8")
+
+    def update(self, *args, length=12):
+        """
+        *args: any string
+
+        length: password length
+
+        return password string
+        """
+        data_list = [string.encode("utf-8") for string in args]
+
+        m = hashlib.sha512()
+        m.update(self.__base_data)
+
+        for data in data_list:
+            m.update(data)
+
+        result = m.hexdigest()
+        result = result[:length-1]
+        result = "A" + result
+        return result
 
 
 class Calculator():
     def __init__(self):
-        # init_printing(use_unicode=True)
-        pass
+        import sympy
+        self.sympy = sympy
+        self.sympy.init_printing(use_unicode=True)
 
     def symbol(self, symbol_string):
-        return Symbol(symbol_string)
+        return self.sympy.Symbol(symbol_string)
 
     def simplify(self, expression, use_latex=True):
-        r = simplify(expression)
+        r = self.sympy.simplify(expression)
         if use_latex == False:
             return str(r)
         else:
-            r = latex(r)
+            r = self.sympy.latex(r)
             return r
 
     def differential(self, expression, variable, times=1, use_latex=True):
-        r = diff(expression, variable, times)
+        r = self.sympy.diff(expression, variable, times)
         if use_latex == False:
             return str(r)
         else:
-            r = latex(r)
+            r = self.sympy.latex(r)
             return r
     
     def integral(self, expression, variable, use_latex=True):
-        r = integrate(expression, variable)
+        r = self.sympy.integrate(expression, variable)
         if use_latex == False:
             return str(r)
         else:
-            r = latex(r)
+            r = self.sympy.latex(r)
             return r
         
 
+"""
+try:
+    import numpy as np
+    import pylab
+    from scipy.misc import derivative
+except:
+    pass
+"""
 class Drawer():
     def __init__(self, func):
-        import numpy as np
-        import pylab
-        from scipy.misc import derivative
-
         self.f = func
         self.vf = np.vectorize(func)
         self.derivative = np.vectorize((lambda x, h=0.0001, f=self.f, level=1:derivative(f, x, dx=1e-6, n=level)))
@@ -133,6 +167,16 @@ class Drawer():
         pylab.show()
 
 
+if __name__ == "__main__":
+    # c = Calculator()
+    # print(c.simplify("(x**2) + (-(x**2))"))
 
-# c = Calculator()
-# c.simplify("(x**2/(2/2)) * a")
+    # def function(x):
+    #     return x**2
+    # d = Drawer(function)
+    # d.draw()
+    # d.draw_tangent(0, width=6)
+    # d.show()
+    
+    passwd = Password("yingshaoxo")
+    print(passwd.update("hi"))
