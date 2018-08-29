@@ -179,4 +179,4 @@ if __name__ == "__main__":
     # d.show()
     
     passwd = Password("yingshaoxo")
-    print(passwd.update("hi"))
+    print(passwd.update("github"))

@@ -98,6 +98,8 @@ set expandtab
 set fileformat=unix
 " set autoindent
 " autoindent may cause bad behavior when you paste in vim
+
+set clipboard=unnamedplus
 """
 with open(b.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
     f.write(vimrc)
@@ -106,6 +108,8 @@ with open(b.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
 c = """
 sudo pip3 install autopep8
 sudo pip3 install jedi
+
+sudo apt-get install vim-gnome -y
 """
 b.run(c, wait=True)
 
