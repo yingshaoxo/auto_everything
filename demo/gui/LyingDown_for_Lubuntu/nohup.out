@@ -1,0 +1,4 @@
+[5996:6115:0902/003429.549838:ERROR:bus.cc(394)] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+
+(google-chrome-stable:5996): LIBDBUSMENU-GLIB-WARNING **: 00:34:29.615: Unable to get session bus: Unknown or unsupported transport “disabled” for address “disabled:”
+[5996:6026:0902/003430.128793:ERROR:nss_util.cc(83)] Failed to create /home/yingshaoxo/.pki/nssdb directory.
