@@ -100,6 +100,28 @@ class Python():
 
             return new_function
 
+    def help(self, object):
+        doc = object.__doc__
+        if doc:
+            print(doc, '\n')
+
+        if callable(object):
+            from inspect import signature
+            arguments = str(signature(object))
+            print(object.__name__ + arguments)
+        else:
+            from pprint import pprint
+            methods = dir(object)
+            private_methods = []
+            public_methods = []
+            for method in methods:
+                if "_" == method[:1]:
+                    private_methods.append(method)
+                else:
+                    public_methods.append(method)
+            print(private_methods, '\n')
+            pprint(public_methods)
+
 
 class Terminal():
     def __init__(self, username=None):

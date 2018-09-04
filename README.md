@@ -1,5 +1,5 @@
 # auto_everything
-Linux system automation
+Linux(mainly ubuntu) system automation
 
 #### Installation
 ```
@@ -56,6 +56,19 @@ print(status)
 #### Kill it
 ```
 t.kill('terminal')
+```
+
+___
+
+
+## For simplify Python development
+#### Check out object information
+```
+from auto_everything.base import Terminal, Python
+t = Terminal()
+py = Python()
+
+py.help(t)
 ```
 
 ___

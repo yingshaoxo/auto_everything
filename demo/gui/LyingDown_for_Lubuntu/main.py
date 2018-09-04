@@ -20,6 +20,8 @@ pyautogui.moveTo(0,0)
 gui.click_after_exists("chrome_new_tab")
 pyautogui.typewrite("https://google.com")
 pyautogui.press("enter")
+if gui.exists("chrome_x"):
+    gui.click_after_exists("chrome_x")
 
 
 # 2. run terminator
