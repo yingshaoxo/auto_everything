@@ -1,5 +1,5 @@
 # auto_everything
-Linux(mainly ubuntu) system automation
+Linux(mainly ubuntu) automation
 
 #### Installation
 ```
