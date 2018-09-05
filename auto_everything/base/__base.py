@@ -125,6 +125,17 @@ class Python():
             print(private_methods, '\n')
             pprint(public_methods)
             
+    def fire(self, class_name):
+        """
+        fire is a function that will turn any Python class into a command line interface
+        """
+        try:
+            from fire import Fire
+        except Exception as e:
+            print(e)
+            self.install_package('fire')
+        Fire(class_name)
+
     def make_it_runnable(self, py_file_path=None):
         """
         make python file runnable

@@ -71,6 +71,11 @@ py = Python()
 py.help(t)
 ```
 
+#### Ture Python class into `command line interface`
+```
+py.fire(your_class_name)
+```
+
 ___
 
 
