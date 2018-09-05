@@ -101,6 +101,9 @@ class Python():
             return new_function
 
     def help(self, object):
+        """
+        get help information about class or function
+        """
         doc = object.__doc__
         if doc:
             print(doc, '\n')
@@ -121,6 +124,21 @@ class Python():
                     public_methods.append(method)
             print(private_methods, '\n')
             pprint(public_methods)
+            
+    def make_it_runnable(self, py_file_path=None):
+        """
+        make python file runnable
+
+        so you can run it by: ./your_py_script_name.py
+        """
+        if py_file_path == None or self._t.exists(py_file_path):
+            py_file_path = os.path.join(self._t.current_dir, sys.argv[0].strip('./'))
+        codes = self._io.read(py_file_path)
+        expected_first_line = '#!/usr/bin/env {}'.format(self._t.py_executable)
+        if codes.split('\n')[0] != expected_first_line:
+            codes = expected_first_line + '\n' + codes
+            self._io.write(py_file_path, codes)
+            self._t.run_command('chmod +x {}'.format(py_file_path))
 
 
 class Terminal():
@@ -501,5 +519,5 @@ WantedBy=multi-user.target
 
 
 if __name__ == "__main__":
-    t = Terminal()
-    t._("python")
+    py = Python()
+    py.make_it_runnable()
