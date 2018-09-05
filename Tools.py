@@ -11,9 +11,9 @@ class Tools():
     def push(self, comment):
         self.__clear()
 
-        t.run_command('git add .')
-        t.run_command('git commit -m "{}"'.format(comment))
-        t.run_command('git push origin')
+        t.run('git add .')
+        t.run('git commit -m "{}"'.format(comment))
+        t.run('git push origin')
 
     def pull(self):
         t.run("""
