@@ -71,7 +71,7 @@ py = Python()
 py.help(t)
 ```
 
-#### Ture Python class into `command line interface`
+#### Ture `Python Class` into a `Command Line Program`
 ```
 py.fire(your_class_name)
 ```
