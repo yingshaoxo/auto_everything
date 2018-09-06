@@ -1,25 +1,8 @@
-[2152:2279:0904/040519.378672:ERROR:bus.cc(394)] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1947:2089:0906/225701.970012:ERROR:bus.cc(394)] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
 
-(google-chrome-stable:2152): LIBDBUSMENU-GLIB-WARNING **: 04:05:19.474: Unable to get session bus: Unknown or unsupported transport “disabled” for address “disabled:”
-[2152:2179:0904/040519.902571:ERROR:nss_util.cc(83)] Failed to create /home/yingshaoxo/.pki/nssdb directory.
-[2152:2167:0904/040847.556920:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[2152:2152:0904/040936.486020:ERROR:CONSOLE(0)] "Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: chrome://resources/roboto/roboto-regular.woff2", source:  (0)
-[2152:2152:0904/040936.617921:ERROR:CONSOLE(429)] "Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: chrome://resources/roboto/roboto-bold.woff2", source: chrome://settings/crisper.js (429)
-[2152:2152:0904/040936.680475:ERROR:CONSOLE(0)] "Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: chrome://resources/roboto/roboto-medium.woff2", source:  (0)
-[2152:2167:0904/041700.717403:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[2152:2167:0904/042138.568659:ERROR:ssl_client_socket_impl.cc(996)] handshake failed; returned -1, SSL error code 1, net_error -100
-[2152:2167:0904/042700.718365:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[2152:2167:0904/044200.719211:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[2152:2167:0904/045200.720011:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[2152:2167:0904/050200.720798:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[2152:2167:0904/050529.860980:ERROR:ssl_client_socket_impl.cc(996)] handshake failed; returned -1, SSL error code 1, net_error -100
-[2152:2167:0904/050539.681507:ERROR:ssl_client_socket_impl.cc(996)] handshake failed; returned -1, SSL error code 1, net_error -100
-[2152:2167:0904/050923.741569:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[1,652028800:21:10:41.398416] Native Client module will be loaded at base address 0x0000255100000000
-[2152:2167:0904/051545.465980:ERROR:pnacl_host.cc(434)] TranslationFinished: TranslationID 58,379048257 not found.
-[2152:2167:0904/051923.742551:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[2152:2167:0904/052923.743326:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[2152:2167:0904/054423.744139:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[2152:2167:0904/055423.745213:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[2152:2167:0904/060423.746156:ERROR:socket_stream.cc(210)] Closing stream with result -100
-[1,652028800:22:05:52.363331] Native Client module will be loaded at base address 0x0000270b00000000
+(google-chrome-stable:1947): LIBDBUSMENU-GLIB-WARNING **: 22:57:02.071: Unable to get session bus: Unknown or unsupported transport “disabled” for address “disabled:”
+[1947:1992:0906/225702.474746:ERROR:nss_util.cc(83)] Failed to create /home/yingshaoxo/.pki/nssdb directory.
+[1947:1977:0906/225732.998577:ERROR:connection_factory_impl.cc(403)] Failed to connect to MCS endpoint with error -7
+[1947:1977:0906/230351.034284:ERROR:socket_stream.cc(210)] Closing stream with result -100
+[1947:1977:0906/230602.042560:ERROR:connection_factory_impl.cc(403)] Failed to connect to MCS endpoint with error -118
+[1947:1977:0906/231122.787672:ERROR:socket_stream.cc(210)] Closing stream with result -100
