@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from auto_everything import base
+from auto_everything.base import Terminal, IO
 from os import path
 
-b = base.Terminal()
+t = Terminal()
+io = IO()
 
 print("start...\n\n")
 
@@ -15,10 +16,10 @@ sudo apt install -y python3-pip
 sudo apt install -y vim
 sudo apt install -y git
 """
-b.run(c, wait=True)
+t.run(c, wait=True)
 
 # 2
-if not b.exists("~/.vim/bundle/YouCompleteMe"):
+if not t.exists("~/.vim/bundle/YouCompleteMe"):
     c = """
 cd ~
 mkdir .vim
@@ -29,15 +30,15 @@ git clone --recurse-submodules -j8 https://github.com/Valloric/YouCompleteMe.git
 cd YouCompleteMe
 python3 ./install.py
     """
-    b.run(c, wait=True)
+    t.run(c, wait=True)
 
 # 3
-if not b.exists("~/.vim/bundle/Vundle.vim"):
+if not t.exists("~/.vim/bundle/Vundle.vim"):
     c = """
 git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 git clone https://github.com/leafgarland/typescript-vim.git ~/.vim/bundle/typescript-vim
     """
-    b.run(c, wait=True)
+    t.run(c, wait=True)
 
 # 4
 vimrc = """
@@ -101,7 +102,7 @@ set fileformat=unix
 
 set clipboard=unnamedplus
 """
-with open(b.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
+with open(t.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
     f.write(vimrc)
 
 # 5
@@ -111,10 +112,48 @@ sudo pip3 install jedi
 
 sudo apt-get install vim-gnome -y
 """
-b.run(c, wait=True)
+t.run(c, wait=True)
 
 
 print("\n\nfinished...")
+
+
+# 6 set terminator
+if t.exists(t.fix_path('~/.config/terminator')):
+    io.write(t.fix_path('~/.config/terminator/config'), """
+[global_config]
+  always_split_with_profile = True
+  borderless = True
+  smart_copy = False
+  suppress_multiple_term_dialog = True
+  window_state = maximise
+[keybindings]
+  broadcast_all = None
+  broadcast_group = None
+  broadcast_off = None
+[layouts]
+  [[default]]
+    [[[child1]]]
+      parent = window0
+      type = Terminal
+    [[[window0]]]
+      parent = ""
+      type = Window
+[plugins]
+[profiles]
+  [[default]]
+    cursor_color = "#aaaaaa"
+    icon_bell = False
+    scrollbar_position = hidden
+    show_titlebar = False
+  [[mine]]
+    cursor_color = "#aaaaaa"
+    font = Monospace 30
+    icon_bell = False
+    scrollbar_position = hidden
+    show_titlebar = False
+    use_system_font = False
+""")
 
 
 

@@ -1,5 +1,9 @@
-[2028:2155:0907/002530.903011:ERROR:bus.cc(394)] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[21502:21630:0909/000620.166485:ERROR:bus.cc(394)] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
 
-(google-chrome-stable:2028): LIBDBUSMENU-GLIB-WARNING **: 00:25:31.000: Unable to get session bus: Unknown or unsupported transport “disabled” for address “disabled:”
-[2028:2055:0907/002531.408663:ERROR:nss_util.cc(83)] Failed to create /home/yingshaoxo/.pki/nssdb directory.
-[2028:2043:0907/002635.337632:ERROR:connection_factory_impl.cc(403)] Failed to connect to MCS endpoint with error -7
+(google-chrome-stable:21502): LIBDBUSMENU-GLIB-WARNING **: 00:06:20.245: Unable to get session bus: Unknown or unsupported transport “disabled” for address “disabled:”
+[21502:21631:0909/000620.620720:ERROR:nss_util.cc(83)] Failed to create /home/yingshaoxo/.pki/nssdb directory.
+[21502:21517:0909/000658.147651:ERROR:connection_factory_impl.cc(403)] Failed to connect to MCS endpoint with error -7
+[21502:21517:0909/001719.537425:ERROR:socket_stream.cc(210)] Closing stream with result -100
+[21502:21517:0909/001749.798716:ERROR:connection_factory_impl.cc(403)] Failed to connect to MCS endpoint with error -7
+[21502:21517:0909/002734.206889:ERROR:socket_stream.cc(210)] Closing stream with result -100
+[21502:21517:0909/002943.881485:ERROR:connection_factory_impl.cc(403)] Failed to connect to MCS endpoint with error -118

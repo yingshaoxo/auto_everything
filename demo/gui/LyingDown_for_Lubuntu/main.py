@@ -31,21 +31,8 @@ if gui.exists("chrome_x"):
 
 
 # 2. run terminator
-"""
-if not t.is_running("terminator"):
-    t.run_program("terminator")
-while not gui.exists("terminator_table"):
-    pyautogui.keyDown("alt")
-    pyautogui.press("tab")
-    pyautogui.keyUp("alt")
-"""
-
 t.run_program("terminator", cwd=t.fix_path("~"))
 pyautogui.press("f11")
 
-while not gui.exists("terminator_@"):
-    pyautogui.keyDown('ctrl')
-    pyautogui.press('+')
-    pyautogui.keyUp('ctrl')
 
 print("Done!")
