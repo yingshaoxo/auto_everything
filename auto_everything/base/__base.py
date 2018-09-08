@@ -104,14 +104,14 @@ class Python():
         """
         get help information about class or function
         """
-        doc = object.__doc__
-        if doc:
-            print(doc, '\n')
-
         if callable(object):
             from inspect import signature
             arguments = str(signature(object))
             print(object.__name__ + arguments)
+
+            doc = object.__doc__
+            if doc:
+                print(doc, '\n')
         else:
             from pprint import pprint
             methods = dir(object)
