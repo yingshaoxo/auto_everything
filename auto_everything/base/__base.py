@@ -426,7 +426,7 @@ Type=simple
 User={username}
 WorkingDirectory={working_dir}
 Environment=DISPLAY=:0.0
-ExecStart=/bin/bash -c '. "$0" && exec "$@"' /home/{username}/.bashrc /usr/bin/python3 {py_file_path}
+ExecStart=/usr/bin/python3 {py_file_path}
 Restart=always
 RestartSec=5
 StartLimitBurst=100000
