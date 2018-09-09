@@ -435,12 +435,9 @@ StartLimitInterval=1s
 [Install]
 WantedBy=multi-user.target
 """.format(username=self.__username, working_dir=working_dir, py_file_path=py_file_path)
-        """
         if self.__username == "root":
             content.replace("Environment=DISPLAY=:0.0\n", "")
         return content
-        """
-        content.replace("Environment=DISPLAY=:0.0\n", "")
 
     def start_service(self, name, py_file_path=None):
         """
@@ -463,8 +460,7 @@ WantedBy=multi-user.target
             else:
                 self._t.run(restart_command)
         else:
-            py_file_path = self._t.fix_path(
-                py_file_path, username=self.__username)
+            py_file_path = self._t.fix_path(py_file_path, username=self.__username)
             py_file_path = os.path.abspath(py_file_path)
             if not self._t.exists(service_path):
                 config = self.__get_service_config(py_file_path)
@@ -509,12 +505,12 @@ WantedBy=multi-user.target
             time.sleep(1)
             print("\n".join(self._t.run_command(
                 cheack_command).split("\n")[:6]))
+            self._t.run_command('sudo rm {}'.format(service_path))
 
     def service(self, name, py_file_path):
         """
         name: service name
         py_file_path: a path leads to a python script
-
         start or stop service, means you can make a python script running forever
         """
         service_path = "/etc/systemd/system/{name}.service".format(name=name)
