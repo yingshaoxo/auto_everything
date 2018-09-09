@@ -26,21 +26,19 @@ git reset --hard origin/master
 """)
 
     def install(self):
-        commands = """
+        t.run("""
 sudo rm -fr dist
 sudo rm -fr build
 
 sudo pip3 uninstall -y auto_everything
-python3 setup.py sdist bdist_wheel
+sudo -H python3 setup.py sdist bdist_wheel
 cd dist
 sudo pip3 install auto_everything*
 cd ..
 
 cd demo/test
 sudo python3 main.py
-cd ../..
-        """
-        t.run(commands)
+cd ../..""")
 
     def publish(self):
         t.run("""

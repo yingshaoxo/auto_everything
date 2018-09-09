@@ -426,7 +426,7 @@ Type=simple
 User={username}
 WorkingDirectory={working_dir}
 Environment=DISPLAY=:0.0
-ExecStart=/usr/bin/python3 {py_file_path}
+ExecStart=/bin/bash -c '. "$0" && exec "$@"' /home/{username}/.bashrc /usr/bin/python3 {py_file_path}
 Restart=always
 RestartSec=5
 StartLimitBurst=100000
@@ -435,9 +435,12 @@ StartLimitInterval=1s
 [Install]
 WantedBy=multi-user.target
 """.format(username=self.__username, working_dir=working_dir, py_file_path=py_file_path)
+        """
         if self.__username == "root":
             content.replace("Environment=DISPLAY=:0.0\n", "")
         return content
+        """
+        content.replace("Environment=DISPLAY=:0.0\n", "")
 
     def start_service(self, name, py_file_path=None):
         """
