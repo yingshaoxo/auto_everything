@@ -40,15 +40,11 @@ sudo -H python3 setup.py sdist bdist_wheel
 cd dist
 sudo pip3 install auto_everything*
 cd ..
-
-cd demo/test
-sudo python3 main.py
-cd ../..""")
+        """)
 
     def publish(self):
+        self.install()
         t.run("""
-clear
-test
 twine upload dist/*
         """)
 
