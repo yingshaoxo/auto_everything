@@ -87,7 +87,7 @@ py = Python()
 
 i = 0
 
-@py.loop(thread=False)
+@py.loop(interval=1, thread=False)
 def count():
     global i
     i += 1

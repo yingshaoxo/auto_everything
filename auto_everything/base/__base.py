@@ -352,11 +352,12 @@ class Python():
         self._os.uninstall_python_package(package_name)
 
     class loop():
-        def __init__(self, thread=False):
+        def __init__(self, interval=1, thread=False):
             """
             new_thread: do you want to open a new thread? True/False
             """
             self.thread = thread
+            self.interval = interval
 
         def __call__(self, func):
             """
@@ -367,7 +368,7 @@ class Python():
                     while 1:
                         try:
                             func(*args, **kwargs)
-                            time.sleep(1)
+                            time.sleep(self.interval)
                         except Exception as e:
                             print(e)
 
