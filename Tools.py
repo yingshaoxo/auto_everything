@@ -11,6 +11,8 @@ class Tools():
             t.run_program("terminator -e 'vim auto_everything/gui/__gui.py'")
         elif on_what == "gui-example":
             t.run_program("terminator -e 'vim ./demo/gui/LyingDown_for_Lubuntu/main.py'")
+        elif on_what == "test":
+            t.run_program("terminator -e 'vim ./demo/test/main.py'")
 
     def push(self, comment):
         self.__clear()
@@ -24,6 +26,9 @@ class Tools():
 git fetch --all
 git reset --hard origin/master
 """)
+
+    def test(self):
+        t.run_py("./demo/test/main.py", wait=True)
 
     def install(self):
         t.run("""

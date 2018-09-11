@@ -45,113 +45,6 @@ class IO():
         self.append(self.__log_path, text)
 
 
-class Python():
-    def __init__(self):
-        self._io = IO()
-        self._t = Terminal()
-
-    def install_package(self, package_name):
-        """
-        package_name: the package you want to install ; string
-        """
-        self._io.make_sure_sudo_permission()
-
-        package_name = package_name.strip(" \n").replace('_', '-').lower()
-        installed_packages = self._t.run_command("sudo pip3 list").lower()
-        if package_name not in installed_packages:
-            self._t.run("sudo pip3 install {name} --upgrade".format(name=package_name))
-
-    def uninstall_package(self, package_name):
-        """
-        package_name: the package you want to uninstall ; string
-        """
-        self._io.make_sure_sudo_permission()
-
-        package_name = package_name.strip(" \n").replace('_', '-').lower()
-        installed_packages = self._t.run_command("sudo pip3 list").lower()
-        if package_name in installed_packages:
-            self._t.run(
-                "sudo pip3 uninstall {name} -y".format(name=package_name))
-
-    class loop():
-        def __init__(self, thread=False):
-            """
-            new_thread: do you want to open a new thread? True/False
-            """
-            self.thread = thread
-
-        def __call__(self, func):
-            """
-            func: a function which you want to run forever
-            """
-            def new_function(*args, **kwargs):
-                def while_function():
-                    while 1:
-                        try:
-                            func(*args, **kwargs)
-                            time.sleep(1)
-                        except Exception as e:
-                            print(e)
-
-                if self.thread == False:
-                    while_function()
-                else:
-                    threading.Thread(target=while_function).start()
-
-            return new_function
-
-    def help(self, object):
-        """
-        get help information about class or function
-        """
-        if callable(object):
-            from inspect import signature
-            arguments = str(signature(object))
-            print(object.__name__ + arguments)
-
-            doc = object.__doc__
-            if doc:
-                print(doc, '\n')
-        else:
-            from pprint import pprint
-            methods = dir(object)
-            private_methods = []
-            public_methods = []
-            for method in methods:
-                if "_" == method[:1]:
-                    private_methods.append(method)
-                else:
-                    public_methods.append(method)
-            print(private_methods, '\n')
-            pprint(public_methods)
-            
-    def fire(self, class_name):
-        """
-        fire is a function that will turn any Python class into a command line interface
-        """
-        try:
-            from fire import Fire
-        except Exception as e:
-            print(e)
-            self.install_package('fire')
-        Fire(class_name)
-
-    def make_it_runnable(self, py_file_path=None):
-        """
-        make python file runnable
-
-        so you can run it by: ./your_py_script_name.py
-        """
-        if py_file_path == None or self._t.exists(py_file_path):
-            py_file_path = os.path.join(self._t.current_dir, sys.argv[0].strip('./'))
-        codes = self._io.read(py_file_path)
-        expected_first_line = '#!/usr/bin/env {}'.format(self._t.py_executable)
-        if codes.split('\n')[0] != expected_first_line:
-            codes = expected_first_line + '\n' + codes
-            self._io.write(py_file_path, codes)
-            self._t.run_command('chmod +x {}'.format(py_file_path))
-
-
 class Terminal():
     def __init__(self, username=None):
         self.py_version = '{major}.{minor}'.format(
@@ -291,7 +184,7 @@ class Terminal():
     def run_py(self, file_path_with_command, cwd=None, wait=False):
         path, args = self.__split_args(file_path_with_command)
         path = self.fix_path(path)
-        command = self.py_executable + ' {path} {args} &'.format(
+        command = self.py_executable + ' {path} {args}'.format(
             version=self.py_version, path=path, args=args)
 
         if cwd == None:
@@ -305,7 +198,7 @@ class Terminal():
     def run_sh(self, file_path_with_command, cwd=None, wait=False):
         path, args = self.__split_args(file_path_with_command)
         path = self.fix_path(path)
-        command = 'bash {path} {args} &'.format(
+        command = 'bash {path} {args}'.format(
             path=path, args=args)
 
         if cwd == None:
@@ -379,27 +272,162 @@ class Terminal():
 
         return pids
 
-    def install_package(self, package_name):
+
+class OS():
+    """
+    This is for system stuff
+    """
+    def __init__(self):
+        self._io = IO()
+        self._t = Terminal()
+
+    def list_python_packages(self):
+        self._io.make_sure_sudo_permission()
+
+        installed_packages = self._t.run_command("sudo pip3 list").lower()
+        return installed_packages
+
+    def install_python_package(self, package_name, force=False):
         """
         package_name: the package you want to install ; string
         """
         self._io.make_sure_sudo_permission()
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
-        installed_packages = self.run_command("sudo apt list").lower()
-        if package_name not in installed_packages:
-            self.run("sudo apt install {name} -y --upgrade".format(name=package_name))
+        installed_packages = self.list_python_packages()
+        if (force==True) or (package_name not in installed_packages):
+            self._t.run("sudo pip3 install {name} --upgrade".format(name=package_name))
 
-    def uninstall_package(self, package_name):
+    def uninstall_python_package(self, package_name, force=False):
         """
         package_name: the package you want to uninstall ; string
         """
         self._io.make_sure_sudo_permission()
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
-        installed_packages = self.run_command("sudo apt list").lower()
-        if package_name in installed_packages:
-            self.run("sudo apt purge {name} -y".format(name=package_name))
+        installed_packages = self.list_python_packages()
+        if (force==True) or (package_name in installed_packages):
+            self._t.run(
+                "sudo pip3 uninstall {name} -y".format(name=package_name))
+
+    def list_packages(self):
+        self._io.make_sure_sudo_permission()
+
+        installed_packages = self._t.run_command("sudo apt list").lower()
+        return installed_packages
+
+    def install_package(self, package_name, force=False):
+        """
+        package_name: the package you want to install ; string
+        """
+        self._io.make_sure_sudo_permission()
+
+        package_name = package_name.strip(" \n").replace('_', '-').lower()
+        installed_packages = self.list_packages()
+        if (force==True) or (package_name not in installed_packages):
+            self._t.run("sudo apt install {name} -y --upgrade".format(name=package_name))
+
+    def uninstall_package(self, package_name, force=False):
+        """
+        package_name: the package you want to uninstall ; string
+        """
+        self._io.make_sure_sudo_permission()
+
+        package_name = package_name.strip(" \n").replace('_', '-').lower()
+        installed_packages = self.list_packages()
+        if (force==True) or (package_name in installed_packages):
+            self._t.run("sudo apt purge {name} -y".format(name=package_name))
+
+
+class Python():
+    def __init__(self):
+        self._io = IO()
+        self._os = OS()
+        self._t = Terminal()
+
+    def install_package(self, package_name):
+        self._os.install_python_package(package_name)
+
+    def uninstall_package(self, package_name):
+        self._os.uninstall_python_package(package_name)
+
+    class loop():
+        def __init__(self, thread=False):
+            """
+            new_thread: do you want to open a new thread? True/False
+            """
+            self.thread = thread
+
+        def __call__(self, func):
+            """
+            func: a function which you want to run forever
+            """
+            def new_function(*args, **kwargs):
+                def while_function():
+                    while 1:
+                        try:
+                            func(*args, **kwargs)
+                            time.sleep(1)
+                        except Exception as e:
+                            print(e)
+
+                if self.thread == False:
+                    while_function()
+                else:
+                    threading.Thread(target=while_function).start()
+
+            return new_function
+
+    def help(self, object):
+        """
+        get help information about class or function
+        """
+        if callable(object):
+            from inspect import signature
+            arguments = str(signature(object))
+            print(object.__name__ + arguments)
+
+            doc = object.__doc__
+            if doc:
+                print(doc, '\n')
+        else:
+            from pprint import pprint
+            methods = dir(object)
+            private_methods = []
+            public_methods = []
+            for method in methods:
+                if "_" == method[:1]:
+                    private_methods.append(method)
+                else:
+                    public_methods.append(method)
+            print(private_methods, '\n')
+            pprint(public_methods)
+            
+    def fire(self, class_name):
+        """
+        fire is a function that will turn any Python class into a command line interface
+        """
+        try:
+            from fire import Fire
+        except Exception as e:
+            print(e)
+            self.install_package('fire')
+        Fire(class_name)
+
+    def make_it_runnable(self, py_file_path=None):
+        """
+        make python file runnable
+
+        so you can run it by: ./your_py_script_name.py
+        """
+        if py_file_path == None or self._t.exists(py_file_path):
+            py_file_path = os.path.join(self._t.current_dir, sys.argv[0].strip('./'))
+        codes = self._io.read(py_file_path)
+        expected_first_line = '#!/usr/bin/env {}'.format(self._t.py_executable)
+        if codes.split('\n')[0] != expected_first_line:
+            codes = expected_first_line + '\n' + codes
+            self._io.write(py_file_path, codes)
+            self._t.run_command('chmod +x {}'.format(py_file_path))
 
 
 class Super():

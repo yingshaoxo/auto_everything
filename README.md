@@ -109,23 +109,35 @@ s.service("service_name", "your_python_file_path")
 ___
 
 
-## Package management
+## System management
+#### Get package list
+```
+from auto_everything.base import OS
+_os = OS()
+
+python_packages = _os.list_python_packages()
+lubuntu_packages = _os.list_packages()
+
+print(python_packages)
+print(lubuntu_packages)
+```
+
 #### Install or Uninstall a Python package
 ```
-from auto_everything.base import Python
-py = Python()
+from auto_everything.base import OS
+_os = OS()
 
-py.install_package("any_package_name")
-py.uninstall_package("any_package_name")
+_os.install_python_package("any_package_name")
+_os.uninstall_python_package("any_package_name")
 ```
 
 #### Install or Uninstall a Lubuntu package
 ```
-from auto_everything.base import Terminal
-t = Terminal()
+from auto_everything.base import OS
+_os = OS()
 
-t.install_package("any_package_name")
-t.uninstall_package("any_package_name")
+_os.install_package("any_package_name")
+_os.uninstall_package("any_package_name")
 ```
 
 ___

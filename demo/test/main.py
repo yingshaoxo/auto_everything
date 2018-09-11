@@ -1,8 +1,9 @@
 import unittest
 import time
 
-from auto_everything.base import IO, Python, Terminal
+from auto_everything.base import IO, OS, Python, Terminal
 io = IO()
+_os = OS()
 py = Python()
 t = Terminal()
 
@@ -66,5 +67,10 @@ echo "python" >> log
     def test_passwd(self):
         self.assertIn("A", passwd.update("hihihi"))
 
+    def test_install(self):
+        _os.uninstall_package('curl', force=True)
+        self.assertIn('No such', t.run_command('curl'))
+        _os.install_package('curl', force=True)
+        self.assertIn('curl --help', t.run_command('curl'))
 
 unittest.main()
