@@ -18,19 +18,19 @@ ___
 
 ## Basic API
 #### Import
-```python
+```
 from auto_everything.base import Terminal
 t = Terminal()
 ```
 
 #### Run a command & get reply
-```python
+```
 reply = t.run_command('uname -a')
 print(reply)
 ```
 
 #### Run commands & wait until it was finished
-```python
+```
 commands = """
 sudo apt update
 uname -a
@@ -48,13 +48,13 @@ t.run(commands, wait=True)
 `t.run_sh('your_.sh_file_path')`
 
 #### Detect if a program or script is running
-```python
+```
 status = t.is_running('terminal')
 print(status)
 ```
 
 #### Kill it
-```python
+```
 t.kill('terminal')
 ```
 
@@ -63,7 +63,7 @@ ___
 
 ## For simplify Python development
 #### Check out object information
-```python
+```
 from auto_everything.base import Terminal, Python
 t = Terminal()
 py = Python()
@@ -72,7 +72,7 @@ py.help(t)
 ```
 
 #### Turn `Python Class` into a `Command Line Program`
-```python
+```
 py.fire(your_class_name)
 ```
 
