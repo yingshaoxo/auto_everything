@@ -1,3 +1,4 @@
+*.pyc
 *.screenshot*
 nohup.out
 
