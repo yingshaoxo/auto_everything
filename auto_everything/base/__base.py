@@ -213,7 +213,7 @@ class Terminal():
         """
         cheack if a program is running, this depends on `ps x`
         """
-        if name in self.run_command('ps x'):
+        if (name in self.run_command('ps x')) or (name in self.run_command('ps -A')):
             return True
         else:
             return False
@@ -230,6 +230,7 @@ class Terminal():
         for pid in pids:
             if force:
                 self.run_command('kill -s SIGKILL {num}'.format(num=pid))
+                self.run_command('pkill {name}'.format(name))
             else:
                 self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
 

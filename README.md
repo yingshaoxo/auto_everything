@@ -18,19 +18,19 @@ ___
 
 ## Basic API
 #### Import
-```
+```python
 from auto_everything.base import Terminal
 t = Terminal()
 ```
 
 #### Run a command & get reply
-```
+```python
 reply = t.run_command('uname -a')
 print(reply)
 ```
 
 #### Run commands & wait until it was finished
-```
+```python
 commands = """
 sudo apt update
 uname -a
@@ -48,13 +48,13 @@ t.run(commands, wait=True)
 `t.run_sh('your_.sh_file_path')`
 
 #### Detect if a program or script is running
-```
+```python
 status = t.is_running('terminal')
 print(status)
 ```
 
 #### Kill it
-```
+```python
 t.kill('terminal')
 ```
 
@@ -63,7 +63,7 @@ ___
 
 ## For simplify Python development
 #### Check out object information
-```
+```python
 from auto_everything.base import Terminal, Python
 t = Terminal()
 py = Python()
@@ -72,7 +72,7 @@ py.help(t)
 ```
 
 #### Turn `Python Class` into a `Command Line Program`
-```
+```python
 py.fire(your_class_name)
 ```
 
@@ -81,7 +81,7 @@ ___
 
 ## Advanced API
 #### Keep a function running
-```
+```python
 from auto_everything.base import Python
 py = Python()
 
@@ -99,7 +99,7 @@ print("Welcome to my world!")
 ```
 
 #### Create(start) or Cancel(stop) a systemd serviece
-```
+```python
 from auto_everything.base import Super
 s = Super(username="root")
 
@@ -111,7 +111,7 @@ ___
 
 ## System management
 #### Get package list
-```
+```python
 from auto_everything.base import OS
 _os = OS()
 
@@ -123,7 +123,7 @@ print(lubuntu_packages)
 ```
 
 #### Install or Uninstall a Python package
-```
+```python
 from auto_everything.base import OS
 _os = OS()
 
@@ -132,7 +132,7 @@ _os.uninstall_python_package("any_package_name")
 ```
 
 #### Install or Uninstall a Lubuntu package
-```
+```python
 from auto_everything.base import OS
 _os = OS()
 
@@ -145,7 +145,7 @@ ___
 
 ## Anothers
 #### Web automation
-```
+```python
 from auto_everything.web import Selenium
 from time import sleep
 
@@ -169,7 +169,7 @@ d.quit()
 ```
 
 #### Simpler IO
-```
+```python
 from auto_everything.base import IO
 io = IO()
 

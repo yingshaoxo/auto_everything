@@ -19,7 +19,7 @@ setup(name='auto_everything',
         keywords='Linux system automation',
         url='http://github.com/yingshaoxo/auto_everything',
         author='yingshaoxo',
-        license='GPLv3',
+        license='MIT',
         packages=find_packages(),
         include_package_data=False,
         )
