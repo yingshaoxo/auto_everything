@@ -431,6 +431,41 @@ class Python():
             self._io.write(py_file_path, codes)
             self._t.run_command('chmod +x {}'.format(py_file_path))
 
+class Git():
+    def __init__(self):
+        self._io = IO()
+        self._os = OS()
+        self._t = Terminal()
+
+    def generate_git_tools(self):
+        sh_scripts = ''' 
+#!/usr/bin/env /usr/bin/python3
+from auto_everything.base import Python, Terminal
+py = Python()
+t = Terminal()
+
+class Tools():
+    def push(self, comment):
+        t.run('git add .')
+        t.run('git commit -m "{}"'.format(comment))
+        t.run('git push origin')
+
+    def pull(self):
+        t.run("""
+git fetch --all
+git reset --hard origin/master
+""")
+
+    def reset(self):
+        t.run("""
+git reset --hard HEAD^
+""")
+
+py.make_it_runnable()
+py.fire(Tools)
+'''
+        self._io.write("Tools.py", sh_scripts)
+
 
 class Super():
     def __init__(self, username="root"):

@@ -11,6 +11,8 @@ class Tools():
             t.run_program("terminator -e 'vim auto_everything/gui/__gui.py'")
         elif on_what == "gui-example":
             t.run_program("terminator -e 'vim ./demo/gui/LyingDown_for_Lubuntu/main.py'")
+        if on_what == "video":
+            t.run_program("terminator -e 'vim auto_everything/video/__video.py'")
         elif on_what == "test":
             t.run_program("terminator -e 'vim ./demo/test/main.py'")
 

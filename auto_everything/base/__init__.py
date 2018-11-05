@@ -1,1 +1,1 @@
-from .__base import IO, OS, Python, Terminal, Super
+from .__base import IO, OS, Python, Git, Terminal, Super
