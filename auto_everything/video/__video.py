@@ -18,6 +18,7 @@ sys.path.pop(0)
 import numpy as np
 import librosa
 
+# we'll use ffmpeg to do the real work
 class Video():
     def __init__(self, video_file_path):
         self.video_file_path = video_file_path
