@@ -91,7 +91,8 @@ class Video():
         # show
         plt.show()
 
-    def get_vioce_parts(self, top_db=None, minimum_interval_frames=50000):
+    def get_vioce_parts(self, top_db=None, minimum_interval_time_in_seconds=2):
+        minimum_interval_samples = librosa.core.time_to_samples(minimum_interval_time_in_seconds, self.sr)
         def ignore_short_noise(parts):
             new_parts = []
             for index, part in enumerate(parts):
@@ -100,8 +101,8 @@ class Video():
                     continue
                 else:
                     noise_interval = (part[0] - parts[index-1][1])
-                    if (noise_interval > minimum_interval_frames):
-                        new_parts.append([parts[index-1][1], parts[index-1][1] + minimum_interval_frames*0.3])
+                    if (noise_interval > minimum_interval_samples):
+                        new_parts.append([parts[index-1][1], parts[index-1][1] + minimum_interval_samples*0.3])
                         new_parts.append(list(part))
                     else:
                         new_parts.append([parts[index-1][1], part[0]])
@@ -110,18 +111,17 @@ class Video():
 
         if top_db == None:
             top_db = np.abs(np.max(self.db_clustering(15)))
-        parts = librosa.effects.split(self.y, top_db=top_db)
+        parts = librosa.effects.split(self.y, top_db=top_db) # return samples
         parts = ignore_short_noise(parts)
 
-        new_y = librosa.effects.remix(video.y, parts)
+        new_y = librosa.effects.remix(video.y, parts) # receive samples
         target_file_path = os.path.join(self.video_directory, "new_" + self.audio_name)
         if t.exists(target_file_path):
             os.remove(target_file_path)
         librosa.output.write_wav(target_file_path, new_y, video.sr)
 
-        def from_frames_to_seconds(parts):
-            parts = librosa.core.frames_to_time(parts, self.sr)
-            parts = parts / 1000
+        def from_samples_to_seconds(parts):
+            parts = librosa.core.samples_to_time(parts, self.sr) # return seconds
             new_parts = []
             def seconds_to_string_format(num):
                 return str(datetime.timedelta(seconds=num))
@@ -131,7 +131,7 @@ class Video():
                 new_parts.append([part1, part2])
             return new_parts
 
-        parts = from_frames_to_seconds(parts)
+        parts = from_samples_to_seconds(parts)
         print(parts)
         return parts
 
@@ -174,7 +174,7 @@ class Video():
         if t.exists(target_file_path):
             os.remove(target_file_path)
 
-        combine_command = f"ffmpeg -f concat -safe 0 -i {the_list_path} -c copy {target_file_path}"
+        combine_command = f"ffmpeg -f concat -safe 0 -i {the_list_path} {target_file_path}"
         print(combine_command)
         print("\n")
         t.run(combine_command, wait=True)
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     video = Video("/home/yingshaoxo/Videos/doing/hi.mp4")
     video.check_db()
 
-    inputs = input("What's the db? (for example, 20) ")
+    inputs = input("What's the db that splited silence and voice? (for example, 20, hit enter to automatically get that value) ")
     if inputs.strip() == "":
         top_db = np.abs(np.max(video.db_clustering(15)))
         parts = video.get_vioce_parts(top_db)
