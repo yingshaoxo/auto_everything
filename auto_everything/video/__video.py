@@ -76,19 +76,42 @@ class Video():
         # show
         plt.show()
 
-    def get_silence_parts(self, top_db=None):
+    def get_silence_parts(self, top_db=None, minimum_interval_frames=50000):
+        def ignore_short_noise(parts):
+            new_parts = []
+            for index, part in enumerate(parts):
+                if index == 0:
+                    new_parts.append(list(part))
+                    continue
+                else:
+                    noise_interval = (part[0] - parts[index-1][1])
+                    if (noise_interval > minimum_interval_frames):
+                        new_parts.append([parts[index-1][1], parts[index-1][1] + minimum_interval_frames*0.3])
+                        new_parts.append(list(part))
+                    else:
+                        new_parts.append([parts[index-1][1], part[0]])
+                        new_parts.append(list(part))
+            return np.array(new_parts)
         if top_db == None:
-            top_db = np.abs(np.max(self.db_clustering()))
+            top_db = np.abs(np.max(self.db_clustering(15)))
         parts = librosa.effects.split(self.y, top_db=top_db)
-        print(parts)
+        parts = ignore_short_noise(parts)
+        #print(parts)
+        return parts
 
 
 if __name__ == "__main__":
-    #audio_path = librosa.util.example_audio_file()
-    audio_path = '/home/yingshaoxo/Videos/output.wav'
+    audio_path = '/home/yingshaoxo/Videos/doing/output2.wav'
 
     video = Video(audio_path)
-    #video.db_clustering(3)
-    video.get_silence_parts(10)
     video.check_db()
 
+    inputs = input("What's the db? (for example, 20) ")
+    if inputs.strip() == "":
+        top_db = np.abs(np.max(video.db_clustering(15)))
+        parts = video.get_silence_parts(top_db)
+    else:
+        parts = video.get_silence_parts(int(inputs))
+
+    new_y = librosa.effects.remix(video.y, parts)
+    librosa.output.write_wav('/home/yingshaoxo/Videos/doing/mine.wav', new_y, video.sr)
