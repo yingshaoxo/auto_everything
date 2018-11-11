@@ -18,7 +18,9 @@ sys.path.pop(0)
 # begin
 import numpy as np
 import librosa
+
 import datetime
+import shutil
 
 # we'll use ffmpeg to do the real work
 class Video():
@@ -126,11 +128,11 @@ class Video():
         parts = librosa.effects.split(self._y, top_db=top_db) # return samples
         parts = ignore_short_noise(parts)
 
-        new_y = librosa.effects.remix(self._y, parts) # receive samples
-        target_file_path = os.path.join(self._video_directory, "new_" + self._audio_name)
-        if t.exists(target_file_path):
-            os.remove(target_file_path)
-        librosa.output.write_wav(target_file_path, new_y, self._sr)
+        #new_y = librosa.effects.remix(self._y, parts) # receive samples
+        #target_file_path = os.path.join(self._video_directory, "new_" + self._audio_name)
+        #if t.exists(target_file_path):
+        #    os.remove(target_file_path)
+        #librosa.output.write_wav(target_file_path, new_y, self._sr)
 
         def from_samples_to_seconds(parts):
             parts = librosa.core.samples_to_time(parts, self._sr) # return seconds
@@ -194,7 +196,7 @@ class Video():
         if sort_by_time == False:
             target_file_path = os.path.join(self._video_directory, "new_" + self._video_name)
         else:
-            target_file_path = os.path.join(os.path.join(video_parts_dir, ".."), "new_" + os.path.basename(video_parts_dir) + ".mp4")
+            target_file_path = os.path.join(os.path.join(video_parts_dir, ".."), os.path.basename(video_parts_dir) + ".mp4")
         if t.exists(target_file_path):
             os.remove(target_file_path)
 
@@ -203,6 +205,9 @@ class Video():
         print("\n")
         t.run(combine_command, wait=True)
 
+        if sort_by_time == False:
+            shutil.rmtree(video_parts_dir)
+
         return target_file_path
 
     def remove_silence_parts_from_video(self, video_file_path=None, db_for_split_silence_and_voice=None, minimum_interval_time_in_seconds=None):
@@ -210,7 +215,7 @@ class Video():
             self._load_video(video_file_path)
 
         if db_for_split_silence_and_voice == None:
-            top_db = np.abs(np.max(video._db_clustering(15)))
+            top_db = np.abs(np.max(self._db_clustering(15)))
         else:
             top_db = db_for_split_silence_and_voice
 
@@ -220,6 +225,8 @@ class Video():
             parts = self._get_voice_parts(top_db, minimum_interval_time_in_seconds)
 
         self._split_it_to_parts_by_time_intervals(parts)
+
+        os.remove(self._audio_file_path)
 
         return self.combine_all_mp4_in_a_folder()
 
