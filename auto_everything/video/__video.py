@@ -22,31 +22,42 @@ import datetime
 
 # we'll use ffmpeg to do the real work
 class Video():
-    def __init__(self, video_file_path):
-        self.video_file_path = video_file_path
-        self.video_directory = os.path.dirname(self.video_file_path)
-        self.video_name = os.path.basename(self.video_file_path)
+    def __init__(self, video_file_path=None):
+        if video_file_path:
+            self.self._load_video(video_file_path)
 
-        self.audio_file_path = self.convert_it_to_wav()
-        self.audio_name = os.path.basename(self.audio_file_path)
+    def _load_video(self, video_file_path):
+        self._video_file_path = video_file_path
+        self._video_directory = os.path.dirname(self._video_file_path)
+        self._video_name = os.path.basename(self._video_file_path)
 
-        self.y, self.sr = librosa.load(self.audio_file_path, sr=None)
+        self._audio_file_path = self.convert_video_to_wav()
+        self._audio_name = os.path.basename(self._audio_file_path)
 
-    def convert_it_to_wav(self):
-        wav_path = os.path.join(self.video_directory, "temp.wav")
+        self._y, self._sr = librosa.load(self._audio_file_path, sr=None)
+        
+    def convert_video_to_wav(self, video_file_path=None):
+        wav_name = "temp.wav"
+        
+        if video_file_path == None:
+            wav_path = os.path.join(self._video_directory, wav_name)
+        else:
+            wav_path = os.path.join(os.path.dirname(video_file_path), wav_name)
+
         if t.exists(wav_path):
             os.remove(wav_path)
-        command = f"ffmpeg -i {self.video_file_path} {wav_path}"
+
+        command = f"ffmpeg -i {self._video_file_path} {wav_path}"
         t.run(command, wait=True)
         return wav_path
 
-    def db_clustering(self, parts_num=3):
+    def _db_clustering(self, parts_num=3):
         import librosa.display as display
         import matplotlib.pyplot as plt
         import matplotlib.style as ms
 
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
-        S = librosa.feature.melspectrogram(self.y, sr=self.sr, n_mels=128)
+        S = librosa.feature.melspectrogram(self._y, sr=self._sr, n_mels=128)
 
         # Convert to log scale (dB). We'll use the peak power (max) as reference.
         log_S = librosa.power_to_db(S, ref=np.max)
@@ -59,7 +70,7 @@ class Video():
 
         return km.cluster_centers_
 
-    def check_db(self):
+    def _check_db(self):
         import librosa.display as display
         import matplotlib.pyplot as plt
         import matplotlib.style as ms
@@ -67,7 +78,7 @@ class Video():
         ms.use('seaborn-muted')
 
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
-        S = librosa.feature.melspectrogram(self.y, sr=self.sr, n_mels=128)
+        S = librosa.feature.melspectrogram(self._y, sr=self._sr, n_mels=128)
 
         # Convert to log scale (dB). We'll use the peak power (max) as reference.
         log_S = librosa.power_to_db(S, ref=np.max)
@@ -77,7 +88,7 @@ class Video():
 
         # Display the spectrogram on a mel scale
         # sample rate and hop length parameters are used to render the time axis
-        display.specshow(log_S, sr=self.sr, x_axis='time', y_axis='mel')
+        display.specshow(log_S, sr=self._sr, x_axis='time', y_axis='mel')
 
         # Put a descriptive title on the plot
         plt.title('mel power spectrogram')
@@ -91,8 +102,9 @@ class Video():
         # show
         plt.show()
 
-    def get_vioce_parts(self, top_db=None, minimum_interval_time_in_seconds=2):
-        minimum_interval_samples = librosa.core.time_to_samples(minimum_interval_time_in_seconds, self.sr)
+    def _get_voice_parts(self, top_db=None, minimum_interval_time_in_seconds=1.5):
+        minimum_interval_samples = librosa.core.time_to_samples(minimum_interval_time_in_seconds, self._sr)
+
         def ignore_short_noise(parts):
             new_parts = []
             for index, part in enumerate(parts):
@@ -110,18 +122,18 @@ class Video():
             return np.array(new_parts)
 
         if top_db == None:
-            top_db = np.abs(np.max(self.db_clustering(15)))
-        parts = librosa.effects.split(self.y, top_db=top_db) # return samples
+            top_db = np.abs(np.max(self._db_clustering(15)))
+        parts = librosa.effects.split(self._y, top_db=top_db) # return samples
         parts = ignore_short_noise(parts)
 
-        new_y = librosa.effects.remix(video.y, parts) # receive samples
-        target_file_path = os.path.join(self.video_directory, "new_" + self.audio_name)
+        new_y = librosa.effects.remix(self._y, parts) # receive samples
+        target_file_path = os.path.join(self._video_directory, "new_" + self._audio_name)
         if t.exists(target_file_path):
             os.remove(target_file_path)
-        librosa.output.write_wav(target_file_path, new_y, video.sr)
+        librosa.output.write_wav(target_file_path, new_y, self._sr)
 
         def from_samples_to_seconds(parts):
-            parts = librosa.core.samples_to_time(parts, self.sr) # return seconds
+            parts = librosa.core.samples_to_time(parts, self._sr) # return seconds
             new_parts = []
             def seconds_to_string_format(num):
                 return str(datetime.timedelta(seconds=num))
@@ -135,8 +147,8 @@ class Video():
         print(parts)
         return parts
 
-    def split_it_to_parts_by_time_intervals(self, time_intervals):
-        video_parts_dir = os.path.join(self.video_directory, 'video_parts')
+    def _split_it_to_parts_by_time_intervals(self, time_intervals):
+        video_parts_dir = os.path.join(self._video_directory, 'video_parts')
 
         if not t.exists(video_parts_dir):
             os.mkdir(video_parts_dir)
@@ -151,26 +163,38 @@ class Video():
             time_start = part[0]
             time_end = part[1]
             target_file_path = os.path.join(video_parts_dir, str(index)+".mp4")
-            ffmpeg_command = f'ffmpeg -i "{self.video_file_path}" -ss {time_start} -to {time_end} -async 1 "{target_file_path}"'
+            ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -async 1 "{target_file_path}"'
             print("\n" + "-------------------" + "\n")
             print(ffmpeg_command)
             print()
             t.run(ffmpeg_command, wait=True)
 
-    def combine_all_mp4_in_a_folder(self):
-        video_parts_dir = os.path.join(self.video_directory, 'video_parts')
+    def combine_all_mp4_in_a_folder(self, video_parts_dir=None):
+        sort_by_time = False
 
-        filelist = [ f for f in os.listdir(video_parts_dir) if f.endswith(".mp4") ]
-        filelist = list(sorted(filelist))
+        if video_parts_dir == None:
+            video_parts_dir = os.path.join(self._video_directory, 'video_parts')
+        else:
+            sort_by_time = True
+
+        filelist = [ os.path.join(video_parts_dir, f) for f in os.listdir(video_parts_dir) if f.endswith(".mp4") ]
+
+        if (sort_by_time == False):
+            filelist = list(sorted(filelist))
+        else:
+            filelist.sort(key=lambda x: os.path.getmtime(x))
+
         my_list_text = ''
-        for f in filelist:
-            file_path = os.path.join(video_parts_dir, f)
+        for file_path in filelist:
             my_list_text += "file " + f"'{file_path}'" + '\n'
 
         the_list_path = os.path.join(video_parts_dir, "temp_list.txt")
         io_.write(the_list_path, my_list_text)
 
-        target_file_path = os.path.join(self.video_directory, "new_" + self.video_name)
+        if sort_by_time == False:
+            target_file_path = os.path.join(self._video_directory, "new_" + self._video_name)
+        else:
+            target_file_path = os.path.join(os.path.join(video_parts_dir, ".."), "new_" + os.path.basename(video_parts_dir) + ".mp4")
         if t.exists(target_file_path):
             os.remove(target_file_path)
 
@@ -179,16 +203,36 @@ class Video():
         print("\n")
         t.run(combine_command, wait=True)
 
+        return target_file_path
+
+    def remove_silence_parts_from_video(self, video_file_path=None, db_for_split_silence_and_voice=None, minimum_interval_time_in_seconds=None):
+        if video_file_path:
+            self._load_video(video_file_path)
+
+        if db_for_split_silence_and_voice == None:
+            top_db = np.abs(np.max(video._db_clustering(15)))
+        else:
+            top_db = db_for_split_silence_and_voice
+
+        if minimum_interval_time_in_seconds == None:
+            parts = self._get_voice_parts(top_db)
+        else:
+            parts = self._get_voice_parts(top_db, minimum_interval_time_in_seconds)
+
+        self._split_it_to_parts_by_time_intervals(parts)
+
+        return self.combine_all_mp4_in_a_folder()
+
 if __name__ == "__main__":
-    video = Video("/home/yingshaoxo/Videos/doing/hi.mp4")
-    video.check_db()
+    video = Video()
+    video.remove_silence_parts_from_video("/home/yingshaoxo/Videos/doing/hi.mp4", minimum_interval_time_in_seconds=1.5)
 
-    inputs = input("What's the db that splited silence and voice? (for example, 20, hit enter to automatically get that value) ")
-    if inputs.strip() == "":
-        top_db = np.abs(np.max(video.db_clustering(15)))
-        parts = video.get_vioce_parts(top_db)
-    else:
-        parts = video.get_vioce_parts(int(inputs))
+    #video = Video("/home/yingshaoxo/Videos/doing/hi.mp4")
+    #video._check_db()
 
-    video.split_it_to_parts_by_time_intervals(parts)
-    video.combine_all_mp4_in_a_folder()
+    #inputs = input("What's the db that splited silence and voice? (for example, 20, hit enter to automatically get that value) ")
+    #inputs = inputs.strip()
+    #if inputs == "":
+    #    video.remove_silence_parts_from_video()
+    #else:
+    #    video.remove_silence_parts_from_video(db_for_split_silence_and_voice=int(inputs))
