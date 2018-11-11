@@ -184,8 +184,7 @@ class Terminal():
     def run_py(self, file_path_with_command, cwd=None, wait=False):
         path, args = self.__split_args(file_path_with_command)
         path = self.fix_path(path)
-        command = self.py_executable + ' {path} {args}'.format(
-            version=self.py_version, path=path, args=args)
+        command = self.py_executable + ' {path} {args}'.format(path=path, args=args)
 
         if cwd == None:
             cwd = os.path.dirname(path)
@@ -198,8 +197,7 @@ class Terminal():
     def run_sh(self, file_path_with_command, cwd=None, wait=False):
         path, args = self.__split_args(file_path_with_command)
         path = self.fix_path(path)
-        command = 'bash {path} {args}'.format(
-            path=path, args=args)
+        command = 'bash {path} {args}'.format(path=path, args=args)
 
         if cwd == None:
             cwd = os.path.dirname(path)
@@ -230,7 +228,7 @@ class Terminal():
         for pid in pids:
             if force:
                 self.run_command('kill -s SIGKILL {num}'.format(num=pid))
-                self.run_command('pkill {name}'.format(name))
+                self.run_command('pkill {name}'.format(name=name))
             else:
                 self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
 
