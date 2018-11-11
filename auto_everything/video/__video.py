@@ -26,7 +26,7 @@ import shutil
 class Video():
     def __init__(self, video_file_path=None):
         if video_file_path:
-            self.self._load_video(video_file_path)
+            self._load_video(video_file_path)
 
     def _load_video(self, video_file_path):
         self._video_file_path = video_file_path
