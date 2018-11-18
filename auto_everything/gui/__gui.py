@@ -35,6 +35,19 @@ py = Python()
 sys.path.pop(0)
 
 
+try:
+    from PIL import Image
+    import pyscreenshot as ImageGrab
+except ImportError:
+    py.install_package("pyscreenshot")
+
+try:
+    import pytesseract
+except ImportError:
+    t.run("sudo apt install tesseract -y")
+    py.install_package("pytesseract")
+
+
 class Model():
     def __init__(self, __cnn_data_folder):
         self.__cnn_data_folder = __cnn_data_folder
@@ -122,9 +135,40 @@ class GUI():
                 break
             time.sleep(1)
 
+    def find_text(self, target_text):
+        """
+        will return a list of center points
+
+        a point: (x, y)
+        """
+        result = pytesseract.image_to_data(ImageGrab.grab(), output_type='dict')
+        target_index = []
+        for index, text in enumerate(result['text']):
+            if target_text in text:
+                target_index.append(index)
+        return_list = []
+        if (len(target_index) != 0):
+            for t_index in target_index:
+                list_ = ['top', 'left', 'width', 'height']
+                my_dict = {}
+                for attribute in list_:
+                    value = result[attribute][t_index]
+                    my_dict.update({attribute: value})
+                x = my_dict['left'] + my_dict['width']/2
+                y = my_dict['top'] + my_dict['height']/2
+                return_list.append((x,y))
+        if (len(return_list) != 0):
+            return return_list
+        else:
+            return None
+                
 
 if __name__ == "__main__":
     gui = GUI()
-    while True:
-        print(gui.exists("close"))
-        time.sleep(1)
+    points = gui.find_text("yingshaoxo")
+    if points:
+        x, y = points[0]
+        gui.autogui.moveTo(x,y)
+        print(points)
+    else:
+        print("没找到")

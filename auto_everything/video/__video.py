@@ -165,7 +165,7 @@ class Video():
             time_start = part[0]
             time_end = part[1]
             target_file_path = os.path.join(video_parts_dir, str(index)+".mp4")
-            ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -async 1 "{target_file_path}"'
+            ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -async 1 -threads 8 "{target_file_path}"'
             print("\n" + "-------------------" + "\n")
             print(ffmpeg_command)
             print()
@@ -209,6 +209,28 @@ class Video():
             shutil.rmtree(video_parts_dir)
 
         return target_file_path
+
+"""
+    def remove_noise_from_video(self, video_file_path=None):
+        if not video_file_path:
+            self._load_video(video_file_path)
+
+        video_file_path = self._video_file_path
+        noise_sample_target_path = os.path.join(os.path.dirname(video_file_path), 'noise_sample.wav')
+        no_noise_wav_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._audio_name)
+        new_video_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._video_name)
+        ffmpeg_command = f"""
+ffmpeg -i "{video_file_path}" -acodec pcm_s16le -ar 128k -vn -ss 00:00:00.0 -t 00:00:00.5 "{noise_sample_target_path}"
+
+sox "{noise_sample_target_path}" -n noiseprof noise.prof
+
+sox "{self._audio_file_path}" "{no_noise_wav_path}" noisered noise.prof 0.21
+
+ffmpeg -i "{video_file_path}" -i "{no_noise_wav_path}" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 128k "{new_video_path}"
+        """
+        print(ffmpeg_command)
+        t.run(ffmpeg_command, wait=True)
+"""
 
     def remove_silence_parts_from_video(self, video_file_path=None, db_for_split_silence_and_voice=None, minimum_interval_time_in_seconds=None):
         if video_file_path:
