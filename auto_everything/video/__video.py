@@ -108,6 +108,7 @@ class Video():
         minimum_interval_samples = librosa.core.time_to_samples(minimum_interval_time_in_seconds, self._sr)
 
         def ignore_short_noise(parts):
+            # ignore short noise
             new_parts = []
             for index, part in enumerate(parts):
                 if index == 0:
@@ -121,7 +122,27 @@ class Video():
                     else:
                         new_parts.append([parts[index-1][1], part[0]])
                         new_parts.append(list(part))
-            return np.array(new_parts)
+
+            # combine continuous voice
+            final_parts = []
+            first = -1
+            for index, part in enumerate(new_parts):
+                if index == 0:
+                    final_parts.append(part)
+                    continue
+                else:
+                    inverval = (part[0] - new_parts[index-1][1])
+                    if (inverval == 0):
+                        if first == -1:
+                            first = new_parts[index-1][0]
+                    else:
+                        if (first == -1):
+                            final_parts.append([new_parts[0], part[1]])
+                        else:
+                            final_parts.append([first, part[1]])
+                            first = -1
+
+            return np.array(final_parts)
 
         if top_db == None:
             top_db = np.abs(np.max(self._db_clustering(15)))
@@ -148,6 +169,24 @@ class Video():
         parts = from_samples_to_seconds(parts)
         print(parts)
         return parts
+
+    def _plot_parts(self, parts):
+        from dateutil.parser import parse
+        new_parts = []
+        start_timestamp = 0
+        for part in parts:
+            part1 = parse(part[0]).timestamp()
+            part2 = parse(part[1]).timestamp()
+            if (start_timestamp == 0):
+                start_timestamp = part1
+            new_parts.append([part1 - start_timestamp, part2 - start_timestamp])
+
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        data = pd.DataFrame(new_parts)
+        print(data)
+        data.plot()
+        plt.show()
 
     def _split_it_to_parts_by_time_intervals(self, time_intervals):
         video_parts_dir = os.path.join(self._video_directory, 'video_parts')
@@ -256,8 +295,7 @@ if __name__ == "__main__":
     video = Video("/home/yingshaoxo/Videos/test.mp4")
     parts = video._get_voice_parts(top_db=30)
 
-    import json
-    io_.write("/home/yingshaoxo/Downloads/parts.json", json.dumps(parts))
+    video._plot_parts(parts)
 
     #video = Video("/home/yingshaoxo/Videos/doing/hi.mp4")
     #video._check_db()
