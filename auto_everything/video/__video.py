@@ -210,27 +210,27 @@ class Video():
 
         return target_file_path
 
-"""
-    def remove_noise_from_video(self, video_file_path=None):
-        if not video_file_path:
-            self._load_video(video_file_path)
+        '''
+            def remove_noise_from_video(self, video_file_path=None):
+                if not video_file_path:
+                    self._load_video(video_file_path)
 
-        video_file_path = self._video_file_path
-        noise_sample_target_path = os.path.join(os.path.dirname(video_file_path), 'noise_sample.wav')
-        no_noise_wav_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._audio_name)
-        new_video_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._video_name)
-        ffmpeg_command = f"""
-ffmpeg -i "{video_file_path}" -acodec pcm_s16le -ar 128k -vn -ss 00:00:00.0 -t 00:00:00.5 "{noise_sample_target_path}"
+                video_file_path = self._video_file_path
+                noise_sample_target_path = os.path.join(os.path.dirname(video_file_path), 'noise_sample.wav')
+                no_noise_wav_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._audio_name)
+                new_video_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._video_name)
+                ffmpeg_command = f"""
+        ffmpeg -i "{video_file_path}" -acodec pcm_s16le -ar 128k -vn -ss 00:00:00.0 -t 00:00:00.5 "{noise_sample_target_path}"
 
-sox "{noise_sample_target_path}" -n noiseprof noise.prof
+        sox "{noise_sample_target_path}" -n noiseprof noise.prof
 
-sox "{self._audio_file_path}" "{no_noise_wav_path}" noisered noise.prof 0.21
+        sox "{self._audio_file_path}" "{no_noise_wav_path}" noisered noise.prof 0.21
 
-ffmpeg -i "{video_file_path}" -i "{no_noise_wav_path}" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 128k "{new_video_path}"
-        """
-        print(ffmpeg_command)
-        t.run(ffmpeg_command, wait=True)
-"""
+        ffmpeg -i "{video_file_path}" -i "{no_noise_wav_path}" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 128k "{new_video_path}"
+                """
+                print(ffmpeg_command)
+                t.run(ffmpeg_command, wait=True)
+        '''
 
     def remove_silence_parts_from_video(self, video_file_path=None, db_for_split_silence_and_voice=None, minimum_interval_time_in_seconds=None):
         if video_file_path:
@@ -253,8 +253,11 @@ ffmpeg -i "{video_file_path}" -i "{no_noise_wav_path}" -map 0:v -map 1:a -c:v co
         return self.combine_all_mp4_in_a_folder()
 
 if __name__ == "__main__":
-    video = Video()
-    video.remove_silence_parts_from_video("/home/yingshaoxo/Videos/doing/hi.mp4", minimum_interval_time_in_seconds=1.5)
+    video = Video("/home/yingshaoxo/Videos/test.mp4")
+    parts = video._get_voice_parts(top_db=30)
+
+    import json
+    io_.write("/home/yingshaoxo/Downloads/parts.json", json.dumps(parts))
 
     #video = Video("/home/yingshaoxo/Videos/doing/hi.mp4")
     #video._check_db()
