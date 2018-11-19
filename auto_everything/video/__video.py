@@ -175,9 +175,10 @@ class Video():
                 new_parts.append([part1, part2])
             return new_parts
 
+        parts[0] = [0, parts[0][1]]
         parts = from_samples_to_seconds(parts)
-        #print(parts)
-        return parts[1:-1]
+
+        return parts
 
     def _evaluate_voice_parts(self, parts):
         from dateutil.parser import parse
