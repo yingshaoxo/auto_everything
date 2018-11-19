@@ -123,6 +123,12 @@ class Video():
                         new_parts.append([parts[index-1][1], part[0]])
                         new_parts.append(list(part))
 
+            """
+            import pandas as pd
+            data = pd.DataFrame(new_parts)
+            data.to_csv("/home/yingshaoxo/Downloads/parts.json")
+            """
+
             # combine continuous voice
             final_parts = []
             first = -1
@@ -137,9 +143,9 @@ class Video():
                             first = new_parts[index-1][0]
                     else:
                         if (first == -1):
-                            final_parts.append([new_parts[0], part[1]])
+                            final_parts.append([part[0], part[1]])
                         else:
-                            final_parts.append([first, part[1]])
+                            final_parts.append([first, new_parts[index-1][1]])
                             first = -1
 
             return np.array(final_parts)
@@ -167,10 +173,10 @@ class Video():
             return new_parts
 
         parts = from_samples_to_seconds(parts)
-        print(parts)
-        return parts
+        #print(parts)
+        return parts[1:-1]
 
-    def _plot_parts(self, parts):
+    def _evaluate_voice_parts(self, parts):
         from dateutil.parser import parse
         new_parts = []
         start_timestamp = 0
@@ -181,12 +187,31 @@ class Video():
                 start_timestamp = part1
             new_parts.append([part1 - start_timestamp, part2 - start_timestamp])
 
+        all_silence = 0
+        for index, part in enumerate(new_parts):
+            if index == 0:
+                continue
+            all_silence += (part[0] - new_parts[index-1][1])
+
+        """
+        print()
+        print(new_parts)
+        print()
+        print(all_silence)
+        print(new_parts[-1][1])
+        print()
+        print("the compression ratio: ", all_silence/new_parts[-1][1])
+        """
+        ratio = all_silence/new_parts[-1][1]
+        return ratio
+        """
         import matplotlib.pyplot as plt
         import pandas as pd
         data = pd.DataFrame(new_parts)
         print(data)
         data.plot()
         plt.show()
+        """
 
     def _split_it_to_parts_by_time_intervals(self, time_intervals):
         video_parts_dir = os.path.join(self._video_directory, 'video_parts')
@@ -290,6 +315,25 @@ class Video():
         os.remove(self._audio_file_path)
 
         return self.combine_all_mp4_in_a_folder()
+
+    def humanly_remove_silence_parts_from_video(self, db_for_split_silence_and_voice):
+        try:
+            parts = self._get_voice_parts(top_db=db_for_split_silence_and_voice)
+            ratio = int(self._evaluate_voice_parts(parts) * 100)
+        except Exception as e:
+            print(e)
+            print()
+            print("You probably gave me a wroung db value, try to make it smaller and try it again")
+
+        answer = input(f"Are you happy with the ratio of silence over all: {ratio}% ? (y/n)")
+        if answer.strip() == "y":
+            print("ok, let's do it!")
+            self.remove_silence_parts_from_video(db_for_split_silence_and_voice=db_for_split_silence_and_voice)
+            print("we are done, sir")
+        else:
+            print()
+            print("you may want to change the db, and try again.")
+
 
 if __name__ == "__main__":
     video = Video("/home/yingshaoxo/Videos/test.mp4")
