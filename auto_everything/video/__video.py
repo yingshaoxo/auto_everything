@@ -129,6 +129,7 @@ class Video():
             data.to_csv("/home/yingshaoxo/Downloads/parts.json")
             """
 
+            the_missing_final = new_parts[-1][1]
             # combine continuous voice
             final_parts = []
             first = -1
@@ -147,6 +148,8 @@ class Video():
                         else:
                             final_parts.append([first, new_parts[index-1][1]])
                             first = -1
+
+            final_parts.append([final_parts[-1][1], the_missing_final])
 
             return np.array(final_parts)
 
@@ -324,6 +327,7 @@ class Video():
             print(e)
             print()
             print("You probably gave me a wroung db value, try to make it smaller and try it again")
+            exit()
 
         answer = input(f"Are you happy with the ratio of silence over all: {ratio}% ? (y/n)")
         if answer.strip() == "y":
@@ -336,10 +340,8 @@ class Video():
 
 
 if __name__ == "__main__":
-    video = Video("/home/yingshaoxo/Videos/test.mp4")
-    parts = video._get_voice_parts(top_db=30)
-
-    video._plot_parts(parts)
+    video = Video("/home/yingshaoxo/Videos/demo.mp4")
+    video.humanly_remove_silence_parts_from_video(db_for_split_silence_and_voice=15)
 
     #video = Video("/home/yingshaoxo/Videos/doing/hi.mp4")
     #video._check_db()
