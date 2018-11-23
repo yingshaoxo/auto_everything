@@ -118,6 +118,19 @@ t.run(c, wait=True)
 print("\n\nfinished...")
 
 
+# 5.5, for autopep
+path = t.fix_path("~/.vim")
+if not t.exists(f"{path}/plugin"):
+    t.run(f"""
+    cd {path}
+    sudo mkdir {path}/plugin
+    """)
+t.run(f"""
+cd {path}/plugin
+sudo wget https://github.com/tell-k/vim-autopep8/raw/master/ftplugin/python_autopep8.vim
+""")
+
+
 # 6 set terminator
 if t.exists(t.fix_path('~/.config/terminator')):
     io.write(t.fix_path('~/.config/terminator/config'), """
