@@ -233,7 +233,8 @@ class Video():
             time_start = part[0]
             time_end = part[1]
             target_file_path = os.path.join(video_parts_dir, str(index)+".mp4")
-            ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -async 1 -threads 8 "{target_file_path}"'
+            #ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -async 1 -threads 8 "{target_file_path}"'
+            ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -threads 8 "{target_file_path}"'
             print("\n" + "-------------------" + "\n")
             print(ffmpeg_command)
             print()
