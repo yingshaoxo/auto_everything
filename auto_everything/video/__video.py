@@ -240,6 +240,29 @@ class Video():
             print()
             t.run(ffmpeg_command, wait=True)
 
+    def concatenate(self, list_of_files, target_file_path):
+        working_dir = os.path.dirname(target_file_path)
+        if not os.path.exists(working_dir):
+            print('your target_file_path does not exist')
+            exit()
+
+        list_txt_path = os.path.join(working_dir, 'temp_list.txt')
+        my_list_text = ''
+        for file_path in list_of_files:
+            if not os.path.exists(file_path):
+                print('one of your file does not exist')
+                exit()
+            my_list_text += "file " + f"'{file_path}'" + '\n'
+        io_.write(list_txt_path, my_list_text)
+
+        combine_command = f"ffmpeg -f concat -safe 0 -i {list_txt_path} {target_file_path}"
+        print('\n' + '-'*20 +'\n')
+        print(combine_command)
+        print('\n' + '-'*20 +'\n')
+        t.run(combine_command, wait=True)
+
+        t.run(f'rm {list_txt_path}')
+
     def combine_all_mp4_in_a_folder(self, video_parts_dir=None):
         sort_by_time = False
 
@@ -351,7 +374,6 @@ class Video():
         else:
             print()
             print("you may want to change the db, and try again.")
-
 
 if __name__ == "__main__":
     #video = Video("/home/yingshaoxo/Videos/demo.mp4")
