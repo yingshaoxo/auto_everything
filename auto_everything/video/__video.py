@@ -117,7 +117,7 @@ class Video():
                 else:
                     noise_interval = (part[0] - parts[index-1][1])
                     if (noise_interval > minimum_interval_samples):
-                        new_parts.append([parts[index-1][1], parts[index-1][1] + minimum_interval_samples*0.3])
+                        new_parts.append([parts[index-1][1], parts[index-1][1] + (part[0]-parts[index-1][1])*0.3])
                         new_parts.append(list(part))
                     else:
                         new_parts.append([parts[index-1][1], part[0]])
@@ -279,27 +279,30 @@ class Video():
 
         return target_file_path
 
-        '''
-            def remove_noise_from_video(self, video_file_path=None):
-                if not video_file_path:
-                    self._load_video(video_file_path)
+    def remove_noise_from_video(self, video_file_path=None):
+        if video_file_path:
+            self._load_video(video_file_path)
 
-                video_file_path = self._video_file_path
-                noise_sample_target_path = os.path.join(os.path.dirname(video_file_path), 'noise_sample.wav')
-                no_noise_wav_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._audio_name)
-                new_video_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._video_name)
-                ffmpeg_command = f"""
-        ffmpeg -i "{video_file_path}" -acodec pcm_s16le -ar 128k -vn -ss 00:00:00.0 -t 00:00:00.5 "{noise_sample_target_path}"
+        video_file_path = self._video_file_path
+        noise_sample_target_path = os.path.join(os.path.dirname(video_file_path), 'noise_sample.wav')
+        no_noise_wav_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._audio_name)
+        new_video_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._video_name)
+        ffmpeg_command = f"""
+            ffmpeg -i "{video_file_path}" -acodec pcm_s16le -ar 128k -vn -ss 00:00:00.0 -t 00:00:01.0 "{noise_sample_target_path}"
 
-        sox "{noise_sample_target_path}" -n noiseprof noise.prof
+            sox "{noise_sample_target_path}" -n noiseprof noise.prof
 
-        sox "{self._audio_file_path}" "{no_noise_wav_path}" noisered noise.prof 0.21
+            sox "{self._audio_file_path}" "{no_noise_wav_path}" noisered noise.prof 0.21
 
-        ffmpeg -i "{video_file_path}" -i "{no_noise_wav_path}" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 128k "{new_video_path}"
-                """
-                print(ffmpeg_command)
-                t.run(ffmpeg_command, wait=True)
-        '''
+            ffmpeg -i "{video_file_path}" -i "{no_noise_wav_path}" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 128k "{new_video_path}"
+
+            rm noise.prof
+            rm {no_noise_wav_path}
+            rm {noise_sample_target_path}
+            rm {self._audio_file_path}
+        """
+        print(ffmpeg_command)
+        t.run(ffmpeg_command, wait=True)
 
     def remove_silence_parts_from_video(self, video_file_path=None, db_for_split_silence_and_voice=None, minimum_interval_time_in_seconds=None):
         if video_file_path:
@@ -321,7 +324,7 @@ class Video():
 
         return self.combine_all_mp4_in_a_folder()
 
-    def humanly_remove_silence_parts_from_video(self, db_for_split_silence_and_voice):
+    def humanly_remove_silence_parts_from_video(self, db_for_split_silence_and_voice, remove_noise=False):
         try:
             parts = self._get_voice_parts(top_db=db_for_split_silence_and_voice)
             ratio = int(self._evaluate_voice_parts(parts) * 100)
@@ -335,6 +338,10 @@ class Video():
         if answer.strip() == "y":
             print("ok, let's do it!")
             self.remove_silence_parts_from_video(db_for_split_silence_and_voice=db_for_split_silence_and_voice)
+
+            if remove_noise:
+                self.remove_noise_from_video()
+
             print("we are done, sir")
         else:
             print()
@@ -342,8 +349,10 @@ class Video():
 
 
 if __name__ == "__main__":
-    video = Video("/home/yingshaoxo/Videos/demo.mp4")
-    video.humanly_remove_silence_parts_from_video(db_for_split_silence_and_voice=15)
+    #video = Video("/home/yingshaoxo/Videos/demo.mp4")
+    #video.humanly_remove_silence_parts_from_video(db_for_split_silence_and_voice=15)
+    video = Video()
+    video.remove_noise_from_video("/home/yingshaoxo/Videos/new_doing.mp4")
 
     #video = Video("/home/yingshaoxo/Videos/doing/hi.mp4")
     #video._check_db()
