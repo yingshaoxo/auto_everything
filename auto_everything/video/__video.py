@@ -345,7 +345,7 @@ class Video():
             self.remove_silence_parts_from_video(db_for_split_silence_and_voice=db_for_split_silence_and_voice)
 
             if remove_noise:
-                self.remove_noise_from_video()
+                self.remove_noise_from_video("new_" + self._video_name)
 
             print("we are done, sir")
         else:
