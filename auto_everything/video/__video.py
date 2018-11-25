@@ -293,9 +293,14 @@ class Video():
             sox "{noise_sample_target_path}" -n noiseprof noise.prof
 
             sox "{self._audio_file_path}" "{no_noise_wav_path}" noisered noise.prof 0.21
+            
+            #ffmpeg -i {no_noise_wav_path} -filter:a loudnorm new_{no_noise_wav_path}
+            ffmpeg -i {no_noise_wav_path} -af loudnorm=I=-23:LRA=1 -ar 48000 {no_noise_wav_path}.wav
 
-            ffmpeg -i "{video_file_path}" -i "{no_noise_wav_path}" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 128k "{new_video_path}"
+            ffmpeg -i "{video_file_path}" -i "{no_noise_wav_path}.wav" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 128k "{new_video_path}"
 
+
+            rm {no_noise_wav_path}.wav
             rm noise.prof
             rm {no_noise_wav_path}
             rm {noise_sample_target_path}
