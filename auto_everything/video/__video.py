@@ -8,7 +8,7 @@ current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
 
 from base import Terminal, Python, IO
-t = Terminal()
+t = Terminal(debug=True)
 py = Python()
 io_ = IO()
 
@@ -22,36 +22,91 @@ import librosa
 import datetime
 import shutil
 
+
+def print_split_line():
+    print('\n' + '-'*20 + '\n')
+
+def done():
+    print_split_line()
+    print('We are done, sir.')
+    print_split_line()
+
+def get_directory_name(path):
+    return os.path.dirname(path)
+
+def add_path(path1, path2):
+    return os.path.join(path1, path2)
+
+def make_sure_source_is_absolute_path(path):
+    path_list = []
+    if isinstance(path, str):
+        path_list.append(path)
+    else:
+        path_list = path
+
+    for p in path_list:
+        if p[0] == '/':
+            pass
+        else:
+            print("for source file: you must give me absolute path")
+            exit()
+
+def make_sure_target_is_absolute_path(path):
+    path_list = []
+    if isinstance(path, str):
+        path_list.append(path)
+    else:
+        path_list = path
+
+    for p in path_list:
+        p = get_directory_name(p)
+        if p[0] == '/':
+            pass
+        else:
+            print("for target file: you must give me absolute path")
+            exit()
+
+def make_sure_target_does_not_exist(path):
+    path_list = []
+    if isinstance(path, str):
+        path_list.append(path)
+    else:
+        path_list = path
+
+    for p in path_list:
+        if os.path.exists(p):
+            if os.path.isdir(p):
+                shutil.rmtree(p)
+            else:
+                r = os.remove(p)
+                if r == False:
+                    print("I can't remove target for you, please check your permission")
+                    exit()
+
+def convert_video_to_wav(source_video_path, target_wav_path):
+    make_sure_source_is_absolute_path(source_video_path)
+    make_sure_target_is_absolute_path(target_wav_path)
+
+    make_sure_target_does_not_exist(target_wav_path)
+
+    t.run(f"""
+        ffmpeg -i "{source_video_path}" "{target_wav_path}"
+    """)
+
+    return target_wav_path
+
+def get_wav_infomation(wav_path):
+    make_sure_source_is_absolute_path(wav_path)
+
+    y, sr = librosa.load(wav_path, sr=None)
+    return y, sr
+
+
+
 # we'll use ffmpeg to do the real work
 class Video():
-    def __init__(self, video_file_path=None):
-        if video_file_path:
-            self._load_video(video_file_path)
-
-    def _load_video(self, video_file_path):
-        self._video_file_path = video_file_path
-        self._video_directory = os.path.dirname(self._video_file_path)
-        self._video_name = os.path.basename(self._video_file_path)
-
-        self._audio_file_path = self.convert_video_to_wav()
-        self._audio_name = os.path.basename(self._audio_file_path)
-
-        self._y, self._sr = librosa.load(self._audio_file_path, sr=None)
-        
-    def convert_video_to_wav(self, video_file_path=None):
-        wav_name = "temp.wav"
-        
-        if video_file_path == None:
-            wav_path = os.path.join(self._video_directory, wav_name)
-        else:
-            wav_path = os.path.join(os.path.dirname(video_file_path), wav_name)
-
-        if t.exists(wav_path):
-            os.remove(wav_path)
-
-        command = f"ffmpeg -i {self._video_file_path} {wav_path}"
-        t.run(command, wait=True)
-        return wav_path
+    def __init__(self):
+        pass
 
     def _db_clustering(self, parts_num=3):
         import librosa.display as display
@@ -104,8 +159,9 @@ class Video():
         # show
         plt.show()
 
-    def _get_voice_parts(self, top_db=None, minimum_interval_time_in_seconds=1.5):
-        minimum_interval_samples = librosa.core.time_to_samples(minimum_interval_time_in_seconds, self._sr)
+    def _get_voice_parts(self, source_audio_path, top_db=None, minimum_interval_time_in_seconds=1.5):
+        y, sr = get_wav_infomation(source_audio_path)
+        minimum_interval_samples = librosa.core.time_to_samples(minimum_interval_time_in_seconds, sr)
 
         def ignore_short_noise(parts):
             # ignore short noise
@@ -122,12 +178,6 @@ class Video():
                     else:
                         new_parts.append([parts[index-1][1], part[0]])
                         new_parts.append(list(part))
-
-            """
-            import pandas as pd
-            data = pd.DataFrame(new_parts)
-            data.to_csv("/home/yingshaoxo/Downloads/parts.json")
-            """
 
             the_missing_final = new_parts[-1][1]
             # combine continuous voice
@@ -153,9 +203,7 @@ class Video():
 
             return np.array(final_parts)
 
-        if top_db == None:
-            top_db = np.abs(np.max(self._db_clustering(15)))
-        parts = librosa.effects.split(self._y, top_db=top_db) # return samples
+        parts = librosa.effects.split(y, top_db=top_db) # return samples
         parts = ignore_short_noise(parts)
 
         #new_y = librosa.effects.remix(self._y, parts) # receive samples
@@ -165,7 +213,7 @@ class Video():
         #librosa.output.write_wav(target_file_path, new_y, self._sr)
 
         def from_samples_to_seconds(parts):
-            parts = librosa.core.samples_to_time(parts, self._sr) # return seconds
+            parts = librosa.core.samples_to_time(parts, sr) # return seconds
             new_parts = []
             def seconds_to_string_format(num):
                 return str(datetime.timedelta(seconds=num))
@@ -217,144 +265,145 @@ class Video():
         plt.show()
         """
 
-    def _split_it_to_parts_by_time_intervals(self, time_intervals):
-        video_parts_dir = os.path.join(self._video_directory, 'video_parts')
+    def split_video_to_parts_by_time_intervals(self, source_video_path, target_folder, time_intervals):
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_folder)
 
-        if not t.exists(video_parts_dir):
-            os.mkdir(video_parts_dir)
-
-        filelist = [ f for f in os.listdir(video_parts_dir) if f.endswith(".mp4") ]
-        for f in filelist:
-            os.remove(os.path.join(video_parts_dir, f))
+        make_sure_target_does_not_exist(target_folder)
+        if not t.exists(target_folder):
+            os.mkdir(target_folder)
 
         for index, part in enumerate(time_intervals):
             index = (6-len(str(index)))*'0' + str(index)
 
             time_start = part[0]
             time_end = part[1]
-            target_file_path = os.path.join(video_parts_dir, str(index)+".mp4")
+            target_video_path = add_path(target_folder, str(index)+".mp4")
             #ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -async 1 -threads 8 "{target_file_path}"'
-            ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -threads 8 "{target_file_path}"'
-            print("\n" + "-------------------" + "\n")
-            print(ffmpeg_command)
-            print()
+            ffmpeg_command = f'ffmpeg -i "{source_video_path}" -ss {time_start} -to {time_end} -threads 8 "{target_video_path}"'
             t.run(ffmpeg_command, wait=True)
 
-    def concatenate(self, list_of_files, target_file_path):
-        working_dir = os.path.dirname(target_file_path)
-        if not os.path.exists(working_dir):
-            print('your target_file_path does not exist')
-            exit()
+        done()
 
-        list_txt_path = os.path.join(working_dir, 'temp_list.txt')
-        my_list_text = ''
-        for file_path in list_of_files:
-            if not os.path.exists(file_path):
-                print('one of your file does not exist')
-                exit()
-            my_list_text += "file " + f"'{file_path}'" + '\n'
-        io_.write(list_txt_path, my_list_text)
+    def link_videos(self, source_video_path_list, target_video_path):
+        """
+        concatenate videos one by one
+        """
+        make_sure_source_is_absolute_path(source_video_path_list)
+        make_sure_target_is_absolute_path(target_video_path)
 
-        combine_command = f"ffmpeg -f concat -safe 0 -i {list_txt_path} {target_file_path}"
-        print('\n' + '-'*20 +'\n')
-        print(combine_command)
-        print('\n' + '-'*20 +'\n')
+        working_dir = get_directory_name(target_video_path)
+        txt_file_path = add_path(working_dir, 'temp_list.txt')
+        text = ''
+        for file_path in source_video_path_list:
+            text += "file " + f"'{file_path}'" + '\n'
+        io_.write(txt_file_path, text)
+
+        make_sure_target_does_not_exist(target_video_path)
+
+        combine_command = f"ffmpeg -f concat -safe 0 -i '{txt_file_path}' '{target_video_path}'"
         t.run(combine_command, wait=True)
 
-        t.run(f'rm {list_txt_path}')
+        make_sure_target_does_not_exist(txt_file_path)
 
-    def combine_all_mp4_in_a_folder(self, video_parts_dir=None):
-        sort_by_time = False
+        done()
 
-        if video_parts_dir == None:
-            video_parts_dir = os.path.join(self._video_directory, 'video_parts')
-        else:
-            sort_by_time = True
-
-        filelist = [ os.path.join(video_parts_dir, f) for f in os.listdir(video_parts_dir) if f.endswith(".mp4") ]
+    def combine_all_mp4_in_a_folder(self, source_folder, target_video_path, sort_by_time=True):
+        filelist = [ os.path.join(source_folder, f) for f in os.listdir(source_folder) if f.endswith(".mp4") ]
 
         if (sort_by_time == False):
             filelist = list(sorted(filelist))
         else:
             filelist.sort(key=lambda x: os.path.getmtime(x))
 
-        my_list_text = ''
-        for file_path in filelist:
-            my_list_text += "file " + f"'{file_path}'" + '\n'
-
-        the_list_path = os.path.join(video_parts_dir, "temp_list.txt")
-        io_.write(the_list_path, my_list_text)
+        self.link_videos(source_video_path_list=filelist, target_video_path=target_video_path)
 
         if sort_by_time == False:
-            target_file_path = os.path.join(self._video_directory, "new_" + self._video_name)
+            make_sure_target_does_not_exist(source_folder)
+
+        done()
+
+    def remove_noise_from_video(self, source_video_path, target_video_path, noise_capture_length=None):
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_video_path)
+
+        if not noise_capture_length:
+            noise_capture_length = "1"
         else:
-            target_file_path = os.path.join(os.path.join(video_parts_dir, ".."), os.path.basename(video_parts_dir) + ".mp4")
-        if t.exists(target_file_path):
-            os.remove(target_file_path)
+            noise_capture_length = str(noise_capture_length)
 
-        combine_command = f"ffmpeg -f concat -safe 0 -i {the_list_path} {target_file_path}"
-        print(combine_command)
-        print("\n")
-        t.run(combine_command, wait=True)
+        working_dir = get_directory_name(target_video_path)
 
-        if sort_by_time == False:
-            shutil.rmtree(video_parts_dir)
+        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
+        noise_sample_wav_path = add_path(working_dir, 'noise_sample_wav.wav')
+        noise_prof_path = add_path(working_dir, 'noise_prof.prof')
+        no_noise_wav_path = add_path(working_dir, "no_noise_wav.wav")
+        loudnorm_wav_path = add_path(working_dir, "loudnorm_wav.wav")
 
-        return target_file_path
+        make_sure_target_does_not_exist(target_video_path)
+        make_sure_target_does_not_exist([noise_sample_wav_path, noise_prof_path, no_noise_wav_path, loudnorm_wav_path])
 
-    def remove_noise_from_video(self, video_file_path=None):
-        if video_file_path:
-            self._load_video(video_file_path)
+        t.run(f"""
+            ffmpeg -i "{source_video_path}" -acodec pcm_s16le -ar 128k -vn -ss 00:00:00.0 -t 00:00:0{noise_capture_length}.0 "{noise_sample_wav_path}"
+        """)
 
-        video_file_path = self._video_file_path
-        noise_sample_target_path = os.path.join(os.path.dirname(video_file_path), 'noise_sample.wav')
-        no_noise_wav_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._audio_name)
-        new_video_path = os.path.join(os.path.dirname(video_file_path), "new_" + self._video_name)
-        ffmpeg_command = f"""
-            ffmpeg -i "{video_file_path}" -acodec pcm_s16le -ar 128k -vn -ss 00:00:00.0 -t 00:00:01.0 "{noise_sample_target_path}"
+        t.run(f"""
+            sox "{noise_sample_wav_path}" -n noiseprof "{noise_prof_path}"
+        """)
 
-            sox "{noise_sample_target_path}" -n noiseprof noise.prof
+        t.run(f"""
+            sox "{audio_path}" "{no_noise_wav_path}" noisered "{noise_prof_path}" 0.21
+        """)
 
-            sox "{self._audio_file_path}" "{no_noise_wav_path}" noisered noise.prof 0.21
-            
-            #ffmpeg -i {no_noise_wav_path} -filter:a loudnorm new_{no_noise_wav_path}
-            ffmpeg -i {no_noise_wav_path} -af loudnorm=I=-23:LRA=1 -ar 48000 {no_noise_wav_path}.wav
+        t.run(f"""
+            ffmpeg -i "{no_noise_wav_path}" -af loudnorm=I=-23:LRA=1 -ar 48000 "{loudnorm_wav_path}"
+        """)
 
-            ffmpeg -i "{video_file_path}" -i "{no_noise_wav_path}.wav" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 128k "{new_video_path}"
+        t.run(f"""
+            ffmpeg -i "{source_video_path}" -i "{loudnorm_wav_path}" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 128k "{target_video_path}"
+        """)
 
+        make_sure_target_does_not_exist([audio_path, noise_sample_wav_path, noise_prof_path, no_noise_wav_path, loudnorm_wav_path])
 
-            rm {no_noise_wav_path}.wav
-            rm noise.prof
-            rm {no_noise_wav_path}
-            rm {noise_sample_target_path}
-            rm {self._audio_file_path}
-        """
-        print(ffmpeg_command)
-        t.run(ffmpeg_command, wait=True)
+        done()
 
-    def remove_silence_parts_from_video(self, video_file_path=None, db_for_split_silence_and_voice=None, minimum_interval_time_in_seconds=None):
-        if video_file_path:
-            self._load_video(video_file_path)
+    def remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, minimum_interval_time_in_seconds=None):
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_source_is_absolute_path(target_video_path)
 
         if db_for_split_silence_and_voice == None:
             top_db = np.abs(np.max(self._db_clustering(15)))
         else:
             top_db = db_for_split_silence_and_voice
 
+        working_dir = get_directory_name(target_video_path)
+        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
+
         if minimum_interval_time_in_seconds == None:
-            parts = self._get_voice_parts(top_db)
+            parts = self._get_voice_parts(audio_path, top_db)
         else:
-            parts = self._get_voice_parts(top_db, minimum_interval_time_in_seconds)
+            parts = self._get_voice_parts(audio_path, top_db, minimum_interval_time_in_seconds)
 
-        self._split_it_to_parts_by_time_intervals(parts)
+        target_folder = add_path(working_dir, "splitted_videos")
+        self.split_video_to_parts_by_time_intervals(source_video_path, target_folder, parts)
 
-        os.remove(self._audio_file_path)
+        make_sure_target_does_not_exist(audio_path)
 
-        return self.combine_all_mp4_in_a_folder()
+        self.combine_all_mp4_in_a_folder(target_folder, target_video_path, sort_by_time=False)
 
-    def humanly_remove_silence_parts_from_video(self, db_for_split_silence_and_voice, remove_noise=False):
+        done()
+
+    def humanly_remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice):
+        source_video_path = os.path.abspath(source_video_path)
+        target_video_path = os.path.abspath(target_video_path)
+
+        working_dir = get_directory_name(target_video_path)
+        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
+
+        temp_video_path = add_path(working_dir, 'temp_video.mp4')
+
         try:
-            parts = self._get_voice_parts(top_db=db_for_split_silence_and_voice)
+            parts = self._get_voice_parts(source_audio_path=audio_path, top_db=db_for_split_silence_and_voice)
             ratio = int(self._evaluate_voice_parts(parts) * 100)
         except Exception as e:
             print(e)
@@ -365,28 +414,22 @@ class Video():
         answer = input(f"Are you happy with the ratio of silence over all: {ratio}% ? (y/n)")
         if answer.strip() == "y":
             print("ok, let's do it!")
-            self.remove_silence_parts_from_video(db_for_split_silence_and_voice=db_for_split_silence_and_voice)
 
-            if remove_noise:
-                self.remove_noise_from_video("new_" + self._video_name)
+            self.remove_silence_parts_from_video(source_video_path, temp_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice)
+            self.remove_noise_from_video(source_video_path=temp_video_path, target_video_path=target_video_path, noise_capture_length=3)
 
-            print("we are done, sir")
+            make_sure_target_does_not_exist(temp_video_path)
+
+            done()
         else:
             print()
             print("you may want to change the db, and try again.")
+            exit()
 
 if __name__ == "__main__":
-    #video = Video("/home/yingshaoxo/Videos/demo.mp4")
-    #video.humanly_remove_silence_parts_from_video(db_for_split_silence_and_voice=15)
     video = Video()
-    video.remove_noise_from_video("/home/yingshaoxo/Videos/new_doing.mp4")
-
-    #video = Video("/home/yingshaoxo/Videos/doing/hi.mp4")
-    #video._check_db()
-
-    #inputs = input("What's the db that splited silence and voice? (for example, 20, hit enter to automatically get that value) ")
-    #inputs = inputs.strip()
-    #if inputs == "":
-    #    video.remove_silence_parts_from_video()
-    #else:
-    #    video.remove_silence_parts_from_video(db_for_split_silence_and_voice=int(inputs))
+    #video.link_videos(['/home/yingshaoxo/Videos/clips/money.mp4', '/home/yingshaoxo/Videos/clips/money.mp4'], '/home/yingshaoxo/Videos/hi.mp4')
+    #video.combine_all_mp4_in_a_folder("/home/yingshaoxo/Videos/test")
+    #video.remove_noise_from_video("/home/yingshaoxo/Videos/demo.mp4", "/home/yingshaoxo/Videos/doing.mp4")
+    #video.remove_silence_parts_from_video(source_video_path='/home/yingshaoxo/Videos/demo.mp4', target_video_path='/home/yingshaoxo/Videos/doing.mp4', db_for_split_silence_and_voice=20)
+    video.humanly_remove_silence_parts_from_video('/home/yingshaoxo/Videos/demo.mp4', '/home/yingshaoxo/Videos/doing.mp4', db_for_split_silence_and_voice=20)

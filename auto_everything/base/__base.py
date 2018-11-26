@@ -46,7 +46,9 @@ class IO():
 
 
 class Terminal():
-    def __init__(self, username=None):
+    def __init__(self, username=None, debug=False):
+        self.__debug = debug
+
         self.py_version = '{major}.{minor}'.format(
             major=str(sys.version_info[0]), minor=str(sys.version_info[1]))
         self.py_executable = sys.executable.replace("\\", "/")
@@ -100,6 +102,11 @@ class Terminal():
         cwd: current working directory
         wait: True may running forever
         """
+        if self.__debug:
+            print('\n' + '-'*20 + '\n')
+            print(c)
+            print('\n' + '-'*20 + '\n')
+
         if cwd == None:
             cwd = self.current_dir
         else:
@@ -135,6 +142,11 @@ class Terminal():
         c: shell command
         timeout: seconds. how long this command will take
         """
+        if self.__debug:
+            print('\n' + '-'*20 + '\n')
+            print(c)
+            print('\n' + '-'*20 + '\n')
+
         if '\n' in c:
             c = self.__text_to_sh(c)
 
