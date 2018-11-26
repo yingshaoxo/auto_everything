@@ -108,57 +108,6 @@ class Video():
     def __init__(self):
         pass
 
-    def _db_clustering(self, parts_num=3):
-        import librosa.display as display
-        import matplotlib.pyplot as plt
-        import matplotlib.style as ms
-
-        # Let's make and display a mel-scaled power (energy-squared) spectrogram
-        S = librosa.feature.melspectrogram(self._y, sr=self._sr, n_mels=128)
-
-        # Convert to log scale (dB). We'll use the peak power (max) as reference.
-        log_S = librosa.power_to_db(S, ref=np.max)
-
-        from sklearn.cluster import KMeans
-
-        x = log_S
-        km = KMeans(n_clusters=parts_num)
-        km.fit(x.reshape(-1,1))
-
-        return km.cluster_centers_
-
-    def _check_db(self):
-        import librosa.display as display
-        import matplotlib.pyplot as plt
-        import matplotlib.style as ms
-
-        ms.use('seaborn-muted')
-
-        # Let's make and display a mel-scaled power (energy-squared) spectrogram
-        S = librosa.feature.melspectrogram(self._y, sr=self._sr, n_mels=128)
-
-        # Convert to log scale (dB). We'll use the peak power (max) as reference.
-        log_S = librosa.power_to_db(S, ref=np.max)
-
-        # Make a new figure
-        plt.figure(figsize=(12,4))
-
-        # Display the spectrogram on a mel scale
-        # sample rate and hop length parameters are used to render the time axis
-        display.specshow(log_S, sr=self._sr, x_axis='time', y_axis='mel')
-
-        # Put a descriptive title on the plot
-        plt.title('mel power spectrogram')
-
-        # draw a color bar
-        plt.colorbar(format='%+02.0f dB')
-
-        # Make the figure layout compact
-        plt.tight_layout()
-
-        # show
-        plt.show()
-
     def _get_voice_parts(self, source_audio_path, top_db=None, minimum_interval_time_in_seconds=1.5):
         y, sr = get_wav_infomation(source_audio_path)
         minimum_interval_samples = librosa.core.time_to_samples(minimum_interval_time_in_seconds, sr)
@@ -371,13 +320,11 @@ class Video():
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_source_is_absolute_path(target_video_path)
 
-        if db_for_split_silence_and_voice == None:
-            top_db = np.abs(np.max(self._db_clustering(15)))
-        else:
-            top_db = db_for_split_silence_and_voice
+        top_db = db_for_split_silence_and_voice
 
         working_dir = get_directory_name(target_video_path)
         audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
+        temp_video_path = add_path(working_dir, 'temp_video.mp4')
 
         if minimum_interval_time_in_seconds == None:
             parts = self._get_voice_parts(audio_path, top_db)
@@ -389,7 +336,10 @@ class Video():
 
         make_sure_target_does_not_exist(audio_path)
 
-        self.combine_all_mp4_in_a_folder(target_folder, target_video_path, sort_by_time=False)
+        self.combine_all_mp4_in_a_folder(target_folder, temp_video_path, sort_by_time=False)
+        self.remove_noise_from_video(source_video_path=temp_video_path, target_video_path=target_video_path)
+        
+        make_sure_target_does_not_exist(temp_video_path)
 
         done()
 
