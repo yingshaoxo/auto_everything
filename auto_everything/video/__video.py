@@ -272,7 +272,9 @@ class Video():
 
         done()
 
-    def remove_noise_from_video(self, source_video_path, target_video_path, noise_capture_length=None):
+    def remove_noise_from_video(self, source_video_path, target_video_path, degree=0.21, noise_capture_length=None):
+        degree = str(degree)
+
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
 
@@ -301,7 +303,7 @@ class Video():
         """)
 
         t.run(f"""
-            sox "{audio_path}" "{no_noise_wav_path}" noisered "{noise_prof_path}" 0.21
+            sox "{audio_path}" "{no_noise_wav_path}" noisered "{noise_prof_path}" {degree}
         """)
 
         t.run(f"""
@@ -375,6 +377,27 @@ class Video():
             print()
             print("you may want to change the db, and try again.")
             exit()
+
+    def convert_all_video_to_a_common_format(self, source_folder):
+        make_sure_source_is_absolute_path(source_folder)
+
+        working_dir = get_directory_name(source_folder)
+        new_folder = add_path(working_dir, os.path.basename(source_folder)+'(common_format)')
+        if not os.path.exists(new_folder):
+            os.mkdir(new_folder)
+
+        filelist = [ os.path.join(source_folder, f) for f in os.listdir(source_folder) if f.endswith(".mp4") ]
+
+        for file in filelist:
+            basename = os.path.basename(file)
+            target_video_path = add_path(new_folder, basename)
+            make_sure_target_does_not_exist(target_video_path)
+
+            t.run(f"""
+                ffmpeg -i "{file}" "{target_video_path}"
+            """)
+
+        done()
 
 if __name__ == "__main__":
     video = Video()
