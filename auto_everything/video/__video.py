@@ -378,11 +378,11 @@ class Video():
             print("you may want to change the db, and try again.")
             exit()
 
-    def convert_all_video_to_a_common_format(self, source_folder):
+    def compress_videos_in_a_folder(self, source_folder):
         make_sure_source_is_absolute_path(source_folder)
 
         working_dir = get_directory_name(source_folder)
-        new_folder = add_path(working_dir, os.path.basename(source_folder)+'(common_format)')
+        new_folder = add_path(working_dir, 'compressed_'+os.path.basename(source_folder))
         if not os.path.exists(new_folder):
             os.mkdir(new_folder)
 
