@@ -177,11 +177,54 @@ class Video():
 
         return parts
 
-    def _get_voice_and_silence_parts(self, source_audio_path, top_db):
+    def _get_voice_and_silence_parts(self, source_audio_path, top_db, minimum_interval_time_in_seconds=1.5):
         # let's assume 1=voice, 0=noise
         y, sr = get_wav_infomation(source_audio_path)
+        minimum_interval_samples = librosa.core.time_to_samples(minimum_interval_time_in_seconds, sr)
 
         parts = librosa.effects.split(y, top_db=top_db) # return samples
+
+        def ignore_short_noise(parts):
+            # ignore short noise
+            new_parts = []
+            for index, part in enumerate(parts):
+                if index == 0:
+                    new_parts.append(list(part))
+                    continue
+                else:
+                    noise_interval = (part[0] - parts[index-1][1])
+                    if (noise_interval > minimum_interval_samples):
+                        new_parts.append([parts[index-1][1], parts[index-1][1] + (part[0]-parts[index-1][1])*0.3])
+                        new_parts.append(list(part))
+                    else:
+                        new_parts.append([parts[index-1][1], part[0]])
+                        new_parts.append(list(part))
+
+            the_missing_final = new_parts[-1][1]
+            # combine continuous voice
+            final_parts = []
+            first = -1
+            for index, part in enumerate(new_parts):
+                if index == 0:
+                    final_parts.append(part)
+                    continue
+                else:
+                    inverval = (part[0] - new_parts[index-1][1])
+                    if (inverval == 0):
+                        if first == -1:
+                            first = new_parts[index-1][0]
+                    else:
+                        if (first == -1):
+                            final_parts.append([part[0], part[1]])
+                        else:
+                            final_parts.append([first, new_parts[index-1][1]])
+                            first = -1
+
+            final_parts.append([final_parts[-1][1], the_missing_final])
+
+            return np.array(final_parts)
+
+        parts = ignore_short_noise(parts)
 
         def from_samples_to_seconds(part):
             part = librosa.core.samples_to_time(part, sr) # return seconds
@@ -524,4 +567,4 @@ class Video():
 if __name__ == "__main__":
     video = Video()
     #video.humanly_remove_silence_parts_from_video('/home/yingshaoxo/Videos/doing.mp4', '/home/yingshaoxo/Videos/speed.mp4', 5)
-    video.speedup_silence_parts_in_video('/home/yingshaoxo/Videos/doing.mp4', '/home/yingshaoxo/Videos/speed.mp4', 35)
+    video.speedup_silence_parts_in_video('/home/yingshaoxo/Videos/doing.mp4', '/home/yingshaoxo/Videos/speed.mp4', 20, 3)
