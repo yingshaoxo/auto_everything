@@ -108,7 +108,7 @@ class Video():
     def __init__(self):
         pass
 
-    def _get_voice_parts(self, source_audio_path, top_db=None, minimum_interval_time_in_seconds=1.5):
+    def _get_voice_parts(self, source_audio_path, top_db, minimum_interval_time_in_seconds=1.5):
         y, sr = get_wav_infomation(source_audio_path)
         minimum_interval_samples = librosa.core.time_to_samples(minimum_interval_time_in_seconds, sr)
 
@@ -177,6 +177,32 @@ class Video():
 
         return parts
 
+    def _get_voice_and_silence_parts(self, source_audio_path, top_db):
+        # let's assume 1=voice, 0=noise
+        y, sr = get_wav_infomation(source_audio_path)
+
+        parts = librosa.effects.split(y, top_db=top_db) # return samples
+
+        def from_samples_to_seconds(part):
+            part = librosa.core.samples_to_time(part, sr) # return seconds
+            def seconds_to_string_format(num):
+                return str(datetime.timedelta(seconds=num))
+            return [seconds_to_string_format(part[0]), seconds_to_string_format(part[1])]
+
+        voice_and_silence_parts = []
+        for index, part in enumerate(parts):
+            first = part[0]
+            second = part[1]
+            if index == 0:
+                if first != 0:
+                    voice_and_silence_parts.append([0, from_samples_to_seconds([0, first])])
+                    voice_and_silence_parts.append([1, from_samples_to_seconds([first, second])])
+            else:
+                voice_and_silence_parts.append([0, from_samples_to_seconds([parts[index-1][1], first])])
+                voice_and_silence_parts.append([1, from_samples_to_seconds([first, second])])
+
+        return voice_and_silence_parts
+
     def _evaluate_voice_parts(self, parts):
         from dateutil.parser import parse
         new_parts = []
@@ -214,7 +240,28 @@ class Video():
         plt.show()
         """
 
-    def split_video_to_parts_by_time_intervals(self, source_video_path, target_folder, time_intervals):
+    def split_video_by_time_part(self, source_video_path, target_video_path, part):
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_video_path)
+        make_sure_target_does_not_exist(target_video_path)
+
+        try:
+            time_start = part[0]
+            time_end = part[1]
+        except Exception as e:
+            print(e)
+            print(part)
+            print("time part is a list: [time_start, time_end]")
+            exit()
+
+        t.run(f"""
+            ffmpeg -i "{source_video_path}" -ss {time_start} -to {time_end} -threads 8 "{target_video_path}"
+        """)
+        #ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -async 1 -threads 8 "{target_file_path}"'
+
+        done()
+
+    def _split_video_to_parts_by_time_intervals(self, source_video_path, target_folder, time_intervals):
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_folder)
 
@@ -225,12 +272,9 @@ class Video():
         for index, part in enumerate(time_intervals):
             index = (6-len(str(index)))*'0' + str(index)
 
-            time_start = part[0]
-            time_end = part[1]
             target_video_path = add_path(target_folder, str(index)+".mp4")
-            #ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -async 1 -threads 8 "{target_file_path}"'
-            ffmpeg_command = f'ffmpeg -i "{source_video_path}" -ss {time_start} -to {time_end} -threads 8 "{target_video_path}"'
-            t.run(ffmpeg_command, wait=True)
+
+            self.split_video_by_time_part(source_video_path, target_video_path, part)
 
         done()
 
@@ -334,7 +378,7 @@ class Video():
             parts = self._get_voice_parts(audio_path, top_db, minimum_interval_time_in_seconds)
 
         target_folder = add_path(working_dir, "splitted_videos")
-        self.split_video_to_parts_by_time_intervals(source_video_path, target_folder, parts)
+        self._split_video_to_parts_by_time_intervals(source_video_path, target_folder, parts)
 
         make_sure_target_does_not_exist(audio_path)
 
@@ -378,6 +422,63 @@ class Video():
             print("you may want to change the db, and try again.")
             exit()
 
+    def speedup_video(self, source_video_path, target_video_path, speed=2):
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_video_path)
+        make_sure_target_does_not_exist(target_video_path)
+
+        video_speed = str(float(1/speed))[:6]
+        audio_speed = str(float(speed))
+
+        if speed <= 2:
+            t.run(f"""
+                ffmpeg -i "{source_video_path}" -filter_complex "[0:v]setpts={video_speed}*PTS[v];[0:a]atempo={audio_speed}[a]" -map "[v]" -map "[a]" "{target_video_path}"
+            """)
+        else:
+            t.run(f"""
+                ffmpeg -i "{source_video_path}" -filter:v "setpts={video_speed}*PTS" "{target_video_path}"
+            """)
+
+        done()
+
+    def speedup_silence_parts_in_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, speed):
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_source_is_absolute_path(target_video_path)
+
+        top_db = db_for_split_silence_and_voice
+
+        working_dir = get_directory_name(target_video_path)
+        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
+        temp_video_path = add_path(working_dir, 'temp_video.mp4')
+
+        target_folder = add_path(working_dir, "splitted_videos")
+        voice_and_silence_parts = self._get_voice_and_silence_parts(audio_path, top_db)
+
+        make_sure_target_does_not_exist(target_folder)
+        if not t.exists(target_folder):
+            os.mkdir(target_folder)
+
+        for index, part in enumerate(voice_and_silence_parts):
+            index = (6-len(str(index)))*'0' + str(index)
+            if part[0] == 1: # voice
+                target_video_path = add_path(target_folder, str(index)+".mp4")
+                self.split_video_by_time_part(source_video_path, target_video_path, part[1])
+            else: # silence
+                temp_for_speedup_video_path = add_path(target_folder, 'temp_for_speedup_video.mp4')
+                make_sure_target_does_not_exist(temp_for_speedup_video_path)
+                self.split_video_by_time_part(source_video_path, temp_for_speedup_video_path, part[1])
+
+                target_video_path = add_path(target_folder, str(index)+".mp4")
+                self.speedup_video(temp_for_speedup_video_path, target_video_path, speed=speed)
+                make_sure_target_does_not_exist(temp_for_speedup_video_path)
+
+        make_sure_target_does_not_exist(audio_path)
+        self.combine_all_mp4_in_a_folder(target_folder, temp_video_path, sort_by_time=False)
+        self.remove_noise_from_video(source_video_path=temp_video_path, target_video_path=target_video_path)
+
+        make_sure_target_does_not_exist(temp_video_path)
+        done()
+
     def compress_videos_in_a_folder(self, source_folder):
         make_sure_source_is_absolute_path(source_folder)
 
@@ -399,10 +500,28 @@ class Video():
 
         done()
 
+    def format_videos_in_a_folder(self, source_folder):
+        make_sure_source_is_absolute_path(source_folder)
+
+        working_dir = get_directory_name(source_folder)
+        new_folder = add_path(working_dir, 'formated_'+os.path.basename(source_folder))
+        if not os.path.exists(new_folder):
+            os.mkdir(new_folder)
+
+        filelist = [ os.path.join(source_folder, f) for f in os.listdir(source_folder) if f.endswith(".mp4") ]
+
+        for file in filelist:
+            basename = os.path.basename(file)
+            target_video_path = add_path(new_folder, basename)
+            make_sure_target_does_not_exist(target_video_path)
+
+            t.run(f"""
+                ffmpeg -i "{file}" -c:v libx264 -pix_fmt yuv420p -vf scale=1920:1080"{target_video_path}"
+            """)
+
+        done()
+
 if __name__ == "__main__":
     video = Video()
-    #video.link_videos(['/home/yingshaoxo/Videos/clips/money.mp4', '/home/yingshaoxo/Videos/clips/money.mp4'], '/home/yingshaoxo/Videos/hi.mp4')
-    #video.combine_all_mp4_in_a_folder("/home/yingshaoxo/Videos/test")
-    #video.remove_noise_from_video("/home/yingshaoxo/Videos/demo.mp4", "/home/yingshaoxo/Videos/doing.mp4")
-    #video.remove_silence_parts_from_video(source_video_path='/home/yingshaoxo/Videos/demo.mp4', target_video_path='/home/yingshaoxo/Videos/doing.mp4', db_for_split_silence_and_voice=20)
-    video.humanly_remove_silence_parts_from_video('/home/yingshaoxo/Videos/demo.mp4', '/home/yingshaoxo/Videos/doing.mp4', db_for_split_silence_and_voice=20)
+    #video.humanly_remove_silence_parts_from_video('/home/yingshaoxo/Videos/doing.mp4', '/home/yingshaoxo/Videos/speed.mp4', 5)
+    video.speedup_silence_parts_in_video('/home/yingshaoxo/Videos/doing.mp4', '/home/yingshaoxo/Videos/speed.mp4', 35)
