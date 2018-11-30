@@ -372,7 +372,7 @@ class Video():
 
         working_dir = get_directory_name(target_video_path)
 
-        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
+        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio_for_remove_noise_from_video.wav'))
         noise_sample_wav_path = add_path(working_dir, 'noise_sample_wav.wav')
         noise_prof_path = add_path(working_dir, 'noise_prof.prof')
         no_noise_wav_path = add_path(working_dir, "no_noise_wav.wav")
@@ -412,7 +412,7 @@ class Video():
         top_db = db_for_split_silence_and_voice
 
         working_dir = get_directory_name(target_video_path)
-        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
+        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio_for_remove_silence_parts_from_video.wav'))
         temp_video_path = add_path(working_dir, 'temp_for_remove_silence_parts_from__video.mp4')
 
         if minimum_interval_time_in_seconds == None:
@@ -437,7 +437,7 @@ class Video():
         target_video_path = os.path.abspath(target_video_path)
 
         working_dir = get_directory_name(target_video_path)
-        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
+        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio_for_humanly_remove_silence_parts_from_video.wav'))
 
         temp_video_path = add_path(working_dir, 'temp_for_humanly_remove_silence_parts_from_video.mp4')
 
@@ -491,7 +491,7 @@ class Video():
         top_db = db_for_split_silence_and_voice
 
         working_dir = get_directory_name(target_video_path)
-        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
+        audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio_for_speedup_silence_parts_in_video.wav'))
         temp_video_path = add_path(working_dir, 'temp_for_speedup_silence_parts_in_video.mp4')
 
         target_folder = add_path(working_dir, "splitted_videos")
