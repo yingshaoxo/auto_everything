@@ -522,6 +522,20 @@ class Video():
         make_sure_target_does_not_exist(temp_video_path)
         done()
 
+    def delay_audio_in_video(self, source_video_path, target_video_path, delay):
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_video_path)
+        make_sure_target_does_not_exist(target_video_path)
+
+        delay = float(delay)
+        delay = str(delay)
+
+        t.run(f"""
+            ffmpeg -i "{source_video_path}" -itsoffset {delay} -i "{source_video_path}" -map 0:v -map 1:a -c copy "{target_video_path}"
+        """)
+
+        done()
+
     def compress_videos_in_a_folder(self, source_folder):
         make_sure_source_is_absolute_path(source_folder)
 
