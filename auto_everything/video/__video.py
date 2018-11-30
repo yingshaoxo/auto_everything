@@ -413,7 +413,7 @@ class Video():
 
         working_dir = get_directory_name(target_video_path)
         audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
-        temp_video_path = add_path(working_dir, 'temp_video.mp4')
+        temp_video_path = add_path(working_dir, 'temp_for_remove_silence_parts_from__video.mp4')
 
         if minimum_interval_time_in_seconds == None:
             parts = self._get_voice_parts(audio_path, top_db)
@@ -439,7 +439,7 @@ class Video():
         working_dir = get_directory_name(target_video_path)
         audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
 
-        temp_video_path = add_path(working_dir, 'temp_video.mp4')
+        temp_video_path = add_path(working_dir, 'temp_for_humanly_remove_silence_parts_from_video.mp4')
 
         try:
             parts = self._get_voice_parts(source_audio_path=audio_path, top_db=db_for_split_silence_and_voice)
@@ -492,7 +492,7 @@ class Video():
 
         working_dir = get_directory_name(target_video_path)
         audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio.wav'))
-        temp_video_path = add_path(working_dir, 'temp_video.mp4')
+        temp_video_path = add_path(working_dir, 'temp_for_speedup_silence_parts_in_video.mp4')
 
         target_folder = add_path(working_dir, "splitted_videos")
         voice_and_silence_parts = self._get_voice_and_silence_parts(audio_path, top_db)
@@ -507,7 +507,7 @@ class Video():
                 target_video_path = add_path(target_folder, str(index)+".mp4")
                 self.split_video_by_time_part(source_video_path, target_video_path, part[1])
             else: # silence
-                temp_for_speedup_video_path = add_path(target_folder, 'temp_for_speedup_video.mp4')
+                temp_for_speedup_video_path = add_path(target_folder, 'temp_for_speedup_silence_parts_in_video2.mp4')
                 make_sure_target_does_not_exist(temp_for_speedup_video_path)
                 self.split_video_by_time_part(source_video_path, temp_for_speedup_video_path, part[1])
 
