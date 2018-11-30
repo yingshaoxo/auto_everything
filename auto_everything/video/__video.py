@@ -413,7 +413,7 @@ class Video():
 
         working_dir = get_directory_name(target_video_path)
         audio_path = convert_video_to_wav(source_video_path, add_path(working_dir, 'audio_for_remove_silence_parts_from_video.wav'))
-        temp_video_path = add_path(working_dir, 'temp_for_remove_silence_parts_from__video.mp4')
+        temp_video_path = add_path(working_dir, 'temp_for_remove_silence_parts_from_video.mp4')
 
         if minimum_interval_time_in_seconds == None:
             parts = self._get_voice_parts(audio_path, top_db)
@@ -504,15 +504,15 @@ class Video():
         for index, part in enumerate(voice_and_silence_parts):
             index = (6-len(str(index)))*'0' + str(index)
             if part[0] == 1: # voice
-                target_video_path = add_path(target_folder, str(index)+".mp4")
-                self.split_video_by_time_part(source_video_path, target_video_path, part[1])
+                temp_target_video_path = add_path(target_folder, str(index)+".mp4")
+                self.split_video_by_time_part(source_video_path, temp_target_video_path, part[1])
             else: # silence
-                temp_for_speedup_video_path = add_path(target_folder, 'temp_for_speedup_silence_parts_in_video2.mp4')
+                temp_for_speedup_video_path = add_path(target_folder, 'temp_for_speedup_silence_parts_in_video.mp4')
                 make_sure_target_does_not_exist(temp_for_speedup_video_path)
                 self.split_video_by_time_part(source_video_path, temp_for_speedup_video_path, part[1])
 
-                target_video_path = add_path(target_folder, str(index)+".mp4")
-                self.speedup_video(temp_for_speedup_video_path, target_video_path, speed=speed)
+                temp_target_video_path = add_path(target_folder, str(index)+".mp4")
+                self.speedup_video(temp_for_speedup_video_path, temp_target_video_path, speed=speed)
                 make_sure_target_does_not_exist(temp_for_speedup_video_path)
 
         make_sure_target_does_not_exist(audio_path)
