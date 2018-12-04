@@ -432,7 +432,7 @@ class Video():
 
         done()
 
-    def humanly_remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice):
+    def humanly_remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, minimum_interval=2):
         source_video_path = os.path.abspath(source_video_path)
         target_video_path = os.path.abspath(target_video_path)
 
@@ -454,7 +454,7 @@ class Video():
         if answer.strip() == "y":
             print("ok, let's do it!")
 
-            self.remove_silence_parts_from_video(source_video_path, temp_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice)
+            self.remove_silence_parts_from_video(source_video_path, temp_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice, minimum_interval_time_in_seconds=minimum_interval)
             self.remove_noise_from_video(source_video_path=temp_video_path, target_video_path=target_video_path, noise_capture_length=3)
 
             make_sure_target_does_not_exist(temp_video_path)

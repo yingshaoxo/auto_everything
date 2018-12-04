@@ -98,14 +98,17 @@ class GUI():
         paths = [os.path.join(self.__data_folder, filename) for filename in os.listdir(self.__data_folder)]
         files = [path for path in paths if os.path.isfile(path)]
         files = [path for path in paths if os.path.basename(path).split('.')[-1] in ["png", "jpg"]]
-        if len(files) == 0:
-            print('You should put image files (png, jpg) with meaningful name into {path} first!'.format(path=self.__data_folder))
-            exit()
+        #if len(files) == 0:
+        #    print('You should put image files (png, jpg) with meaningful name into {path} folder first!'.format(path=self.__data_folder))
+        #    exit()
 
         self.img_dict = {}
         for file in files:
             obj_name = '.'.join(os.path.basename(file).split('.')[:-1])
             self.img_dict.update({obj_name: file})
+
+    def delay(self, seconds):
+        time.sleep(seconds)
 
     def exists(self, element_name, from_image=None, space_ratio=(0, 0, 1, 1)):
         """
