@@ -171,14 +171,15 @@ class GUI():
             return return_list
         else:
             return None
-                
+
+
+class Control():
+    """
+    1. when you hit ctrl+caps , start to write command
+    2. / means you want to search text on screen, generate ramdom number for different position, like vimum
+    """
+    def __init__(self):
+        pass
 
 if __name__ == "__main__":
-    gui = GUI()
-    points = gui.find_text("yingshaoxo")
-    if points:
-        x, y = points[0]
-        gui.autogui.moveTo(x,y)
-        print(points)
-    else:
-        print("没找到")
+    pass
