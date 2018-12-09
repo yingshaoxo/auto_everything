@@ -28,9 +28,10 @@ import os.path as path, sys
 current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
 
-from base import Terminal, Python
+from base import Terminal, Python, OS 
 t = Terminal()
 py = Python()
+os_ = OS()
 
 sys.path.pop(0)
 
@@ -78,7 +79,7 @@ class GUI():
         try:
             import pyautogui as autogui
         except:
-            t.install_package("python3-xlib")
+            os_.install_package("python3-xlib")
             py.install_package("pyautogui")
         self.autogui = autogui
         self.autogui.FAILSAFE = False
@@ -98,9 +99,6 @@ class GUI():
         paths = [os.path.join(self.__data_folder, filename) for filename in os.listdir(self.__data_folder)]
         files = [path for path in paths if os.path.isfile(path)]
         files = [path for path in paths if os.path.basename(path).split('.')[-1] in ["png", "jpg"]]
-        #if len(files) == 0:
-        #    print('You should put image files (png, jpg) with meaningful name into {path} folder first!'.format(path=self.__data_folder))
-        #    exit()
 
         self.img_dict = {}
         for file in files:
@@ -110,12 +108,19 @@ class GUI():
     def delay(self, seconds):
         time.sleep(seconds)
 
+    def _make_sure_img_dict_exists(self):
+        if self.img_dict == {}:
+            print('You should put image files (png, jpg) with meaningful name into {path} folder first!'.format(path=self.__data_folder))
+            exit()
+
     def exists(self, element_name, from_image=None, space_ratio=(0, 0, 1, 1)):
         """
         element_name: image name (those pictures you put into data folder) ; String
 
         space_ratio: ratio of area you want to detect (left_top_x, left_top_y, right_bottom_x, right_bottom_y) ; Integer Numbers
         """
+        self._make_sure_img_dict_exists()
+
         if from_image == None:
             Tuple = self.autogui.locateCenterOnScreen(self.img_dict[element_name])
             if Tuple == None:
@@ -129,6 +134,8 @@ class GUI():
 
         space_ratio: ratio of area you want to detect (left_top_x, left_top_y, right_bottom_x, right_bottom_y) ; Integer Numbers
         """
+        self._make_sure_img_dict_exists()
+
         while True:
             Tuple = self.autogui.locateCenterOnScreen(self.img_dict[element_name])
             if Tuple != None:

@@ -196,7 +196,8 @@ class Terminal():
     def run_py(self, file_path_with_command, cwd=None, wait=False):
         path, args = self.__split_args(file_path_with_command)
         path = self.fix_path(path)
-        command = self.py_executable + ' {path} {args}'.format(path=path, args=args)
+        command = self.py_executable + \
+            ' {path} {args}'.format(path=path, args=args)
 
         if cwd == None:
             cwd = os.path.dirname(path)
@@ -288,6 +289,7 @@ class OS():
     """
     This is for system stuff
     """
+
     def __init__(self):
         self._io = IO()
         self._t = Terminal()
@@ -306,8 +308,9 @@ class OS():
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
         installed_packages = self.list_python_packages()
-        if (force==True) or (package_name not in installed_packages):
-            self._t.run("sudo pip3 install {name} --upgrade".format(name=package_name))
+        if (force == True) or (package_name not in installed_packages):
+            self._t.run(
+                "sudo pip3 install {name} --upgrade".format(name=package_name))
 
     def uninstall_python_package(self, package_name, force=False):
         """
@@ -317,7 +320,7 @@ class OS():
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
         installed_packages = self.list_python_packages()
-        if (force==True) or (package_name in installed_packages):
+        if (force == True) or (package_name in installed_packages):
             self._t.run(
                 "sudo pip3 uninstall {name} -y".format(name=package_name))
 
@@ -335,8 +338,9 @@ class OS():
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
         installed_packages = self.list_packages()
-        if (force==True) or (package_name not in installed_packages):
-            self._t.run("sudo apt install {name} -y --upgrade".format(name=package_name))
+        if (force == True) or (package_name not in installed_packages):
+            self._t.run(
+                "sudo apt install {name} -y --upgrade".format(name=package_name))
 
     def uninstall_package(self, package_name, force=False):
         """
@@ -346,7 +350,7 @@ class OS():
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
         installed_packages = self.list_packages()
-        if (force==True) or (package_name in installed_packages):
+        if (force == True) or (package_name in installed_packages):
             self._t.run("sudo apt purge {name} -y".format(name=package_name))
 
 
@@ -414,7 +418,7 @@ class Python():
                     public_methods.append(method)
             print(private_methods, '\n')
             pprint(public_methods)
-            
+
     def fire(self, class_name):
         """
         fire is a function that will turn any Python class into a command line interface
@@ -433,13 +437,15 @@ class Python():
         so you can run it by: ./your_py_script_name.py
         """
         if py_file_path == None or self._t.exists(py_file_path):
-            py_file_path = os.path.join(self._t.current_dir, sys.argv[0].strip('./'))
+            py_file_path = os.path.join(
+                self._t.current_dir, sys.argv[0].strip('./'))
         codes = self._io.read(py_file_path)
         expected_first_line = '#!/usr/bin/env {}'.format(self._t.py_executable)
         if codes.split('\n')[0] != expected_first_line:
             codes = expected_first_line + '\n' + codes
             self._io.write(py_file_path, codes)
             self._t.run_command('chmod +x {}'.format(py_file_path))
+
 
 class Git():
     def __init__(self):
@@ -475,6 +481,30 @@ py.make_it_runnable()
 py.fire(Tools)
 '''
         self._io.write("Tools.py", sh_scripts)
+
+
+class Deploy():
+    def __init__(self):
+        self._t = Terminal()
+        self.file_modification_dict = {}
+
+    def whether_a_file_has_changed(self, file_path):
+        last_modification_time = os.path.getmtime(file_path)
+
+        def update_dict():
+            self.file_modification_dict.update({
+                file_path: last_modification_time
+            })
+
+        if file_path in self.file_modification_dict:
+            if last_modification_time != self.file_modification_dict[file_path]:
+                update_dict()
+                return True
+            else:
+                return False
+        else:
+            update_dict()
+            return False
 
 
 class Super():
@@ -535,7 +565,8 @@ WantedBy=multi-user.target
             else:
                 self._t.run(restart_command)
         else:
-            py_file_path = self._t.fix_path(py_file_path, username=self.__username)
+            py_file_path = self._t.fix_path(
+                py_file_path, username=self.__username)
             py_file_path = os.path.abspath(py_file_path)
             if not self._t.exists(service_path):
                 config = self.__get_service_config(py_file_path)
