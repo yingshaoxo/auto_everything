@@ -1,9 +1,12 @@
+*/_cnn_data/
+*/_data/
+
 *.pyc
 *.screenshot*
-nohup.out
+*/nohup.out
 
 # Byte-compiled / optimized / DLL files
-__pycache__/
+*/__pycache__/
 *.py[cod]
 *$py.class
 
