@@ -18,6 +18,7 @@ class Tools():
 
     def push(self, comment):
         self.__clear()
+        self.make_docs()
 
         t.run('git add .')
         t.run('git commit -m "{}"'.format(comment))
