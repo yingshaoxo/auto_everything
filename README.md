@@ -62,15 +62,6 @@ ___
 
 
 ## For simplify Python development
-#### Check out object information
-```
-from auto_everything.base import Terminal, Python
-t = Terminal()
-py = Python()
-
-py.help(t)
-```
-
 #### Turn `Python Class` into a `Command Line Program`
 ```
 py.fire(your_class_name)
@@ -80,24 +71,6 @@ ___
 
 
 ## Advanced API
-#### Keep a function running
-```python
-from auto_everything.base import Python
-py = Python()
-
-i = 0
-
-@py.loop(interval=1, thread=False)
-def count():
-    global i
-    i += 1
-    print(i)
-
-count()
-
-print("Welcome to my world!")
-```
-
 #### Create(start) or Cancel(stop) a systemd serviece
 ```python
 from auto_everything.base import Super
