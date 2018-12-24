@@ -44,8 +44,17 @@ sudo pip3 install auto_everything*
 cd ..
         """)
 
+    def make_docs(self):
+        t.run("""
+        cd docs
+        make html
+        cp docs/html/* -fr
+        rm docs -fr
+        """)
+
     def publish(self):
         self.install()
+        self.make_docs()
         t.run("""
 twine upload dist/*
         """)
