@@ -391,7 +391,6 @@ class Video():
         make_sure_source_is_absolute_path(source_video_path_list)
         make_sure_target_is_absolute_path(target_video_path)
 
-        """
         working_dir = get_directory_name(target_video_path)
         txt_file_path = add_path(working_dir, 'temp_list.txt')
         text = ''
@@ -405,7 +404,9 @@ class Video():
         t.run(combine_command, wait=True)
 
         make_sure_target_does_not_exist(txt_file_path)
+
         """
+        # for the stupid moviepy library, it will case memory leak if you give it too much videos
         print(source_video_path_list)
         clip_list = [VideoFileClip(clip) for clip in source_video_path_list]
         final_clip = concatenate_videoclips(clip_list)
@@ -416,6 +417,7 @@ class Video():
             del clip
         clip.close()
         del final_clip
+        """
 
         done()
 

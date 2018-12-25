@@ -4,18 +4,6 @@ py = Python()
 t = Terminal()
 
 class Tools():
-    def work(self, on_what):
-        if on_what == "base":
-            t.run_program("terminator -e 'vim auto_everything/base/__base.py'")
-        elif on_what == "gui":
-            t.run_program("terminator -e 'vim auto_everything/gui/__gui.py'")
-        elif on_what == "gui-example":
-            t.run_program("terminator -e 'vim ./demo/gui/LyingDown_for_Lubuntu/main.py'")
-        if on_what == "video":
-            t.run_program("terminator -e 'vim auto_everything/video/__video.py'")
-        elif on_what == "test":
-            t.run_program("terminator -e 'vim ./demo/test/main.py'")
-
     def push(self, comment):
         self.__clear()
         self.make_docs()
