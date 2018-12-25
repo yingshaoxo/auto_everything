@@ -347,6 +347,8 @@ class Video():
         try:
             clip = VideoFileClip(source_video_path).subclip(time_start, time_end)
             clip.write_videofile(target_video_path)
+            clip.close()
+            del clip
         except Exception as e:
             print(e)
             print("error at split_video_by_time_part")
@@ -408,6 +410,12 @@ class Video():
         clip_list = [VideoFileClip(clip) for clip in source_video_path_list]
         final_clip = concatenate_videoclips(clip_list)
         final_clip.write_videofile(target_video_path)
+
+        for clip in clip_list:
+            clip.close()
+            del clip
+        clip.close()
+        del final_clip
 
         done()
 
