@@ -129,6 +129,7 @@ class Video():
 
     4. moviepy
     """
+
     def __init__(self):
         pass
 
@@ -148,7 +149,15 @@ class Video():
                     noise_interval = (part[0] - parts[index-1][1])
                     if (noise_interval > minimum_interval_samples):
                         new_parts.append(
-                            [parts[index-1][1], parts[index-1][1] + (part[0]-parts[index-1][1])*0.3])
+                            [ parts[index-1][1], 
+                              parts[index-1][1] + (part[0]-parts[index-1][1])*0.1 
+                            ]
+                        )
+                        new_parts.append(
+                            [ part[0] - (part[0]-parts[index-1][1]) * 0.1, 
+                              part[0]
+                            ]
+                        )
                         new_parts.append(list(part))
                     else:
                         new_parts.append([parts[index-1][1], part[0]])
@@ -203,7 +212,7 @@ class Video():
         parts = from_samples_to_seconds(parts)
 
         return parts[1:]
-    
+
     def _get_voice_and_silence_parts(self, source_audio_path, top_db, minimum_interval_time_in_seconds=1.5):
         # let's assume 1=voice, 0=noise
         y, sr = get_wav_infomation(source_audio_path)
@@ -223,7 +232,7 @@ class Video():
                     noise_interval = (part[0] - parts[index-1][1])
                     if (noise_interval > minimum_interval_samples):
                         new_parts.append(
-                            [parts[index-1][1], parts[index-1][1] + (part[0]-parts[index-1][1])*0.3])
+                            [parts[index-1][1], parts[index-1][1]])
                         new_parts.append(list(part))
                     else:
                         new_parts.append([parts[index-1][1], part[0]])
@@ -282,7 +291,8 @@ class Video():
         def remove_unwanted_parts(voice_and_silence_parts):
             return [part for part in voice_and_silence_parts if part[1][0] != part[1][1]]
 
-        voice_and_silence_parts = remove_unwanted_parts(voice_and_silence_parts)
+        voice_and_silence_parts = remove_unwanted_parts(
+            voice_and_silence_parts)
         return voice_and_silence_parts
 
     def _evaluate_voice_parts(self, parts):
@@ -337,13 +347,12 @@ class Video():
             print("time part is a list: [time_start, time_end]")
             exit()
 
-        '''
         t.run(f"""
             ffmpeg -i "{source_video_path}" -ss {time_start} -to {time_end} -threads 8 "{target_video_path}"
         """)
         # ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -async 1 -threads 8 "{target_file_path}"'
-        '''
 
+        '''
         try:
             clip = VideoFileClip(source_video_path).subclip(time_start, time_end)
             clip.write_videofile(target_video_path)
@@ -355,6 +364,7 @@ class Video():
             print(time_start)
             print(time_end)
             exit()
+        '''
 
         done()
 
@@ -527,16 +537,32 @@ class Video():
             parts = self._get_voice_parts(
                 audio_path, top_db, minimum_interval_time_in_seconds)
 
+        # """
+        parent_clip = VideoFileClip(source_video_path)
+        clip_list = []
+        length = len(parts)
+        for index, part in enumerate(parts):
+            print(str(int(index/length*100))+"%,", part)
+            clip_list.append(parent_clip.subclip(part[0], part[1]))
+
+        concat_clip = concatenate_videoclips(clip_list)
+
+        concat_clip.write_videofile(target_video_path)
+        concat_clip.close()
+        del concat_clip
+        # """
+
+        """
         target_folder = add_path(working_dir, "splitted_videos")
         self._split_video_to_parts_by_time_intervals(
             source_video_path, target_folder, parts)
 
-        make_sure_target_does_not_exist(audio_path)
-
         self.combine_all_mp4_in_a_folder(
             target_folder, target_video_path, sort_by_time=False)
         # self.remove_noise_from_video(source_video_path=temp_video_path, target_video_path=target_video_path)
+        """
 
+        make_sure_target_does_not_exist(audio_path)
         make_sure_target_does_not_exist(temp_video_path)
 
         done()
