@@ -619,7 +619,7 @@ class Video():
             print("you may want to change the db, and try again.")
             exit()
 
-    def speedup_video(self, source_video_path, target_video_path, speed=2):
+    def speedup_video(self, source_video_path, target_video_path, speed=1.5):
         """
         Parameters
         ----------
@@ -652,6 +652,25 @@ class Video():
 
         done()
 
+    def _speedup_video_with_moviepy(self, source_video_path, target_video_path, speed=4):
+        """
+        Parameters
+        ----------
+        source_video_path: string
+        target_video_path: string
+        speed: int
+            how quick you want the video to be
+        """
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_video_path)
+        make_sure_target_does_not_exist(target_video_path)
+
+        clip = VideoFileClip(source_video_path).without_audio().fx(
+            vfx.speedx, speed)
+        clip.write_videofile(target_video_path)
+
+        done()
+
     def speedup_silence_parts_in_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, speed=4):
         """
         Instead remove silence, we can speed up the silence parts in a video
@@ -680,6 +699,7 @@ class Video():
         voice_and_silence_parts = self._get_voice_and_silence_parts(
             audio_path, top_db)
 
+        """
         make_sure_target_does_not_exist(target_folder)
         if not t.exists(target_folder):
             os.mkdir(target_folder)
@@ -700,7 +720,7 @@ class Video():
 
                 temp_target_video_path = add_path(
                     target_folder, str(index)+".mp4")
-                self.speedup_video(temp_for_speedup_video_path,
+                self._speedup_video_with_moviepy(temp_for_speedup_video_path,
                                    temp_target_video_path, speed=speed)
                 make_sure_target_does_not_exist(temp_for_speedup_video_path)
 
@@ -711,6 +731,29 @@ class Video():
             source_video_path=temp_video_path, target_video_path=target_video_path)
 
         make_sure_target_does_not_exist(temp_video_path)
+        """
+
+        make_sure_target_does_not_exist(audio_path)
+        parent_clip = VideoFileClip(source_video_path)
+        clip_list = []
+        length = len(voice_and_silence_parts)
+        for index, part in enumerate(voice_and_silence_parts):
+            print(str(int(index/length*100))+"%,", part)
+            if part[0] == 1:  # voice
+                clip_list.append(parent_clip.subclip(part[1][0], part[1][1]))
+            else:  # silence
+                clip_list.append(
+                    parent_clip.subclip(part[1][0], part[1][1]).without_audio().fx(
+                        vfx.speedx, speed
+                    )
+                )
+
+        concat_clip = concatenate_videoclips(clip_list)
+
+        concat_clip.write_videofile(target_video_path)
+        concat_clip.close()
+        del concat_clip
+
         done()
 
     def delay_audio_in_video(self, source_video_path, target_video_path, delay):
@@ -723,6 +766,20 @@ class Video():
 
         t.run(f"""
             ffmpeg -i "{source_video_path}" -itsoffset {delay} -i "{source_video_path}" -map 0:v -map 1:a -c copy "{target_video_path}"
+        """)
+
+        done()
+
+    def increase_audio_volume_in_video(self, source_video_path, target_video_path, times):
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_video_path)
+        make_sure_target_does_not_exist(target_video_path)
+
+        times  = float(times)
+        times = str(times)
+
+        t.run(f"""
+            ffmpeg -i "{source_video_path}" -vcodec copy -af "volume={times}dB" "{target_video_path}"
         """)
 
         done()
