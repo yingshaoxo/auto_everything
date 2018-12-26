@@ -602,16 +602,16 @@ class Video():
                 "You probably gave me a wroung db value, try to make it smaller and try it again")
             exit()
 
+        make_sure_target_does_not_exist(temp_video_path)
+        make_sure_target_does_not_exist(audio_path)
+
         answer = input(
             f"Are you happy with the ratio of silence over all: {ratio}% ? (y/n)")
         if answer.strip() == "y":
             print("ok, let's do it!")
 
             self.remove_silence_parts_from_video(
-                source_video_path, temp_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice, minimum_interval_time_in_seconds=minimum_interval)
-
-            make_sure_target_does_not_exist(temp_video_path)
-            make_sure_target_does_not_exist(audio_path)
+                source_video_path, target_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice, minimum_interval_time_in_seconds=minimum_interval)
 
             done()
         else:
