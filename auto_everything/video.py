@@ -517,7 +517,7 @@ class Video():
         target_video_path: string
         db_for_split_silence_and_voice: int
             normoly, it's `20` or `25`
-        minimum_interval_time_in_seconds: int
+        minimum_interval_time_in_seconds: float
             longer than this value, we will take it as silence and remove it
         """
         make_sure_source_is_absolute_path(source_video_path)
@@ -578,7 +578,7 @@ class Video():
         target_video_path: string
         db_for_split_silence_and_voice: int
             normoly, it's `20` or `25`
-        minimum_interval_time_in_seconds: int
+        minimum_interval_time_in_seconds: float
             longer than this value, we will take it as silence and remove it
         """
         source_video_path = os.path.abspath(source_video_path)
@@ -625,7 +625,7 @@ class Video():
         ----------
         source_video_path: string
         target_video_path: string
-        speed: int
+        speed: float
             how quick you want the video to be
         """
         make_sure_source_is_absolute_path(source_video_path)
@@ -653,14 +653,6 @@ class Video():
         done()
 
     def _speedup_video_with_moviepy(self, source_video_path, target_video_path, speed=4):
-        """
-        Parameters
-        ----------
-        source_video_path: string
-        target_video_path: string
-        speed: int
-            how quick you want the video to be
-        """
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
@@ -681,7 +673,7 @@ class Video():
         target_video_path: string
         db_for_split_silence_and_voice: int
             normoly, it's `20` or `25`
-        speed: int
+        speed: float
             how quick you want the silence parts to be
         """
         make_sure_source_is_absolute_path(source_video_path)
@@ -771,6 +763,14 @@ class Video():
         done()
 
     def increase_audio_volume_in_video(self, source_video_path, target_video_path, times):
+        """
+        Parameters
+        ----------
+        source_video_path: string
+        target_video_path: string
+        times: float
+            2 times the source_video volume or 3 times the source_video volume
+        """
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
