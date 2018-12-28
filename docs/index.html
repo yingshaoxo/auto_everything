@@ -89,7 +89,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sort_by_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – when true, we sort by time
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sort_by_time</strong> (<em>bool</em>) – when true, we sort by time
 when false, we sort by name(1, 2, 3)</td>
 </tr>
 </tbody>
@@ -112,8 +112,8 @@ when false, we sort by name(1, 2, 3)</td>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<em>int</em>) – normoly, it’s <cite>20</cite> or <cite>25</cite>, but for some case if the volume is too small, <cite>30</cite> would be fine</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<em>float</em>) – longer than this value, we will take it as silence and remove it</li>
 </ul>
 </td>
 </tr>
@@ -124,7 +124,7 @@ when false, we sort by name(1, 2, 3)</td>
 <dl class="method">
 <dt id="auto_everything.video.Video.humanly_remove_silence_parts_from_video">
 <code class="descname">humanly_remove_silence_parts_from_video</code><span class="sig-paren">(</span><em>source_video_path</em>, <em>target_video_path</em>, <em>db_for_split_silence_and_voice</em>, <em>minimum_interval=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.humanly_remove_silence_parts_from_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.humanly_remove_silence_parts_from_video" title="Permalink to this definition">¶</a></dt>
-<dd><p>No difference with the last one, but in this function, you can check how many silence you can get rid of
+<dd><p>No difference with the last one, but in this function, you can check how many silence you can get rid of.
 Then you make the decision wheather you want to do this or not</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -133,8 +133,8 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<em>int</em>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<em>float</em>) – longer than this value, we will take it as silence and remove it</li>
 </ul>
 </td>
 </tr>
@@ -144,7 +144,7 @@ Then you make the decision wheather you want to do this or not</p>
 
 <dl class="method">
 <dt id="auto_everything.video.Video.speedup_video">
-<code class="descname">speedup_video</code><span class="sig-paren">(</span><em>source_video_path</em>, <em>target_video_path</em>, <em>speed=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.speedup_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.speedup_video" title="Permalink to this definition">¶</a></dt>
+<code class="descname">speedup_video</code><span class="sig-paren">(</span><em>source_video_path</em>, <em>target_video_path</em>, <em>speed=1.5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.speedup_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.speedup_video" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -152,7 +152,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – how quick you want the video to be</li>
+<li><strong>speed</strong> (<em>float</em>) – how quick you want the video to be</li>
 </ul>
 </td>
 </tr>
@@ -171,8 +171,26 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – how quick you want the silence parts to be</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<em>int</em>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
+<li><strong>speed</strong> (<em>float</em>) – how quick you want the silence parts to be</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.video.Video.increase_audio_volume_in_video">
+<code class="descname">increase_audio_volume_in_video</code><span class="sig-paren">(</span><em>source_video_path</em>, <em>target_video_path</em>, <em>times</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.increase_audio_volume_in_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.increase_audio_volume_in_video" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source_video_path</strong> (<em>string</em>) – </li>
+<li><strong>target_video_path</strong> (<em>string</em>) – </li>
+<li><strong>times</strong> (<em>float</em>) – 2 times the source_video volume or 3 times the source_video volume</li>
 </ul>
 </td>
 </tr>

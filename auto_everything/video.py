@@ -516,7 +516,7 @@ class Video():
         source_video_path: string
         target_video_path: string
         db_for_split_silence_and_voice: int
-            normoly, it's `20` or `25`
+            normoly, it's `20` or `25`, but for some case if the volume is too small, `30` would be fine
         minimum_interval_time_in_seconds: float
             longer than this value, we will take it as silence and remove it
         """
@@ -569,7 +569,7 @@ class Video():
 
     def humanly_remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, minimum_interval=1):
         """
-        No difference with the last one, but in this function, you can check how many silence you can get rid of
+        No difference with the last one, but in this function, you can check how many silence you can get rid of. 
         Then you make the decision wheather you want to do this or not
 
         Parameters

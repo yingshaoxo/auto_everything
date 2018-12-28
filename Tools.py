@@ -37,7 +37,7 @@ cd ..
         t.run("""
         cd docs
         make html
-        cp docs/html/* -fr
+        cp docs/html/* . -fr
         rm docs -fr
         """)
 
