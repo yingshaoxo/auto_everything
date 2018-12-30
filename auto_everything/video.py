@@ -148,13 +148,17 @@ class Video():
                 else:
                     noise_interval = (part[0] - parts[index-1][1])
                     if (noise_interval > minimum_interval_samples):
+                        time_gaps = (part[0]-parts[index-1][1])*0.1
+                        # we fear if the time_gaps is too long
+                        if time_gaps >= minimum_interval_samples:
+                            time_gaps = minimum_interval_samples // 2
                         new_parts.append(
                             [ parts[index-1][1], 
-                              parts[index-1][1] + (part[0]-parts[index-1][1])*0.1 
+                              parts[index-1][1] + time_gaps 
                             ]
                         )
                         new_parts.append(
-                            [ part[0] - (part[0]-parts[index-1][1]) * 0.1, 
+                            [ part[0] - time_gaps, 
                               part[0]
                             ]
                         )
