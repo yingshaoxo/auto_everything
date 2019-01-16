@@ -113,3 +113,7 @@ class Calculator():
         else:
             r = self.sympy.latex(r)
             return r
+
+
+if __name__ == "__main__":
+    pass
