@@ -13,6 +13,10 @@ wget https://github.com/yingshaoxo/auto_everything/raw/master/demo/install_YouCo
 sudo python3 install_YouCompleteMe.py
 ```
 
+#### Get involved
+```
+You know, one man's work is kind of boring, so if you have any better way to implement some function, feel free to pull a request.
+```
 ___
 
 
