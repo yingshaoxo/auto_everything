@@ -15,6 +15,7 @@ sudo apt install -y python3-dev
 sudo apt install -y python3-pip
 sudo apt install -y vim
 sudo apt install -y git
+sudo apt install -y curl
 """
 t.run(c, wait=True)
 
@@ -28,7 +29,7 @@ mkdir bundle
 cd bundle
 git clone --recurse-submodules -j8 https://github.com/Valloric/YouCompleteMe.git
 cd YouCompleteMe
-python3 ./install.py
+sudo python3 ./install.py
     """
     t.run(c, wait=True)
 
