@@ -75,7 +75,7 @@ class Model():
 
 
 class GUI():
-    def __init__(self, name=""):
+    def __init__(self, name="", time_takes_for_one_click=0):
         try:
             import pyautogui as autogui
         except:
@@ -91,6 +91,8 @@ class GUI():
         __cnn_data_folder = name + "_cnn_data"
         self.cnn_model = Model(__cnn_data_folder)
 
+        self.__time_takes_for_one_click = time_takes_for_one_click
+
     def __init_data_structure(self):
         if not t.exists(self.__data_folder):
             os.mkdir(self.__data_folder)
@@ -105,6 +107,13 @@ class GUI():
             obj_name = '.'.join(os.path.basename(file).split('.')[:-1])
             self.img_dict.update({obj_name: file})
 
+    def screen_capture(self, picture_name):
+        """
+        screenshot with area selecting, based on deepin-screenshot
+        """
+        target_path = os.path.join(self.__data_folder, picture_name + '.png')
+        t.run_command(f'deepin-screenshot -s "{target_path}"')
+
     def delay(self, seconds):
         time.sleep(seconds)
 
@@ -113,20 +122,56 @@ class GUI():
             print('You should put image files (png, jpg) with meaningful name into {path} folder first!'.format(path=self.__data_folder))
             exit()
 
-    def exists(self, element_name, from_image=None, space_ratio=(0, 0, 1, 1)):
+    def __click(self, x, y):
+        #self.autogui.moveTo(x, y)
+        self.autogui.click(x, y, interval=self.__time_takes_for_one_click)
+        self.autogui.click(x, y+1, interval=self.__time_takes_for_one_click)
+
+    def __get_tuple(self, element_name, confidence=0.9):
+        return self.autogui.locateCenterOnScreen(element_name, confidence=confidence)
+
+    def hide_mouse(self):
+        self.autogui.mouseUp()
+        self.delay(1)
+        self.autogui.moveTo(0, 0)
+
+    def exists(self, element_name, from_image=None, space_ratio=(0, 0, 1, 1), confidence=0.9):
         """
         element_name: image name (those pictures you put into data folder) ; String
 
         space_ratio: ratio of area you want to detect (left_top_x, left_top_y, right_bottom_x, right_bottom_y) ; Integer Numbers
         """
         self._make_sure_img_dict_exists()
+        print(f"Ask for {element_name}")
 
         if from_image == None:
-            Tuple = self.autogui.locateCenterOnScreen(self.img_dict[element_name])
+            Tuple = self.__get_tuple(self.img_dict[element_name], confidence=confidence)
             if Tuple == None:
                 return False
             else:
                 return True
+
+    def get_center_xy(self, element_name):
+        """
+        element_name: image name (those pictures you put into data folder) ; String
+        """
+        self._make_sure_img_dict_exists()
+
+        Tuple = self.__get_tuple(self.img_dict[element_name])
+        if Tuple != None:
+            x, y = Tuple
+        else:
+            x, y = 0, 0
+        return x, y
+
+    def click(self, element_name):
+        self._make_sure_img_dict_exists()
+        print(f"Try to click {element_name}")
+
+        Tuple = self.__get_tuple(self.img_dict[element_name])
+        if Tuple != None:
+            x, y = Tuple
+            self.__click(x, y)
 
     def click_after_exists(self, element_name, space_ratio=(0, 0, 1, 1)):
         """
@@ -137,11 +182,10 @@ class GUI():
         self._make_sure_img_dict_exists()
 
         while True:
-            Tuple = self.autogui.locateCenterOnScreen(self.img_dict[element_name])
+            Tuple = self.__get_tuple(self.img_dict[element_name])
             if Tuple != None:
                 x, y = Tuple
-                self.autogui.moveTo(x, y)
-                self.autogui.click()
+                self.__click(x, y)
                 break
             time.sleep(1)
 

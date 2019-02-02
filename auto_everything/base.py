@@ -352,7 +352,9 @@ class Terminal():
                 self.run_command('kill -s SIGKILL {num}'.format(num=pid))
                 self.run_command('pkill {name}'.format(name=name))
             else:
-                self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
+                self.run_command('kill -s SIGINT {num}'.format(num=pid))
+                #import signal
+                #os.kill(pid, signal.SIGINT) #This is typically initiated by pressing Ctrl+C
 
         if wait == True:
             while (self.is_running(name) and timeout > 0):
