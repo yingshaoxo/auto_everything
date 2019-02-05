@@ -10,6 +10,8 @@ import time
 
 import threading
 
+import json
+
 
 class IO():
     """
@@ -69,6 +71,39 @@ class IO():
         with open(file_path, 'a', encoding="utf-8", errors="ignore") as f:
             f.write(content)
 
+    def __make_sure_txt_exist(self, path):
+        if not os.path.exists(path):
+            self.write(path, "")
+
+    def read_settings(self, key, defult):
+        try:
+            settings_path = os.path.join(self.current_dir, 'settings.ini')
+            self.__make_sure_txt_exist(settings_path)
+            text = self.read(settings_path)
+            data = json.loads(text)
+            return data[key]
+        except Exception as e:
+            #print(e)
+            return defult
+
+    def write_settings(self, key, value):
+        try:
+            settings_path = os.path.join(self.current_dir, 'settings.ini')
+            self.__make_sure_txt_exist(settings_path)
+            text = self.read(settings_path)
+            try:
+                data = json.loads(text)
+            except Exception as e:
+                #print(e)
+                data = dict()
+            data.update({key: value})
+            text = json.dumps(data)
+            self.write(settings_path, text)
+            return True
+        except Exception as e:
+            #print(e)
+            return False
+
     def log(self, text):
         text = str(text)
         now = time.asctime(time.localtime(time.time()))
@@ -80,6 +115,7 @@ class Terminal():
     """
     Terminal simulator for execute bash commands
     """
+
     def __init__(self, username=None, debug=False):
         """
         Parameters
@@ -354,7 +390,7 @@ class Terminal():
             else:
                 self.run_command('kill -s SIGINT {num}'.format(num=pid))
                 #import signal
-                #os.kill(pid, signal.SIGINT) #This is typically initiated by pressing Ctrl+C
+                # os.kill(pid, signal.SIGINT) #This is typically initiated by pressing Ctrl+C
 
         if wait == True:
             while (self.is_running(name) and timeout > 0):
@@ -472,6 +508,7 @@ class Python():
     """
     Python model was intended to simplify python development
     """
+
     def __init__(self):
         self._io = IO()
         self._os = OS()
@@ -646,6 +683,7 @@ class Super():
     """
     This is for sudo operations in linux
     """
+
     def __init__(self, username="root"):
         self.__username = username
         if os.getuid() != 0:
@@ -792,5 +830,5 @@ WantedBy=multi-user.target
 
 
 if __name__ == "__main__":
-    py = Python()
-    py.make_it_runnable()
+    io = IO()
+    io.read_settings("hi")
