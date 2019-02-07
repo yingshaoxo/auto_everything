@@ -83,7 +83,7 @@ class IO():
             data = json.loads(text)
             return data[key]
         except Exception as e:
-            #print(e)
+            print(e)
             return defult
 
     def write_settings(self, key, value):
@@ -94,14 +94,14 @@ class IO():
             try:
                 data = json.loads(text)
             except Exception as e:
-                #print(e)
+                print(e)
                 data = dict()
             data.update({key: value})
             text = json.dumps(data)
             self.write(settings_path, text)
             return True
         except Exception as e:
-            #print(e)
+            print(e)
             return False
 
     def log(self, text):

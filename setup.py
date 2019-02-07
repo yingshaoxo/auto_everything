@@ -23,6 +23,7 @@ setup(name='auto_everything',
         packages=find_packages(),
         include_package_data=False,
         install_requires=[
+            'setuptools',
             'fire',
         ]
         )
