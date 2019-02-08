@@ -25,5 +25,9 @@ setup(name='auto_everything',
         install_requires=[
             'setuptools',
             'fire',
+            'numpy',
+            'librosa',
+            'imageio==2.4.1',
+            'moviepy',
         ]
         )

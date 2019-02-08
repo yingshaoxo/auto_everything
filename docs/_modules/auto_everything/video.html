@@ -44,6 +44,7 @@
             
   <h1>Source code for auto_everything.video</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">math</span>
 
 
 <span class="c1"># This is for using my parent package</span>
@@ -681,17 +682,17 @@
         <span class="n">make_sure_target_is_absolute_path</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
         <span class="n">make_sure_target_does_not_exist</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
 
-        <span class="n">video_speed</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">speed</span><span class="p">))[:</span><span class="mi">6</span><span class="p">]</span>
-        <span class="n">audio_speed</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">speed</span><span class="p">))</span>
+        <span class="n">speed</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">speed</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">speed</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                ffmpeg -i &quot;</span><span class="si">{source_video_path}</span><span class="s2">&quot; -filter_complex &quot;[0:v]setpts=</span><span class="si">{video_speed}</span><span class="s2">*PTS[v];[0:a]atempo=</span><span class="si">{audio_speed}</span><span class="s2">[a]&quot; -map &quot;[v]&quot; -map &quot;[a]&quot; &quot;</span><span class="si">{target_video_path}</span><span class="s2">&quot;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                ffmpeg -i &quot;</span><span class="si">{source_video_path}</span><span class="s2">&quot; -filter:v &quot;setpts=</span><span class="si">{video_speed}</span><span class="s2">*PTS&quot; &quot;</span><span class="si">{target_video_path}</span><span class="s2">&quot;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">video_speed</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">speed</span><span class="p">))[:</span><span class="mi">6</span><span class="p">]</span>
+
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">speed</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">value_of_each_part</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">speed</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">parts</span><span class="p">))[:</span><span class="mi">6</span><span class="p">]</span>
+        <span class="n">audio_speed</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">f</span><span class="s2">&quot;atempo=</span><span class="si">{value_of_each_part}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">parts</span><span class="p">)])</span>
+
+        <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            ffmpeg -i &quot;</span><span class="si">{source_video_path}</span><span class="s2">&quot; -filter_complex &quot;[0:v]setpts=</span><span class="si">{video_speed}</span><span class="s2">*PTS[v];[0:a]</span><span class="si">{audio_speed}</span><span class="s2">[a]&quot; -map &quot;[v]&quot; -map &quot;[a]&quot; &quot;</span><span class="si">{target_video_path}</span><span class="s2">&quot;</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        clip = VideoFileClip(source_video_path).fx(</span>
