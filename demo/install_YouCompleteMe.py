@@ -102,6 +102,11 @@ set fileformat=unix
 " autoindent may cause bad behavior when you paste in vim
 
 set clipboard=unnamedplus
+
+"hide thing on gvim
+set guioptions-=m  "menu bar
+set guioptions-=T  "toolbar
+set guioptions-=r  "scrollbar
 """
 with open(t.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
     f.write(vimrc)
