@@ -801,14 +801,27 @@ class Video():
         filelist = [os.path.join(source_folder, f) for f in os.listdir(
             source_folder) if f.endswith(".mp4")]
 
+        def convert_bytes(num):
+            """
+            this function will convert bytes to MB.... GB... etc
+            """
+            for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+                if num < 1024.0:
+                    return (int(float(f'{num:.1f}')), f'{x}')
+                num /= 1024.0
+
         for file in filelist:
             basename = os.path.basename(file)
             target_video_path = add_path(new_folder, basename)
             make_sure_target_does_not_exist(target_video_path)
 
-            t.run(f"""
-                ffmpeg -i "{file}" "{target_video_path}"
-            """)
+            size, unit = convert_bytes(os.path.getsize(file))
+            if unit == "GB":
+                if size > 2:
+                    t.run(f"""
+                        #ffmpeg -i "{file}" "{target_video_path}"
+                        ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale=-2:720 "{target_video_path}"
+                    """)
 
         done()
 
@@ -830,7 +843,7 @@ class Video():
             make_sure_target_does_not_exist(target_video_path)
 
             t.run(f"""
-                ffmpeg -i "{file}" -c:v libx264 -pix_fmt yuv420p -vf scale=1920:1080"{target_video_path}"
+                ffmpeg -i "{file}" -c:v libx264 -pix_fmt yuv420p -vf scale=1920:1080 "{target_video_path}"
             """)
 
         done()
