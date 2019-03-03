@@ -660,7 +660,7 @@ class Deploy():
         self._t = Terminal()
         self.file_modification_dict = {}
 
-    def whether_a_file_has_changed(self, file_path):
+    def whether_a_file_or_dir_has_changed(self, file_path):
         last_modification_time = os.path.getmtime(file_path)
 
         def update_dict():
