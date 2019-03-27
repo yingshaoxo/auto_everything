@@ -61,6 +61,8 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'Valloric/YouCompleteMe'
 Plugin 'tell-k/vim-autopep8'
 Plugin 'leafgarland/typescript-vim'
+Plugin 'Chiel92/vim-autoformat'
+Plugin 'fatih/vim-go'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -89,6 +91,8 @@ au BufRead *.js map <F5> :w<CR>:!node %<CR>
 
 "autopep8"
 autocmd FileType python noremap <buffer> <F8> :call Autopep8()<CR>
+autocmd FileType go noremap <buffer> <F8> :GoFmt<CR>
+autocmd FileType javascript noremap <buffer> <F8> :Autoformat<CR>
 let g:autopep8_disable_show_diff=1
 syntax on
 
