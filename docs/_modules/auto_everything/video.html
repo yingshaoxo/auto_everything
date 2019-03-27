@@ -47,19 +47,10 @@
 <span class="kn">import</span> <span class="nn">math</span>
 
 
-<span class="c1"># This is for using my parent package</span>
-<span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">getsourcefile</span>
-<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">path</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="n">current_dir</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">getsourcefile</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="mi">0</span><span class="p">)))</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">current_dir</span><span class="p">[:</span><span class="n">current_dir</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)])</span>
-
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">Terminal</span><span class="p">,</span> <span class="n">Python</span><span class="p">,</span> <span class="n">IO</span>
+<span class="kn">from</span> <span class="nn">auto_everything.base</span> <span class="k">import</span> <span class="n">Terminal</span><span class="p">,</span> <span class="n">Python</span><span class="p">,</span> <span class="n">IO</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">py</span> <span class="o">=</span> <span class="n">Python</span><span class="p">()</span>
 <span class="n">io_</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
-
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 
 <span class="c1"># begin</span>
@@ -846,14 +837,27 @@
         <span class="n">filelist</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_folder</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span>
             <span class="n">source_folder</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.mp4&quot;</span><span class="p">)]</span>
 
+        <span class="k">def</span> <span class="nf">convert_bytes</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            this function will convert bytes to MB.... GB... etc</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;bytes&#39;</span><span class="p">,</span> <span class="s1">&#39;KB&#39;</span><span class="p">,</span> <span class="s1">&#39;MB&#39;</span><span class="p">,</span> <span class="s1">&#39;GB&#39;</span><span class="p">,</span> <span class="s1">&#39;TB&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="mf">1024.0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{num:.1f}</span><span class="s1">&#39;</span><span class="p">)),</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{x}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">num</span> <span class="o">/=</span> <span class="mf">1024.0</span>
+
         <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">filelist</span><span class="p">:</span>
             <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
             <span class="n">target_video_path</span> <span class="o">=</span> <span class="n">add_path</span><span class="p">(</span><span class="n">new_folder</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
             <span class="n">make_sure_target_does_not_exist</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
 
-            <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                ffmpeg -i &quot;</span><span class="si">{file}</span><span class="s2">&quot; &quot;</span><span class="si">{target_video_path}</span><span class="s2">&quot;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
+            <span class="n">size</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="n">convert_bytes</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">file</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s2">&quot;GB&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                        #ffmpeg -i &quot;</span><span class="si">{file}</span><span class="s2">&quot; &quot;</span><span class="si">{target_video_path}</span><span class="s2">&quot;</span>
+<span class="s2">                        ffmpeg -i &quot;</span><span class="si">{file}</span><span class="s2">&quot; -c copy -c:v libx264 -vf scale=-2:720 &quot;</span><span class="si">{target_video_path}</span><span class="s2">&quot;</span>
+<span class="s2">                    &quot;&quot;&quot;</span><span class="p">)</span>
 
         <span class="n">done</span><span class="p">()</span>
 
@@ -875,7 +879,7 @@
             <span class="n">make_sure_target_does_not_exist</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
 
             <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                ffmpeg -i &quot;</span><span class="si">{file}</span><span class="s2">&quot; -c:v libx264 -pix_fmt yuv420p -vf scale=1920:1080&quot;</span><span class="si">{target_video_path}</span><span class="s2">&quot;</span>
+<span class="s2">                ffmpeg -i &quot;</span><span class="si">{file}</span><span class="s2">&quot; -c:v libx264 -pix_fmt yuv420p -vf scale=1920:1080 &quot;</span><span class="si">{target_video_path}</span><span class="s2">&quot;</span>
 <span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
 
         <span class="n">done</span><span class="p">()</span></div>
