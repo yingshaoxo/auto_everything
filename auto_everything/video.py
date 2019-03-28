@@ -2,19 +2,10 @@ import os
 import math
 
 
-# This is for using my parent package
-from inspect import getsourcefile
-import os.path as path
-import sys
-current_dir = path.dirname(path.abspath(getsourcefile(lambda: 0)))
-sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
-
-from .base import Terminal, Python, IO
+from auto_everything.base import Terminal, Python, IO
 t = Terminal(debug=True)
 py = Python()
 io_ = IO()
-
-sys.path.pop(0)
 
 
 # begin

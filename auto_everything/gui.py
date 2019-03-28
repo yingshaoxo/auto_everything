@@ -22,18 +22,10 @@ import os
 import time
 
 
-# This is for using my parent package
-from inspect import getsourcefile
-import os.path as path, sys
-current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
-sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
-
-from .base import Terminal, Python, OS 
+from auto_everything.base import Terminal, Python, OS
 t = Terminal()
 py = Python()
 os_ = OS()
-
-sys.path.pop(0)
 
 
 try:
@@ -59,15 +51,18 @@ class Model():
             os.mkdir(self.__cnn_data_folder)
 
     def traning(self):
-        paths = [os.path.join(self.__cnn_data_folder, filename) for filename in os.listdir(self.__cnn_data_folder)]
+        paths = [os.path.join(self.__cnn_data_folder, filename)
+                 for filename in os.listdir(self.__cnn_data_folder)]
         folders = [path for path in paths if os.path.isdir(path)]
         if len(folders) == 0:
-            print('You should put image folders into {path}, then you can start traning'.format(path=self.__cnn_data_folder))
+            print('You should put image folders into {path}, then you can start traning'.format(
+                path=self.__cnn_data_folder))
             exit()
 
         for folder in folders:
             class_name = os.path.basename(folder)
-            files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and os.path.basename(f).split('.')[-1] in ['png','jpg']]
+            files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(
+                os.path.join(folder, f)) and os.path.basename(f).split('.')[-1] in ['png', 'jpg']]
             if len(files) == 0:
                 print("Class {c} have no pictures in it".format(c=class_name))
                 exit()
@@ -81,6 +76,8 @@ class GUI():
         except:
             os_.install_package("python3-xlib")
             py.install_package("pyautogui")
+            print(
+                "failed to load autogui, if you have installed that, run this script without root")
         self.autogui = autogui
         self.autogui.FAILSAFE = False
 
@@ -98,9 +95,11 @@ class GUI():
             os.mkdir(self.__data_folder)
 
     def __load_data(self):
-        paths = [os.path.join(self.__data_folder, filename) for filename in os.listdir(self.__data_folder)]
+        paths = [os.path.join(self.__data_folder, filename)
+                 for filename in os.listdir(self.__data_folder)]
         files = [path for path in paths if os.path.isfile(path)]
-        files = [path for path in paths if os.path.basename(path).split('.')[-1] in ["png", "jpg"]]
+        files = [path for path in paths if os.path.basename(
+            path).split('.')[-1] in ["png", "jpg"]]
 
         self.img_dict = {}
         for file in files:
@@ -119,7 +118,8 @@ class GUI():
 
     def _make_sure_img_dict_exists(self):
         if self.img_dict == {}:
-            print('You should put image files (png, jpg) with meaningful name into {path} folder first!'.format(path=self.__data_folder))
+            print('You should put image files (png, jpg) with meaningful name into {path} folder first!'.format(
+                path=self.__data_folder))
             exit()
 
     def __click(self, x, y):
@@ -145,7 +145,8 @@ class GUI():
         print(f"Ask for {element_name}")
 
         if from_image == None:
-            Tuple = self.__get_tuple(self.img_dict[element_name], confidence=confidence)
+            Tuple = self.__get_tuple(
+                self.img_dict[element_name], confidence=confidence)
             if Tuple == None:
                 return False
             else:
@@ -195,7 +196,8 @@ class GUI():
 
         a point: (x, y)
         """
-        result = pytesseract.image_to_data(ImageGrab.grab(), output_type='dict')
+        result = pytesseract.image_to_data(
+            ImageGrab.grab(), output_type='dict')
         target_index = []
         for index, text in enumerate(result['text']):
             if target_text in text:
@@ -210,7 +212,7 @@ class GUI():
                     my_dict.update({attribute: value})
                 x = my_dict['left'] + my_dict['width']/2
                 y = my_dict['top'] + my_dict['height']/2
-                return_list.append((x,y))
+                return_list.append((x, y))
         if (len(return_list) != 0):
             return return_list
         else:
@@ -222,8 +224,10 @@ class Control():
     1. when you hit ctrl+caps , start to write command
     2. / means you want to search text on screen, generate ramdom number for different position, like vimum
     """
+
     def __init__(self):
         pass
+
 
 if __name__ == "__main__":
     pass
