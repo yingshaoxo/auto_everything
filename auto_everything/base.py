@@ -12,6 +12,8 @@ import threading
 
 import json
 
+import psutil
+
 
 class IO():
     """
@@ -369,19 +371,66 @@ class Terminal():
         elif wait == True:
             self.run(command, cwd=cwd, wait=True)
 
+    def _get_pids(self, name):
+        """
+        name: what's the name of that program ; string
+
+        get a list of pids, only available in Linux ; [string, ...]
+        """
+        pids = []
+        # Iterate over all running process
+        for proc in psutil.process_iter():
+            try:
+                # Get process name & pid from process object.
+                #processName = proc.name()
+                process_id = proc.pid
+                process_command = ' '.join(proc.cmdline())
+                if name in process_command:
+                    pids.append(process_id)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        return pids
+        """
+        all_running_stuff = self.run_command("ps x")
+
+        lines = all_running_stuff.split("\n")
+        lines = [line for line in lines if line.strip("\n ") != ""]
+
+        target_lines = []
+        for line in lines:
+            if name in line:
+                target_lines.append(line)
+
+        pids = []
+        for line in target_lines:
+            words = line.split(" ")
+            words = [word for word in words if word.strip(" ") != ""]
+            pid = words[0]
+            pids.append(pid)
+
+        return pids
+        """
+
     def is_running(self, name):
         """
-        cheack if a program is running, this function depends on `ps x`
+        cheack if a program is running
 
         Parameters
         ----------
         name: string
             the program name, for example, `firefox`
         """
+        pids = self._get_pids(name)
+        if len(pids) > 0:
+            return True
+        else:
+            return False
+        """
         if (name in self.run_command('ps x')) or (name in self.run_command('ps -A')):
             return True
         else:
             return False
+        """
 
     def kill(self, name, force=True, wait=False, timeout=30):
         """
@@ -420,31 +469,6 @@ class Terminal():
                                 stderr=subprocess.STDOUT, universal_newlines=True, timeout=15)
         return str(result.stdout)
         """
-
-    def _get_pids(self, name):
-        """
-        name: what's the name of that program ; string
-
-        get a list of pids, only available in Linux ; [string, ...]
-        """
-        all_running_stuff = self.run_command("ps x")
-
-        lines = all_running_stuff.split("\n")
-        lines = [line for line in lines if line.strip("\n ") != ""]
-
-        target_lines = []
-        for line in lines:
-            if name in line:
-                target_lines.append(line)
-
-        pids = []
-        for line in target_lines:
-            words = line.split(" ")
-            words = [word for word in words if word.strip(" ") != ""]
-            pid = words[0]
-            pids.append(pid)
-
-        return pids
 
 
 class OS():
@@ -845,17 +869,5 @@ WantedBy=multi-user.target
 
 
 if __name__ == "__main__":
-    #io = IO()
-    #io.read_settings("hi")
-    import psutil
-
-    # Iterate over all running process
-    for proc in psutil.process_iter():
-        try:
-            # Get process name & pid from process object.
-            processName = proc.name()
-            processID = proc.pid
-            print(processName , ' ::: ', processID)
-            print(proc.status())
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
+    t = Terminal()
+    pass
