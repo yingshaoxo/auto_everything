@@ -18,11 +18,12 @@ class English(Language):
     """
     This is a class for handling English
     """
+
     def __init__(self):
         import pyttsx3 as _pyttsx3
         self._speak_engine = _pyttsx3.init()
-        self._speak_engine.setProperty('rate', 180)  #180 words per minute
-        self._speak_engine.setProperty('volume',0.8)
+        self._speak_engine.setProperty('rate', 180)  # 180 words per minute
+        self._speak_engine.setProperty('volume', 0.8)
 
     def text_to_speech(self, text):
         """
@@ -41,6 +42,7 @@ class Chinese(Language):
     """
     This is a class for handling Chinese
     """
+
     def __init__(self):
         from textrank4zh import TextRank4Keyword, TextRank4Sentence
         self.handler = TextRank4Sentence()
@@ -103,12 +105,23 @@ class Chinese(Language):
                 print(flag)
             if flag in ['n', 'nr', 'ns', 'v', 'r', 'p', 'r1']:
                 result.append(word)
-        return result
+        return ''.join(result)
+
+    def split_words_from_sentence(self, sentence):
+        """
+        return a list of words cut from sentence 
+
+        Parameters
+        ----------
+        sentence: string
+        """
+        return list(self.jieba.cut(sentence))
+
 
 if __name__ == "__main__":
     chinese = Chinese()
-    r = chinese.sentence_contracting("""
-他穿着一件大翻领上带着道道滚边的海军服。
-    """)
-    from pprint import pprint
-    pprint(r)
+    sentence = "他穿着一件大翻领上带着道道滚边的海军服。"
+    r = chinese.split_words_from_sentence(sentence)
+    print(sentence)
+    print(r)
+    print("what i would say: 他穿着一件 大翻领上带着道道滚边的 海军服。")

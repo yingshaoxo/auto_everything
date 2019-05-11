@@ -382,7 +382,7 @@ class Video():
 
         done()
 
-    def link_videos(self, source_video_path_list, target_video_path):
+    def link_videos(self, source_video_path_list, target_video_path, method=1):
         """
         concatenate videos one by one
 
@@ -393,41 +393,43 @@ class Video():
 
         target_video_path: string
             where to save the concatenated video
+
+        method: int
+            1 to use ffmpeg(low quality), 2 to use moviepy(high quality)
         """
         make_sure_source_is_absolute_path(source_video_path_list)
         make_sure_target_is_absolute_path(target_video_path)
 
-        working_dir = get_directory_name(target_video_path)
-        txt_file_path = add_path(working_dir, 'temp_list.txt')
-        text = ''
-        for file_path in source_video_path_list:
-            text += "file " + f"'{file_path}'" + '\n'
-        io_.write(txt_file_path, text)
+        if method == 1:
+            working_dir = get_directory_name(target_video_path)
+            txt_file_path = add_path(working_dir, 'temp_list.txt')
+            text = ''
+            for file_path in source_video_path_list:
+                text += "file " + f"'{file_path}'" + '\n'
+            io_.write(txt_file_path, text)
 
-        make_sure_target_does_not_exist(target_video_path)
+            make_sure_target_does_not_exist(target_video_path)
 
-        combine_command = f"ffmpeg -f concat -safe 0 -i '{txt_file_path}' '{target_video_path}'"
-        t.run(combine_command, wait=True)
+            combine_command = f"ffmpeg -f concat -safe 0 -i '{txt_file_path}' '{target_video_path}'"
+            t.run(combine_command, wait=True)
 
-        make_sure_target_does_not_exist(txt_file_path)
+            make_sure_target_does_not_exist(txt_file_path)
+        elif method == 2:
+            # for the stupid moviepy library, it will case memory leak if you give it too much videos
+            print(source_video_path_list)
+            clip_list = [VideoFileClip(clip) for clip in source_video_path_list]
+            final_clip = concatenate_videoclips(clip_list)
+            final_clip.write_videofile(target_video_path)
 
-        """
-        # for the stupid moviepy library, it will case memory leak if you give it too much videos
-        print(source_video_path_list)
-        clip_list = [VideoFileClip(clip) for clip in source_video_path_list]
-        final_clip = concatenate_videoclips(clip_list)
-        final_clip.write_videofile(target_video_path)
-
-        for clip in clip_list:
+            for clip in clip_list:
+                clip.close()
+                del clip
             clip.close()
-            del clip
-        clip.close()
-        del final_clip
-        """
+            del final_clip
 
         done()
 
-    def combine_all_mp4_in_a_folder(self, source_folder, target_video_path, sort_by_time=True):
+    def combine_all_mp4_in_a_folder(self, source_folder, target_video_path, sort_by_time=True, method=1):
         """
         concatenate all videos in a folder
 
@@ -436,6 +438,9 @@ class Video():
         sort_by_time: bool
             when true, we sort by time
             when false, we sort by name(1, 2, 3)
+
+        method: int
+            1 to use ffmpeg(low quality), 2 to use moviepy(high quality)
         """
         filelist = [os.path.join(source_folder, f) for f in os.listdir(
             source_folder) if f.endswith(".mp4")]
@@ -446,7 +451,7 @@ class Video():
             filelist.sort(key=lambda x: os.path.getmtime(x))
 
         self.link_videos(source_video_path_list=filelist,
-                         target_video_path=target_video_path)
+                         target_video_path=target_video_path, method=method)
 
         if sort_by_time == False:
             make_sure_target_does_not_exist(source_folder)

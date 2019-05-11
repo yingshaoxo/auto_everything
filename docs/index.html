@@ -65,7 +65,7 @@
 </ol>
 <dl class="method">
 <dt id="auto_everything.video.Video.link_videos">
-<code class="descname">link_videos</code><span class="sig-paren">(</span><em>source_video_path_list</em>, <em>target_video_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.link_videos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.link_videos" title="Permalink to this definition">¶</a></dt>
+<code class="descname">link_videos</code><span class="sig-paren">(</span><em>source_video_path_list</em>, <em>target_video_path</em>, <em>method=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.link_videos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.link_videos" title="Permalink to this definition">¶</a></dt>
 <dd><p>concatenate videos one by one</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -74,6 +74,7 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path_list</strong> (<em>list of video path</em>) – those videos you want to concatenate</li>
 <li><strong>target_video_path</strong> (<em>string</em>) – where to save the concatenated video</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
 </ul>
 </td>
 </tr>
@@ -83,14 +84,18 @@
 
 <dl class="method">
 <dt id="auto_everything.video.Video.combine_all_mp4_in_a_folder">
-<code class="descname">combine_all_mp4_in_a_folder</code><span class="sig-paren">(</span><em>source_folder</em>, <em>target_video_path</em>, <em>sort_by_time=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.combine_all_mp4_in_a_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.combine_all_mp4_in_a_folder" title="Permalink to this definition">¶</a></dt>
+<code class="descname">combine_all_mp4_in_a_folder</code><span class="sig-paren">(</span><em>source_folder</em>, <em>target_video_path</em>, <em>sort_by_time=True</em>, <em>method=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.combine_all_mp4_in_a_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.combine_all_mp4_in_a_folder" title="Permalink to this definition">¶</a></dt>
 <dd><p>concatenate all videos in a folder</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sort_by_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – when true, we sort by time
-when false, we sort by name(1, 2, 3)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sort_by_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – when true, we sort by time
+when false, we sort by name(1, 2, 3)</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
