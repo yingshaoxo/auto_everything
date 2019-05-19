@@ -424,7 +424,7 @@ class Video():
             for clip in clip_list:
                 clip.close()
                 del clip
-            clip.close()
+
             del final_clip
 
         done()
