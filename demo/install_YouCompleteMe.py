@@ -63,6 +63,8 @@ Plugin 'tell-k/vim-autopep8'
 Plugin 'leafgarland/typescript-vim'
 Plugin 'Chiel92/vim-autoformat'
 Plugin 'fatih/vim-go'
+Plugin 'pangloss/vim-javascript'
+Plugin 'mxw/vim-jsx'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
