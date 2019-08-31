@@ -113,6 +113,9 @@ set clipboard=unnamedplus
 set guioptions-=m  "menu bar
 set guioptions-=T  "toolbar
 set guioptions-=r  "scrollbar
+
+
+let g:autopep8_max_line_length=10000
 """
 with open(t.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
     f.write(vimrc)
