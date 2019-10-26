@@ -61,7 +61,7 @@ def make_sure_target_is_absolute_path(path):
 
     for p in path_list:
         p = get_directory_name(p)
-        if p[0] == '/':
+        if os.path.isabs(p):
             pass
         else:
             print("for target file: you must give me absolute path")
