@@ -45,7 +45,7 @@ def make_sure_source_is_absolute_path(path):
         path_list = path
 
     for p in path_list:
-        if p[0] == '/':
+        if os.path.isabs(p):
             pass
         else:
             print("for source file: you must give me absolute path")
