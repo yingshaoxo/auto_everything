@@ -2,10 +2,8 @@ import os
 import sys
 import shlex
 import subprocess
-import platform as platform
+import platform
 
-import re
-import getpass
 import time
 
 import threading
@@ -118,7 +116,7 @@ class Terminal():
     Terminal simulator for execute bash commands
     """
 
-    def __init__(self, username=None, debug=False):
+    def __init__(self, debug=False):
         """
         Parameters
         ----------
@@ -162,7 +160,7 @@ class Terminal():
         username : string
             Linux system username
         """
-        if username == None:
+        if username is None:
             path = path.replace('~', os.path.expanduser('~'))
         elif username == 'root':
             if path[0] == '~':
@@ -220,7 +218,7 @@ class Terminal():
             print(c)
             print('\n' + '-'*20 + '\n')
 
-        if cwd == None:
+        if cwd is None:
             cwd = self.current_dir
         else:
             cwd = self.fix_path(cwd)
@@ -239,13 +237,13 @@ class Terminal():
             p = subprocess.Popen(args_list, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT, universal_newlines=True, cwd=cwd)
 
-        if wait == True:
-            while p.poll() == None:
+        if wait is True:
+            while p.poll() is None:
                 line = p.stdout.readline().strip(' \n')
                 print(line)
             try:
                 os.remove(self.__temp_sh)
-            except:
+            except Exception:
                 pass
         else:
             return p
@@ -277,7 +275,7 @@ class Terminal():
             result = str(result.stdout).strip(" \n")
             try:
                 os.remove(self.__temp_sh)
-            except:
+            except Exception:
                 pass
             return result
         except Exception as e:
@@ -299,12 +297,12 @@ class Terminal():
         args_list = shlex.split(name)
         args_list = ['nohup'] + args_list
 
-        if cwd == None:
+        if cwd is None:
             cwd = self.current_dir
         else:
             cwd = self.fix_path(cwd)
 
-        p = subprocess.Popen(args_list, cwd=cwd)
+        subprocess.Popen(args_list, cwd=cwd)  # it return a process
 
     def __split_args(self, file_path_with_command):
         file_path_with_command = file_path_with_command.replace("\\", "/")
@@ -337,12 +335,12 @@ class Terminal():
         command = self.py_executable + \
             ' {path} {args}'.format(path=path, args=args)
 
-        if cwd == None:
+        if cwd is None:
             cwd = os.path.dirname(path)
 
-        if wait == False:
+        if wait is False:
             self.run_program(command, cwd=cwd)
-        elif wait == True:
+        elif wait is True:
             self.run(command, cwd=cwd, wait=True)
 
     def run_sh(self, file_path_with_command, cwd=None, wait=False):
@@ -363,12 +361,12 @@ class Terminal():
         path = self.fix_path(path)
         command = 'bash {path} {args}'.format(path=path, args=args)
 
-        if cwd == None:
+        if cwd is None:
             cwd = os.path.dirname(path)
 
-        if wait == False:
+        if wait is False:
             self.run_program(command, cwd=cwd)
-        elif wait == True:
+        elif wait is True:
             self.run(command, cwd=cwd, wait=True)
 
     def _get_pids(self, name):
@@ -390,26 +388,6 @@ class Terminal():
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return pids
-        """
-        all_running_stuff = self.run_command("ps x")
-
-        lines = all_running_stuff.split("\n")
-        lines = [line for line in lines if line.strip("\n ") != ""]
-
-        target_lines = []
-        for line in lines:
-            if name in line:
-                target_lines.append(line)
-
-        pids = []
-        for line in target_lines:
-            words = line.split(" ")
-            words = [word for word in words if word.strip(" ") != ""]
-            pid = words[0]
-            pids.append(pid)
-
-        return pids
-        """
 
     def is_running(self, name):
         """
@@ -425,12 +403,6 @@ class Terminal():
             return True
         else:
             return False
-        """
-        if (name in self.run_command('ps x')) or (name in self.run_command('ps -A')):
-            return True
-        else:
-            return False
-        """
 
     def kill(self, name, force=True, wait=False, timeout=30):
         """
@@ -456,19 +428,13 @@ class Terminal():
                 #import signal
                 # os.kill(pid, signal.SIGINT) #This is typically initiated by pressing Ctrl+C
 
-        if wait == True:
+        if wait is True:
             while (self.is_running(name) and timeout > 0):
                 time.sleep(1)
                 timeout -= 1
             pids = self._get_pids(name)
-            self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
-
-        """
-        args_list = shlex.split('sudo pkill {name}'.format(name=name))
-        result = subprocess.run(args_list, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, universal_newlines=True, timeout=15)
-        return str(result.stdout)
-        """
+            for pid in pids:
+                self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
 
 
 class OS():
@@ -491,7 +457,7 @@ class OS():
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
         installed_packages = self.list_python_packages()
-        if (force == True) or (package_name not in installed_packages):
+        if (force is True) or (package_name not in installed_packages):
             self._t.run(
                 "sudo pip3 install {name} --upgrade".format(name=package_name))
 
@@ -500,7 +466,7 @@ class OS():
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
         installed_packages = self.list_python_packages()
-        if (force == True) or (package_name in installed_packages):
+        if (force is True) or (package_name in installed_packages):
             self._t.run(
                 "sudo pip3 uninstall {name} -y".format(name=package_name))
 
@@ -524,7 +490,7 @@ class OS():
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
         installed_packages = self.list_packages()
-        if (force == True) or (package_name not in installed_packages):
+        if (force is True) or (package_name not in installed_packages):
             self._t.run(
                 "sudo apt install {name} -y --upgrade".format(name=package_name))
 
@@ -539,7 +505,7 @@ class OS():
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
         installed_packages = self.list_packages()
-        if (force == True) or (package_name in installed_packages):
+        if (force is True) or (package_name in installed_packages):
             self._t.run("sudo apt purge {name} -y".format(name=package_name))
 
 
@@ -598,32 +564,32 @@ class Python():
                         except Exception as e:
                             print(e)
 
-                if self.thread == False:
+                if self.thread is False:
                     while_function()
                 else:
                     threading.Thread(target=while_function).start()
 
             return new_function
 
-    def help(self, object):
+    def help(self, object_):
         """
         get help information about class or function
         """
-        if callable(object):
+        if callable(object_):
             from inspect import signature
-            arguments = str(signature(object))
-            print(object.__name__ + arguments)
+            arguments = str(signature(object_))
+            print(object_.__name__ + arguments)
 
-            doc = object.__doc__
+            doc = object_.__doc__
             if doc:
                 print(doc, '\n')
         else:
             from pprint import pprint
-            methods = dir(object)
+            methods = dir(object_)
             private_methods = []
             public_methods = []
             for method in methods:
-                if "_" == method[:1]:
+                if method[:1] == "_":
                     private_methods.append(method)
                 else:
                     public_methods.append(method)
@@ -647,7 +613,7 @@ class Python():
 
         after use this function, you can run the py_file by: ./your_py_script_name.py
         """
-        if py_file_path == None or self._t.exists(py_file_path):
+        if py_file_path is None or self._t.exists(py_file_path):
             py_file_path = os.path.join(
                 self._t.current_dir, sys.argv[0].strip('./'))
         codes = self._io.read(py_file_path)
@@ -776,10 +742,10 @@ WantedBy=multi-user.target
         reload_command = "systemctl daemon-reload\n"
         enable_command = "systemctl enable {name}\n".format(name=name)
         restart_command = "systemctl restart {name}\n".format(name=name)
-        stop_command = "systemctl stop {name}\n".format(name=name)
+        #stop_command = "systemctl stop {name}\n".format(name=name)
         cheack_command = "systemctl status {name} | cat\n".format(name=name)
 
-        if py_file_path == None:
+        if py_file_path is None:
             if not self._t.exists(service_path):
                 print(
                     "You have to give me a python script path, so I can help you run it!")
@@ -870,4 +836,3 @@ WantedBy=multi-user.target
 
 if __name__ == "__main__":
     t = Terminal()
-    pass

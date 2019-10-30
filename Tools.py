@@ -3,6 +3,7 @@ from auto_everything.base import Python, Terminal
 py = Python()
 t = Terminal()
 
+
 class Tools():
     def push(self, comment):
         self.__clear()
@@ -19,7 +20,19 @@ git reset --hard origin/master
 """)
 
     def test(self):
-        t.run_py("./demo/test/main.py", wait=True)
+        t.run("""
+        pytest
+        """)
+
+    def check(self, py_file=None):
+        if py_file is None:
+            t.run("""
+            prospector
+            """)
+        else:
+            t.run(f"""
+            prospector {py_file}
+            """)
 
     def install(self):
         t.run("""
@@ -62,6 +75,7 @@ sudo rm -fr auto_everything/nohup.out
 sudo rm -fr auto_everything/__pycache__
         """
         t.run(commands)
+
 
 py.make_it_runnable()
 py.fire(Tools)

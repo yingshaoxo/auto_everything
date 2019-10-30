@@ -29,7 +29,7 @@ os_ = OS()
 
 
 try:
-    from PIL import Image
+    #from PIL import Image
     import pyscreenshot as ImageGrab
 except ImportError:
     py.install_package("pyscreenshot")
@@ -73,7 +73,7 @@ class GUI():
     def __init__(self, name="", time_takes_for_one_click=0):
         try:
             import pyautogui as autogui
-        except:
+        except Exception:
             os_.install_package("python3-xlib")
             py.install_package("pyautogui")
             print(
@@ -151,6 +151,7 @@ class GUI():
                 return False
             else:
                 return True
+        return False
 
     def get_center_xy(self, element_name):
         """

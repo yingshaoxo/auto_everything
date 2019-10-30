@@ -1,3 +1,9 @@
+import moviepy.video.fx.all as vfx
+from moviepy.editor import VideoFileClip, concatenate_videoclips
+import shutil
+import datetime
+import librosa
+import numpy as np
 import os
 import math
 
@@ -6,17 +12,6 @@ from auto_everything.base import Terminal, Python, IO
 t = Terminal(debug=True)
 py = Python()
 io_ = IO()
-
-
-# begin
-import numpy as np
-import librosa
-
-import datetime
-import shutil
-
-from moviepy.editor import VideoFileClip, concatenate_videoclips
-import moviepy.video.fx.all as vfx
 
 
 def print_split_line():
@@ -81,7 +76,7 @@ def make_sure_target_does_not_exist(path):
                 shutil.rmtree(p)
             else:
                 r = os.remove(p)
-                if r == False:
+                if r is False:
                     print("I can't remove target for you, please check your permission")
                     exit()
 
@@ -145,14 +140,14 @@ class Video():
                         if time_gaps >= minimum_interval_samples:
                             time_gaps = minimum_interval_samples // 2
                         new_parts.append(
-                            [ parts[index-1][1], 
-                              parts[index-1][1] + time_gaps 
-                            ]
+                            [parts[index-1][1],
+                             parts[index-1][1] + time_gaps
+                             ]
                         )
                         new_parts.append(
-                            [ part[0] - time_gaps, 
-                              part[0]
-                            ]
+                            [part[0] - time_gaps,
+                             part[0]
+                             ]
                         )
                         new_parts.append(list(part))
                     else:
@@ -309,25 +304,8 @@ class Video():
                 continue
             all_silence += (part[0] - new_parts[index-1][1])
 
-        """
-        print()
-        print(new_parts)
-        print()
-        print(all_silence)
-        print(new_parts[-1][1])
-        print()
-        print("the compression ratio: ", all_silence/new_parts[-1][1])
-        """
         ratio = all_silence/new_parts[-1][1]
         return ratio
-        """
-        import matplotlib.pyplot as plt
-        import pandas as pd
-        data = pd.DataFrame(new_parts)
-        print(data)
-        data.plot()
-        plt.show()
-        """
 
     def split_video_by_time_part(self, source_video_path, target_video_path, part):
         make_sure_source_is_absolute_path(source_video_path)
@@ -346,21 +324,6 @@ class Video():
         t.run(f"""
             ffmpeg -i "{source_video_path}" -ss {time_start} -to {time_end} -threads 8 "{target_video_path}"
         """)
-        # ffmpeg_command = f'ffmpeg -i "{self._video_file_path}" -ss {time_start} -to {time_end} -async 1 -threads 8 "{target_file_path}"'
-
-        '''
-        try:
-            clip = VideoFileClip(source_video_path).subclip(time_start, time_end)
-            clip.write_videofile(target_video_path)
-            clip.close()
-            del clip
-        except Exception as e:
-            print(e)
-            print("error at split_video_by_time_part")
-            print(time_start)
-            print(time_end)
-            exit()
-        '''
 
         done()
 
@@ -445,7 +408,7 @@ class Video():
         filelist = [os.path.join(source_folder, f) for f in os.listdir(
             source_folder) if f.endswith(".mp4")]
 
-        if (sort_by_time == False):
+        if (sort_by_time is False):
             filelist = list(sorted(filelist))
         else:
             filelist.sort(key=lambda x: os.path.getmtime(x))
@@ -453,7 +416,7 @@ class Video():
         self.link_videos(source_video_path_list=filelist,
                          target_video_path=target_video_path, method=method)
 
-        if sort_by_time == False:
+        if sort_by_time is False:
             make_sure_target_does_not_exist(source_folder)
 
         done()
@@ -532,7 +495,7 @@ class Video():
         temp_video_path = add_path(
             working_dir, 'temp_for_remove_silence_parts_from_video.mp4')
 
-        if minimum_interval_time_in_seconds == None:
+        if minimum_interval_time_in_seconds is None:
             parts = self._get_voice_parts(audio_path, top_db)
         else:
             parts = self._get_voice_parts(
@@ -551,17 +514,6 @@ class Video():
         concat_clip.write_videofile(target_video_path)
         concat_clip.close()
         del concat_clip
-        # """
-
-        """
-        target_folder = add_path(working_dir, "splitted_videos")
-        self._split_video_to_parts_by_time_intervals(
-            source_video_path, target_folder, parts)
-
-        self.combine_all_mp4_in_a_folder(
-            target_folder, target_video_path, sort_by_time=False)
-        # self.remove_noise_from_video(source_video_path=temp_video_path, target_video_path=target_video_path)
-        """
 
         make_sure_target_does_not_exist(audio_path)
         make_sure_target_does_not_exist(temp_video_path)
@@ -645,12 +597,6 @@ class Video():
             ffmpeg -i "{source_video_path}" -filter_complex "[0:v]setpts={video_speed}*PTS[v];[0:a]{audio_speed}[a]" -map "[v]" -map "[a]" "{target_video_path}"
         """)
 
-        """
-        clip = VideoFileClip(source_video_path).fx(
-            vfx.speedx, speed)  # double the speed
-        clip.write_videofile(target_video_path)
-        """
-
         done()
 
     def _speedup_video_with_moviepy(self, source_video_path, target_video_path, speed=4):
@@ -685,46 +631,9 @@ class Video():
         working_dir = get_directory_name(target_video_path)
         audio_path = convert_video_to_wav(source_video_path, add_path(
             working_dir, 'audio_for_speedup_silence_parts_in_video.wav'))
-        temp_video_path = add_path(
-            working_dir, 'temp_for_speedup_silence_parts_in_video.mp4')
 
-        target_folder = add_path(working_dir, "splitted_videos")
         voice_and_silence_parts = self._get_voice_and_silence_parts(
             audio_path, top_db)
-
-        """
-        make_sure_target_does_not_exist(target_folder)
-        if not t.exists(target_folder):
-            os.mkdir(target_folder)
-
-        for index, part in enumerate(voice_and_silence_parts):
-            index = (6-len(str(index)))*'0' + str(index)
-            if part[0] == 1:  # voice
-                temp_target_video_path = add_path(
-                    target_folder, str(index)+".mp4")
-                self.split_video_by_time_part(
-                    source_video_path, temp_target_video_path, part[1])
-            else:  # silence
-                temp_for_speedup_video_path = add_path(
-                    target_folder, 'temp_for_speedup_silence_parts_in_video.mp4')
-                make_sure_target_does_not_exist(temp_for_speedup_video_path)
-                self.split_video_by_time_part(
-                    source_video_path, temp_for_speedup_video_path, part[1])
-
-                temp_target_video_path = add_path(
-                    target_folder, str(index)+".mp4")
-                self._speedup_video_with_moviepy(temp_for_speedup_video_path,
-                                   temp_target_video_path, speed=speed)
-                make_sure_target_does_not_exist(temp_for_speedup_video_path)
-
-        make_sure_target_does_not_exist(audio_path)
-        self.combine_all_mp4_in_a_folder(
-            target_folder, temp_video_path, sort_by_time=False)
-        self.remove_noise_from_video(
-            source_video_path=temp_video_path, target_video_path=target_video_path)
-
-        make_sure_target_does_not_exist(temp_video_path)
-        """
 
         make_sure_target_does_not_exist(audio_path)
         parent_clip = VideoFileClip(source_video_path)
@@ -776,7 +685,7 @@ class Video():
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
 
-        times  = float(times)
+        times = float(times)
         times = str(times)
 
         t.run(f"""
@@ -805,6 +714,8 @@ class Video():
                 if num < 1024.0:
                     return (int(float(f'{num:.1f}')), f'{x}')
                 num /= 1024.0
+
+            return (0,0)
 
         for file in filelist:
             basename = os.path.basename(file)
