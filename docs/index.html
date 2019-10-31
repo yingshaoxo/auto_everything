@@ -51,6 +51,456 @@
 <div class="toctree-wrapper compound">
 </div>
 </div>
+<div class="section" id="module-auto_everything.base">
+<span id="base"></span><h1>Base<a class="headerlink" href="#module-auto_everything.base" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="auto_everything.base.IO">
+<em class="property">class </em><code class="descclassname">auto_everything.base.</code><code class="descname">IO</code><a class="reference internal" href="_modules/auto_everything/base.html#IO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.IO" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is for normal IO processing</p>
+<dl class="method">
+<dt id="auto_everything.base.IO.make_sure_sudo_permission">
+<code class="descname">make_sure_sudo_permission</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#IO.make_sure_sudo_permission"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.IO.make_sure_sudo_permission" title="Permalink to this definition">¶</a></dt>
+<dd><p>exit if you don’t have sudo permission</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.IO.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#IO.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.IO.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>read text from txt file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> – txt file path</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.IO.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>file_path</em>, <em>content</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#IO.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.IO.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>write text into txt file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file_path</strong> – target txt file path</li>
+<li><strong>content</strong> – text string</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.IO.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>file_path</em>, <em>content</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#IO.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.IO.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>append text at the end of a txt file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file_path</strong> – target txt file path</li>
+<li><strong>content</strong> – text string</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="auto_everything.base.Terminal">
+<em class="property">class </em><code class="descclassname">auto_everything.base.</code><code class="descname">Terminal</code><span class="sig-paren">(</span><em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminal simulator for execute bash commands</p>
+<dl class="method">
+<dt id="auto_everything.base.Terminal.fix_path">
+<code class="descname">fix_path</code><span class="sig-paren">(</span><em>path</em>, <em>username=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.fix_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.fix_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>replace ~ with system username
+// depressed, please use expanduser_in_path</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<em>string</em>) – A string which contains ~</li>
+<li><strong>username</strong> (<em>string</em>) – Linux system username</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Terminal.expanduser_in_path">
+<code class="descname">expanduser_in_path</code><span class="sig-paren">(</span><em>path</em>, <em>username=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.expanduser_in_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.expanduser_in_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>replace ~ with system username</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<em>string</em>) – A string which contains ~</li>
+<li><strong>username</strong> (<em>string</em>) – Linux system username</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Terminal.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>cheack if a file or directory exists
+return true is it exists</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>string</em>) – the path you want to have a check</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Terminal.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>c</em>, <em>cwd=None</em>, <em>wait=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>run shell commands without value returning</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>c</strong> (<em>string</em>) – shell command</li>
+<li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
+<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – True, this command may keep running forever</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Terminal.run_command">
+<code class="descname">run_command</code><span class="sig-paren">(</span><em>c</em>, <em>timeout=15</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>run shell commands with return value</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>c</strong> (<em>string</em>) – shell command</li>
+<li><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><em>seconds</em>) – how long this command will take, beyound it, an exception will raise</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Terminal.run_program">
+<code class="descname">run_program</code><span class="sig-paren">(</span><em>name</em>, <em>cwd=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_program"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run_program" title="Permalink to this definition">¶</a></dt>
+<dd><p>run shell commands, especially programs which can be started from terminal.
+This function will not wait program to be finished.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) – <dl class="docutils">
+<dt>for example:</dt>
+<dd><cite>firefox</cite> or <cite>/opt/v2ray/v2ray</cite></dd>
+</dl>
+</li>
+<li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Terminal.run_py">
+<code class="descname">run_py</code><span class="sig-paren">(</span><em>file_path_with_command</em>, <em>cwd=None</em>, <em>wait=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run_py" title="Permalink to this definition">¶</a></dt>
+<dd><p>run py_file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file_path_with_command</strong> (<em>string</em>) – <dl class="docutils">
+<dt>for example:</dt>
+<dd><cite>hi.py –name yingshaoxo</cite></dd>
+</dl>
+</li>
+<li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
+<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if true, it will wait until the python program quit</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Terminal.run_sh">
+<code class="descname">run_sh</code><span class="sig-paren">(</span><em>file_path_with_command</em>, <em>cwd=None</em>, <em>wait=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_sh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run_sh" title="Permalink to this definition">¶</a></dt>
+<dd><p>run sh_file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file_path_with_command</strong> (<em>string</em>) – <dl class="docutils">
+<dt>for example:</dt>
+<dd><cite>hi.sh –name yingshaoxo</cite></dd>
+</dl>
+</li>
+<li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
+<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if true, it will wait until the bash program quit</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Terminal.is_running">
+<code class="descname">is_running</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.is_running"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.is_running" title="Permalink to this definition">¶</a></dt>
+<dd><p>cheack if a program is running</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em>) – the program name, for example, <cite>firefox</cite></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Terminal.kill">
+<code class="descname">kill</code><span class="sig-paren">(</span><em>name</em>, <em>force=True</em>, <em>wait=False</em>, <em>timeout=30</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.kill" title="Permalink to this definition">¶</a></dt>
+<dd><p>kill a program by its name, depends on <cite>kill pid</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) – what’s the name of that program you want to kill</li>
+<li><strong>force</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – kill it directlly or softly.
+some program like ffmpeg, should set force=False</li>
+<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – true, wait until program totolly quit</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="auto_everything.base.OS">
+<em class="property">class </em><code class="descclassname">auto_everything.base.</code><code class="descname">OS</code><a class="reference internal" href="_modules/auto_everything/base.html#OS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.OS" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is for system stuff</p>
+<dl class="method">
+<dt id="auto_everything.base.OS.list_packages">
+<code class="descname">list_packages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#OS.list_packages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.OS.list_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of apt packages which installed in your computer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.OS.install_package">
+<code class="descname">install_package</code><span class="sig-paren">(</span><em>package_name</em>, <em>force=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#OS.install_package"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.OS.install_package" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>package_name</strong> (<em>string</em>) – the package you want to install</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.OS.uninstall_package">
+<code class="descname">uninstall_package</code><span class="sig-paren">(</span><em>package_name</em>, <em>force=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#OS.uninstall_package"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.OS.uninstall_package" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>package_name</strong> (<em>string</em>) – the package you want to uninstall</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="auto_everything.base.Python">
+<em class="property">class </em><code class="descclassname">auto_everything.base.</code><code class="descname">Python</code><a class="reference internal" href="_modules/auto_everything/base.html#Python"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Python" title="Permalink to this definition">¶</a></dt>
+<dd><p>Python model was intended to simplify python development</p>
+<dl class="method">
+<dt id="auto_everything.base.Python.list_python_packages">
+<code class="descname">list_python_packages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Python.list_python_packages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Python.list_python_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of python packages which installed in your computer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Python.install_package">
+<code class="descname">install_package</code><span class="sig-paren">(</span><em>package_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Python.install_package"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Python.install_package" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>package_name</strong> (<em>string</em>) – the python package you want to install</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Python.uninstall_package">
+<code class="descname">uninstall_package</code><span class="sig-paren">(</span><em>package_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Python.uninstall_package"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Python.uninstall_package" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>package_name</strong> (<em>string</em>) – the python package you want to uninstall</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Python.help">
+<code class="descname">help</code><span class="sig-paren">(</span><em>object_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Python.help"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Python.help" title="Permalink to this definition">¶</a></dt>
+<dd><p>get help information about class or function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Python.fire">
+<code class="descname">fire</code><span class="sig-paren">(</span><em>class_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Python.fire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Python.fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>fire is a function that will turn any Python class into a command line interface</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Python.make_it_runnable">
+<code class="descname">make_it_runnable</code><span class="sig-paren">(</span><em>py_file_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Python.make_it_runnable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Python.make_it_runnable" title="Permalink to this definition">¶</a></dt>
+<dd><p>make python file runnable</p>
+<p>after use this function, you can run the py_file by: ./your_py_script_name.py</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="auto_everything.base.Super">
+<em class="property">class </em><code class="descclassname">auto_everything.base.</code><code class="descname">Super</code><span class="sig-paren">(</span><em>username='root'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Super"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Super" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is for sudo operations in linux</p>
+<dl class="method">
+<dt id="auto_everything.base.Super.start_service">
+<code class="descname">start_service</code><span class="sig-paren">(</span><em>name</em>, <em>py_file_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Super.start_service"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Super.start_service" title="Permalink to this definition">¶</a></dt>
+<dd><p>start or create a linux service
+after this, the py_file will keep running as long as the computer is running</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) – service name</li>
+<li><strong>py_file_path</strong> (<em>string</em>) – a path leads to a python script</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Super.stop_service">
+<code class="descname">stop_service</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Super.stop_service"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Super.stop_service" title="Permalink to this definition">¶</a></dt>
+<dd><p>stop or cancel a linux service
+after this, the py_file will stop running</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em>) – service name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.base.Super.service">
+<code class="descname">service</code><span class="sig-paren">(</span><em>name</em>, <em>py_file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Super.service"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Super.service" title="Permalink to this definition">¶</a></dt>
+<dd><p>start or stop service
+after start, the python script will running forever</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) – service name</li>
+<li><strong>py_file_path</strong> (<em>string</em>) – a path leads to a python script</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-auto_everything.web">
+<span id="web"></span><h1>Web<a class="headerlink" href="#module-auto_everything.web" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="auto_everything.web.Selenium">
+<em class="property">class </em><code class="descclassname">auto_everything.web.</code><code class="descname">Selenium</code><span class="sig-paren">(</span><em>url</em>, <em>headless=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium" title="Permalink to this definition">¶</a></dt>
+<dd><p>It’s a wrap of selenium</p>
+<dl class="method">
+<dt id="auto_everything.web.Selenium.wait_until_exists">
+<code class="descname">wait_until_exists</code><span class="sig-paren">(</span><em>xpath</em>, <em>timeout=600</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium.wait_until_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium.wait_until_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>wait elements to be exist in an webpage, return those elements</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xpath</strong> (<em>string</em>) – you can get it by using F12 at your browser</li>
+<li><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – how many seconds you want to wait</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.web.Selenium.click">
+<code class="descname">click</code><span class="sig-paren">(</span><em>element</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium.click" title="Permalink to this definition">¶</a></dt>
+<dd><p>click an element</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-auto_everything.video">
 <span id="video"></span><h1>Video<a class="headerlink" href="#module-auto_everything.video" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
@@ -217,6 +667,8 @@ Then you make the decision wheather you want to do this or not</p>
   <h3><a href="#">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">I recommend you start from index</a></li>
+<li><a class="reference internal" href="#module-auto_everything.base">Base</a></li>
+<li><a class="reference internal" href="#module-auto_everything.web">Web</a></li>
 <li><a class="reference internal" href="#module-auto_everything.video">Video</a></li>
 </ul>
 <h3>Related Topics</h3>

@@ -18,6 +18,9 @@ class Net():
 
 
 class Selenium():
+    """
+    It's a wrap of selenium
+    """
     def __init__(self, url, headless=False):
         try:
             if headless == False:
@@ -37,6 +40,17 @@ class Selenium():
         self.driver.get(url)
         
     def wait_until_exists(self, xpath, timeout=600):
+        """
+        wait elements to be exist in an webpage, return those elements
+
+        Parameters
+        ----------
+        xpath: string 
+            you can get it by using F12 at your browser
+
+        timeout: int
+            how many seconds you want to wait
+        """
         try:
             w = WebDriverWait(self.driver, timeout)
             w.until(EC.presence_of_element_located((By.XPATH, xpath)))
@@ -47,4 +61,7 @@ class Selenium():
             return None
 
     def click(self, element):
+        """
+        click an element
+        """
         self.driver.execute_script("arguments[0].click();", element)
