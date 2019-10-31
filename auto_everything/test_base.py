@@ -1,3 +1,5 @@
+from auto_everything.base import Terminal
+from auto_everything.base import IO
 import os
 import pexpect
 import time
@@ -5,18 +7,11 @@ import time
 # ------------------------
 # ------------------------
 # ------------------------
-### Testing for IO
-
-
-# ------------------------
-# ------------------------
-# ------------------------
-### Testing for Terminal
-
-from auto_everything.base import Terminal
+# Testing for Terminal
 t = Terminal()
 
 SHORT_DELAY = 0.1
+
 
 def test_fix_path():
     path = "~/hi"
@@ -26,6 +21,7 @@ def test_fix_path():
 
     result = t.fix_path(path)
     assert result == os.path.expanduser(path)
+
 
 def test_run():
     command = "python3 -m http.server 1998"
@@ -47,9 +43,11 @@ def test_run():
     assert os.listdir(t.current_dir)[0] in html
     t.kill(command)
 
+
 def test_run_command():
     files = t.run_command("ls")
     assert len(files) > 0
+
 
 def test_run_program():
     command = "python3 -m http.server 1998"
@@ -59,9 +57,45 @@ def test_run_program():
     assert 'Downloads' in html
     t.kill(command)
 
+
+def test_exists():
+    t.run_command("mkdir yingshaoxo_is_somebody")
+    assert t.exists("yingshaoxo_is_somebody") is True
+    t.run_command("rm yingshaoxo_is_somebody -r")
+    assert t.exists("yingshaoxo_is_somebody") is False
+
+
 # ------------------------
 # ------------------------
 # ------------------------
+# Testing for IO
+io = IO()
+
+
+def test_write_and_read_and_append():
+    file_path = "temp.yingshaoxo.xyz"
+
+    io.write(file_path, "something")
+    assert io.read(file_path) == "something"
+
+    io.append(file_path, "right")
+    assert "right" in io.read(file_path)
+
+    t.run_command("rm temp.yingshaoxo.xyz")
+
+
+def test_write_and_read_settings():
+    io.write_settings("fuck", "you")
+    assert io.read_settings("fuck", "me") == "you"
+
+    io.empty_settings()
+    assert io.read_settings("fuck", "me") == "me"
+
+    io.empty_settings()
+
 
 if __name__ == "__main__":
-    pass
+    t.run("""
+    cd ..
+    pytest
+    """)

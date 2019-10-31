@@ -20,7 +20,7 @@ class IO():
 
     def __init__(self):
         self.current_dir = os.getcwd()
-        self.__log_path = os.path.join(self.current_dir, 'log')
+        self.__log_path = os.path.join(self.current_dir, '.log')
 
     def make_sure_sudo_permission(self):
         """
@@ -104,11 +104,22 @@ class IO():
             print(e)
             return False
 
+    def empty_settings(self):
+        settings_path = os.path.join(self.current_dir, 'settings.ini')
+        try:
+            self.write(settings_path, "")
+            os.remove(settings_path)
+        except Exception as e:
+            print(e)
+
     def log(self, text):
         text = str(text)
         now = time.asctime(time.localtime(time.time()))
         text = '\n'*2 + text + '   ' + '({})'.format(now)
         self.append(self.__log_path, text)
+
+    def get_logs():
+        return self.read(self.__log_path)
 
 
 class Terminal():

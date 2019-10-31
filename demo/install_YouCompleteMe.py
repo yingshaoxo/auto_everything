@@ -27,7 +27,7 @@ mkdir .vim
 cd .vim
 mkdir bundle
 cd bundle
-git clone --recurse-submodules -j8 https://github.com/Valloric/YouCompleteMe.git
+git clone --recurse-submodules -j8 https://github.com/ycm-core/YouCompleteMe.git
 cd YouCompleteMe
 sudo python3 ./install.py
     """
@@ -188,7 +188,7 @@ if t.exists(t.fix_path('~/.config/terminator')):
 last = """
 \n\n\n
 There just left one thing you have to do:
-    start vim
+    start vim by `sudo vim`
         then type
             `:PluginInstall`
 
