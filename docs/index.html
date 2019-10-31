@@ -13,6 +13,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
      
@@ -74,7 +75,7 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path_list</strong> (<em>list of video path</em>) – those videos you want to concatenate</li>
 <li><strong>target_video_path</strong> (<em>string</em>) – where to save the concatenated video</li>
-<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
 </ul>
 </td>
 </tr>
@@ -91,9 +92,9 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sort_by_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – when true, we sort by time
+<li><strong>sort_by_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – when true, we sort by time
 when false, we sort by name(1, 2, 3)</li>
-<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
 </ul>
 </td>
 </tr>
@@ -117,8 +118,8 @@ when false, we sort by name(1, 2, 3)</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite>, but for some case if the volume is too small, <cite>30</cite> would be fine</li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite>, but for some case if the volume is too small, <cite>30</cite> would be fine</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
 </ul>
 </td>
 </tr>
@@ -138,8 +139,8 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
 </ul>
 </td>
 </tr>
@@ -157,7 +158,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – how quick you want the video to be</li>
+<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – how quick you want the video to be</li>
 </ul>
 </td>
 </tr>
@@ -176,8 +177,8 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – how quick you want the silence parts to be</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
+<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – how quick you want the silence parts to be</li>
 </ul>
 </td>
 </tr>
@@ -195,7 +196,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>times</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – 2 times the source_video volume or 3 times the source_video volume</li>
+<li><strong>times</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – 2 times the source_video volume or 3 times the source_video volume</li>
 </ul>
 </td>
 </tr>
@@ -258,7 +259,7 @@ Then you make the decision wheather you want to do this or not</p>
     
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, yingshaoxo.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.
     </div>
     </div>
 
