@@ -48,6 +48,7 @@ cd ..
 
     def make_docs(self):
         t.run("""
+        sudo apt install python3-sphinx
         cd docs
         make html
         cp docs/html/* . -fr
