@@ -1,7 +1,8 @@
 sudo apt -y install python3
 sudo apt -y install python3-pip
 
-sudo pacman --noconfirm -Syu python-tensorflow-cuda
+#sudo pacman --noconfirm -Syu python-tensorflow-cuda
+sudo pacman --noconfirm -Syu python3
 curl -O https://bootstrap.pypa.io/get-pip.py
 sudo python get-pip.py
 

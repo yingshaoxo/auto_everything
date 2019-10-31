@@ -16,6 +16,12 @@ sudo apt install -y python3-pip
 sudo apt install -y vim
 sudo apt install -y git
 sudo apt install -y curl
+
+sudo pacman --noconfirm -S make
+sudo pacman --noconfirm -S cmake
+sudo pacman --noconfirm -S vim
+sudo pacman --noconfirm -S git
+sudo pacman --noconfirm -S curl
 """
 t.run(c, wait=True)
 
@@ -183,6 +189,13 @@ if t.exists(t.fix_path('~/.config/terminator')):
     use_system_font = False
 """)
 
+
+# 7 copy file to root
+c = """
+sudo cp ~/.vim /root/.vim -r
+sudo cp ~/.vimrc /root/.vimrc
+"""
+t.run(c, wait=True)
 
 
 last = """
