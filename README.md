@@ -90,10 +90,10 @@ ___
 #### Get package list
 ```python
 from auto_everything.base import OS
-_os = OS()
+os_ = OS()
 
-python_packages = _os.list_python_packages()
-lubuntu_packages = _os.list_packages()
+python_packages = os_.list_python_packages()
+lubuntu_packages = os_.list_packages()
 
 print(python_packages)
 print(lubuntu_packages)
@@ -102,19 +102,19 @@ print(lubuntu_packages)
 #### Install or Uninstall a Python package
 ```python
 from auto_everything.base import OS
-_os = OS()
+os_ = OS()
 
-_os.install_python_package("any_package_name")
-_os.uninstall_python_package("any_package_name")
+os_.install_python_package("any_package_name")
+os_.uninstall_python_package("any_package_name")
 ```
 
 #### Install or Uninstall a Lubuntu package
 ```python
 from auto_everything.base import OS
-_os = OS()
+os_ = OS()
 
-_os.install_package("any_package_name")
-_os.uninstall_package("any_package_name")
+os_.install_package("any_package_name")
+os_.uninstall_package("any_package_name")
 ```
 
 ___

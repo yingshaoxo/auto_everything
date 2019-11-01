@@ -713,6 +713,16 @@ class Super():
 
     def __get_service_config(self, py_file_path):
         working_dir = os.path.dirname(py_file_path)
+
+        display_number = self._t.run_command("who")
+        if "not found" in display_number:
+            display = ""
+        else:
+            display_number = display_number.split("(")[-1].split(")")[0]
+            display = "Environment=DISPLAY=" + display_number
+        if self.__username == "root":
+            display = ""
+
         content = """
 [Unit]
 Description=auto_everything deamon
@@ -722,7 +732,7 @@ After=re-local.service
 Type=simple
 User={username}
 WorkingDirectory={working_dir}
-Environment=DISPLAY=:0.0
+{display}
 ExecStart=/usr/bin/python3 {py_file_path}
 Restart=always
 RestartSec=5
@@ -731,9 +741,8 @@ StartLimitInterval=1s
 
 [Install]
 WantedBy=multi-user.target
-""".format(username=self.__username, working_dir=working_dir, py_file_path=py_file_path)
-        if self.__username == "root":
-            content.replace("Environment=DISPLAY=:0.0\n", "")
+""".format(username=self.__username, working_dir=working_dir, py_file_path=py_file_path, display=display)
+
         return content
 
     def start_service(self, name, py_file_path=None):

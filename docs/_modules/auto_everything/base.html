@@ -759,6 +759,16 @@
 
     <span class="k">def</span> <span class="nf">__get_service_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">py_file_path</span><span class="p">):</span>
         <span class="n">working_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">py_file_path</span><span class="p">)</span>
+
+        <span class="n">display_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span><span class="o">.</span><span class="n">run_command</span><span class="p">(</span><span class="s2">&quot;who&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;not found&quot;</span> <span class="ow">in</span> <span class="n">display_number</span><span class="p">:</span>
+            <span class="n">display</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">display_number</span> <span class="o">=</span> <span class="n">display_number</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">display</span> <span class="o">=</span> <span class="s2">&quot;Environment=DISPLAY=&quot;</span> <span class="o">+</span> <span class="n">display_number</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__username</span> <span class="o">==</span> <span class="s2">&quot;root&quot;</span><span class="p">:</span>
+            <span class="n">display</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
         <span class="n">content</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">[Unit]</span>
 <span class="s2">Description=auto_everything deamon</span>
@@ -768,7 +778,7 @@
 <span class="s2">Type=simple</span>
 <span class="s2">User=</span><span class="si">{username}</span><span class="s2"></span>
 <span class="s2">WorkingDirectory=</span><span class="si">{working_dir}</span><span class="s2"></span>
-<span class="s2">Environment=DISPLAY=:0.0</span>
+<span class="si">{display}</span><span class="s2"></span>
 <span class="s2">ExecStart=/usr/bin/python3 </span><span class="si">{py_file_path}</span><span class="s2"></span>
 <span class="s2">Restart=always</span>
 <span class="s2">RestartSec=5</span>
@@ -777,9 +787,8 @@
 
 <span class="s2">[Install]</span>
 <span class="s2">WantedBy=multi-user.target</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__username</span><span class="p">,</span> <span class="n">working_dir</span><span class="o">=</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">py_file_path</span><span class="o">=</span><span class="n">py_file_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__username</span> <span class="o">==</span> <span class="s2">&quot;root&quot;</span><span class="p">:</span>
-            <span class="n">content</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Environment=DISPLAY=:0.0</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__username</span><span class="p">,</span> <span class="n">working_dir</span><span class="o">=</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">py_file_path</span><span class="o">=</span><span class="n">py_file_path</span><span class="p">,</span> <span class="n">display</span><span class="o">=</span><span class="n">display</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">content</span>
 
 <div class="viewcode-block" id="Super.start_service"><a class="viewcode-back" href="../../index.html#auto_everything.base.Super.start_service">[docs]</a>    <span class="k">def</span> <span class="nf">start_service</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">py_file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

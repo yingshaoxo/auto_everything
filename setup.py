@@ -6,7 +6,7 @@ with open(file_path) as f:
     long_description = f.read()
 
 setup(name='auto_everything',
-        version='3.1',
+        version='3.3',
         description='do automate things on Linux',
         long_description=long_description,
         long_description_content_type='text/markdown',
