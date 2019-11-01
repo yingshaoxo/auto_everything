@@ -10,7 +10,7 @@ sudo bash env_setup.sh
 #### Magic
 ```
 wget https://github.com/yingshaoxo/auto_everything/raw/master/demo/install_YouCompleteMe.py
-sudo python3 install_YouCompleteMe.py
+python3 install_YouCompleteMe.py
 ```
 
 #### Get involved

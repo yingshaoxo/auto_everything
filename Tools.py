@@ -59,6 +59,7 @@ cd ..
     def publish(self):
         self.install()
         self.make_docs()
+        print("Input your username of pypi:")
         t.run("""
 twine upload dist/*
         """)
