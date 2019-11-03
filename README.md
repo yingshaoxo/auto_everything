@@ -3,6 +3,12 @@ Linux(mainly ubuntu) automation
 
 #### Installation
 ```
+sudo pip3 install auto_everything
+```
+
+or
+
+```
 wget https://github.com/yingshaoxo/auto_everything/raw/master/env_setup.sh
 sudo bash env_setup.sh
 ```
