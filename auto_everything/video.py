@@ -658,6 +658,41 @@ class Video():
 
         done()
 
+    def replace_video_with_a_picture(self, source_video_path, target_video_path, picture):
+        """
+        Parameters
+        ----------
+        source_video_path: string
+        target_video_path: string
+        picture: string
+            the path of that picture
+        """
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_video_path)
+        make_sure_target_is_absolute_path(picture)
+        make_sure_target_does_not_exist(target_video_path)
+
+
+        t.run(f"""
+            ffmpeg -i "{source_video_path}" -i "{picture}" -filter_complex "[1][0]scale2ref[i][v];[v][i]overlay" -c:a copy "{target_video_path}"
+        """)
+
+        done()
+
+    def get_mp3_from_video(self, source_video_path, target_video_path):
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_video_path)
+        make_sure_target_does_not_exist(target_video_path)
+
+        delay = float(delay)
+        delay = str(delay)
+
+        t.run(f"""
+            ffmpeg -i "{source_video_path}" "{source_video_path}"
+        """)
+
+        done()
+
     def delay_audio_in_video(self, source_video_path, target_video_path, delay):
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
