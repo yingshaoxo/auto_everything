@@ -132,6 +132,7 @@ sudo pip3 install autopep8
 sudo pip3 install jedi
 
 sudo apt-get install vim-gnome -y
+sudo pacman --noconfirm -S gvim
 """
 t.run(c, wait=True)
 
@@ -153,8 +154,10 @@ sudo wget https://github.com/tell-k/vim-autopep8/raw/master/ftplugin/python_auto
 
 
 # 6 set terminator
-if t.exists(t.fix_path('~/.config/terminator')):
-    io.write(t.fix_path('~/.config/terminator/config'), """
+t.run("""
+mkdir ~/.config/terminator/config
+""")
+io.write(t.fix_path('~/.config/terminator/config'), """
 [global_config]
   always_split_with_profile = True
   borderless = True
