@@ -20,9 +20,11 @@ git reset --hard origin/master
 """)
 
     def test(self):
+        #sudo pip3 install pytest
+        #sudo pip3 install -e .
         t.run("""
         pytest
-        """)
+""")
 
     def check(self, py_file=None):
         if py_file is None:

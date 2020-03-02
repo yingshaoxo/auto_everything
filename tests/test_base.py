@@ -1,8 +1,8 @@
+import os
+import time
+
 from auto_everything.base import Terminal
 from auto_everything.base import IO
-import os
-import pexpect
-import time
 
 # ------------------------
 # ------------------------
@@ -10,7 +10,7 @@ import time
 # Testing for Terminal
 t = Terminal()
 
-SHORT_DELAY = 0.1
+SHORT_DELAY = 1
 
 
 def test_fix_path():
