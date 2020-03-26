@@ -635,7 +635,7 @@ class Python():
                 self._io.write(py_file_path, codes)
                 self._t.run_command('chmod +x {}'.format(py_file_path))
 
-    def make_it_global_runnable(self, py_file_path=None):
+    def make_it_global_runnable(self, py_file_path=None, executable_name=None):
         """
         make python file global runnable
 
@@ -655,8 +655,9 @@ class Python():
                 self._t.current_dir, sys.argv[0].strip('./'))
 
         if os.path.exists(py_file_path):
-            _, py_name = os.path.split(py_file_path)
-            runnable_path = os.path.join(bin_folder, py_name)
+            if executable_name == None:
+                _, executable_name = os.path.split(py_file_path)
+            runnable_path = os.path.join(bin_folder, executable_name)
             self._t.run_command(f"ln -s {py_file_path} {runnable_path}")
 
             bashrc_path = self._t.fix_path(f"~/.bashrc")

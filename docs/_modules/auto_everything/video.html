@@ -704,6 +704,41 @@
 
         <span class="n">done</span><span class="p">()</span></div>
 
+<div class="viewcode-block" id="Video.replace_video_with_a_picture"><a class="viewcode-back" href="../../index.html#auto_everything.video.Video.replace_video_with_a_picture">[docs]</a>    <span class="k">def</span> <span class="nf">replace_video_with_a_picture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">picture</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        source_video_path: string</span>
+<span class="sd">        target_video_path: string</span>
+<span class="sd">        picture: string</span>
+<span class="sd">            the path of that picture</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">make_sure_source_is_absolute_path</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span>
+        <span class="n">make_sure_target_is_absolute_path</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
+        <span class="n">make_sure_target_is_absolute_path</span><span class="p">(</span><span class="n">picture</span><span class="p">)</span>
+        <span class="n">make_sure_target_does_not_exist</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
+
+
+        <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            ffmpeg -i &quot;</span><span class="si">{source_video_path}</span><span class="s2">&quot; -i &quot;</span><span class="si">{picture}</span><span class="s2">&quot; -filter_complex &quot;[1][0]scale2ref[i][v];[v][i]overlay&quot; -c:a copy &quot;</span><span class="si">{target_video_path}</span><span class="s2">&quot;</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">done</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">get_mp3_from_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">):</span>
+        <span class="n">make_sure_source_is_absolute_path</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span>
+        <span class="n">make_sure_target_is_absolute_path</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
+        <span class="n">make_sure_target_does_not_exist</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
+
+        <span class="n">delay</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+
+        <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            ffmpeg -i &quot;</span><span class="si">{source_video_path}</span><span class="s2">&quot; &quot;</span><span class="si">{source_video_path}</span><span class="s2">&quot;</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">done</span><span class="p">()</span>
+
     <span class="k">def</span> <span class="nf">delay_audio_in_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">delay</span><span class="p">):</span>
         <span class="n">make_sure_source_is_absolute_path</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span>
         <span class="n">make_sure_target_is_absolute_path</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>

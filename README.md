@@ -85,7 +85,45 @@ py.fire(your_class_name)
 
 #### Make it global executable at everywhere in Linux:
 ```
-py.make_it_global_runnable()
+py.make_it_global_runnable(executable_name="Tools")
+```
+
+#### Example
+Let's assume you have a file named `Tools.py`:
+
+```
+from auto_everything.base import Python
+py = Python()
+
+class Tools():
+    def push(self, comment):
+        t.run('git add .')
+        t.run('git commit -m "{}"'.format(comment))
+        t.run('git push origin')
+
+    def pull(self):
+        t.run("""
+git fetch --all
+git reset --hard origin/master
+""")
+
+    def reset(self):
+        t.run("""
+git reset --hard HEAD^
+""")
+
+    def hi(self):
+        print("Hi, Python!")
+
+py.fire(Tools)
+py.make_it_global_runnable(executable_name="MyTools")
+```
+
+After the first running of this script by `python3 Tools.py hi`, you would be able to use `MyTools` to run this script at anywhere within your machine:
+```bash
+yingshaoxo@pop-os:~$ MyTools hi
+Hi, Python!
+
 ```
 
 ___
