@@ -2,19 +2,19 @@
 Linux(mainly ubuntu) automation
 
 #### Installation
-```
+```bash
 sudo pip3 install auto_everything
 ```
 
 or
 
-```
+```bash
 wget https://github.com/yingshaoxo/auto_everything/raw/master/env_setup.sh
 sudo bash env_setup.sh
 ```
 
 #### Magic
-```
+```bash
 wget https://github.com/yingshaoxo/auto_everything/raw/master/demo/install_YouCompleteMe.py
 python3 install_YouCompleteMe.py
 ```
@@ -28,19 +28,19 @@ ___
 
 ## Basic API
 #### Import
-```
+```python
 from auto_everything.base import Terminal
 t = Terminal()
 ```
 
 #### Run a command & get reply
-```
+```python
 reply = t.run_command('uname -a')
 print(reply)
 ```
 
 #### Run commands & wait until it was finished
-```
+```python
 commands = """
 sudo apt update
 uname -a
@@ -49,22 +49,28 @@ t.run(commands, wait=True)
 ```
 
 #### Run a program
-`t.run_program('firefox')`
+```python
+t.run_program('firefox')
+```
 
 #### Run a python script
-`t.run_py('your_python_file_path')`
+```python
+t.run_py('your_python_file_path')
+```
 
 #### Run a bash script
-`t.run_sh('your_.sh_file_path')`
+```python
+t.run_sh('your_.sh_file_path')
+```
 
 #### Detect if a program or script is running
-```
+```python
 status = t.is_running('terminal')
 print(status)
 ```
 
 #### Kill it
-```
+```python
 t.kill('terminal')
 ```
 
@@ -73,25 +79,25 @@ ___
 
 ## For simplify Python development
 #### Import
-```
+```python
 from auto_everything.base import Python
 py = Python()
 ```
 
 #### Turn `Python Class` into a `Command Line Program`
-```
+```python
 py.fire(your_class_name)
 ```
 
 #### Make it `global executable`:
-```
+```python
 py.make_it_global_runnable(executable_name="Tools")
 ```
 
 #### Example
 Let's assume you have a file named `Tools.py`:
 
-```
+```python
 from auto_everything.base import Python
 py = Python()
 
