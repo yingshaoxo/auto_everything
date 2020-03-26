@@ -55,12 +55,12 @@ t.run_program('firefox')
 
 #### Run a python script
 ```python
-t.run_py('your_python_file_path')
+t.run_py('your_file.py')
 ```
 
 #### Run a bash script
 ```python
-t.run_sh('your_.sh_file_path')
+t.run_sh('your_file.sh')
 ```
 
 #### Detect if a program or script is running
