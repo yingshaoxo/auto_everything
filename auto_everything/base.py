@@ -627,12 +627,44 @@ class Python():
         if py_file_path is None or self._t.exists(py_file_path):
             py_file_path = os.path.join(
                 self._t.current_dir, sys.argv[0].strip('./'))
-        codes = self._io.read(py_file_path)
-        expected_first_line = '#!/usr/bin/env {}'.format(self._t.py_executable)
-        if codes.split('\n')[0] != expected_first_line:
-            codes = expected_first_line + '\n' + codes
-            self._io.write(py_file_path, codes)
-            self._t.run_command('chmod +x {}'.format(py_file_path))
+        if os.path.exists(py_file_path):
+            codes = self._io.read(py_file_path)
+            expected_first_line = '#!/usr/bin/env {}'.format(self._t.py_executable)
+            if codes.split('\n')[0] != expected_first_line:
+                codes = expected_first_line + '\n' + codes
+                self._io.write(py_file_path, codes)
+                self._t.run_command('chmod +x {}'.format(py_file_path))
+
+    def make_it_global_runnable(self, py_file_path=None):
+        """
+        make python file global runnable
+
+        after use this function, you can run the py_file at anywhere by: your_py_script_name.py
+        """
+        self.make_it_runnable(py_file_path)
+
+        auto_everything_config_folder = "~/.auto_everything"
+        bin_folder = os.path.join(auto_everything_config_folder, "bin")
+        if not self._t.exists(f"{auto_everything_config_folder}"):
+            self._t.run_command(f"mkdir {auto_everything_config_folder}")
+        if not self._t.exists(bin_folder):
+            self._t.run_command(f"mkdir {bin_folder}")
+
+        if py_file_path is None or self._t.exists(py_file_path):
+            py_file_path = os.path.join(
+                self._t.current_dir, sys.argv[0].strip('./'))
+
+        if os.path.exists(py_file_path):
+            _, py_name = os.path.split(py_file_path)
+            runnable_path = os.path.join(bin_folder, py_name)
+            self._t.run_command(f"ln -s {py_file_path} {runnable_path}")
+
+            bashrc_path = self._t.fix_path(f"~/.bashrc")
+            bashrc_target_line = f'export PATH="$PATH:{bin_folder}"'
+            bashrc = self._io.read(bashrc_path)
+            if bashrc_target_line not in bashrc.split("\n"):
+                bashrc = bashrc + "\n" + bashrc_target_line
+                self._io.write(bashrc_path, bashrc)
 
 
 class Git():

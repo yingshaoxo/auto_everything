@@ -72,9 +72,20 @@ ___
 
 
 ## For simplify Python development
+#### Import
+```
+from auto_everything.base import Python
+py = Python()
+```
+
 #### Turn `Python Class` into a `Command Line Program`
 ```
 py.fire(your_class_name)
+```
+
+#### Make it global executable at everywhere in Linux:
+```
+py.make_it_global_runnable()
 ```
 
 ___
