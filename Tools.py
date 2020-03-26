@@ -61,6 +61,9 @@ cd ..
     def publish(self):
         self.install()
         self.make_docs()
+        t.run("""
+        sudo apt install twine
+        """)
         print("Input your username of pypi:")
         t.run("""
 twine upload dist/*
