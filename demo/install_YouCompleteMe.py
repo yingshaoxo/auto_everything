@@ -183,6 +183,7 @@ io.write(t.fix_path('~/.config/terminator/config'), """
     cursor_color = "#aaaaaa"
     icon_bell = False
     scrollbar_position = hidden
+    scrollback_infinite = True
     show_titlebar = False
   [[mine]]
     cursor_color = "#aaaaaa"
