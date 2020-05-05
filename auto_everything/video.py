@@ -6,6 +6,7 @@ import librosa
 import numpy as np
 import os
 import math
+import multiprocessing
 
 
 from auto_everything.base import Terminal, Python, IO
@@ -118,7 +119,7 @@ class Video():
     """
 
     def __init__(self):
-        pass
+        self._cpu_core_numbers = multiprocessing.cpu_count()
 
     def _get_voice_parts(self, source_audio_path, top_db, minimum_interval_time_in_seconds=1.0):
         y, sr = get_wav_infomation(source_audio_path)
@@ -382,7 +383,7 @@ class Video():
             print(source_video_path_list)
             clip_list = [VideoFileClip(clip) for clip in source_video_path_list]
             final_clip = concatenate_videoclips(clip_list)
-            final_clip.write_videofile(target_video_path)
+            final_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
 
             for clip in clip_list:
                 clip.close()
@@ -473,7 +474,7 @@ class Video():
 
         done()
 
-    def remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, minimum_interval_time_in_seconds=None):
+    def remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, minimum_interval_time_in_seconds=None, voice_only=False):
         """
         Parameters
         ----------
@@ -483,6 +484,8 @@ class Video():
             normoly, it's `20` or `25`, but for some case if the volume is too small, `30` would be fine
         minimum_interval_time_in_seconds: float
             longer than this value, we will take it as silence and remove it
+        voice_only: bool
+            if true, it only returns the path of silence removed mp3 file
         """
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_source_is_absolute_path(target_video_path)
@@ -506,17 +509,29 @@ class Video():
         clip_list = []
         length = len(parts)
         for index, part in enumerate(parts):
-            print(str(int(index/length*100))+"%,", part)
+            time_duration = (datetime.datetime.strptime(part[1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[0], '%H:%M:%S.%f')).seconds
+            print(str(int(index/length*100))+"%,", "-".join([p.split(".")[0] for p in part]) + ",", "cut " + str(time_duration) + " seconds")
             clip_list.append(parent_clip.subclip(part[0], part[1]))
 
         concat_clip = concatenate_videoclips(clip_list)
 
-        concat_clip.write_videofile(target_video_path)
-        concat_clip.close()
-        del concat_clip
-
-        make_sure_target_does_not_exist(audio_path)
-        make_sure_target_does_not_exist(temp_video_path)
+        if not voice_only:
+            concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
+            concat_clip.close()
+            del concat_clip
+            make_sure_target_does_not_exist(audio_path)
+            make_sure_target_does_not_exist(temp_video_path)
+        else:
+            if len(target_video_path.split(".")) >= 2:
+                target_audio_path = ".".join(target_video_path.split(".")[:-1]) + ".mp3"
+            else:
+                target_audio_path = target_video_path + ".mp3"
+            make_sure_target_does_not_exist(target_audio_path)
+            concat_clip.audio.write_audiofile(target_audio_path, fps=44100)
+            concat_clip.close()
+            make_sure_target_does_not_exist(audio_path)
+            make_sure_target_does_not_exist(temp_video_path)
+            return target_audio_path
 
         done()
 
@@ -545,9 +560,11 @@ class Video():
             working_dir, 'temp_for_humanly_remove_silence_parts_from_video.mp4')
 
         try:
-            parts = self._get_voice_parts(
-                source_audio_path=audio_path, top_db=db_for_split_silence_and_voice)
-            ratio = int(self._evaluate_voice_parts(parts) * 100)
+            # parts = self._get_voice_parts(
+            #    source_audio_path=audio_path, top_db=db_for_split_silence_and_voice)
+            #ratio = int(self._evaluate_voice_parts(parts) * 100)
+            target_audio_path = self.remove_silence_parts_from_video(
+                source_video_path, target_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice, minimum_interval_time_in_seconds=minimum_interval, voice_only=True)
         except Exception as e:
             print(e)
             print()
@@ -559,10 +576,11 @@ class Video():
         make_sure_target_does_not_exist(audio_path)
 
         answer = input(
-            f"Are you happy with the ratio of silence over all: {ratio}% ? (y/n)")
+            f"Are you happy with the audio file: {target_audio_path}% ? (y/n) (you may have to exit this script to hear your audio from your computers)")
         if answer.strip() == "y":
             print("ok, let's do it!")
 
+            make_sure_target_does_not_exist(target_audio_path)
             self.remove_silence_parts_from_video(
                 source_video_path, target_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice, minimum_interval_time_in_seconds=minimum_interval)
 
@@ -606,7 +624,7 @@ class Video():
 
         clip = VideoFileClip(source_video_path).without_audio().fx(
             vfx.speedx, speed)
-        clip.write_videofile(target_video_path)
+        clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
 
         done()
 
@@ -640,7 +658,10 @@ class Video():
         clip_list = []
         length = len(voice_and_silence_parts)
         for index, part in enumerate(voice_and_silence_parts):
-            print(str(int(index/length*100))+"%,", part)
+            if len(part[1][0].split(".")) < 2:
+                part[1][0] += ".000000"
+            time_duration = (datetime.datetime.strptime(part[1][1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[1][0], '%H:%M:%S.%f')).seconds
+            print(str(int(index/length*100))+"%,", "-".join([p.split(".")[0] for p in part[1]]) + ",", "cut " + str(time_duration) + " seconds")
             if part[0] == 1:  # voice
                 clip_list.append(parent_clip.subclip(part[1][0], part[1][1]))
             else:  # silence
@@ -652,7 +673,7 @@ class Video():
 
         concat_clip = concatenate_videoclips(clip_list)
 
-        concat_clip.write_videofile(target_video_path)
+        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
         concat_clip.close()
         del concat_clip
 
@@ -671,7 +692,6 @@ class Video():
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_is_absolute_path(picture)
         make_sure_target_does_not_exist(target_video_path)
-
 
         t.run(f"""
             ffmpeg -i "{source_video_path}" -i "{picture}" -filter_complex "[1][0]scale2ref[i][v];[v][i]overlay" -c:a copy "{target_video_path}"
@@ -750,7 +770,7 @@ class Video():
                     return (int(float(f'{num:.1f}')), f'{x}')
                 num /= 1024.0
 
-            return (0,0)
+            return (0, 0)
 
         for file in filelist:
             basename = os.path.basename(file)

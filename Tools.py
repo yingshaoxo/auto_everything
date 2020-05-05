@@ -43,8 +43,9 @@ sudo rm -fr build
 
 sudo pip3 uninstall -y auto_everything
 sudo -H python3 setup.py sdist bdist_wheel
-cd dist
-sudo pip3 install auto_everything*
+#cd dist
+#sudo pip3 install auto_everything*
+sudo pip3 install -e .[video]
 cd ..
         """)
 
