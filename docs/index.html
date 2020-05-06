@@ -537,7 +537,7 @@ when false, we sort by name(1, 2, 3)</li>
 
 <dl class="method">
 <dt id="auto_everything.video.Video.remove_silence_parts_from_video">
-<code class="descname">remove_silence_parts_from_video</code><span class="sig-paren">(</span><em>source_video_path</em>, <em>target_video_path</em>, <em>db_for_split_silence_and_voice</em>, <em>minimum_interval_time_in_seconds=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.remove_silence_parts_from_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.remove_silence_parts_from_video" title="Permalink to this definition">¶</a></dt>
+<code class="descname">remove_silence_parts_from_video</code><span class="sig-paren">(</span><em>source_video_path</em>, <em>target_video_path</em>, <em>db_for_split_silence_and_voice</em>, <em>minimum_interval_time_in_seconds=None</em>, <em>voice_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.remove_silence_parts_from_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.remove_silence_parts_from_video" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -547,6 +547,7 @@ when false, we sort by name(1, 2, 3)</li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
 <li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite>, but for some case if the volume is too small, <cite>30</cite> would be fine</li>
 <li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>voice_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if true, it only returns the path of silence removed mp3 file</li>
 </ul>
 </td>
 </tr>
