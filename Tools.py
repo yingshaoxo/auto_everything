@@ -51,8 +51,8 @@ cd ..
 
     def make_docs(self):
         t.run("""
-        sudo apt install python3-sphinx
-        sudo pip3 install Flask-Sphinx-Themes
+        sudo apt install -y python3-sphinx
+        sudo pip3 install -y Flask-Sphinx-Themes
         cd docs
         make html
         cp docs/html/* . -fr
@@ -63,7 +63,7 @@ cd ..
         self.install()
         self.make_docs()
         t.run("""
-        sudo apt install twine
+        sudo apt install -y twine
         """)
         print("Input your username of pypi:")
         t.run("""
