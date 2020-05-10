@@ -509,8 +509,11 @@ class Video():
         clip_list = []
         length = len(parts)
         for index, part in enumerate(parts):
-            time_duration = (datetime.datetime.strptime(part[1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[0], '%H:%M:%S.%f')).seconds
-            print(str(int(index/length*100))+"%,", "-".join([p.split(".")[0] for p in part]) + ",", "cut " + str(time_duration) + " seconds")
+            try:
+                time_duration = (datetime.datetime.strptime(part[1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[0], '%H:%M:%S.%f')).seconds
+                print(str(int(index/length*100))+"%,", "-".join([p.split(".")[0] for p in part]) + ",", "cut " + str(time_duration) + " seconds")
+            except Exception as e:
+                print(e)
             clip_list.append(parent_clip.subclip(part[0], part[1]))
 
         concat_clip = concatenate_videoclips(clip_list)
@@ -660,8 +663,11 @@ class Video():
         for index, part in enumerate(voice_and_silence_parts):
             if len(part[1][0].split(".")) < 2:
                 part[1][0] += ".000000"
-            time_duration = (datetime.datetime.strptime(part[1][1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[1][0], '%H:%M:%S.%f')).seconds
-            print(str(int(index/length*100))+"%,", "-".join([p.split(".")[0] for p in part[1]]) + ",", "cut " + str(time_duration) + " seconds")
+            try:
+                time_duration = (datetime.datetime.strptime(part[1][1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[1][0], '%H:%M:%S.%f')).seconds
+                print(str(int(index/length*100))+"%,", "-".join([p.split(".")[0] for p in part[1]]) + ",", "cut " + str(time_duration) + " seconds")
+            except Exception as e:
+                print(e)
             if part[0] == 1:  # voice
                 clip_list.append(parent_clip.subclip(part[1][0], part[1][1]))
             else:  # silence
