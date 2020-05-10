@@ -1,21 +1,21 @@
-#!/usr/bin/env python
-
-from auto_everything.base import Terminal, IO
-from os import path
-
-t = Terminal()
-io = IO()
-
-print("start...\n\n")
-
-# 1
-c = """
-sudo apt install -y build-essential cmake
-sudo apt install -y python3-dev
-sudo apt install -y python3-pip
-sudo apt install -y vim
-sudo apt install -y git
-sudo apt install -y curl
+#!/usr/bin/env python                                                                           
+                                                                                                
+from auto_everything.base import Terminal, IO                                                   
+from os import path                                                                             
+                                                                                                
+t = Terminal()                                                                                  
+io = IO()                                                                                       
+                                                                                                              
+print("start...\n\n")                                                                                         
+                                                                                                              
+# 1                                                                                                           
+c = """                                                                                                       
+sudo apt install -y build-essential cmake                                                                                        
+sudo apt install -y python3-dev                                                                                                  
+sudo apt install -y python3-pip                                                                                                  
+sudo apt install -y vim                                                                                                                                    
+sudo apt install -y git                                                                                                                                    
+sudo apt install -y curl                                                                                                                                   
 
 sudo pacman --noconfirm -S make
 sudo pacman --noconfirm -S cmake
@@ -146,7 +146,7 @@ path = t.fix_path("~/.vim")
 if not t.exists(f"{path}/plugin"):
     t.run(f"""
     cd {path}
-    sudo mkdir {path}/plugin
+    sudo mkdir -p {path}/plugin
     """)
 t.run(f"""
 cd {path}/plugin
@@ -156,7 +156,8 @@ sudo wget https://github.com/tell-k/vim-autopep8/raw/master/ftplugin/python_auto
 
 # 6 set terminator
 t.run("""
-mkdir ~/.config/terminator/config
+mkdir -p ~/.config/terminator/
+touch config
 """)
 io.write(t.fix_path('~/.config/terminator/config'), """
 [global_config]
