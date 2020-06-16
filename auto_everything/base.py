@@ -12,6 +12,10 @@ import json
 
 import psutil
 
+import hashlib
+
+from datetime import datetime
+
 
 class IO():
     """
@@ -151,7 +155,6 @@ class Terminal():
             exit()
 
         self.current_dir = os.getcwd()
-        self.__temp_sh = os.path.join(self.current_dir, 'temp.sh')
         self.__current_file_path = os.path.join(self.current_dir, sys.argv[0])
 
         if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
@@ -166,8 +169,8 @@ class Terminal():
 
         Parameters
         ----------
-        path : string 
-            A string which contains ~ 
+        path : string
+            A string which contains ~
         username : string
             Linux system username
         """
@@ -187,8 +190,8 @@ class Terminal():
 
         Parameters
         ----------
-        path : string 
-            A string which contains ~ 
+        path : string
+            A string which contains ~
         username : string
             Linux system username
         """
@@ -201,15 +204,25 @@ class Terminal():
 
         Parameters
         ----------
-        path : string 
+        path : string
             the path you want to have a check
         """
         path = self.fix_path(path)
         return os.path.exists(path)
 
     def __text_to_sh(self, text):
-        self._io.write(self.__temp_sh, text)
-        return "bash {path} &".format(path=self.__temp_sh)
+        m = hashlib.sha256()
+        m.update(str(datetime.now()).encode("utf-8"))
+        m.update(text.encode("utf-8"))
+        temp_sh = os.path.join(os.path.expanduser("~"), m.hexdigest()[:10] + ".sh")
+        self._io.write(temp_sh, text)
+        return "bash {path} &".format(path=temp_sh), temp_sh
+
+    def __remove_temp_sh(self, path):
+        try:
+            os.remove(path)
+        except Exception:
+            pass
 
     def run(self, c, cwd=None, wait=True):
         """
@@ -234,8 +247,8 @@ class Terminal():
         else:
             cwd = self.fix_path(cwd)
 
-        if '\n' in c:
-            c = self.__text_to_sh(c)
+        # if '\n' in c:
+        c, temp_sh = self.__text_to_sh(c)
 
         try:
             args_list = shlex.split(c)
@@ -249,13 +262,14 @@ class Terminal():
                                  stderr=subprocess.STDOUT, universal_newlines=True, cwd=cwd)
 
         if wait is True:
-            while p.poll() is None:
-                line = p.stdout.readline().strip(' \n')
-                print(line)
             try:
-                os.remove(self.__temp_sh)
-            except Exception:
-                pass
+                while p.poll() is None:
+                        line = p.stdout.readline().strip(' \n')
+                        print(line)
+            except KeyboardInterrupt:
+                self.__remove_temp_sh(temp_sh)
+                raise KeyboardInterrupt
+            self.__remove_temp_sh(temp_sh)
         else:
             return p
 
@@ -275,21 +289,23 @@ class Terminal():
             print(c)
             print('\n' + '-'*20 + '\n')
 
-        if '\n' in c:
-            c = self.__text_to_sh(c)
+        # if '\n' in c:
+        c, temp_sh = self.__text_to_sh(c)
 
         c = self.fix_path(c)
         args_list = shlex.split(c)
         try:
-            result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                    cwd=self.current_dir, universal_newlines=True, timeout=timeout)
-            result = str(result.stdout).strip(" \n")
             try:
-                os.remove(self.__temp_sh)
-            except Exception:
-                pass
+                result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                        cwd=self.current_dir, universal_newlines=True, timeout=timeout)
+                result = str(result.stdout).strip(" \n")
+            except KeyboardInterrupt:
+                self.__remove_temp_sh(temp_sh)
+                raise KeyboardInterrupt
+            self.__remove_temp_sh(temp_sh)
             return result
         except Exception as e:
+            self.__remove_temp_sh(temp_sh)
             return str(e)
 
     def run_program(self, name, cwd=None):
@@ -458,9 +474,7 @@ class OS():
         self._t = Terminal()
 
     def list_python_packages(self):
-        self._io.make_sure_sudo_permission()
-
-        installed_packages = self._t.run_command("sudo pip3 list").lower()
+        installed_packages = self._t.run_command("pip3 list").lower()
         return installed_packages
 
     def install_python_package(self, package_name, force=False):
@@ -485,9 +499,7 @@ class OS():
         """
         Return a list of apt packages which installed in your computer
         """
-        self._io.make_sure_sudo_permission()
-
-        installed_packages = self._t.run_command("sudo apt list").lower()
+        installed_packages = self._t.run_command("apt list").lower()
         return installed_packages
 
     def install_package(self, package_name, force=False):

@@ -475,8 +475,38 @@ after start, the python script will running forever</p>
 </dd></dl>
 
 </div>
-<div class="section" id="web">
-<h1>Web<a class="headerlink" href="#web" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-auto_everything.web">
+<span id="web"></span><h1>Web<a class="headerlink" href="#module-auto_everything.web" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="auto_everything.web.Selenium">
+<em class="property">class </em><code class="descclassname">auto_everything.web.</code><code class="descname">Selenium</code><span class="sig-paren">(</span><em>url</em>, <em>headless=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium" title="Permalink to this definition">¶</a></dt>
+<dd><p>It’s a wrap of selenium</p>
+<dl class="method">
+<dt id="auto_everything.web.Selenium.wait_until_exists">
+<code class="descname">wait_until_exists</code><span class="sig-paren">(</span><em>xpath</em>, <em>timeout=600</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium.wait_until_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium.wait_until_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>wait elements to be exist in an webpage, return those elements</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xpath</strong> (<em>string</em>) – you can get it by using F12 at your browser</li>
+<li><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – how many seconds you want to wait</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.web.Selenium.click">
+<code class="descname">click</code><span class="sig-paren">(</span><em>element</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium.click" title="Permalink to this definition">¶</a></dt>
+<dd><p>click an element</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-auto_everything.video">
 <span id="video"></span><h1>Video<a class="headerlink" href="#module-auto_everything.video" title="Permalink to this headline">¶</a></h1>
@@ -652,6 +682,17 @@ Then you make the decision wheather you want to do this or not</p>
 
 </dd></dl>
 
+<dl class="class">
+<dt id="auto_everything.video.DeepVideo">
+<em class="property">class </em><code class="descclassname">auto_everything.video.</code><code class="descname">DeepVideo</code><a class="reference internal" href="_modules/auto_everything/video.html#DeepVideo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.DeepVideo" title="Permalink to this definition">¶</a></dt>
+<dd><p>For this one, I’ll use deep learning tech.</p>
+<p>It’s based on:
+1. ubuntu core
+2. librosa
+3. ffmpeg
+4. moviepy</p>
+</dd></dl>
+
 </div>
 
 
@@ -664,7 +705,7 @@ Then you make the decision wheather you want to do this or not</p>
   <ul>
 <li><a class="reference internal" href="#">I recommend you start from index</a></li>
 <li><a class="reference internal" href="#module-auto_everything.base">Base</a></li>
-<li><a class="reference internal" href="#web">Web</a></li>
+<li><a class="reference internal" href="#module-auto_everything.web">Web</a></li>
 <li><a class="reference internal" href="#module-auto_everything.video">Video</a></li>
 </ul>
 <h3>Related Topics</h3>

@@ -7,12 +7,15 @@ import numpy as np
 import os
 import math
 import multiprocessing
+import pyaudio
 
 
 from auto_everything.base import Terminal, Python, IO
+from auto_everything.network import Network
 t = Terminal(debug=True)
 py = Python()
 io_ = IO()
+network = Network()
 
 
 def print_split_line():
@@ -352,7 +355,7 @@ class Video():
 
         Parameters
         ----------
-        source_video_path_list: list of video path 
+        source_video_path_list: list of video path
             those videos you want to concatenate
 
         target_video_path: string
@@ -540,7 +543,7 @@ class Video():
 
     def humanly_remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, minimum_interval=1):
         """
-        No difference with the last one, but in this function, you can check how many silence you can get rid of. 
+        No difference with the last one, but in this function, you can check how many silence you can get rid of.
         Then you make the decision wheather you want to do this or not
 
         Parameters
@@ -565,7 +568,7 @@ class Video():
         try:
             # parts = self._get_voice_parts(
             #    source_audio_path=audio_path, top_db=db_for_split_silence_and_voice)
-            #ratio = int(self._evaluate_voice_parts(parts) * 100)
+            # ratio = int(self._evaluate_voice_parts(parts) * 100)
             target_audio_path = self.remove_silence_parts_from_video(
                 source_video_path, target_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice, minimum_interval_time_in_seconds=minimum_interval, voice_only=True)
         except Exception as e:
@@ -787,7 +790,7 @@ class Video():
             if unit == "GB":
                 if size > 2:
                     t.run(f"""
-                        #ffmpeg -i "{file}" "{target_video_path}"
+                        # ffmpeg -i "{file}" "{target_video_path}"
                         ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale=-2:720 "{target_video_path}"
                     """)
 
@@ -817,8 +820,63 @@ class Video():
         done()
 
 
+class DeepVideo():
+    """
+    For this one, I'll use deep learning tech.
+
+    It's based on:
+    1. ubuntu core
+    2. librosa
+    3. ffmpeg
+    4. moviepy
+    """
+
+    def __init__(self):
+        from pathlib import Path
+        from auto_everything.files import Files
+
+        files = Files()
+
+        self.resource_folder = Path("~/.auto_everything").expanduser() / Path("video")
+        if not os.path.exists(self.resource_folder):
+            t.run_command(f"mkdir -p {self.resource_folder}")
+
+        # download
+        zip_file = self.resource_folder / Path("vosk-en.zip")
+        if not files.exists(zip_file):
+            success = network.download("http://alphacephei.com/kaldi/models/vosk-model-small-en-us-0.3.zip", zip_file, "30MB")
+            if success:
+                print("download successfully")
+            else:
+                print("download error")
+
+        # uncompress
+        self.vosk_model_folder = self.resource_folder/Path("model")
+        if not self.vosk_model_folder.exists():
+            files.uncompress(zip_file, self.vosk_model_folder)
+
+    def test(self):
+        from vosk import Model, KaldiRecognizer
+
+        model = Model(self.vosk_model_folder.as_posix())
+        rec = KaldiRecognizer(model, 16000)
+
+        p = pyaudio.PyAudio()
+        stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
+        stream.start_stream()
+
+        while True:
+            data = stream.read(8000, exception_on_overflow=False)
+            if len(data) == 0:
+                break
+            if rec.AcceptWaveform(data):
+                print(rec.Result())
+            else:
+                print(rec.PartialResult())
+
+        print(rec.FinalResult())
+
+
 if __name__ == "__main__":
-    video = Video()
-    # video.humanly_remove_silence_parts_from_video('/home/yingshaoxo/Videos/doing.mp4', '/home/yingshaoxo/Videos/speed.mp4', 5)
-    video.speedup_silence_parts_in_video(
-        '/home/yingshaoxo/Videos/doing.mp4', '/home/yingshaoxo/Videos/speed.mp4', 20, 3)
+    video = DeepVideo()
+    video.test()

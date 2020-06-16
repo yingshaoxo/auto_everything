@@ -1,0 +1,38 @@
+from auto_everything.files import Files
+from pathlib import Path
+import os
+from pprint import pprint
+
+from auto_everything.base import Terminal, OS
+t = Terminal(debug=True)
+os_ = OS()
+
+files = Files()
+
+
+class Network():
+    def __init__(self):
+        assert "wget" in os_.list_packages(), '''
+'wget' is required for this module to work
+You can install it with `sudo apt install wget`'''
+
+    def download(self, url: str, target: str, size: str = "0B") -> bool:
+        target = Path(target).expanduser().absolute()
+        directory = target.parent
+        assert os.path.exists(directory), f"target directory '{directory}' is not exits"
+        t.run(f"wget {url} -O {target}")
+
+        number = int("".join([i for i in list(size) if i.isdigit()]))
+        unit = size.replace(str(number), "")
+        assert unit in ["B", "KB", "MB"], f"number={number}, unit={unit}\nsize error, it should be 700B, 5KB, 40MB and so on."
+        the_file_size = files.get_file_size(target, unit)
+        if (the_file_size > number):
+            return True
+        else:
+            return False
+
+
+if __name__ == "__main__":
+    net = Network()
+    result = net.download("https://github.com/yingshaoxo/My-books/raw/master/Tools.py", "~/.auto_everything/hi.txt")
+    print(result)
