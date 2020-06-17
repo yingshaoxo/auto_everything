@@ -7,7 +7,12 @@ import numpy as np
 import os
 import math
 import multiprocessing
+import json
+
 import pyaudio
+import sys
+import wave
+import subprocess
 
 
 from auto_everything.base import Terminal, Python, IO
@@ -855,28 +860,40 @@ class DeepVideo():
         if not self.vosk_model_folder.exists():
             files.uncompress(zip_file, self.vosk_model_folder)
 
-    def test(self):
-        from vosk import Model, KaldiRecognizer
+    def _get_data_from_video(self, path: str):
+        from vosk import Model, KaldiRecognizer, SetLogLevel
 
+        assert os.path.exists(path), f"source video file {path} does not exist!"
+
+        SetLogLevel(0)
+        sample_rate = 16000
         model = Model(self.vosk_model_folder.as_posix())
-        rec = KaldiRecognizer(model, 16000)
+        rec = KaldiRecognizer(model, sample_rate)
 
-        p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
-        stream.start_stream()
+        process = subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i',
+                                    path,
+                                    '-ar', str(sample_rate), '-ac', '1', '-f', 's16le', '-'],
+                                   stdout=subprocess.PIPE)
 
+        data_list = []
         while True:
-            data = stream.read(8000, exception_on_overflow=False)
+            data = process.stdout.read(4000)
             if len(data) == 0:
                 break
             if rec.AcceptWaveform(data):
-                print(rec.Result())
+                result = json.loads(rec.Result())
+                if len(result.keys()) >= 2:
+                    "{'result': [{'conf': 0.875663, 'end': 4.35, 'start': 4.11, 'word': 'nice'}, {'conf': 1.0, 'end': 5.13, 'start': 4.59, 'word': 'day'}], 'text': 'nice day'}"
+                    start = result['result'][0]['start']
+                    end = result['result'][-1]['end']
+                    data_list.append({"start": start, "end": end})
             else:
-                print(rec.PartialResult())
-
-        print(rec.FinalResult())
+                pass
+                # print(rec.PartialResult())
+        return data_list
 
 
 if __name__ == "__main__":
     video = DeepVideo()
-    video.test()
+    result = video._get_data_from_video("/home/yingshaoxo/demo.mp4")
+    print(result)

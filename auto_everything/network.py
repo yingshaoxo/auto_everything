@@ -12,7 +12,7 @@ files = Files()
 
 class Network():
     def __init__(self):
-        assert "wget" in os_.list_packages(), '''
+        assert "not found" not in t.run_command("wget"), '''
 'wget' is required for this module to work
 You can install it with `sudo apt install wget`'''
 

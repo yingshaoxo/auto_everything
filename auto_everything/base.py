@@ -474,6 +474,8 @@ class OS():
         self._t = Terminal()
 
     def list_python_packages(self):
+        self._io.make_sure_sudo_permission()
+
         installed_packages = self._t.run_command("pip3 list").lower()
         return installed_packages
 
@@ -499,6 +501,8 @@ class OS():
         """
         Return a list of apt packages which installed in your computer
         """
+        self._io.make_sure_sudo_permission()
+
         installed_packages = self._t.run_command("apt list").lower()
         return installed_packages
 
