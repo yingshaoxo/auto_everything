@@ -176,14 +176,15 @@ d = my_selenium.driver
 
 # get input box
 xpath = '//*[@id="lst-ib"]'
-element = my_selenium.wait_until_exists(xpath)[0]
+elements = my_selenium.wait_until_exists(xpath)
 
 # text inputing
-element.send_keys('\b' * 20, "yingshaoxo")
+elements[0].send_keys('\b' * 20, "yingshaoxo")
 
 # click search button
-element = my_selenium.wait_until_exists('//input[@value="Google Search"]')[0]
-element.click() # d.execute_script("arguments[0].click();", element)
+elements = my_selenium.wait_until_exists('//input[@value="Google Search"]')
+if len(elements):
+    elements[0].click() # d.execute_script("arguments[0].click();", elements[0])
 
 # exit
 sleep(30)
