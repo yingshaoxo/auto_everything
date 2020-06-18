@@ -86,7 +86,7 @@ def make_sure_target_does_not_exist(path):
             else:
                 r = os.remove(p)
                 if r is False:
-                    print("I can't remove target for you, please check your permission")
+                    print(f"I can't remove target '{p}' for you, please check your permission")
                     exit()
 
 
@@ -840,14 +840,16 @@ class DeepVideo():
         from pathlib import Path
         from auto_everything.files import Files
 
+        self._cpu_core_numbers = multiprocessing.cpu_count()
+
         files = Files()
 
-        self.resource_folder = Path("~/.auto_everything").expanduser() / Path("video")
-        if not os.path.exists(self.resource_folder):
-            t.run_command(f"mkdir -p {self.resource_folder}")
+        self.config_folder = Path("~/.auto_everything").expanduser() / Path("video")
+        if not os.path.exists(self.config_folder):
+            t.run_command(f"mkdir -p {self.config_folder}")
 
         # download
-        zip_file = self.resource_folder / Path("vosk-en.zip")
+        zip_file = self.config_folder / Path("vosk-en.zip")
         if not files.exists(zip_file):
             success = network.download("http://alphacephei.com/kaldi/models/vosk-model-small-en-us-0.3.zip", zip_file, "30MB")
             if success:
@@ -856,11 +858,57 @@ class DeepVideo():
                 print("download error")
 
         # uncompress
-        self.vosk_model_folder = self.resource_folder/Path("model")
+        self.vosk_model_folder = self.config_folder/Path("model")
         if not self.vosk_model_folder.exists():
             files.uncompress(zip_file, self.vosk_model_folder)
 
-    def _get_data_from_video(self, path: str):
+    def __time_interval_filter(self, data, minimum_interval_time_in_seconds: float = 0.0, video_length: float = None):
+        temp_data = []
+        length = len(data)
+        for index, item in enumerate(data):
+            start = item['start']
+            end = item['end']
+            start = start - minimum_interval_time_in_seconds
+            end = end + minimum_interval_time_in_seconds
+            if index == 0:
+                start = item['start'] - minimum_interval_time_in_seconds
+                if start < 0:
+                    start = 0.0
+            if index == length-1:
+                end = item['end']
+            temp_data.append([start, end])
+        parts = []
+        index = 0
+        length = len(temp_data)
+        if length >= 2:
+            while index <= length-1:
+                first_start = temp_data[index][0]
+                first_end = temp_data[index][1]
+                if index == 0:
+                    if first_start > 0:
+                        parts.append([0.0, first_start, 'silence'])
+                if index == length-1:
+                    parts.append([first_start, first_end, 'voice'])
+                    if video_length != None:
+                        if first_end < video_length:
+                            parts.append([first_end, video_length, 'silence'])
+                    break
+                next_index = index + 1
+                second_start = temp_data[next_index][0]
+                second_end = temp_data[next_index][1]
+                if (first_end <= second_start):
+                    parts.append([first_start, first_end, 'voice'])
+                    if (first_end < second_start):
+                        parts.append([first_end, second_start, 'silence'])
+                elif (first_end > second_end):
+                    first_end = second_start
+                    parts.append([first_start, first_end, 'voice'])
+                index += 1
+            return parts
+        else:
+            return parts
+
+    def __get_data_from_video(self, path: str, minimum_interval_time_in_seconds: float = 0.0, video_length: float = None):
         from vosk import Model, KaldiRecognizer, SetLogLevel
 
         assert os.path.exists(path), f"source video file {path} does not exist!"
@@ -888,12 +936,87 @@ class DeepVideo():
                     end = result['result'][-1]['end']
                     data_list.append({"start": start, "end": end})
             else:
-                pass
                 # print(rec.PartialResult())
-        return data_list
+                pass
+        return self.__time_interval_filter(data_list, minimum_interval_time_in_seconds, video_length)
+
+    def remove_silence_parts_from_video(self, source_video_path: str, target_video_path: str, minimum_interval_time_in_seconds: float = 1.0):
+        """
+        Parameters
+        ----------
+        source_video_path: string
+        target_video_path: string
+        minimum_interval_time_in_seconds: float
+            longer than this value, we will take it as silence and remove it
+        """
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_source_is_absolute_path(target_video_path)
+        make_sure_target_does_not_exist(target_video_path)
+
+        parent_clip = VideoFileClip(source_video_path)
+        parts = self.__get_data_from_video(source_video_path, minimum_interval_time_in_seconds, parent_clip.duration)
+        clip_list = []
+        length = len(parts)
+        for index, part in enumerate(parts):
+            if part[2] == 'voice':
+                try:
+                    time_duration = part[1] - part[0]
+                    print(str(int(index/length*100))+"%,", "-".join([str(p).split(".")[0] for p in part]) + ",", "remain " + str(int(time_duration)) + " seconds")
+                except Exception as e:
+                    print(e)
+                clip_list.append(parent_clip.subclip(part[0], part[1]))
+
+        concat_clip = concatenate_videoclips(clip_list)
+
+        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
+        concat_clip.close()
+        parent_clip.close()
+
+        done()
+
+    def speedup_silence_parts_in_video(self, source_video_path: str, target_video_path: str, speed: int = 4, minimum_interval_time_in_seconds: float = 1.0):
+        """
+        Instead remove silence, we can speed up the silence parts in a video
+
+        Parameters
+        ----------
+        source_video_path: string
+        target_video_path: string
+        speed: float
+            how quick you want the silence parts to be
+        """
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_source_is_absolute_path(target_video_path)
+        make_sure_target_does_not_exist(target_video_path)
+
+        parent_clip = VideoFileClip(source_video_path)
+        parts = self.__get_data_from_video(source_video_path, minimum_interval_time_in_seconds, parent_clip.duration)
+        clip_list = []
+        length = len(parts)
+        for index, part in enumerate(parts):
+            if part[2] == 'voice':
+                clip_list.append(parent_clip.subclip(part[0], part[1]))
+            elif part[2] == 'silence':
+                try:
+                    time_duration = part[1] - part[0]
+                    print(str(int(index/length*100))+"%,", "-".join([str(p).split(".")[0] for p in part]) + ",", "speed up " + str(int(time_duration)) + " seconds")
+                except Exception as e:
+                    print(e)
+                clip_list.append(
+                    parent_clip.subclip(part[0], part[1]).without_audio().fx(
+                        vfx.speedx, speed
+                    )
+                )
+
+        concat_clip = concatenate_videoclips(clip_list)
+
+        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
+        concat_clip.close()
+        parent_clip.close()
+
+        done()
 
 
 if __name__ == "__main__":
     video = DeepVideo()
-    result = video._get_data_from_video("/home/yingshaoxo/demo.mp4")
-    print(result)
+    video.speedup_silence_parts_in_video("/home/yingshaoxo/demo.mp4", "/home/yingshaoxo/ok.mp4", 10)
