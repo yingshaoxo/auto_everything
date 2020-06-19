@@ -1,3 +1,4 @@
+*.vscode
 temp.sh
 images/
 *.swp
