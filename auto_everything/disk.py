@@ -1,3 +1,4 @@
+from typing import List
 from pathlib import Path
 import os
 
@@ -5,12 +6,29 @@ from auto_everything.base import Terminal
 t = Terminal(debug=True)
 
 
-class Files():
+class Disk():
     def __init__(self):
         pass
 
     def exists(self, path: str) -> bool:
         return Path(path).exists()
+
+    def get_files(self, folder: str, recursive: bool = True):
+        assert os.path.exists(folder), f"{path} is not exist!"
+        if recursive == True:
+            files = []
+            for root, dirnames, filenames in os.walk(folder):
+                for filename in filenames:
+                    file = os.path.join(root, filename)
+                    if os.path.isfile(file):
+                        files.append(file)
+        else:
+            files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+        return files
+
+    def sort_files_by_time(self, files: List[str], reverse: bool = False):
+        files.sort(key=os.path.getmtime, reverse=reverse)
+        return files
 
     def get_file_size(self, path: str, level: str = "B") -> int:
         file = Path(path)
@@ -42,3 +60,11 @@ class Files():
                 return False
         except Exception as e:
             raise e
+
+
+if __name__ == "__main__":
+    from pprint import pprint
+    disk = Disk()
+    files = disk.get_files(os.path.abspath(".."))
+    files = disk.sort_files_by_time(files)
+    pprint(files)

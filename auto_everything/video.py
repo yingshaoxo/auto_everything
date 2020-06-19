@@ -14,13 +14,15 @@ import sys
 import wave
 import subprocess
 
-
+from typing import List, Tuple
 from auto_everything.base import Terminal, Python, IO
 from auto_everything.network import Network
+from auto_everything.disk import Disk
 t = Terminal(debug=True)
 py = Python()
 io_ = IO()
 network = Network()
+disk = Disk()
 
 
 def print_split_line():
@@ -827,7 +829,7 @@ class Video():
 
 class DeepVideo():
     """
-    For this one, I'll use deep learning tech.
+    For this one, I'll use deep learning.
 
     It's based on:
     1. ubuntu core
@@ -838,11 +840,8 @@ class DeepVideo():
 
     def __init__(self):
         from pathlib import Path
-        from auto_everything.files import Files
 
         self._cpu_core_numbers = multiprocessing.cpu_count()
-
-        files = Files()
 
         self.config_folder = Path("~/.auto_everything").expanduser() / Path("video")
         if not os.path.exists(self.config_folder):
@@ -850,7 +849,7 @@ class DeepVideo():
 
         # download
         zip_file = self.config_folder / Path("vosk-en.zip")
-        if not files.exists(zip_file):
+        if not disk.exists(zip_file):
             success = network.download("http://alphacephei.com/kaldi/models/vosk-model-small-en-us-0.3.zip", zip_file, "30MB")
             if success:
                 print("download successfully")
@@ -860,7 +859,7 @@ class DeepVideo():
         # uncompress
         self.vosk_model_folder = self.config_folder/Path("model")
         if not self.vosk_model_folder.exists():
-            files.uncompress(zip_file, self.vosk_model_folder)
+            disk.uncompress(zip_file, self.vosk_model_folder)
 
     def __time_interval_filter(self, data, minimum_interval_time_in_seconds: float = 0.0, video_length: float = None):
         temp_data = []
@@ -940,6 +939,44 @@ class DeepVideo():
                 pass
         return self.__time_interval_filter(data_list, minimum_interval_time_in_seconds, video_length)
 
+    def remove_silence_parts_from_videos_in_a_folder(self, source_folder: str, target_video_path: str, minimum_interval_time_in_seconds: float = 1.0, fps: int = None, resolution: Tuple[int, int] = None, preset:str = 'placebo'):
+        """
+        We will first concatenate the files under the source_folder into a video by created_time, then we remove those silence parts in that videoig
+
+        Parameters
+        ----------
+        source_folder: string
+        target_video_path: string
+        minimum_interval_time_in_seconds: float
+            longer than this value, we will take it as silence and remove it
+        fps: int
+        target_resolution: Tuple(int, int)
+            Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on. 
+        preset: string
+            Sets the time that FFMPEG will spend optimizing the compression. Choices are: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo. Note that this does not impact the quality of the video, only the size of the video file.
+        """
+        make_sure_target_does_not_exist(target_video_path)
+
+        video_files = [video for video in disk.get_files(source_folder, recursive=False)]
+        video_files = disk.sort_files_by_time(video_files)
+        parent_clips = [VideoFileClip(video, target_resolution=(resolution[1], resolution[0])) for video in video_files]
+        length = len(video_files)
+        remain_clips = []
+        for index, video_file in enumerate(video_files):
+            print("Working on ", str(int(index/length*100)) + " %...")
+            parts = self.__get_data_from_video(video_file, minimum_interval_time_in_seconds, parent_clips[index].duration)
+            for part in parts:
+                if part[2] == 'voice':
+                    remain_clips.append(parent_clips[index].subclip(part[0], part[1]))
+
+        concat_clip = concatenate_videoclips(remain_clips)
+        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset)
+        concat_clip.close()
+        for parent_clip in parent_clips:
+            parent_clip.close()
+
+        done()
+
     def remove_silence_parts_from_video(self, source_video_path: str, target_video_path: str, minimum_interval_time_in_seconds: float = 1.0):
         """
         Parameters
@@ -949,8 +986,6 @@ class DeepVideo():
         minimum_interval_time_in_seconds: float
             longer than this value, we will take it as silence and remove it
         """
-        make_sure_source_is_absolute_path(source_video_path)
-        make_sure_source_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
 
         parent_clip = VideoFileClip(source_video_path)
@@ -967,7 +1002,6 @@ class DeepVideo():
                 clip_list.append(parent_clip.subclip(part[0], part[1]))
 
         concat_clip = concatenate_videoclips(clip_list)
-
         concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
         concat_clip.close()
         parent_clip.close()
@@ -985,8 +1019,6 @@ class DeepVideo():
         speed: float
             how quick you want the silence parts to be
         """
-        make_sure_source_is_absolute_path(source_video_path)
-        make_sure_source_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
 
         parent_clip = VideoFileClip(source_video_path)
@@ -1009,7 +1041,6 @@ class DeepVideo():
                 )
 
         concat_clip = concatenate_videoclips(clip_list)
-
         concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
         concat_clip.close()
         parent_clip.close()
