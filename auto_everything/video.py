@@ -939,7 +939,7 @@ class DeepVideo():
                 pass
         return self.__time_interval_filter(data_list, minimum_interval_time_in_seconds, video_length)
 
-    def remove_silence_parts_from_videos_in_a_folder(self, source_folder: str, target_video_path: str, minimum_interval_time_in_seconds: float = 1.0, fps: int = None, resolution: Tuple[int, int] = None, preset:str = 'placebo'):
+    def remove_silence_parts_from_videos_in_a_folder(self, source_folder: str, target_video_path: str, minimum_interval_time_in_seconds: float = 1.0, fps: int = None, resolution: Tuple[int, int] = None, preset: str = 'placebo'):
         """
         We will first concatenate the files under the source_folder into a video by created_time, then we remove those silence parts in that videoig
 
@@ -968,6 +968,52 @@ class DeepVideo():
             for part in parts:
                 if part[2] == 'voice':
                     remain_clips.append(parent_clips[index].subclip(part[0], part[1]))
+
+        concat_clip = concatenate_videoclips(remain_clips)
+        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset)
+        concat_clip.close()
+        for parent_clip in parent_clips:
+            parent_clip.close()
+
+        done()
+
+    def speed_up_silence_parts_from_videos_in_a_folder(self, source_folder: str, target_video_path: str, speed: int = 4, minimum_interval_time_in_seconds: float = 1.0, fps: int = None, resolution: Tuple[int, int] = None, preset: str = 'placebo'):
+        """
+        We will first concatenate the files under the source_folder into a video by created_time, then we speed up those silence parts in that videoig
+
+        Parameters
+        ----------
+        source_folder: string
+        target_video_path: string
+        speed: float
+            how quick you want the silence parts to be
+        minimum_interval_time_in_seconds: float
+            longer than this value, we will take it as silence and remove it
+        fps: int
+        target_resolution: Tuple(int, int)
+            Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on. 
+        preset: string
+            Sets the time that FFMPEG will spend optimizing the compression. Choices are: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo. Note that this does not impact the quality of the video, only the size of the video file.
+        """
+        make_sure_target_does_not_exist(target_video_path)
+
+        video_files = [video for video in disk.get_files(source_folder, recursive=False)]
+        video_files = disk.sort_files_by_time(video_files)
+        parent_clips = [VideoFileClip(video, target_resolution=(resolution[1], resolution[0])) for video in video_files]
+        length = len(video_files)
+        remain_clips = []
+        for index, video_file in enumerate(video_files):
+            print("Working on ", str(int(index/length*100)) + " %...")
+            parts = self.__get_data_from_video(video_file, minimum_interval_time_in_seconds, parent_clips[index].duration)
+            for part in parts:
+                if part[2] == 'voice':
+                    remain_clips.append(parent_clips[index].subclip(part[0], part[1]))
+                elif part[2] == 'silence':
+                    remain_clips.append(
+                        parent_clips[index].subclip(part[0], part[1]).without_audio().fx(
+                            vfx.speedx, speed
+                        )
+                    )
 
         concat_clip = concatenate_videoclips(remain_clips)
         concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset)
@@ -1008,7 +1054,7 @@ class DeepVideo():
 
         done()
 
-    def speedup_silence_parts_in_video(self, source_video_path: str, target_video_path: str, speed: int = 4, minimum_interval_time_in_seconds: float = 1.0):
+    def speedup_silence_parts_in_video(self, source_video_path: str, target_video_path: str, speed: int = 4, minimum_interval_time_in_seconds: float = 1.0, fps: int = None, resolution: Tuple[int, int] = None, preset: str = 'placebo'):
         """
         Instead remove silence, we can speed up the silence parts in a video
 
@@ -1021,7 +1067,7 @@ class DeepVideo():
         """
         make_sure_target_does_not_exist(target_video_path)
 
-        parent_clip = VideoFileClip(source_video_path)
+        parent_clip = VideoFileClip(source_video_path, target_resolution=(resolution[1], resolution[0]))
         parts = self.__get_data_from_video(source_video_path, minimum_interval_time_in_seconds, parent_clip.duration)
         clip_list = []
         length = len(parts)
@@ -1041,7 +1087,7 @@ class DeepVideo():
                 )
 
         concat_clip = concatenate_videoclips(clip_list)
-        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
+        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset)
         concat_clip.close()
         parent_clip.close()
 
