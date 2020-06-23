@@ -959,7 +959,9 @@ class DeepVideo():
 
         video_files = [video for video in disk.get_files(source_folder, recursive=False)]
         video_files = disk.sort_files_by_time(video_files)
-        parent_clips = [VideoFileClip(video, target_resolution=(resolution[1], resolution[0])) for video in video_files]
+        if resolution != None:
+            resolution = (resolution[1], resolution[0])
+        parent_clips = [VideoFileClip(video, target_resolution=resolution) for video in video_files]
         length = len(video_files)
         remain_clips = []
         for index, video_file in enumerate(video_files):
@@ -999,7 +1001,9 @@ class DeepVideo():
 
         video_files = [video for video in disk.get_files(source_folder, recursive=False)]
         video_files = disk.sort_files_by_time(video_files)
-        parent_clips = [VideoFileClip(video, target_resolution=(resolution[1], resolution[0])) for video in video_files]
+        if resolution != None:
+            resolution = (resolution[1], resolution[0])
+        parent_clips = [VideoFileClip(video, target_resolution=resolution) for video in video_files]
         length = len(video_files)
         remain_clips = []
         for index, video_file in enumerate(video_files):

@@ -1,6 +1,7 @@
 sudo apt -y install python3
 sudo apt -y install python3-pip
 sudo apt -y install gcc
+sudo apt -y install python3-dev
 
 sudo apt-get -y install python3 python-dev python3-dev \
      build-essential libssl-dev libffi-dev \
