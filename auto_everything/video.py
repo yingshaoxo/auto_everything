@@ -972,7 +972,7 @@ class DeepVideo():
                     remain_clips.append(parent_clips[index].subclip(part[0], part[1]))
 
         concat_clip = concatenate_videoclips(remain_clips)
-        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset)
+        concat_clip.write_videofile(target_video_path, fps=fps, preset=preset)
         concat_clip.close()
         for parent_clip in parent_clips:
             parent_clip.close()
@@ -1020,7 +1020,7 @@ class DeepVideo():
                     )
 
         concat_clip = concatenate_videoclips(remain_clips)
-        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset)
+        concat_clip.write_videofile(target_video_path, fps=fps, preset=preset)
         concat_clip.close()
         for parent_clip in parent_clips:
             parent_clip.close()
@@ -1046,7 +1046,7 @@ class DeepVideo():
             if part[2] == 'voice':
                 try:
                     time_duration = part[1] - part[0]
-                    print(str(int(index/length*100))+"%,", "-".join([str(p).split(".")[0] for p in part]) + ",", "remain " + str(int(time_duration)) + " seconds")
+                    print(str(int(index/length*100))+"%,", "remain " + str(int(time_duration)) + " seconds")
                 except Exception as e:
                     print(e)
                 clip_list.append(parent_clip.subclip(part[0], part[1]))
@@ -1081,7 +1081,7 @@ class DeepVideo():
             elif part[2] == 'silence':
                 try:
                     time_duration = part[1] - part[0]
-                    print(str(int(index/length*100))+"%,", "-".join([str(p).split(".")[0] for p in part]) + ",", "speed up " + str(int(time_duration)) + " seconds")
+                    print(str(int(index/length*100))+"%,", "speed up " + str(int(time_duration)) + " seconds")
                 except Exception as e:
                     print(e)
                 clip_list.append(
