@@ -356,7 +356,7 @@ class Video():
 
         done()
 
-    def link_videos(self, source_video_path_list, target_video_path, method=1):
+    def link_videos(self, source_video_path_list, target_video_path, method=1, preset="ultrafast"):
         """
         concatenate videos one by one
 
@@ -393,7 +393,7 @@ class Video():
             print(source_video_path_list)
             clip_list = [VideoFileClip(clip) for clip in source_video_path_list]
             final_clip = concatenate_videoclips(clip_list)
-            final_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
+            final_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, preset=preset)
 
             for clip in clip_list:
                 clip.close()

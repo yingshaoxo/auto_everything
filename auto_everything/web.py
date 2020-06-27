@@ -11,7 +11,7 @@ class Selenium():
     It's a wrap of selenium
     """
 
-    def __init__(self, url, headless=False, timeout=500):
+    def __init__(self, url, headless=False, timeout=600):
         try:
             if headless == False:
                 self.driver = webdriver.Chrome()
