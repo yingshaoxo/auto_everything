@@ -33,7 +33,7 @@ def test_run():
     t.run(command, cwd="~", wait=False)
     time.sleep(SHORT_DELAY)
     html = t.run_command("wget -qO- 127.0.0.1:1998")
-    assert 'Downloads' in html
+    assert 'HTML' in html
     t.kill(command)
 
     command = "python3 -m http.server 1998"
@@ -54,7 +54,7 @@ def test_run_program():
     t.run_program(command, cwd="~")
     time.sleep(SHORT_DELAY)
     html = t.run_command("wget -qO- 127.0.0.1:1998")
-    assert 'Downloads' in html
+    assert 'HTML' in html
     t.kill(command)
 
 

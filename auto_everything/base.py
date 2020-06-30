@@ -16,6 +16,8 @@ import hashlib
 
 from datetime import datetime
 
+import tempfile
+
 
 class IO():
     """
@@ -156,6 +158,7 @@ class Terminal():
 
         self.current_dir = os.getcwd()
         self.__current_file_path = os.path.join(self.current_dir, sys.argv[0])
+        self.temp_dir = tempfile.gettempdir()
 
         if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
             os.remove(os.path.join(self.current_dir, 'nohup.out'))
@@ -214,7 +217,9 @@ class Terminal():
         m = hashlib.sha256()
         m.update(str(datetime.now()).encode("utf-8"))
         m.update(text.encode("utf-8"))
-        temp_sh = os.path.join(os.path.expanduser("~"), m.hexdigest()[:10] + ".sh")
+        temp_sh = os.path.join(self.temp_dir, m.hexdigest()[:10] + ".sh")
+        #pre_line = f"cd {self.current_dir}\n\n"
+        #text = pre_line + text
         self._io.write(temp_sh, text)
         return "bash {path} &".format(path=temp_sh), temp_sh
 
@@ -273,7 +278,7 @@ class Terminal():
         else:
             return p
 
-    def run_command(self, c, timeout=15):
+    def run_command(self, c, timeout=15, cwd=None):
         """
         run shell commands with return value
 
@@ -283,11 +288,18 @@ class Terminal():
             shell command
         timeout: int, seconds
             how long this command will take, beyound it, an exception will raise
+        cwd: string
+            current working directory
         """
         if self.__debug:
             print('\n' + '-'*20 + '\n')
             print(c)
             print('\n' + '-'*20 + '\n')
+
+        if cwd is None:
+            cwd = self.current_dir
+        else:
+            cwd = self.fix_path(cwd)
 
         # if '\n' in c:
         c, temp_sh = self.__text_to_sh(c)
@@ -297,7 +309,7 @@ class Terminal():
         try:
             try:
                 result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                        cwd=self.current_dir, universal_newlines=True, timeout=timeout)
+                                        cwd=cwd, universal_newlines=True, timeout=timeout)
                 result = str(result.stdout).strip(" \n")
             except KeyboardInterrupt:
                 self.__remove_temp_sh(temp_sh)
