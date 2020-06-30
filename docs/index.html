@@ -192,7 +192,7 @@ return true is it exists</p>
 
 <dl class="method">
 <dt id="auto_everything.base.Terminal.run_command">
-<code class="descname">run_command</code><span class="sig-paren">(</span><em>c</em>, <em>timeout=15</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run_command" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run_command</code><span class="sig-paren">(</span><em>c</em>, <em>timeout=15</em>, <em>cwd=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>run shell commands with return value</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -201,6 +201,7 @@ return true is it exists</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>c</strong> (<em>string</em>) – shell command</li>
 <li><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><em>seconds</em>) – how long this command will take, beyound it, an exception will raise</li>
+<li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
 </ul>
 </td>
 </tr>
@@ -479,11 +480,11 @@ after start, the python script will running forever</p>
 <span id="web"></span><h1>Web<a class="headerlink" href="#module-auto_everything.web" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="auto_everything.web.Selenium">
-<em class="property">class </em><code class="descclassname">auto_everything.web.</code><code class="descname">Selenium</code><span class="sig-paren">(</span><em>url</em>, <em>headless=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">auto_everything.web.</code><code class="descname">Selenium</code><span class="sig-paren">(</span><em>url</em>, <em>headless=False</em>, <em>timeout=600</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium" title="Permalink to this definition">¶</a></dt>
 <dd><p>It’s a wrap of selenium</p>
 <dl class="method">
 <dt id="auto_everything.web.Selenium.wait_until_exists">
-<code class="descname">wait_until_exists</code><span class="sig-paren">(</span><em>xpath</em>, <em>timeout=600</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium.wait_until_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium.wait_until_exists" title="Permalink to this definition">¶</a></dt>
+<code class="descname">wait_until_exists</code><span class="sig-paren">(</span><em>xpath</em>, <em>timeout=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium.wait_until_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium.wait_until_exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>wait elements to be exist in an webpage, return those elements</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -523,7 +524,7 @@ after start, the python script will running forever</p>
 </ol>
 <dl class="method">
 <dt id="auto_everything.video.Video.link_videos">
-<code class="descname">link_videos</code><span class="sig-paren">(</span><em>source_video_path_list</em>, <em>target_video_path</em>, <em>method=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.link_videos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.link_videos" title="Permalink to this definition">¶</a></dt>
+<code class="descname">link_videos</code><span class="sig-paren">(</span><em>source_video_path_list</em>, <em>target_video_path</em>, <em>method=1</em>, <em>preset='ultrafast'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.link_videos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.link_videos" title="Permalink to this definition">¶</a></dt>
 <dd><p>concatenate videos one by one</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -685,12 +686,94 @@ Then you make the decision wheather you want to do this or not</p>
 <dl class="class">
 <dt id="auto_everything.video.DeepVideo">
 <em class="property">class </em><code class="descclassname">auto_everything.video.</code><code class="descname">DeepVideo</code><a class="reference internal" href="_modules/auto_everything/video.html#DeepVideo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.DeepVideo" title="Permalink to this definition">¶</a></dt>
-<dd><p>For this one, I’ll use deep learning tech.</p>
+<dd><p>For this one, I’ll use deep learning.</p>
 <p>It’s based on:
 1. ubuntu core
 2. librosa
 3. ffmpeg
 4. moviepy</p>
+<dl class="method">
+<dt id="auto_everything.video.DeepVideo.remove_silence_parts_from_videos_in_a_folder">
+<code class="descname">remove_silence_parts_from_videos_in_a_folder</code><span class="sig-paren">(</span><em>source_folder: str</em>, <em>target_video_path: str</em>, <em>minimum_interval_time_in_seconds: float = 1.0</em>, <em>fps: int = None</em>, <em>resolution: Tuple[int</em>, <em>int] = None</em>, <em>preset: str = 'placebo'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#DeepVideo.remove_silence_parts_from_videos_in_a_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.DeepVideo.remove_silence_parts_from_videos_in_a_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>We will first concatenate the files under the source_folder into a video by created_time, then we remove those silence parts in that videoig</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source_folder</strong> (<em>string</em>) – </li>
+<li><strong>target_video_path</strong> (<em>string</em>) – </li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>fps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </li>
+<li><strong>target_resolution</strong> (<em>Tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>)</em>) – Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on.</li>
+<li><strong>preset</strong> (<em>string</em>) – Sets the time that FFMPEG will spend optimizing the compression. Choices are: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo. Note that this does not impact the quality of the video, only the size of the video file.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.video.DeepVideo.speed_up_silence_parts_from_videos_in_a_folder">
+<code class="descname">speed_up_silence_parts_from_videos_in_a_folder</code><span class="sig-paren">(</span><em>source_folder: str</em>, <em>target_video_path: str</em>, <em>speed: int = 4</em>, <em>minimum_interval_time_in_seconds: float = 1.0</em>, <em>fps: int = None</em>, <em>resolution: Tuple[int</em>, <em>int] = None</em>, <em>preset: str = 'placebo'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#DeepVideo.speed_up_silence_parts_from_videos_in_a_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.DeepVideo.speed_up_silence_parts_from_videos_in_a_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>We will first concatenate the files under the source_folder into a video by created_time, then we speed up those silence parts in that videoig</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source_folder</strong> (<em>string</em>) – </li>
+<li><strong>target_video_path</strong> (<em>string</em>) – </li>
+<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – how quick you want the silence parts to be</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>fps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </li>
+<li><strong>target_resolution</strong> (<em>Tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>)</em>) – Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on.</li>
+<li><strong>preset</strong> (<em>string</em>) – Sets the time that FFMPEG will spend optimizing the compression. Choices are: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo. Note that this does not impact the quality of the video, only the size of the video file.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.video.DeepVideo.remove_silence_parts_from_video">
+<code class="descname">remove_silence_parts_from_video</code><span class="sig-paren">(</span><em>source_video_path: str</em>, <em>target_video_path: str</em>, <em>minimum_interval_time_in_seconds: float = 1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#DeepVideo.remove_silence_parts_from_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.DeepVideo.remove_silence_parts_from_video" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source_video_path</strong> (<em>string</em>) – </li>
+<li><strong>target_video_path</strong> (<em>string</em>) – </li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.video.DeepVideo.speedup_silence_parts_in_video">
+<code class="descname">speedup_silence_parts_in_video</code><span class="sig-paren">(</span><em>source_video_path: str</em>, <em>target_video_path: str</em>, <em>speed: int = 4</em>, <em>minimum_interval_time_in_seconds: float = 1.0</em>, <em>fps: int = None</em>, <em>resolution: Tuple[int</em>, <em>int] = None</em>, <em>preset: str = 'placebo'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#DeepVideo.speedup_silence_parts_in_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.DeepVideo.speedup_silence_parts_in_video" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instead remove silence, we can speed up the silence parts in a video</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source_video_path</strong> (<em>string</em>) – </li>
+<li><strong>target_video_path</strong> (<em>string</em>) – </li>
+<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – how quick you want the silence parts to be</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>
