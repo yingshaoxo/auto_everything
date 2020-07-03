@@ -21,13 +21,13 @@ sys.setrecursionlimit(1500)
 # -- Project information -----------------------------------------------------
 
 project = 'auto_everything'
-copyright = '2018, yingshaoxo'
+copyright = '2018-2020, yingshaoxo'
 author = 'yingshaoxo'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '2.7'
+release = '3.5'
 
 
 # -- General configuration ---------------------------------------------------

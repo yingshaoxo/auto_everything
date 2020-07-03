@@ -1,4 +1,4 @@
-I recommend you start from index
+auto_everything
 ===================================
 * :ref:`modindex`
 
@@ -8,17 +8,37 @@ I recommend you start from index
    :maxdepth: 2
    :caption: Contents:
 
-Base
+Terminal
 ===================
-.. automodule:: auto_everything.base
+.. autoclass:: auto_everything.base.Terminal
    :members:
 
-Web
+Disk
 ===================
-.. automodule:: auto_everything.web
+.. autoclass:: auto_everything.disk.Disk
+   :members:
+
+Network
+===================
+.. autoclass:: auto_everything.network.Network
    :members:
 
 Video
 ===================
-.. automodule:: auto_everything.video 
+.. autoclass:: auto_everything.video.Video
+   :members:
+
+DeepVideo
+===================
+.. autoclass:: auto_everything.video.DeepVideo
+   :members:
+
+FakeCamera
+===================
+.. autoclass:: auto_everything.camera.FakeCamera
+   :members:
+
+Selenium
+===================
+.. autoclass:: auto_everything.web.Selenium
    :members:

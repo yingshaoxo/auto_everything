@@ -202,3 +202,8 @@ print(io.read("hi.txt"))
 io.append("hi.txt", "\n\nI'm yingshaoxo.")
 print(io.read("hi.txt"))
 ```
+
+___
+
+## More
+See docs at https://yingshaoxo.github.io/auto_everything

@@ -11,12 +11,32 @@ disk = Disk()
 
 
 class Network():
+    """
+    I use this module to handle network stuff.
+    """
     def __init__(self):
         assert "not found" not in t.run_command("wget"), '''
 'wget' is required for this module to work
 You can install it with `sudo apt install wget`'''
 
     def download(self, url: str, target: str, size: str = "0B") -> bool:
+        """
+        Download a file from internet.
+
+        Parameters
+        ----------
+        url: string
+            the download link of a file
+        target: string
+            the local disk file path where the file would be saved to
+        size: string
+            do a simple check for the file. like '12KB' or '20MB'
+
+        Returns
+        -------
+        bool
+            return `false` if the specified size less than the file we downloaded
+        """
         target = Path(target).expanduser().absolute()
         directory = target.parent
         assert os.path.exists(directory), f"target directory '{directory}' is not exits"

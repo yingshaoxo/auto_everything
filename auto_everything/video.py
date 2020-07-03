@@ -118,13 +118,9 @@ class Video():
     This is a powerful video module
 
     It's based on:
-
     1. ubuntu core
-
     2. librosa
-
     3. ffmpeg
-
     4. moviepy
     """
 
@@ -833,7 +829,7 @@ class DeepVideo():
 
     It's based on:
     1. ubuntu core
-    2. librosa
+    2. vosk
     3. ffmpeg
     4. moviepy
     """

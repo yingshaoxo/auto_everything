@@ -166,17 +166,17 @@ class Terminal():
         self._io = IO()
 
     def fix_path(self, path, username=None):
-        """
-        replace ~ with system username
-        // depressed, please use expanduser_in_path
+        #"""
+        #replace ~ with system username
+        #// depressed, please use expanduser_in_path
 
-        Parameters
-        ----------
-        path : string
-            A string which contains ~
-        username : string
-            Linux system username
-        """
+        #Parameters
+        #----------
+        #path : string
+        #    A string which contains ~
+        #username : string
+        #    Linux system username
+        #"""
         if username is None:
             path = path.replace('~', os.path.expanduser('~'))
         elif username == 'root':
@@ -188,16 +188,16 @@ class Terminal():
         return path.replace("\\", "/")
 
     def expanduser_in_path(self, path, username=None):
-        """
-        replace ~ with system username
+        #"""
+        #replace ~ with system username
 
-        Parameters
-        ----------
-        path : string
-            A string which contains ~
-        username : string
-            Linux system username
-        """
+        #Parameters
+        #----------
+        #path : string
+        #    A string which contains ~
+        #username : string
+        #    Linux system username
+        #"""
         self.fix_path(path, username)
 
     def exists(self, path):

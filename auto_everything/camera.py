@@ -8,6 +8,9 @@ t = Terminal(debug=True)
 
 
 class FakeCamera():
+    """
+    This module based on `pyfakewebcam`.
+    """
     def __init__(self, device: str = None, width: int = 640, height: int = 480):
         list_command = "v4l2-ctl --list-devices"
         list_devices = t.run_command(list_command)
@@ -27,9 +30,23 @@ class FakeCamera():
         self.camera = pyfakewebcam.FakeWebcam(self.device, width, height)
 
     def next(self, frame):
+        """
+        Pipe new frame to the fake camera
+
+        Parameters
+        ----------
+        frame: numpy representation of an image
+            np.zeros((480,640,3), dtype=np.uint8)
+        """
         self.camera.schedule_frame(frame)
 
     def show(self):
+        """
+        Show the fake camera by using ffplay
+
+        Parameters
+        ----------
+        """
         t.run(f"ffplay {self.device}")
 
 
