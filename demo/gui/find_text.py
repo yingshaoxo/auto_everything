@@ -1,4 +1,4 @@
-from auto-everything.gui import GUI
+from auto_everything.gui import GUI
 
 gui = GUI()
 points = gui.find_text("yingshaoxo")

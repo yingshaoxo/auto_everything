@@ -18,77 +18,44 @@
 
 5.click(x, y)
 """
+
 import os
 import time
 
-
-from auto_everything.base import Terminal, Python, OS
+from auto_everything.base import Terminal
 t = Terminal()
-py = Python()
-os_ = OS()
-
-
-try:
-    #from PIL import Image
-    import pyscreenshot as ImageGrab
-except ImportError:
-    py.install_package("pyscreenshot")
-
-try:
-    import pytesseract
-except ImportError:
-    t.run("sudo apt install tesseract -y")
-    py.install_package("pytesseract")
-
-
-class Model():
-    def __init__(self, __cnn_data_folder):
-        self.__cnn_data_folder = __cnn_data_folder
-        self.__init_data_structure()
-
-    def __init_data_structure(self):
-        if not t.exists(self.__cnn_data_folder):
-            os.mkdir(self.__cnn_data_folder)
-
-    def traning(self):
-        paths = [os.path.join(self.__cnn_data_folder, filename)
-                 for filename in os.listdir(self.__cnn_data_folder)]
-        folders = [path for path in paths if os.path.isdir(path)]
-        if len(folders) == 0:
-            print('You should put image folders into {path}, then you can start traning'.format(
-                path=self.__cnn_data_folder))
-            exit()
-
-        for folder in folders:
-            class_name = os.path.basename(folder)
-            files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(
-                os.path.join(folder, f)) and os.path.basename(f).split('.')[-1] in ['png', 'jpg']]
-            if len(files) == 0:
-                print("Class {c} have no pictures in it".format(c=class_name))
-                exit()
-            print(files)
 
 
 class GUI():
-    def __init__(self, name="", time_takes_for_one_click=0):
+    def __init__(self, name="", time_takes_for_one_click=0.2, grayscale=False):
         try:
-            import pyautogui as autogui
+            import pyautogui as pyautogui
         except Exception:
-            os_.install_package("python3-xlib")
-            py.install_package("pyautogui")
-            print(
-                "failed to load autogui, if you have installed that, run this script without root")
-        self.autogui = autogui
-        self.autogui.FAILSAFE = False
+            error = """
+To use this module, you have to install pyautogui:
+    sudo apt -y install python3-xlib
+    sudo pip3 install pyautogui
+    sudo apt -y install python3-tk python3-dev
+    sudo apt -y install scrot
+            """
+            raise Exception(error)
+
+        self.pyautogui = pyautogui
+        self.pyautogui.FAILSAFE = False
 
         self.__data_folder = name + "_data"
         self.__init_data_structure()
         self.__load_data()
 
-        __cnn_data_folder = name + "_cnn_data"
-        self.cnn_model = Model(__cnn_data_folder)
-
         self.__time_takes_for_one_click = time_takes_for_one_click
+
+        self.__grayscale = grayscale
+
+        self.last_check = {
+            "name": "yingshaoxo is super man",
+            "x": 0,
+            "y": 0,
+        }
 
     def __init_data_structure(self):
         if not t.exists(self.__data_folder):
@@ -111,10 +78,10 @@ class GUI():
         screenshot with area selecting, based on deepin-screenshot
         """
         target_path = os.path.join(self.__data_folder, picture_name + '.png')
-        t.run_command(f'deepin-screenshot -s "{target_path}"')
+        t.run_command(f'gnome-screenshot -a -f "{target_path}"')
 
-    def delay(self, seconds):
-        time.sleep(seconds)
+    def delay(self, milliseconds):
+        time.sleep(milliseconds/1000)
 
     def _make_sure_img_dict_exists(self):
         if self.img_dict == {}:
@@ -123,17 +90,17 @@ class GUI():
             exit()
 
     def __click(self, x, y):
-        #self.autogui.moveTo(x, y)
-        self.autogui.click(x, y, interval=self.__time_takes_for_one_click)
-        self.autogui.click(x, y+1, interval=self.__time_takes_for_one_click)
+        #self.pyautogui.moveTo(x, y)
+        self.pyautogui.click(x, y, interval=self.__time_takes_for_one_click)
+        self.pyautogui.click(x, y+1, interval=self.__time_takes_for_one_click)
 
     def __get_tuple(self, element_name, confidence=0.9):
-        return self.autogui.locateCenterOnScreen(element_name, confidence=confidence)
+        return self.pyautogui.locateCenterOnScreen(element_name, confidence=confidence, grayscale=self.__grayscale)
 
     def hide_mouse(self):
-        self.autogui.mouseUp()
+        self.pyautogui.mouseUp()
         self.delay(1)
-        self.autogui.moveTo(0, 0)
+        self.pyautogui.moveTo(0, 0)
 
     def exists(self, element_name, from_image=None, space_ratio=(0, 0, 1, 1), confidence=0.9):
         """
@@ -146,34 +113,30 @@ class GUI():
 
         if from_image == None:
             Tuple = self.__get_tuple(
-                self.img_dict[element_name], confidence=confidence)
+                self.img_dict[element_name], confidence=confidence,
+                )
             if Tuple == None:
                 return False
             else:
+                self.last_check["name"] = element_name
+                self.last_check["x"] = Tuple[0]
+                self.last_check["y"] = Tuple[1]
                 return True
         return False
 
-    def get_center_xy(self, element_name):
-        """
-        element_name: image name (those pictures you put into data folder) ; String
-        """
-        self._make_sure_img_dict_exists()
-
-        Tuple = self.__get_tuple(self.img_dict[element_name])
-        if Tuple != None:
-            x, y = Tuple
-        else:
-            x, y = 0, 0
-        return x, y
-
-    def click(self, element_name):
+    def click(self, element_name=None):
         self._make_sure_img_dict_exists()
         print(f"Try to click {element_name}")
 
-        Tuple = self.__get_tuple(self.img_dict[element_name])
-        if Tuple != None:
-            x, y = Tuple
+        if element_name == None or element_name == self.last_check["name"]:
+            x = self.last_check["x"]
+            y = self.last_check["y"]
             self.__click(x, y)
+        else:
+            Tuple = self.__get_tuple(self.img_dict[element_name])
+            if Tuple != None:
+                x, y = Tuple
+                self.__click(x, y)
 
     def click_after_exists(self, element_name, space_ratio=(0, 0, 1, 1)):
         """
@@ -197,6 +160,27 @@ class GUI():
 
         a point: (x, y)
         """
+
+        try:
+            #from PIL import Image
+            import pyscreenshot as ImageGrab
+        except ImportError:
+            error = """
+To use this module, you have to install pyscreenshot:
+    sudo pip3 install pyscreenshot
+            """
+            raise Exception(error)
+
+        try:
+            import pytesseract
+        except ImportError:
+            error = """
+To use this module, you have to install tesseract:
+    sudo apt -y install tesseract
+    sudo pip3 -y install pytesseract
+            """
+            raise Exception(error)
+
         result = pytesseract.image_to_data(
             ImageGrab.grab(), output_type='dict')
         target_index = []
@@ -220,14 +204,35 @@ class GUI():
             return None
 
 
-class Control():
+class Controller():
     """
     1. when you hit ctrl+caps , start to write command
     2. / means you want to search text on screen, generate ramdom number for different position, like vimum
     """
 
     def __init__(self):
-        pass
+        try:
+            import pyautogui as pyautogui
+        except Exception:
+            error = """
+To use this module, you have to install pyautogui:
+    sudo apt -y install python3-xlib
+    sudo pip3 install pyautogui
+    sudo apt -y install python3-tk python3-dev
+            """
+            raise Exception(error)
+        self.pyautogui = pyautogui
+
+    def get_mouse_position(self):
+        return self.pyautogui.position()
+
+    def set_mouse_position(self, x, y):
+        self.pyautogui.moveTo(x, y)
+
+    def mouse_click(self, x=None, y=None, button='left', interval=0.5, game=False):
+        self.pyautogui.click(x=x, y=y, button=button, interval=interval)
+        if game == True:
+            self.pyautogui.click(x=x+1, y=y+1, button=button, interval=interval)
 
 
 if __name__ == "__main__":
