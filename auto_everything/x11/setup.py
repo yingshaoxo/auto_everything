@@ -1,11 +1,11 @@
-from setuptools import Extension
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+import sys
+import setuptools
 
-from setuptools import setup, find_packages
-from os.path import dirname, join, abspath
+__version__ = '0.0.1'
 
 
-# for the cpp extension
 class get_pybind_include(object):
     """Helper class to determine the pybind11 include path
     The purpose of this class is to postpone importing pybind11
@@ -21,7 +21,7 @@ ext_modules = [
     Extension(
         'myx11',
         # Sort input source files to ensure bit-for-bit reproducible builds
-        sorted(['auto_everything/x11/myx11.cpp']),
+        sorted(['myx11.cpp']),
         include_dirs=[
             # Path to pybind11 headers
             get_pybind_include(),
@@ -99,40 +99,16 @@ class BuildExt(build_ext):
         build_ext.build_extensions(self)
 
 
-# main
-file_path = join(abspath(dirname(__file__)), "README.md")
-with open(file_path) as f:
-    long_description = f.read()
-
-setup(name='auto_everything',
-      version='3.5',
-      description='do automate things on Linux',
-      long_description=long_description,
-      long_description_content_type='text/markdown',
-      classifiers=[
-          'Operating System :: POSIX :: Linux',
-          'Programming Language :: Python :: 3',
-          'Topic :: System',
-          'License :: OSI Approved :: MIT License'
-      ],
-      keywords='Linux system automation',
-      url='http://github.com/yingshaoxo/auto_everything',
-      author='yingshaoxo',
-      author_email='yingshaoxo@gmail.com',
-      license='MIT',
-      install_requires=[
-          'setuptools',
-          'fire',
-          'pexpect',
-          'psutil',
-      ],
-      extras_require={
-          "video":  ["librosa", "moviepy>=1.0.0,<1.0.1"],
-      },
-      include_package_data=False,
-      packages=find_packages(),
-      setup_requires=['pybind11>=2.5.0'],
-      ext_modules=ext_modules,
-      cmdclass={'build_ext': BuildExt},
-      zip_safe=False,
-      )
+setup(
+    name='myx11',
+    version=__version__,
+    author='yingshaoxo',
+    author_email='yingshaoxo@gmail.com',
+    url='https://github.com/yingshaoxo/myx11',
+    description='It contains some functions related to x11.',
+    long_description='',
+    ext_modules=ext_modules,
+    setup_requires=['pybind11>=2.5.0'],
+    cmdclass={'build_ext': BuildExt},
+    zip_safe=False,
+)
