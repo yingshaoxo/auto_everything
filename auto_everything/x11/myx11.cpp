@@ -1,167 +1,282 @@
-// -*- coding:utf-8-unix; mode:c; -*-
-//
-// get the active window on X window system
-//
-
+// created by yingshaoxo at 2020-07-09 07:41.
+// 
+// Feel free to use it.
+// But please keep this comments here.
 #include <pybind11/pybind11.h>
-namespace py = pybind11;
+#include <pybind11/stl.h>
+namespace py = pybind11; // pip3 install pybind11
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <locale.h>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <vector>
+#include <chrono>
+#include <thread>
+using namespace std;
 
-#include <X11/Xlib.h>           // `apt-get install libx11-dev`
-#include <X11/Xmu/WinUtil.h>    // `apt-get install libxmu-dev`
+/*
+I read docs from :
+https://www.student.cs.uwaterloo.ca/~cs349/f15/resources/X/xTutorialPart1.html
+https://tronche.com/gui/x/xlib/window-information/XQueryTree.html
+*/
+#include <X11/Xlib.h> // `apt-get install libx11-dev`
+#include <X11/Xatom.h>
+#include <X11/Xmu/WinUtil.h> // `apt-get install libxmu-dev`
+#include <X11/Xutil.h>
 
-Bool xerror = False;
+string get_window_class_name(Display *d, Window w)
+{
+    Status s;
+    XClassHint *c_class;
 
-Display* open_display(){
-  printf("connecting X server ... ");
-  Display* d = XOpenDisplay(NULL);
-  if(d == NULL){
-    printf("fail\n");
-    exit(1);
-  }else{
-    printf("success\n");
-  }
-  return d;
-}
-
-int handle_error(Display* display, XErrorEvent* error){
-  printf("ERROR: X11 error\n");
-  xerror = True;
-  return 1;
-}
-
-Window get_focus_window(Display* d){
-  Window w;
-  int revert_to;
-  printf("getting input focus window ... ");
-  XGetInputFocus(d, &w, &revert_to); // see man
-  if(xerror){
-    printf("fail\n");
-    exit(1);
-  }else if(w == None){
-    printf("no focus window\n");
-    exit(1);
-  }else{
-    printf("success (window: %d)\n", (int)w);
-  }
-
-  return w;
-}
-
-// get the top window.
-// a top window have the following specifications.
-//  * the start window is contained the descendent windows.
-//  * the parent window is the root window.
-Window get_top_window(Display* d, Window start){
-  Window w = start;
-  Window parent = start;
-  Window root = None;
-  Window *children;
-  unsigned int nchildren;
-  Status s;
-
-  printf("getting top window ... \n");
-  while (parent != root) {
-    w = parent;
-    s = XQueryTree(d, w, &root, &parent, &children, &nchildren); // see man
-
+    c_class = XAllocClassHint();
+    s = XGetClassHint(d, w, c_class);
     if (s)
-      XFree(children);
+    {
+        printf("\t* name: %s\n\t* class: %s\n", c_class->res_name, c_class->res_class);
+        string name = c_class->res_class;
+        return name;
+    }
+    else
+    {
+        printf("ERROR: XGetClassHint\n");
+        string name{};
+        return name;
+    }
+}
 
-    if(xerror){
-      printf("fail\n");
-      exit(1);
+string get_window_detail_name(Display *disp, Window win)
+{
+    Atom prop = XInternAtom(disp, "WM_NAME", False), type;
+    int form;
+    unsigned long remain, len;
+    unsigned char *list;
+
+    errno = 0;
+    if (XGetWindowProperty(disp, win, prop, 0, 1024, False, XA_STRING,
+                           &type, &form, &len, &remain, &list) != Success)
+    {
+        perror("winlist() -- GetWinProp");
     }
 
-    printf("  get parent (window: %d)\n", (int)w);
-  }
-
-  printf("success (window: %d)\n", (int)w);
-
-  return w;
+    char *name = (char *)list;
+    printf("\t* %s\n", name);
+    string return_name = name;
+    free(name);
+    return return_name;
 }
 
-// search a named window (that has a WM_STATE prop)
-// on the descendent windows of the argment Window.
-Window get_named_window(Display* d, Window start){
-  Window w;
-  printf("getting named window ... ");
-  w = XmuClientWindow(d, start); // see man
-  if(w == start)
-    printf("fail\n");
-  printf("success (window: %d)\n", (int) w);
-  return w;
-}
+string get_window_detail_name2(Display *display, Window &window)
+{
+    string name;
 
-// (XFetchName cannot get a name with multi-byte chars)
-void print_window_name(Display* d, Window w){
-  XTextProperty prop;
-  Status s;
-
-  printf("window name:\n");
-
-  s = XGetWMName(d, w, &prop); // see man
-  if(!xerror && s){
-    int count = 0, result;
-    char **list = NULL;
-    result = XmbTextPropertyToTextList(d, &prop, &list, &count); // see man
-    if(result == Success){
-      printf("\t%s\n", list[0]);
-    }else{
-      printf("ERROR: XmbTextPropertyToTextList\n");
+    Status status;
+    char *windowName;
+    status = XFetchName(display, window, &windowName);
+    if (status >= Success && windowName != NULL)
+    {
+        printf("\t* %s\n", windowName);
+        name = windowName;
     }
-  }else{
-    printf("ERROR: XGetWMName\n");
-  }
+
+    return name;
 }
 
-void print_window_class(Display* d, Window w){
-  Status s;
-  XClassHint* c_class;
+vector<string> get_all_windows(Display *display, vector<Window> &window_list)
+{
+    vector<string> string_list;
 
-  printf("application: \n");
+    Atom property_name = XInternAtom(display, "_NET_CLIENT_LIST", False);
+    Atom actual_type_return;
+    int actual_format_return;
+    unsigned long number_of_items;
+    unsigned long number_of_bytes_left;
+    unsigned char *data_return;
 
-  c_class = XAllocClassHint(); // see man
-  if(xerror){
-    printf("ERROR: XAllocClassHint\n");
-  }
+    int status = XGetWindowProperty(display, XDefaultRootWindow(display), property_name, 0, 1024, False, XA_WINDOW, &actual_type_return, &actual_format_return, &number_of_items, &number_of_bytes_left, &data_return);
 
-  s = XGetClassHint(d, w, c_class); // see man
-  if(xerror || s){
-    printf("\tname: %s\n\tclass: %s\n", c_class->res_name, c_class->res_class);
-  }else{
-    printf("ERROR: XGetClassHint\n");
-  }
+    if (status == Success)
+    {
+        Window *temp_window_list = (Window *)data_return;
+        if (number_of_items)
+        {
+            for (unsigned long i = 0; i < number_of_items; i++)
+            {
+                //string name = get_window_class_name(display, temp_window_list[i]);
+                //string name = get_window_detail_name(display, temp_window_list[i]);
+                string name = get_window_detail_name2(display, temp_window_list[i]);
+                if (!name.empty())
+                {
+                    string_list.push_back(name);
+                    window_list.push_back(temp_window_list[i]);
+                }
+            }
+            XFree(data_return);
+        }
+    }
+    else
+    {
+        printf("failed to get window property");
+    }
+
+    return string_list;
 }
 
-void print_window_info(Display* d, Window w){
-  printf("--\n");
-  print_window_name(d, w);
-  print_window_class(d, w);
+bool get_a_window_by_name(Display *display, const char window_name[], Window &window)
+{
+    string sub_name = window_name;
+    vector<Window> window_list;
+    vector<string> list_of_windows = get_all_windows(display, window_list);
+    for (size_t i = 0; i < list_of_windows.size(); i++)
+    {
+        transform(list_of_windows[i].begin(), list_of_windows[i].end(), list_of_windows[i].begin(), ::tolower); 
+        transform(sub_name.begin(), sub_name.end(), sub_name.begin(), ::tolower); 
+        if (list_of_windows[i].find(sub_name) != string::npos)
+        {
+            window = window_list[i];
+            return true;
+        }
+    }
+    return false;
 }
 
-void a_cpp_function() {
-  Display* d;
-  Window w;
-
-  // for XmbTextPropertyToTextList
-  setlocale(LC_ALL, ""); // see man locale
-
-  d = open_display();
-  XSetErrorHandler(handle_error);
-
-  // get active window
-  w = get_focus_window(d);
-  w = get_top_window(d, w);
-  w = get_named_window(d, w);
-
-  print_window_info(d, w);
+bool window_exists(const char window_name[])
+{
+    Display *display = XOpenDisplay(NULL);
+    Window no_use_window{};
+    return get_a_window_by_name(display, window_name, no_use_window);
 }
 
-PYBIND11_MODULE(myx11, m) {
+tuple<int, int, vector<int>> c_capture_screen(Display *display, Window &window)
+{
+    XWindowAttributes DOSBoxWindowAttributes;
+    XGetWindowAttributes(display, window, &DOSBoxWindowAttributes);
+
+    int width = DOSBoxWindowAttributes.width;
+    int height = DOSBoxWindowAttributes.height;
+
+    XColor colors;
+    XImage *image;
+
+    image = XGetImage(
+        display, window, 0, 0, width, height, AllPlanes, ZPixmap);
+
+    unsigned long red_mask;
+    unsigned long green_mask;
+    unsigned long blue_mask;
+
+    red_mask = image->red_mask;
+    green_mask = image->green_mask;
+    blue_mask = image->blue_mask;
+
+    printf("%d, %d\n", height, width);
+    vector<int> final_array;
+
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            colors.pixel = XGetPixel(image, j, i);
+            auto red = (colors.pixel & red_mask) >> 16;
+            auto green = (colors.pixel & green_mask) >> 8;
+            auto blue = colors.pixel & blue_mask;
+            final_array.push_back(red);
+            final_array.push_back(green);
+            final_array.push_back(blue);
+        }
+    }
+
+    XFree(image);
+
+    tuple<int, int, vector<int>> final_result = make_tuple(width, height, final_array);
+
+    return final_result;
+}
+
+tuple<int, int, vector<int>> capture_screen(const char window_name[])
+{
+    Display *display = XOpenDisplay(NULL);
+    Window the_window;
+    if (get_a_window_by_name(display, window_name, the_window))
+    {
+        return c_capture_screen(display, the_window);
+    }
+    else
+    {
+        vector<int> none = {};
+        return make_tuple(0, 0, none);
+    }
+}
+
+//http://csweb.cs.wfu.edu/~torgerse/Kokua/Irix_6.5.21_doc_cd/usr/share/Insight/library/SGI_bookshelves/SGI_Developer/books/XLib_PG/sgi_html/ch09.html#:~:text=The%20keycode%20member%20of%20XKeyEvent,key%20is%20pressed%20or%20released.
+//Only works for some software, like scrcpy
+void c_press_a_key(Display *display, Window &rootWindow, Window &window, KeySym keycode, int duration) {
+    XKeyEvent event;
+    event.type = KeyPress;      
+    event.display = display;
+    event.send_event = False;
+    event.window = window;
+    event.root = rootWindow;
+    event.time = CurrentTime;
+    event.same_screen = True;
+    event.keycode = XKeysymToKeycode(display, keycode);
+    XSendEvent(display, window, True, KeyPressMask, (XEvent *)&event);
+    XFlush(display);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(duration));
+
+    event.type = KeyRelease;      
+    XSendEvent(display, window, True, KeyReleaseMask, (XEvent *)&event);
+    XFlush(display);
+}
+
+bool press_a_key(const char window_name[]) {
+    // get root window
+    Display *display = XOpenDisplay(NULL);
+    Window rootWindow = RootWindow(display, DefaultScreen(display));    
+    Window target_window;
+    if (get_a_window_by_name(display, window_name, target_window)) {
+        c_press_a_key(display, rootWindow, target_window, XK_y, 100);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+vector<string> a_cpp_function()
+{
+    // get a display instance
+    Display *display = XOpenDisplay(NULL);
+
+    // get some information
+    int screen_num;
+    screen_num = DefaultScreen(display); // get default screen id
+
+    int screen_width;
+    int screen_height;
+    screen_width = DisplayWidth(display, screen_num);
+    screen_height = DisplayHeight(display, screen_num);
+    printf("width: %d, height: %d\n", screen_width, screen_height);
+
+    // get all window
+    vector<Window> window_list;
+    vector<string> window_list_name = get_all_windows(display, window_list);
+
+    // get the window
+    Window hi;
+    printf("%d\n", get_a_window_by_name(display, "x11", hi));
+
+    // capture screen
+    c_capture_screen(display, hi);
+
+    return window_list_name;
+}
+
+PYBIND11_MODULE(myx11, m)
+{
     m.doc() = "pybind11 example plugin"; // Optional module docstring
     m.def("a_cpp_function", &a_cpp_function, "A function that multiplies two numbers");
+    m.def("window_exists", &window_exists, "check if a window exists by its name");
+    m.def("capture_screen", &capture_screen, "get numpy array screenshot");
+    m.def("press_a_key", &press_a_key, "press_a_key to a window");
 }

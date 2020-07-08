@@ -1,3 +1,4 @@
+#sudo gcc main.cpp -lstdc++ -lX11 -lXmu -o main
 from auto_everything.base import Terminal
 t = Terminal()
 

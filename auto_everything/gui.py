@@ -114,7 +114,7 @@ To use this module, you have to install pyautogui:
         if from_image == None:
             Tuple = self.__get_tuple(
                 self.img_dict[element_name], confidence=confidence,
-                )
+            )
             if Tuple == None:
                 return False
             else:
@@ -123,6 +123,15 @@ To use this module, you have to install pyautogui:
                 self.last_check["y"] = Tuple[1]
                 return True
         return False
+
+    def get_center_point_of(self, element_name, confidence=0.9):
+        Tuple = self.__get_tuple(
+            self.img_dict[element_name], confidence=confidence,
+        )
+        if Tuple == None:
+            return None, None
+        else:
+            return Tuple[0], Tuple[1]
 
     def click(self, element_name=None):
         self._make_sure_img_dict_exists()

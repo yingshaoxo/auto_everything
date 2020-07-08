@@ -1,6 +1,7 @@
 #debian
 sudo apt -y update
 sudo apt -y install gcc
+sudo apt -y install g++
 sudo apt -y install python3
 sudo apt -y install python3-pip
 sudo apt -y install python3-dev
@@ -12,6 +13,7 @@ sudo apt -y install python3-dev
 
 #arch
 sudo pacman --noconfirm -S gcc
+sudo pacman --noconfirm -S g++
 sudo pacman --noconfirm -S cmake
 sudo pacman --noconfirm -S make
 sudo pacman --noconfirm -Syu python3
