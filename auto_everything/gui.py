@@ -145,7 +145,12 @@ class GUI(CommonGUI):
 
     def exists(self, element_name, confidence=0.9):
         """
-        element_name: image name (those pictures you put into data folder) ; String
+        Check if an image exists at the screen
+
+        Parameters
+        ----------
+        element_name: string
+            image name (those pictures you put into data folder)
         """
         print(f"Ask for {element_name}")
         Tuple = self.__get_tuple(
@@ -172,6 +177,16 @@ class GUI(CommonGUI):
         return x, y
 
     def click(self, element_name=None, game=False):
+        """
+        click an image at the screen
+
+        Parameters
+        ----------
+        element_name: string
+            image name (those pictures you put into data folder) 
+        game: bool
+            for games, we click it in a different way
+        """
         print(f"Try to click {element_name}")
         if element_name == None or element_name == self._last_check["name"]:
             x = self._last_check["x"]
@@ -252,7 +267,7 @@ To use this module, you have to install adb:
         data = cv2.cvtColor(np.array(data, np.uint8).reshape([height, width, 3]), cv2.COLOR_BGR2RGB)
         return data
 
-    def find_all(self, element_name, from_image=None, threshold=0.8):
+    def find_all(self, element_name, from_image=None, threshold=0.8, visual=False):
         """
         find all images at the screen
 
@@ -277,10 +292,12 @@ To use this module, you have to install adb:
         result = []
         w, h = template.shape[::-1]
         for pt in zip(*loc[::-1]):
-            x, y = pt[0] + w//2, pt[1] + h//2
+            x, y = (pt[0] + w/2), (pt[1] + h/2)
             result.append({"x": x, "y": y})
-            #cv2.rectangle(from_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
-        #cv2.imshow('from_image', from_image)
+            if visual:
+                cv2.rectangle(from_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+        if visual:
+            return from_image, result
         return result
 
     def find_one_automatically(self, element_name, from_image=None, threshold=0.5):
@@ -297,7 +314,7 @@ To use this module, you have to install adb:
                 threshold -= 0.1
         return None
 
-    def click(self, point):
+    def click(self, point, landscape=True):
         """
         do a click at android screen by using adb
 
@@ -307,18 +324,14 @@ To use this module, you have to install adb:
             it's actually the result you get from function find_all().
         """
         assert "x" in point and "y" in point, f"You gave me a wrong point: {str(point)}"
-        print(f"""
-        screen width: {self.__screen_width}
-        screen height: {self.__screen_height}
-        android width: {self.__android_width}
-        android height: {self.__android_height}
-        x: {point["x"]}
-        y: {point["y"]}
-        """)
         x = point["x"]
         y = point["y"]
-        x = int(x/self.__screen_width*self.__android_width)
-        y = int(y/self.__screen_height*self.__android_height)
+        if landscape:
+            x = int(x/self.__screen_width*self.__android_height)
+            y = int(y/self.__screen_height*self.__android_width)
+        else:
+            x = int(x/self.__screen_width*self.__android_width)
+            y = int(y/self.__screen_height*self.__android_height)
         t.run(f"adb shell input tap {x} {y}")
 
 
@@ -326,7 +339,6 @@ if __name__ == "__main__":
     androidGUI = AndroidGUI("pixel")
     while(True):
         data = androidGUI.capture_screen()
-        print(type(data))
         cv2.imshow('frame', data)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

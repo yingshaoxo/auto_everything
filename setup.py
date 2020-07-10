@@ -105,7 +105,7 @@ with open(file_path) as f:
     long_description = f.read()
 
 setup(name='auto_everything',
-      version='3.5',
+      version='3.6',
       description='do automate things on Linux',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -127,7 +127,8 @@ setup(name='auto_everything',
           'psutil',
       ],
       extras_require={
-          "video":  ["librosa", "moviepy>=1.0.0,<1.0.1"],
+          "video":  ["numpy", "librosa", "moviepy>=1.0.0,<1.0.1", "pyaudio", "vosk"],
+          "gui": ["numpy", "opencv-python", "pyscreenshot", "pytesseract", "pyautogui"],
       },
       include_package_data=False,
       packages=find_packages(),
