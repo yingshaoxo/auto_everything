@@ -4,8 +4,8 @@ controller = Controller()
 
 sleep_time = 200
 while 1:
-    if gui.exists("scrcpy"):
-        x, y = gui.get_center_point_of("money")
+    if gui.exists("scrcpy", confidence=0.8):
+        x, y = gui.get_center_point_of("money", confidence=0.7)
         if x != None:
             while True:
                 x, y = gui.get_center_point_of("money")

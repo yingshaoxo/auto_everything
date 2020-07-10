@@ -1,33 +1,14 @@
-"""
-这个gui识别得分三步走
-
-一， training，我们是做机器学习的，图片、训练集啥的我们得准备好
-
-二，predict，从用户给的图片中得到 object box or center point
-
-三，应用，这个时候才涉及到操作键鼠
-
-
-1.init_data_structure
-
-2.label_img
-
-3.start_training
-
-4.object_detection(img_name)
-
-5.click(x, y)
-"""
-
 import os
 import time
+import numpy as np
+import cv2
 
 from auto_everything.base import Terminal
-t = Terminal()
+t = Terminal(debug=True)
 
 
-class GUI():
-    def __init__(self, name="", time_takes_for_one_click=0.2, grayscale=False):
+class CommonGUI():
+    def __init__(self, project_name=""):
         try:
             import pyautogui as pyautogui
         except Exception:
@@ -43,27 +24,23 @@ To use this module, you have to install pyautogui:
         self.pyautogui = pyautogui
         self.pyautogui.FAILSAFE = False
 
-        self.__data_folder = name + "_data"
-        self.__init_data_structure()
-        self.__load_data()
+        self._data_folder = project_name + "_data"
+        self._init_data_structure()
+        self._load_data()
 
-        self.__time_takes_for_one_click = time_takes_for_one_click
-
-        self.__grayscale = grayscale
-
-        self.last_check = {
-            "name": "yingshaoxo is super man",
+        self._last_check = {
+            "name": "yingshaoxo is a super man",
             "x": 0,
             "y": 0,
         }
 
-    def __init_data_structure(self):
-        if not t.exists(self.__data_folder):
-            os.mkdir(self.__data_folder)
+    def _init_data_structure(self):
+        if not t.exists(self._data_folder):
+            os.mkdir(self._data_folder)
 
-    def __load_data(self):
-        paths = [os.path.join(self.__data_folder, filename)
-                 for filename in os.listdir(self.__data_folder)]
+    def _load_data(self):
+        paths = [os.path.join(self._data_folder, filename)
+                 for filename in os.listdir(self._data_folder)]
         files = [path for path in paths if os.path.isfile(path)]
         files = [path for path in paths if os.path.basename(
             path).split('.')[-1] in ["png", "jpg"]]
@@ -73,97 +50,26 @@ To use this module, you have to install pyautogui:
             obj_name = '.'.join(os.path.basename(file).split('.')[:-1])
             self.img_dict.update({obj_name: file})
 
-    def screen_capture(self, picture_name):
+    def _make_sure_img_dict_exists(self):
+        if self.img_dict == {}:
+            print(f'You should put image files (png, jpg) with meaningful name into {self._data_folder} folder first!')
+            print("You can do this with the function 'capture_screen_manually(picture_name=**)'")
+            exit()
+
+    def capture_screen_manually(self, picture_name):
         """
-        screenshot with area selecting, based on deepin-screenshot
+        screenshot with area selecting, based on gnome-screenshot
         """
-        target_path = os.path.join(self.__data_folder, picture_name + '.png')
+        target_path = os.path.join(self._data_folder, picture_name + '.png')
         t.run_command(f'gnome-screenshot -a -f "{target_path}"')
 
     def delay(self, milliseconds):
+        """
+        delay for milliseconds
+        """
         time.sleep(milliseconds/1000)
 
-    def _make_sure_img_dict_exists(self):
-        if self.img_dict == {}:
-            print('You should put image files (png, jpg) with meaningful name into {path} folder first!'.format(
-                path=self.__data_folder))
-            exit()
-
-    def __click(self, x, y):
-        #self.pyautogui.moveTo(x, y)
-        self.pyautogui.click(x, y, interval=self.__time_takes_for_one_click)
-        self.pyautogui.click(x, y+1, interval=self.__time_takes_for_one_click)
-
-    def __get_tuple(self, element_name, confidence=0.9):
-        return self.pyautogui.locateCenterOnScreen(element_name, confidence=confidence, grayscale=self.__grayscale)
-
-    def hide_mouse(self):
-        self.pyautogui.mouseUp()
-        self.delay(1)
-        self.pyautogui.moveTo(0, 0)
-
-    def exists(self, element_name, from_image=None, space_ratio=(0, 0, 1, 1), confidence=0.9):
-        """
-        element_name: image name (those pictures you put into data folder) ; String
-
-        space_ratio: ratio of area you want to detect (left_top_x, left_top_y, right_bottom_x, right_bottom_y) ; Integer Numbers
-        """
-        self._make_sure_img_dict_exists()
-        print(f"Ask for {element_name}")
-
-        if from_image == None:
-            Tuple = self.__get_tuple(
-                self.img_dict[element_name], confidence=confidence,
-            )
-            if Tuple == None:
-                return False
-            else:
-                self.last_check["name"] = element_name
-                self.last_check["x"] = Tuple[0]
-                self.last_check["y"] = Tuple[1]
-                return True
-        return False
-
-    def get_center_point_of(self, element_name, confidence=0.9):
-        Tuple = self.__get_tuple(
-            self.img_dict[element_name], confidence=confidence,
-        )
-        if Tuple == None:
-            return None, None
-        else:
-            return Tuple[0], Tuple[1]
-
-    def click(self, element_name=None):
-        self._make_sure_img_dict_exists()
-        print(f"Try to click {element_name}")
-
-        if element_name == None or element_name == self.last_check["name"]:
-            x = self.last_check["x"]
-            y = self.last_check["y"]
-            self.__click(x, y)
-        else:
-            Tuple = self.__get_tuple(self.img_dict[element_name])
-            if Tuple != None:
-                x, y = Tuple
-                self.__click(x, y)
-
-    def click_after_exists(self, element_name, space_ratio=(0, 0, 1, 1)):
-        """
-        element_name: image name (those pictures you put into data folder) ; String
-
-        space_ratio: ratio of area you want to detect (left_top_x, left_top_y, right_bottom_x, right_bottom_y) ; Integer Numbers
-        """
-        self._make_sure_img_dict_exists()
-
-        while True:
-            Tuple = self.__get_tuple(self.img_dict[element_name])
-            if Tuple != None:
-                x, y = Tuple
-                self.__click(x, y)
-                break
-            time.sleep(1)
-
-    def find_text(self, target_text):
+    def find_text(self, target_text, from_image=None):
         """
         will return a list of center points
 
@@ -189,7 +95,6 @@ To use this module, you have to install tesseract:
     sudo pip3 -y install pytesseract
             """
             raise Exception(error)
-
         result = pytesseract.image_to_data(
             ImageGrab.grab(), output_type='dict')
         target_index = []
@@ -211,6 +116,72 @@ To use this module, you have to install tesseract:
             return return_list
         else:
             return None
+
+
+class GUI(CommonGUI):
+    """
+    A wrapper for pyautogui.
+    """
+
+    def __init__(self, project_name="", time_takes_for_one_click=0.2, grayscale=False):
+        CommonGUI.__init__(self, project_name=project_name)
+        self.__time_takes_for_one_click = time_takes_for_one_click
+        self.__grayscale = grayscale
+
+    def __click(self, x, y, game=False):
+        self.pyautogui.click(x, y, interval=self.__time_takes_for_one_click)
+        if game == True:
+            self.pyautogui.click(x, y+1, interval=self.__time_takes_for_one_click)
+
+    def __get_tuple(self, element_name, confidence=0.9):
+        self._make_sure_img_dict_exists()
+        element_name = self.img_dict[element_name]
+        return self.pyautogui.locateCenterOnScreen(element_name, confidence=confidence, grayscale=self.__grayscale)
+
+    def hide_mouse(self):
+        self.pyautogui.mouseUp()
+        self.delay(1)
+        self.pyautogui.moveTo(0, 0)
+
+    def exists(self, element_name, confidence=0.9):
+        """
+        element_name: image name (those pictures you put into data folder) ; String
+        """
+        print(f"Ask for {element_name}")
+        Tuple = self.__get_tuple(
+            element_name, confidence=confidence,
+        )
+        if Tuple == None:
+            return False
+        else:
+            self._last_check["name"] = element_name
+            self._last_check["x"] = Tuple[0]
+            self._last_check["y"] = Tuple[1]
+            return True
+
+    def get_center_point_of(self, element_name, confidence=0.9):
+        if element_name == None or element_name == self._last_check["name"]:
+            x = self._last_check["x"]
+            y = self._last_check["y"]
+        else:
+            Tuple = self.__get_tuple(element_name, confidence=confidence)
+            if Tuple != None:
+                x, y = Tuple
+            else:
+                x, y = None, None
+        return x, y
+
+    def click(self, element_name=None, game=False):
+        print(f"Try to click {element_name}")
+        if element_name == None or element_name == self._last_check["name"]:
+            x = self._last_check["x"]
+            y = self._last_check["y"]
+            self.__click(x, y, game=game)
+        else:
+            Tuple = self.__get_tuple(element_name)
+            if Tuple != None:
+                x, y = Tuple
+                self.__click(x, y, game=game)
 
 
 class Controller():
@@ -244,5 +215,118 @@ To use this module, you have to install pyautogui:
             self.pyautogui.click(x=x+1, y=y+1, button=button, interval=interval)
 
 
+class AndroidGUI(CommonGUI):
+    """
+    To interact with scrcpy by x11 and OpenCV.
+    """
+
+    def __init__(self, scrcpy_window_name, project_name=""):
+        assert "not found" not in t.run_command("scrcpy -v"), """
+To use this module, you have to install scrcpy
+        """
+        from myx11 import MyX11
+        self.myx11 = MyX11()
+        self.__window_name = scrcpy_window_name
+
+        assert "not found" not in t.run_command("adb devices"), """
+To use this module, you have to install adb:
+    sudo apt install android-tools-adb
+"""
+        info_of_android = t.run_command("adb shell dumpsys display")
+        for line in info_of_android.split("\n"):
+            if "StableDisplayWidth" in line:
+                self.__android_width = int(line.split("=")[1].strip())
+            if "StableDisplayHeight" in line:
+                self.__android_height = int(line.split("=")[1].strip())
+
+        self.__screen_height = None
+        self.__screen_width = None
+
+        CommonGUI.__init__(self, project_name=project_name)
+
+    def capture_screen(self):
+        """
+        Get opencv image.
+        """
+        width, height, data = self.myx11.capture_screen(self.__window_name)
+        data = cv2.cvtColor(np.array(data, np.uint8).reshape([height, width, 3]), cv2.COLOR_BGR2RGB)
+        return data
+
+    def find_all(self, element_name, from_image=None, threshold=0.8):
+        """
+        find all images at the screen
+
+        Parameters
+        ----------
+        element_name: string
+            name for the sub image
+        from_image: opencv image
+        """
+        self._make_sure_img_dict_exists()
+
+        if not isinstance(from_image, np.ndarray):
+            from_image = self.capture_screen()
+        self.__screen_height = from_image.shape[0]
+        self.__screen_width = from_image.shape[1]
+
+        from_image_grayscale = cv2.cvtColor(from_image, cv2.COLOR_RGB2GRAY)
+        template = cv2.imread(self.img_dict[element_name], cv2.IMREAD_GRAYSCALE)
+        res = cv2.matchTemplate(from_image_grayscale, template, cv2.TM_CCOEFF_NORMED)
+
+        loc = np.where(res >= threshold)
+        result = []
+        w, h = template.shape[::-1]
+        for pt in zip(*loc[::-1]):
+            x, y = pt[0] + w//2, pt[1] + h//2
+            result.append({"x": x, "y": y})
+            #cv2.rectangle(from_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+        #cv2.imshow('from_image', from_image)
+        return result
+
+    def find_one_automatically(self, element_name, from_image=None, threshold=0.5):
+        times = 5
+        while (times > 0 and 0 < threshold <= 1):
+            times -= 1
+            print(element_name)
+            results = self.find_all(element_name=element_name, from_image=from_image, threshold=threshold)
+            if len(results) == 1:
+                return results[0]
+            elif len(results) > 1:
+                threshold += 0.1
+            elif len(results) < 1:
+                threshold -= 0.1
+        return None
+
+    def click(self, point):
+        """
+        do a click at android screen by using adb
+
+        Parameters
+        ----------
+        point: {"x": 1920, "y": 1080}
+            it's actually the result you get from function find_all().
+        """
+        assert "x" in point and "y" in point, f"You gave me a wrong point: {str(point)}"
+        print(f"""
+        screen width: {self.__screen_width}
+        screen height: {self.__screen_height}
+        android width: {self.__android_width}
+        android height: {self.__android_height}
+        x: {point["x"]}
+        y: {point["y"]}
+        """)
+        x = point["x"]
+        y = point["y"]
+        x = int(x/self.__screen_width*self.__android_width)
+        y = int(y/self.__screen_height*self.__android_height)
+        t.run(f"adb shell input tap {x} {y}")
+
+
 if __name__ == "__main__":
-    pass
+    androidGUI = AndroidGUI("pixel")
+    while(True):
+        data = androidGUI.capture_screen()
+        print(type(data))
+        cv2.imshow('frame', data)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break

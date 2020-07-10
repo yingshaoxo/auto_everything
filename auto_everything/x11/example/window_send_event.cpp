@@ -96,7 +96,6 @@ int main(int argc, char *argv[])
     XGetWindowAttributes(display, DOSBoxWindow, &DOSBoxWindowAttributes);
 
     XKeyEvent event;
-    event.type = KeyPress;      
     event.display = display;
     event.send_event = False;
     event.window = DOSBoxWindow;
@@ -104,6 +103,7 @@ int main(int argc, char *argv[])
     event.time = CurrentTime;
     event.same_screen = True;
     event.keycode = XKeysymToKeycode(display, XK_3);
+    event.type = KeyPress;      
     XSendEvent(display, DOSBoxWindow, True, KeyPressMask, (XEvent *)&event);
     XFlush(display);
 
