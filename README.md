@@ -118,52 +118,6 @@ Hi, Python!
 ___
 
 
-## Advanced API
-#### Create(start) or Cancel(stop) a systemd serviece
-```python
-from auto_everything.base import Super
-s = Super(username="root")
-
-s.service("service_name", "your_python_file_path")
-```
-
-___
-
-
-## System management
-#### Get package list
-```python
-from auto_everything.base import OS
-os_ = OS()
-
-python_packages = os_.list_python_packages()
-lubuntu_packages = os_.list_packages()
-
-print(python_packages)
-print(lubuntu_packages)
-```
-
-#### Install or Uninstall a Python package
-```python
-from auto_everything.base import OS
-os_ = OS()
-
-os_.install_python_package("any_package_name")
-os_.uninstall_python_package("any_package_name")
-```
-
-#### Install or Uninstall a Lubuntu package
-```python
-from auto_everything.base import OS
-os_ = OS()
-
-os_.install_package("any_package_name")
-os_.uninstall_package("any_package_name")
-```
-
-___
-
-
 ## Anothers
 #### Web automation
 ```python
@@ -200,4 +154,32 @@ print(io.read("hi.txt"))
 
 io.append("hi.txt", "\n\nI'm yingshaoxo.")
 print(io.read("hi.txt"))
+```
+
+#### Quick File Operation
+```python
+from auto_everything.disk import Disk
+from pprint import pprint
+disk = Disk()
+
+files = disk.get_files(".")
+files = disk.sort_files_by_time(files)
+pprint(files)
+```
+
+#### Easy Store
+```python
+from auto_everything.disk import Store
+store = Store("test")
+
+store.set("author", "yingshaoxo")
+store.set("author", {"email": "yingshaoxo@gmail.com", "name": "yingshaoxo"})
+print(store.get_items())
+
+print(store.has_key("author"))
+print(store.get("author", ""))
+print(store.get("whatever", default_value="alsjdasdfasdfsakfla"))
+
+store.reset()
+print(store.get_items())
 ```
