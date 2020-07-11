@@ -32,19 +32,19 @@ from auto_everything.base import Terminal
 t = Terminal()
 ```
 
-#### Run a command & get reply
+#### Run a command and get reply
 ```python
 reply = t.run_command('uname -a')
 print(reply)
 ```
 
-#### Run commands & wait until it was finished
+#### Run commands and get direct screen output
 ```python
 commands = """
 sudo apt update
 uname -a
 """
-t.run(commands, wait=True)
+t.run(commands)
 ```
 
 #### Run a program
@@ -118,7 +118,7 @@ Hi, Python!
 ___
 
 
-## Anothers
+## Others
 #### Web automation
 ```python
 from auto_everything.web import Selenium
