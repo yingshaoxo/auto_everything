@@ -1,3 +1,7 @@
+dist/
+build/
+tmp/
+
 *.vscode/
 temp.sh
 images/

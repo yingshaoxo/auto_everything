@@ -1,3 +1,7 @@
+#########
+# BASIC
+#########
+
 #debian
 sudo apt -y update
 sudo apt -y install gcc
@@ -24,3 +28,22 @@ sudo python get-pip.py
 #sudo apt -y install ffmpeg
 #sudo apt -y install python3-opencv
 sudo pip3 install auto_everything --upgrade
+
+#########
+# WITH EXTENSIONS
+#########
+# x11
+sudo apt -y install libx11-dev
+sudo apt -y install libxmu-dev
+
+# install
+sudo apt -y install git
+if [ ! -d "auto_everything" ]; then
+    # not exist
+    git clone https://github.com/yingshaoxo/auto_everything.git
+    cd auto_everything
+fi
+sudo python3 super_setup.py install
+cd demo
+#clear
+ls

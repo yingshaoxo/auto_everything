@@ -2,6 +2,7 @@ from typing import List
 from pathlib import Path
 import os
 import pyfakewebcam
+import cv2
 
 from auto_everything.base import Terminal
 t = Terminal(debug=True)
@@ -29,7 +30,7 @@ class FakeCamera():
             self.device = device
         self.camera = pyfakewebcam.FakeWebcam(self.device, width, height)
 
-    def next(self, frame):
+    def next(self, frame, rgb=False):
         """
         Pipe new frame to the fake camera
 
@@ -38,6 +39,7 @@ class FakeCamera():
         frame: numpy representation of an image
             np.zeros((480,640,3), dtype=np.uint8)
         """
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         self.camera.schedule_frame(frame)
 
     def show(self):
