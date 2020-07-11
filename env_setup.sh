@@ -23,6 +23,7 @@ sudo pacman --noconfirm -S make
 sudo pacman --noconfirm -Syu python3
 curl -O https://bootstrap.pypa.io/get-pip.py
 sudo python get-pip.py
+rm get-pip.py
 #sudo pacman --noconfirm -Syu python-tensorflow-cuda
 
 #sudo apt -y install ffmpeg
@@ -32,6 +33,14 @@ sudo pip3 install auto_everything --upgrade
 #########
 # WITH EXTENSIONS
 #########
+echo "Do you wish to install the extensions, so you can use some advanced module?"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) break;;
+        No ) exit;;
+    esac
+done
+
 # x11
 sudo apt -y install libx11-dev
 sudo apt -y install libxmu-dev
