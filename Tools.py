@@ -6,7 +6,6 @@ t = Terminal()
 
 class Tools():
     def push(self, comment):
-        self.__clear()
         self.make_docs()
 
         t.run('git add .')
@@ -43,10 +42,11 @@ sudo rm -fr build
 
 sudo pip3 uninstall -y auto_everything
 sudo -H python3 setup.py sdist bdist_wheel
-#cd dist
-#sudo pip3 install auto_everything*
+cd dist
+sudo pip3 install auto_everything*
+
 #sudo pip3 install -e .[video]
-sudo pip3 install .
+#sudo pip3 install .
 cd ..
         """)
 
@@ -70,21 +70,6 @@ cd ..
         t.run("""
 twine upload dist/*
         """)
-
-    def __clear(self):
-        commands = """
-sudo rm -fr dist
-sudo rm -fr build
-sudo rm -fr test.py
-sudo rm -fr nohup.out
-sudo rm -fr whatsup.log
-sudo rm -fr auto_everything.egg-info
-sudo rm auto_everything/Base.pyc
-sudo rm auto_everything/__init__.pyc
-sudo rm -fr auto_everything/nohup.out
-sudo rm -fr auto_everything/__pycache__
-        """
-        t.run(commands)
 
 
 py.make_it_runnable()

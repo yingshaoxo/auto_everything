@@ -33,7 +33,8 @@ sudo pip3 install auto_everything --upgrade
 #########
 # WITH EXTENSIONS
 #########
-echo "Do you wish to install the extensions, so you can use some advanced module?"
+clear
+echo "Do you wish to install some extensions, so you can use some advanced module later?"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) break;;
@@ -52,7 +53,10 @@ if [ ! -d "auto_everything" ]; then
     git clone https://github.com/yingshaoxo/auto_everything.git
     cd auto_everything
 fi
-sudo python3 super_setup.py install
+sudo rm build/* -fr
+sudo rm dist/* -fr
+sudo python3 super_setup.py bdist_wheel
+cd dist
+sudo pip3 install --ignore-installed auto_everything*
+cd ..
 cd demo
-#clear
-ls
