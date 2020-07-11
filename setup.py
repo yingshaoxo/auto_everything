@@ -36,6 +36,7 @@ setup(name='auto_everything',
       extras_require={
           "video":  ["numpy", "librosa", "moviepy>=1.0.0,<1.0.1", "pyaudio", "vosk"],
           "gui": ["numpy", "opencv-python", "pyscreenshot", "pytesseract", "pyautogui"],
+          "fakecamera": ["pyfakewebcam", "opencv-python"],
       },
       include_package_data=False,
       packages=find_packages(),

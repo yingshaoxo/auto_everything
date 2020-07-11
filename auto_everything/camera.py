@@ -38,8 +38,11 @@ class FakeCamera():
         ----------
         frame: numpy representation of an image
             np.zeros((480,640,3), dtype=np.uint8)
+        rgb: bool
+            if you want to give me an rgb frame, you'll have to set this.
         """
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        if rgb:
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         self.camera.schedule_frame(frame)
 
     def show(self):
