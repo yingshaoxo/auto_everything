@@ -45,7 +45,7 @@ def add_path(path1, path2):
 
 def try_to_get_absolutely_path(path):
     abs_path = os.path.abspath(path)
-    if os.path.exists(abs_path):
+    if os.path.isabs(abs_path) or os.path.exists(abs_path):
         return abs_path
     else:
         return path
