@@ -43,6 +43,14 @@ def add_path(path1, path2):
     return os.path.join(path1, path2)
 
 
+def try_to_get_absolutely_path(path):
+    abs_path = os.path.abspath(path)
+    if os.path.exists(abs_path):
+        return abs_path
+    else:
+        return path
+
+
 def make_sure_source_is_absolute_path(path):
     path_list = []
     if isinstance(path, str):
@@ -93,7 +101,9 @@ def make_sure_target_does_not_exist(path):
 
 
 def convert_video_to_wav(source_video_path, target_wav_path):
+    source_video_path = try_to_get_absolutely_path(source_video_path)
     make_sure_source_is_absolute_path(source_video_path)
+    target_wav_path = try_to_get_absolutely_path(target_wav_path)
     make_sure_target_is_absolute_path(target_wav_path)
 
     make_sure_target_does_not_exist(target_wav_path)
@@ -106,6 +116,7 @@ def convert_video_to_wav(source_video_path, target_wav_path):
 
 
 def get_wav_infomation(wav_path):
+    wav_path = try_to_get_absolutely_path(wav_path)
     make_sure_source_is_absolute_path(wav_path)
 
     y, sr = librosa.load(wav_path, sr=None)
@@ -367,7 +378,9 @@ class Video():
         method: int
             1 to use ffmpeg(low quality), 2 to use moviepy(high quality)
         """
+        source_video_path_list = [try_to_get_absolutely_path(f) for f in source_video_path_list]
         make_sure_source_is_absolute_path(source_video_path_list)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_target_is_absolute_path(target_video_path)
 
         if method == 1:
@@ -434,7 +447,9 @@ class Video():
         """
         degree = str(degree)
 
+        source_video_path = try_to_get_absolutely_path(source_video_path)
         make_sure_source_is_absolute_path(source_video_path)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_target_is_absolute_path(target_video_path)
 
         if not noise_capture_length:
@@ -493,6 +508,9 @@ class Video():
         voice_only: bool
             if true, it only returns the path of silence removed mp3 file
         """
+
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_source_is_absolute_path(target_video_path)
 
@@ -558,6 +576,8 @@ class Video():
         minimum_interval_time_in_seconds: float
             longer than this value, we will take it as silence and remove it
         """
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
         source_video_path = os.path.abspath(source_video_path)
         target_video_path = os.path.abspath(target_video_path)
 
@@ -608,6 +628,8 @@ class Video():
         speed: float
             how quick you want the video to be
         """
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
@@ -627,6 +649,8 @@ class Video():
         done()
 
     def _speedup_video_with_moviepy(self, source_video_path, target_video_path, speed=4):
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
@@ -650,6 +674,8 @@ class Video():
         speed: float
             how quick you want the silence parts to be
         """
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_source_is_absolute_path(target_video_path)
 
@@ -700,6 +726,9 @@ class Video():
         picture: string
             the path of that picture
         """
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
+        picture = try_to_get_absolutely_path(picture)
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_is_absolute_path(picture)
@@ -712,6 +741,8 @@ class Video():
         done()
 
     def get_mp3_from_video(self, source_video_path, target_video_path):
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
@@ -726,6 +757,8 @@ class Video():
         done()
 
     def delay_audio_in_video(self, source_video_path, target_video_path, delay):
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
@@ -748,6 +781,8 @@ class Video():
         times: float
             2 times the source_video volume or 3 times the source_video volume
         """
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
@@ -762,6 +797,7 @@ class Video():
         done()
 
     def compress_videos_in_a_folder(self, source_folder):
+        source_folder = try_to_get_absolutely_path(source_folder)
         make_sure_source_is_absolute_path(source_folder)
 
         working_dir = get_directory_name(source_folder)
@@ -800,6 +836,7 @@ class Video():
         done()
 
     def format_videos_in_a_folder(self, source_folder):
+        source_folder = try_to_get_absolutely_path(source_folder)
         make_sure_source_is_absolute_path(source_folder)
 
         working_dir = get_directory_name(source_folder)
