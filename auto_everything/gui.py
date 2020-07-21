@@ -247,6 +247,14 @@ To use this module, you have to install scrcpy
 To use this module, you have to install adb:
     sudo apt install android-tools-adb
 """
+        
+        try:
+            from uiautomator import device as d
+            self.d = d
+        except Exception as e:
+            print(e)
+            print("I suggest you to use uiautomator to handle your android phone. You can install it by: \nsudo pip3 install uiautomator")
+
         info_of_android = t.run_command("adb shell dumpsys display")
         for line in info_of_android.split("\n"):
             if "StableDisplayWidth" in line:
