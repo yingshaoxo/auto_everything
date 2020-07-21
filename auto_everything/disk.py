@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import re
 import json
+import hashlib
 
 from auto_everything.base import Terminal
 t = Terminal(debug=True)
@@ -41,7 +42,7 @@ class Disk():
         """
         return Path(path).exists()
 
-    def get_files(self, folder: str, recursive: bool = True) -> List[str]:
+    def get_files(self, folder: str, recursive: bool = True, type_limiter: List[str] = None) -> List[str]:
         """
         Get files recursively under a folder.
 
@@ -49,6 +50,8 @@ class Disk():
         ----------
         folder: string
         recursive: bool
+        type_limiter: List[str]
+            a list used to do a type filter, like [".mp3", ".epub"]
         """
         assert os.path.exists(folder), f"{path} is not exist!"
         if recursive == True:
@@ -57,14 +60,45 @@ class Disk():
                 for filename in filenames:
                     file = os.path.join(root, filename)
                     if os.path.isfile(file):
-                        files.append(file)
+                        if type_limiter:
+                            p = Path(file)
+                            if p.suffix in type_limiter:
+                                files.append(file)
+                        else:
+                            files.append(file)
+
         else:
-            files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+            if type_limiter:
+                files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and Path(os.path.join(folder, f)).suffix in type_limiter]
+            else:
+                files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
         return files
 
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)
         return files
+
+    def get_stem_and_suffix_of_a_file(self, path: str) -> str:
+        p = Path(path)
+        return p.stem, p.suffix
+
+    def get_hash_of_a_file(self, path: str) -> str:
+        """
+        calculate the blake2s hash string based on the bytes of a file.
+
+        Parameters
+        ----------
+        path: string
+            the file path
+        """
+        with open(path, "rb") as f:
+            file_hash = hashlib.blake2s()
+            while True:
+                data = f.read(8192)
+                if not data:
+                    break
+                file_hash.update(data)
+        return file_hash.hexdigest()
 
     def get_file_size(self, path: str, level: str = "B") -> int:
         """
