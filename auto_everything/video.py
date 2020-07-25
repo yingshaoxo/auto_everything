@@ -635,18 +635,20 @@ class Video():
         make_sure_target_does_not_exist(target_video_path)
 
         speed = float(speed)
-
         video_speed = str(float(1/speed))[:6]
 
-        parts = math.ceil(speed/2)
-        value_of_each_part = str(speed ** (1/parts))[:6]
-        audio_speed = ",".join([f"atempo={value_of_each_part}" for i in range(parts)])
+        if speed <= 4:
+            parts = math.ceil(speed/2)
+            value_of_each_part = str(speed ** (1/parts))[:6]
+            audio_speed = ",".join([f"atempo={value_of_each_part}" for i in range(parts)])
 
-        t.run(f"""
-            ffmpeg -i "{source_video_path}" -filter_complex "[0:v]setpts={video_speed}*PTS[v];[0:a]{audio_speed}[a]" -map "[v]" -map "[a]" "{target_video_path}"
-        """)
+            t.run(f"""
+                ffmpeg -i "{source_video_path}" -filter_complex "[0:v]setpts={video_speed}*PTS[v];[0:a]{audio_speed}[a]" -map "[v]" -map "[a]" "{target_video_path}"
+            """)
 
-        done()
+            done()
+        else:
+            self._speedup_video_with_moviepy(source_video_path, target_video_path, speed=speed)
 
     def _speedup_video_with_moviepy(self, source_video_path, target_video_path, speed=4):
         source_video_path = try_to_get_absolutely_path(source_video_path)
