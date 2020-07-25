@@ -825,17 +825,17 @@ class Video():
             target_video_path = add_path(new_folder, basename)
             make_sure_target_does_not_exist(target_video_path)
 
-            size, unit = convert_bytes(os.path.getsize(file))
-            if unit == "GB":
-                if size > 2:
-                    if fps and resolution and preset:
-                        t.run(f"""
-                            ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale={resolution[0]}:{resolution[1]} -r {fps} -preset {preset} "{target_video_path}"
-                        """)
-                    else:
-                        t.run(f"""
-                            ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale=-2:720 "{target_video_path}"
-                        """)
+            #size, unit = convert_bytes(os.path.getsize(file))
+            #if unit == "GB":
+            #    if size > 2:
+            if fps and resolution and preset:
+                t.run(f"""
+                    ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale={resolution[0]}:{resolution[1]} -r {fps} -preset {preset} "{target_video_path}"
+                """)
+            else:
+                t.run(f"""
+                    ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale=-2:720 "{target_video_path}"
+                """)
 
 
         done()
