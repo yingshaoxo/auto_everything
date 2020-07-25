@@ -796,7 +796,7 @@ class Video():
 
         done()
 
-    def compress_videos_in_a_folder(self, source_folder):
+    def compress_videos_in_a_folder(self, source_folder, fps: int = 29, resolution: Tuple[int, int] = None, preset: str = 'placebo'):
         source_folder = try_to_get_absolutely_path(source_folder)
         make_sure_source_is_absolute_path(source_folder)
 
@@ -828,10 +828,15 @@ class Video():
             size, unit = convert_bytes(os.path.getsize(file))
             if unit == "GB":
                 if size > 2:
-                    t.run(f"""
-                        # ffmpeg -i "{file}" "{target_video_path}"
-                        ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale=-2:720 "{target_video_path}"
-                    """)
+                    if fps and resolution and preset:
+                        t.run(f"""
+                            ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale={resolution[0]}:{resolution[1]} -r {fps} -preset {preset} "{target_video_path}"
+                        """)
+                    else:
+                        t.run(f"""
+                            ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale=-2:720 "{target_video_path}"
+                        """)
+
 
         done()
 
