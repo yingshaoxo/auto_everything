@@ -133,6 +133,7 @@ sudo pip3 install autopep8
 sudo pip3 install jedi
 
 sudo apt-get install vim-gnome -y
+sudo apt-get install vim-gtk3 -y
 sudo pacman --noconfirm -S gvim
 """
 t.run(c, wait=True)
