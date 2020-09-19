@@ -4,6 +4,8 @@ import os
 import re
 import json
 import hashlib
+import unicodedata
+import string
 
 from auto_everything.base import Terminal
 t = Terminal(debug=True)
@@ -99,6 +101,47 @@ class Disk():
                     break
                 file_hash.update(data)
         return file_hash.hexdigest()
+
+    def get_hash_of_a_path(self, path: str) -> str:
+        """
+        calculate the blake2s hash string based on path name.
+
+        Parameters
+        ----------
+        path: string
+            actually it can be any string
+        """
+        file_hash = hashlib.blake2s()
+        file_hash.update(path.encode(encoding="UTF-8"))
+        return file_hash.hexdigest()
+
+    def get_safe_name(self, filename: str, replace_chars=' ') -> str:
+        """
+        get a valid file name by doing a replacement. (English only)
+
+        Parameters
+        ----------
+        filename: string
+            the unsafe filename
+        replace_chars: string
+            chars in replace_chars will be replaced by '_'.
+        """
+        valid_filename_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+        whitelist = valid_filename_chars
+        char_limit = 255
+
+        # replace spaces
+        for r in replace_chars:
+            filename = filename.replace(r, '_')
+
+        # keep only valid ascii chars
+        cleaned_filename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode()
+
+        # keep only whitelisted chars
+        cleaned_filename = ''.join(c for c in cleaned_filename if c in whitelist)
+        if len(cleaned_filename) > char_limit:
+            print("Warning, filename truncated because it was over {}. Filenames may no longer be unique".format(char_limit))
+        return cleaned_filename[:char_limit]
 
     def get_file_size(self, path: str, level: str = "B") -> int:
         """
@@ -280,6 +323,7 @@ if __name__ == "__main__":
     files = disk.sort_files_by_time(files)
     pprint(files)
     """
+    """
     store = Store("test")
     store.set("o", "2")
     print(store.get_items())
@@ -287,3 +331,6 @@ if __name__ == "__main__":
     print(store.get("ok", "alsjdkfla"))
     store.reset()
     print(store.get_items())
+    """
+    disk = Disk()
+    #print(disk.get_hash_of_a_path("/home/yingshaoxo/.python_history"))

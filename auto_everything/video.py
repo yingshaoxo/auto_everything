@@ -96,7 +96,8 @@ def make_sure_target_does_not_exist(path):
             else:
                 r = os.remove(p)
                 if r is False:
-                    print(f"I can't remove target '{p}' for you, please check your permission")
+                    print(
+                        f"I can't remove target '{p}' for you, please check your permission")
                     exit()
 
 
@@ -378,7 +379,8 @@ class Video():
         method: int
             1 to use ffmpeg(low quality), 2 to use moviepy(high quality)
         """
-        source_video_path_list = [try_to_get_absolutely_path(f) for f in source_video_path_list]
+        source_video_path_list = [try_to_get_absolutely_path(
+            f) for f in source_video_path_list]
         make_sure_source_is_absolute_path(source_video_path_list)
         target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_target_is_absolute_path(target_video_path)
@@ -400,9 +402,11 @@ class Video():
         elif method == 2:
             # for the stupid moviepy library, it will case memory leak if you give it too much videos
             print(source_video_path_list)
-            clip_list = [VideoFileClip(clip) for clip in source_video_path_list]
+            clip_list = [VideoFileClip(clip)
+                         for clip in source_video_path_list]
             final_clip = concatenate_videoclips(clip_list)
-            final_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, preset=preset)
+            final_clip.write_videofile(
+                target_video_path, threads=self._cpu_core_numbers, preset=preset)
 
             for clip in clip_list:
                 clip.close()
@@ -518,9 +522,9 @@ class Video():
 
         working_dir = get_directory_name(target_video_path)
         audio_path = convert_video_to_wav(source_video_path, add_path(
-            working_dir, 'audio_for_remove_silence_parts_from_video.wav'))
+            working_dir, disk.get_hash_of_a_path(source_video_path)+'audio_for_remove_silence_parts_from_video.wav'))
         temp_video_path = add_path(
-            working_dir, 'temp_for_remove_silence_parts_from_video.mp4')
+            working_dir, disk.get_hash_of_a_path(source_video_path)+'temp_for_remove_silence_parts_from_video.mp4')
 
         if minimum_interval_time_in_seconds is None:
             parts = self._get_voice_parts(audio_path, top_db)
@@ -534,8 +538,10 @@ class Video():
         length = len(parts)
         for index, part in enumerate(parts):
             try:
-                time_duration = (datetime.datetime.strptime(part[1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[0], '%H:%M:%S.%f')).seconds
-                print(str(int(index/length*100))+"%,", "-".join([p.split(".")[0] for p in part]) + ",", "cut " + str(time_duration) + " seconds")
+                time_duration = (datetime.datetime.strptime(
+                    part[1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[0], '%H:%M:%S.%f')).seconds
+                print(str(int(index/length*100))+"%,", "-".join(
+                    [p.split(".")[0] for p in part]) + ",", "cut " + str(time_duration) + " seconds")
             except Exception as e:
                 print(e)
             clip_list.append(parent_clip.subclip(part[0], part[1]))
@@ -543,14 +549,16 @@ class Video():
         concat_clip = concatenate_videoclips(clip_list)
 
         if not voice_only:
-            concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
+            concat_clip.write_videofile(
+                target_video_path, threads=self._cpu_core_numbers)
             concat_clip.close()
             del concat_clip
             make_sure_target_does_not_exist(audio_path)
             make_sure_target_does_not_exist(temp_video_path)
         else:
             if len(target_video_path.split(".")) >= 2:
-                target_audio_path = ".".join(target_video_path.split(".")[:-1]) + ".mp3"
+                target_audio_path = ".".join(
+                    target_video_path.split(".")[:-1]) + ".mp3"
             else:
                 target_audio_path = target_video_path + ".mp3"
             make_sure_target_does_not_exist(target_audio_path)
@@ -640,7 +648,8 @@ class Video():
         if speed <= 4:
             parts = math.ceil(speed/2)
             value_of_each_part = str(speed ** (1/parts))[:6]
-            audio_speed = ",".join([f"atempo={value_of_each_part}" for i in range(parts)])
+            audio_speed = ",".join(
+                [f"atempo={value_of_each_part}" for i in range(parts)])
 
             t.run(f"""
                 ffmpeg -i "{source_video_path}" -filter_complex "[0:v]setpts={video_speed}*PTS[v];[0:a]{audio_speed}[a]" -map "[v]" -map "[a]" "{target_video_path}"
@@ -648,7 +657,8 @@ class Video():
 
             done()
         else:
-            self._speedup_video_with_moviepy(source_video_path, target_video_path, speed=speed)
+            self._speedup_video_with_moviepy(
+                source_video_path, target_video_path, speed=speed)
 
     def _speedup_video_with_moviepy(self, source_video_path, target_video_path, speed=4):
         source_video_path = try_to_get_absolutely_path(source_video_path)
@@ -685,7 +695,7 @@ class Video():
 
         working_dir = get_directory_name(target_video_path)
         audio_path = convert_video_to_wav(source_video_path, add_path(
-            working_dir, 'audio_for_speedup_silence_parts_in_video.wav'))
+            working_dir, disk.get_hash_of_a_path(source_video_path)+'audio_for_speedup_silence_parts_in_video.wav'))
 
         voice_and_silence_parts = self._get_voice_and_silence_parts(
             audio_path, top_db)
@@ -698,8 +708,10 @@ class Video():
             if len(part[1][0].split(".")) < 2:
                 part[1][0] += ".000000"
             try:
-                time_duration = (datetime.datetime.strptime(part[1][1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[1][0], '%H:%M:%S.%f')).seconds
-                print(str(int(index/length*100))+"%,", "-".join([p.split(".")[0] for p in part[1]]) + ",", "cut " + str(time_duration) + " seconds")
+                time_duration = (datetime.datetime.strptime(
+                    part[1][1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[1][0], '%H:%M:%S.%f')).seconds
+                print(str(int(index/length*100))+"%,", "-".join([p.split(".")[
+                      0] for p in part[1]]) + ",", "cut " + str(time_duration) + " seconds")
             except Exception as e:
                 print(e)
             if part[0] == 1:  # voice
@@ -713,7 +725,8 @@ class Video():
 
         concat_clip = concatenate_videoclips(clip_list)
 
-        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
+        concat_clip.write_videofile(
+            target_video_path, threads=self._cpu_core_numbers)
         concat_clip.close()
         del concat_clip
 
@@ -828,7 +841,7 @@ class Video():
             make_sure_target_does_not_exist(target_video_path)
 
             #size, unit = convert_bytes(os.path.getsize(file))
-            #if unit == "GB":
+            # if unit == "GB":
             #    if size > 2:
             if fps and resolution and preset:
                 t.run(f"""
@@ -838,7 +851,6 @@ class Video():
                 t.run(f"""
                     ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale=-2:720 "{target_video_path}"
                 """)
-
 
         done()
 
@@ -883,14 +895,16 @@ class DeepVideo():
 
         self._cpu_core_numbers = multiprocessing.cpu_count()
 
-        self.config_folder = Path("~/.auto_everything").expanduser() / Path("video")
+        self.config_folder = Path(
+            "~/.auto_everything").expanduser() / Path("video")
         if not os.path.exists(self.config_folder):
             t.run_command(f"mkdir -p {self.config_folder}")
 
         # download
         zip_file = self.config_folder / Path("vosk-en.zip")
         if not disk.exists(zip_file):
-            success = network.download("http://alphacephei.com/kaldi/models/vosk-model-small-en-us-0.3.zip", zip_file, "30MB")
+            success = network.download(
+                "http://alphacephei.com/kaldi/models/vosk-model-small-en-us-0.3.zip", zip_file, "30MB")
             if success:
                 print("download successfully")
             else:
@@ -950,7 +964,8 @@ class DeepVideo():
     def __get_data_from_video(self, path: str, minimum_interval_time_in_seconds: float = 0.0, video_length: float = None):
         from vosk import Model, KaldiRecognizer, SetLogLevel
 
-        assert os.path.exists(path), f"source video file {path} does not exist!"
+        assert os.path.exists(
+            path), f"source video file {path} does not exist!"
 
         SetLogLevel(0)
         sample_rate = 16000
@@ -997,19 +1012,23 @@ class DeepVideo():
         """
         make_sure_target_does_not_exist(target_video_path)
 
-        video_files = [video for video in disk.get_files(source_folder, recursive=False)]
+        video_files = [video for video in disk.get_files(
+            source_folder, recursive=False)]
         video_files = disk.sort_files_by_time(video_files)
         if resolution != None:
             resolution = (resolution[1], resolution[0])
-        parent_clips = [VideoFileClip(video, target_resolution=resolution) for video in video_files]
+        parent_clips = [VideoFileClip(
+            video, target_resolution=resolution) for video in video_files]
         length = len(video_files)
         remain_clips = []
         for index, video_file in enumerate(video_files):
             print("Working on ", str(int(index/length*100)) + " %...")
-            parts = self.__get_data_from_video(video_file, minimum_interval_time_in_seconds, parent_clips[index].duration)
+            parts = self.__get_data_from_video(
+                video_file, minimum_interval_time_in_seconds, parent_clips[index].duration)
             for part in parts:
                 if part[2] == 'voice':
-                    remain_clips.append(parent_clips[index].subclip(part[0], part[1]))
+                    remain_clips.append(
+                        parent_clips[index].subclip(part[0], part[1]))
 
         concat_clip = concatenate_videoclips(remain_clips)
         concat_clip.write_videofile(target_video_path, fps=fps, preset=preset)
@@ -1039,19 +1058,23 @@ class DeepVideo():
         """
         make_sure_target_does_not_exist(target_video_path)
 
-        video_files = [video for video in disk.get_files(source_folder, recursive=False)]
+        video_files = [video for video in disk.get_files(
+            source_folder, recursive=False)]
         video_files = disk.sort_files_by_time(video_files)
         if resolution != None:
             resolution = (resolution[1], resolution[0])
-        parent_clips = [VideoFileClip(video, target_resolution=resolution) for video in video_files]
+        parent_clips = [VideoFileClip(
+            video, target_resolution=resolution) for video in video_files]
         length = len(video_files)
         remain_clips = []
         for index, video_file in enumerate(video_files):
             print("Working on ", str(int(index/length*100)) + " %...")
-            parts = self.__get_data_from_video(video_file, minimum_interval_time_in_seconds, parent_clips[index].duration)
+            parts = self.__get_data_from_video(
+                video_file, minimum_interval_time_in_seconds, parent_clips[index].duration)
             for part in parts:
                 if part[2] == 'voice':
-                    remain_clips.append(parent_clips[index].subclip(part[0], part[1]))
+                    remain_clips.append(
+                        parent_clips[index].subclip(part[0], part[1]))
                 elif part[2] == 'silence':
                     remain_clips.append(
                         parent_clips[index].subclip(part[0], part[1]).without_audio().fx(
@@ -1079,20 +1102,23 @@ class DeepVideo():
         make_sure_target_does_not_exist(target_video_path)
 
         parent_clip = VideoFileClip(source_video_path)
-        parts = self.__get_data_from_video(source_video_path, minimum_interval_time_in_seconds, parent_clip.duration)
+        parts = self.__get_data_from_video(
+            source_video_path, minimum_interval_time_in_seconds, parent_clip.duration)
         clip_list = []
         length = len(parts)
         for index, part in enumerate(parts):
             if part[2] == 'voice':
                 try:
                     time_duration = part[1] - part[0]
-                    print(str(int(index/length*100))+"%,", "remain " + str(int(time_duration)) + " seconds")
+                    print(str(int(index/length*100))+"%,", "remain " +
+                          str(int(time_duration)) + " seconds")
                 except Exception as e:
                     print(e)
                 clip_list.append(parent_clip.subclip(part[0], part[1]))
 
         concat_clip = concatenate_videoclips(clip_list)
-        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
+        concat_clip.write_videofile(
+            target_video_path, threads=self._cpu_core_numbers)
         concat_clip.close()
         parent_clip.close()
 
@@ -1111,8 +1137,10 @@ class DeepVideo():
         """
         make_sure_target_does_not_exist(target_video_path)
 
-        parent_clip = VideoFileClip(source_video_path, target_resolution=(resolution[1], resolution[0]))
-        parts = self.__get_data_from_video(source_video_path, minimum_interval_time_in_seconds, parent_clip.duration)
+        parent_clip = VideoFileClip(
+            source_video_path, target_resolution=(resolution[1], resolution[0]))
+        parts = self.__get_data_from_video(
+            source_video_path, minimum_interval_time_in_seconds, parent_clip.duration)
         clip_list = []
         length = len(parts)
         for index, part in enumerate(parts):
@@ -1121,7 +1149,8 @@ class DeepVideo():
             elif part[2] == 'silence':
                 try:
                     time_duration = part[1] - part[0]
-                    print(str(int(index/length*100))+"%,", "speed up " + str(int(time_duration)) + " seconds")
+                    print(str(int(index/length*100))+"%,", "speed up " +
+                          str(int(time_duration)) + " seconds")
                 except Exception as e:
                     print(e)
                 clip_list.append(
@@ -1131,7 +1160,8 @@ class DeepVideo():
                 )
 
         concat_clip = concatenate_videoclips(clip_list)
-        concat_clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset)
+        concat_clip.write_videofile(
+            target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset)
         concat_clip.close()
         parent_clip.close()
 
@@ -1140,4 +1170,5 @@ class DeepVideo():
 
 if __name__ == "__main__":
     video = DeepVideo()
-    video.speedup_silence_parts_in_video("/home/yingshaoxo/demo.mp4", "/home/yingshaoxo/ok.mp4", 10)
+    video.speedup_silence_parts_in_video(
+        "/home/yingshaoxo/demo.mp4", "/home/yingshaoxo/ok.mp4", 10)
