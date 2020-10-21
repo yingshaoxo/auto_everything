@@ -6,6 +6,11 @@ from os import path
 t = Terminal()                                                                                  
 io = IO()                                                                                       
                                                                                                               
+if (t.run_command("echo $DESKTOP_SESSION").strip() != ""):
+    IS_DESKTOP = True
+else:
+    IS_DESKTOP = False
+
 print("start...\n\n")                                                                                         
                                                                                                               
 # 1                                                                                                           
@@ -131,12 +136,16 @@ with open(t.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
 c = """
 sudo pip3 install autopep8
 sudo pip3 install jedi
-
-sudo apt-get install vim-gnome -y
-sudo apt-get install vim-gtk3 -y
-sudo pacman --noconfirm -S gvim
 """
 t.run(c, wait=True)
+
+if IS_DESKTOP:
+    c = """
+    sudo apt-get install vim-gnome -y
+    sudo apt-get install vim-gtk3 -y
+    sudo pacman --noconfirm -S gvim
+    """
+    t.run(c, wait=True)
 
 
 print("\n\nfinished...")
