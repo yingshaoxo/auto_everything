@@ -364,7 +364,7 @@ class Video():
 
         done()
 
-    def link_videos(self, source_video_path_list, target_video_path, method=1, preset="ultrafast"):
+    def link_videos(self, source_video_path_list, target_video_path, method=2, preset="ultrafast"):
         """
         concatenate videos one by one
 
