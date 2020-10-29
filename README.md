@@ -112,6 +112,11 @@ git fetch --all
 git reset --hard origin/master
 """)
 
+    def undo(self):
+        t.run("""
+git reset --mixed HEAD~1
+""")
+
     def reset(self):
         t.run("""
 git reset --hard HEAD^
