@@ -80,7 +80,7 @@ return true is it exists</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>c</strong> (<em>string</em>) – shell command</li>
 <li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
-<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – True, this command may keep running forever</li>
+<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – True, this command may keep running forever</li>
 </ul>
 </td>
 </tr>
@@ -98,7 +98,7 @@ return true is it exists</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>c</strong> (<em>string</em>) – shell command</li>
-<li><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><em>seconds</em>) – how long this command will take, beyound it, an exception will raise</li>
+<li><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>seconds</em>) – how long this command will take, beyound it, an exception will raise</li>
 <li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
 </ul>
 </td>
@@ -145,7 +145,7 @@ This function will not wait program to be finished.</p>
 </dl>
 </li>
 <li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
-<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if true, it will wait until the python program quit</li>
+<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if true, it will wait until the python program quit</li>
 </ul>
 </td>
 </tr>
@@ -168,7 +168,7 @@ This function will not wait program to be finished.</p>
 </dl>
 </li>
 <li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
-<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if true, it will wait until the bash program quit</li>
+<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if true, it will wait until the bash program quit</li>
 </ul>
 </td>
 </tr>
@@ -200,9 +200,9 @@ This function will not wait program to be finished.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> (<em>string</em>) – what’s the name of that program you want to kill</li>
-<li><strong>force</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – kill it directlly or softly.
+<li><strong>force</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – kill it directlly or softly.
 some program like ffmpeg, should set force=False</li>
-<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – true, wait until program totolly quit</li>
+<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – true, wait until program totolly quit</li>
 </ul>
 </td>
 </tr>
@@ -235,7 +235,7 @@ some program like ffmpeg, should set force=False</li>
 
 <dl class="method">
 <dt id="auto_everything.disk.Disk.get_files">
-<code class="descname">get_files</code><span class="sig-paren">(</span><em>folder: str</em>, <em>recursive: bool = True</em><span class="sig-paren">)</span> &#x2192; List[str]<a class="reference internal" href="_modules/auto_everything/disk.html#Disk.get_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.disk.Disk.get_files" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_files</code><span class="sig-paren">(</span><em>folder: str</em>, <em>recursive: bool = True</em>, <em>type_limiter: List[str] = None</em><span class="sig-paren">)</span> &#x2192; List[str]<a class="reference internal" href="_modules/auto_everything/disk.html#Disk.get_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.disk.Disk.get_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get files recursively under a folder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -243,7 +243,54 @@ some program like ffmpeg, should set force=False</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>folder</strong> (<em>string</em>) – </li>
-<li><strong>recursive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </li>
+<li><strong>recursive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – </li>
+<li><strong>type_limiter</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – a list used to do a type filter, like [“.mp3”, “.epub”]</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.disk.Disk.get_hash_of_a_file">
+<code class="descname">get_hash_of_a_file</code><span class="sig-paren">(</span><em>path: str</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/auto_everything/disk.html#Disk.get_hash_of_a_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.disk.Disk.get_hash_of_a_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the blake2s hash string based on the bytes of a file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>string</em>) – the file path</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.disk.Disk.get_hash_of_a_path">
+<code class="descname">get_hash_of_a_path</code><span class="sig-paren">(</span><em>path: str</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/auto_everything/disk.html#Disk.get_hash_of_a_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.disk.Disk.get_hash_of_a_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the blake2s hash string based on path name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>string</em>) – actually it can be any string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.disk.Disk.get_safe_name">
+<code class="descname">get_safe_name</code><span class="sig-paren">(</span><em>filename: str</em>, <em>replace_chars=' '</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/auto_everything/disk.html#Disk.get_safe_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.disk.Disk.get_safe_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a valid file name by doing a replacement. (English only)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> (<em>string</em>) – the unsafe filename</li>
+<li><strong>replace_chars</strong> (<em>string</em>) – chars in replace_chars will be replaced by ‘_’.</li>
 </ul>
 </td>
 </tr>
@@ -385,7 +432,7 @@ some program like ffmpeg, should set force=False</li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">return <cite>false</cite> if the specified size less than the file we downloaded</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
 </td>
 </tr>
 </tbody>
@@ -397,91 +444,9 @@ some program like ffmpeg, should set force=False</li>
 </div>
 <div class="section" id="gui">
 <h1>GUI<a class="headerlink" href="#gui" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="auto_everything.gui.GUI">
-<em class="property">class </em><code class="descclassname">auto_everything.gui.</code><code class="descname">GUI</code><span class="sig-paren">(</span><em>project_name=''</em>, <em>time_takes_for_one_click=0.2</em>, <em>grayscale=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#GUI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.GUI" title="Permalink to this definition">¶</a></dt>
-<dd><p>A wrapper for pyautogui.</p>
-<dl class="method">
-<dt id="auto_everything.gui.GUI.exists">
-<code class="descname">exists</code><span class="sig-paren">(</span><em>element_name</em>, <em>confidence=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#GUI.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.GUI.exists" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check if an image exists at the screen</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>element_name</strong> (<em>string</em>) – image name (those pictures you put into data folder)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="auto_everything.gui.GUI.click">
-<code class="descname">click</code><span class="sig-paren">(</span><em>element_name=None</em>, <em>game=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#GUI.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.GUI.click" title="Permalink to this definition">¶</a></dt>
-<dd><p>click an image at the screen</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>element_name</strong> (<em>string</em>) – image name (those pictures you put into data folder)</li>
-<li><strong>game</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – for games, we click it in a different way</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="androidgui">
 <h1>AndroidGUI<a class="headerlink" href="#androidgui" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="auto_everything.gui.AndroidGUI">
-<em class="property">class </em><code class="descclassname">auto_everything.gui.</code><code class="descname">AndroidGUI</code><span class="sig-paren">(</span><em>scrcpy_window_name</em>, <em>project_name=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#AndroidGUI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.AndroidGUI" title="Permalink to this definition">¶</a></dt>
-<dd><p>To interact with scrcpy by x11 and OpenCV.</p>
-<dl class="method">
-<dt id="auto_everything.gui.AndroidGUI.capture_screen">
-<code class="descname">capture_screen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#AndroidGUI.capture_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.AndroidGUI.capture_screen" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get opencv image.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="auto_everything.gui.AndroidGUI.find_all">
-<code class="descname">find_all</code><span class="sig-paren">(</span><em>element_name</em>, <em>from_image=None</em>, <em>threshold=0.8</em>, <em>visual=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#AndroidGUI.find_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.AndroidGUI.find_all" title="Permalink to this definition">¶</a></dt>
-<dd><p>find all images at the screen</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>element_name</strong> (<em>string</em>) – name for the sub image</li>
-<li><strong>from_image</strong> (<em>opencv image</em>) – </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="auto_everything.gui.AndroidGUI.click">
-<code class="descname">click</code><span class="sig-paren">(</span><em>point</em>, <em>landscape=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#AndroidGUI.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.AndroidGUI.click" title="Permalink to this definition">¶</a></dt>
-<dd><p>do a click at android screen by using adb</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>point</strong> (<em>{&quot;x&quot;: 1920</em><em>, </em><em>&quot;y&quot;: 1080}</em>) – it’s actually the result you get from function find_all().</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="video">
 <h1>Video<a class="headerlink" href="#video" title="Permalink to this headline">¶</a></h1>
@@ -496,7 +461,7 @@ some program like ffmpeg, should set force=False</li>
 4. moviepy</p>
 <dl class="method">
 <dt id="auto_everything.video.Video.link_videos">
-<code class="descname">link_videos</code><span class="sig-paren">(</span><em>source_video_path_list</em>, <em>target_video_path</em>, <em>method=1</em>, <em>preset='ultrafast'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.link_videos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.link_videos" title="Permalink to this definition">¶</a></dt>
+<code class="descname">link_videos</code><span class="sig-paren">(</span><em>source_video_path_list</em>, <em>target_video_path</em>, <em>method=2</em>, <em>preset='ultrafast'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.link_videos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.link_videos" title="Permalink to this definition">¶</a></dt>
 <dd><p>concatenate videos one by one</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -505,7 +470,7 @@ some program like ffmpeg, should set force=False</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path_list</strong> (<em>list of video path</em>) – those videos you want to concatenate</li>
 <li><strong>target_video_path</strong> (<em>string</em>) – where to save the concatenated video</li>
-<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
 </ul>
 </td>
 </tr>
@@ -522,9 +487,9 @@ some program like ffmpeg, should set force=False</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sort_by_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – when true, we sort by time
+<li><strong>sort_by_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – when true, we sort by time
 when false, we sort by name(1, 2, 3)</li>
-<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
 </ul>
 </td>
 </tr>
@@ -548,9 +513,9 @@ when false, we sort by name(1, 2, 3)</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite>, but for some case if the volume is too small, <cite>30</cite> would be fine</li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
-<li><strong>voice_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if true, it only returns the path of silence removed mp3 file</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite>, but for some case if the volume is too small, <cite>30</cite> would be fine</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>voice_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if true, it only returns the path of silence removed mp3 file</li>
 </ul>
 </td>
 </tr>
@@ -570,8 +535,8 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
 </ul>
 </td>
 </tr>
@@ -589,7 +554,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – how quick you want the video to be</li>
+<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – how quick you want the video to be</li>
 </ul>
 </td>
 </tr>
@@ -608,8 +573,8 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – how quick you want the silence parts to be</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
+<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – how quick you want the silence parts to be</li>
 </ul>
 </td>
 </tr>
@@ -645,7 +610,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>times</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – 2 times the source_video volume or 3 times the source_video volume</li>
+<li><strong>times</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – 2 times the source_video volume or 3 times the source_video volume</li>
 </ul>
 </td>
 </tr>
@@ -678,9 +643,9 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_folder</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
-<li><strong>fps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </li>
-<li><strong>target_resolution</strong> (<em>Tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>)</em>) – Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on.</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>fps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </li>
+<li><strong>target_resolution</strong> (<em>Tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>)</em>) – Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on.</li>
 <li><strong>preset</strong> (<em>string</em>) – Sets the time that FFMPEG will spend optimizing the compression. Choices are: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo. Note that this does not impact the quality of the video, only the size of the video file.</li>
 </ul>
 </td>
@@ -700,10 +665,10 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_folder</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – how quick you want the silence parts to be</li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
-<li><strong>fps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </li>
-<li><strong>target_resolution</strong> (<em>Tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>)</em>) – Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on.</li>
+<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – how quick you want the silence parts to be</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>fps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </li>
+<li><strong>target_resolution</strong> (<em>Tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>)</em>) – Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on.</li>
 <li><strong>preset</strong> (<em>string</em>) – Sets the time that FFMPEG will spend optimizing the compression. Choices are: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo. Note that this does not impact the quality of the video, only the size of the video file.</li>
 </ul>
 </td>
@@ -722,7 +687,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
 </ul>
 </td>
 </tr>
@@ -741,7 +706,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – how quick you want the silence parts to be</li>
+<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – how quick you want the silence parts to be</li>
 </ul>
 </td>
 </tr>
@@ -754,65 +719,9 @@ Then you make the decision wheather you want to do this or not</p>
 </div>
 <div class="section" id="fakecamera">
 <h1>FakeCamera<a class="headerlink" href="#fakecamera" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="auto_everything.camera.FakeCamera">
-<em class="property">class </em><code class="descclassname">auto_everything.camera.</code><code class="descname">FakeCamera</code><span class="sig-paren">(</span><em>device: str = None</em>, <em>width: int = 640</em>, <em>height: int = 480</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/camera.html#FakeCamera"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.camera.FakeCamera" title="Permalink to this definition">¶</a></dt>
-<dd><p>This module based on <cite>pyfakewebcam</cite>.</p>
-<dl class="method">
-<dt id="auto_everything.camera.FakeCamera.next">
-<code class="descname">next</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/camera.html#FakeCamera.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.camera.FakeCamera.next" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pipe new frame to the fake camera</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>frame</strong> (<em>numpy representation of an image</em>) – np.zeros((480,640,3), dtype=np.uint8)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="auto_everything.camera.FakeCamera.show">
-<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/camera.html#FakeCamera.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.camera.FakeCamera.show" title="Permalink to this definition">¶</a></dt>
-<dd><p>Show the fake camera by using ffplay</p>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="selenium">
 <h1>Selenium<a class="headerlink" href="#selenium" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="auto_everything.web.Selenium">
-<em class="property">class </em><code class="descclassname">auto_everything.web.</code><code class="descname">Selenium</code><span class="sig-paren">(</span><em>url</em>, <em>headless=False</em>, <em>timeout=600</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium" title="Permalink to this definition">¶</a></dt>
-<dd><p>It’s a wrap of selenium</p>
-<dl class="method">
-<dt id="auto_everything.web.Selenium.wait_until_exists">
-<code class="descname">wait_until_exists</code><span class="sig-paren">(</span><em>xpath</em>, <em>timeout=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium.wait_until_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium.wait_until_exists" title="Permalink to this definition">¶</a></dt>
-<dd><p>wait elements to be exist in an webpage, return those elements</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>xpath</strong> (<em>string</em>) – you can get it by using F12 at your browser</li>
-<li><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – how many seconds you want to wait</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="auto_everything.web.Selenium.click">
-<code class="descname">click</code><span class="sig-paren">(</span><em>element</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/web.html#Selenium.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.web.Selenium.click" title="Permalink to this definition">¶</a></dt>
-<dd><p>click an element</p>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 
 
