@@ -1,6 +1,10 @@
 # auto_everything
 Linux(mainly ubuntu) automation
 
+#### Donation
+[<img src="https://github.com/yingshaoxo/yingshaoxo/raw/master/become_a_patron_button.png" width="200">](https://www.patreon.com/bePatron?u=45200693)
+
+
 #### Installation
 ```bash
 sudo pip3 install auto_everything
