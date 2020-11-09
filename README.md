@@ -32,7 +32,7 @@ ___
 ## Basic API
 #### Import
 ```python
-from auto_everything.base import Terminal
+from auto_everything.terminal import Terminal
 t = Terminal()
 ```
 

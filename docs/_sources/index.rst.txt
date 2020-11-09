@@ -10,7 +10,7 @@ auto_everything
 
 Terminal
 ===================
-.. autoclass:: auto_everything.base.Terminal
+.. autoclass:: auto_everything.terminal.Terminal
    :members:
 
 Disk

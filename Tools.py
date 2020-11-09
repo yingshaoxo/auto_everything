@@ -19,8 +19,8 @@ git reset --hard origin/master
 """)
 
     def test(self):
-        #sudo pip3 install pytest
-        #sudo pip3 install -e .
+        # sudo pip3 install pytest
+        # sudo pip3 install -e .
         t.run("""
         pytest
 """)
@@ -35,25 +35,32 @@ git reset --hard origin/master
             prospector {py_file}
             """)
 
-    def install(self):
-        t.run("""
-sudo rm -fr dist
-sudo rm -fr build
+    def install(self, method=0):
+        print(method)
+        if method == 0:
+            t.run("""
+    sudo pip3 install -e .
+    pip3 install -e .
+            """)
+        else:
+            t.run("""
+    sudo rm -fr dist
+    sudo rm -fr build
 
-sudo pip3 uninstall -y auto_everything
-sudo -H python3 setup.py sdist bdist_wheel
-cd dist
-sudo pip3 install auto_everything*
+    sudo pip3 uninstall -y auto_everything
+    sudo -H python3 setup.py sdist bdist_wheel
+    cd dist
+    sudo pip3 install auto_everything*
 
-#sudo pip3 install -e .[video]
-#sudo pip3 install .
-cd ..
-        """)
+    #sudo pip3 install -e .[video]
+    #sudo pip3 install .
+    cd ..
+            """)
 
     def make_docs(self):
         t.run("""
         sudo apt install -y python3-sphinx
-        sudo pip3 install -y Flask-Sphinx-Themes
+        sudo pip3 install Flask-Sphinx-Themes
         cd docs
         make html
         cp docs/html/* . -fr

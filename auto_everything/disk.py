@@ -7,7 +7,7 @@ import hashlib
 import unicodedata
 import string
 
-from auto_everything.base import Terminal
+from auto_everything.terminal import Terminal
 t = Terminal(debug=True)
 
 

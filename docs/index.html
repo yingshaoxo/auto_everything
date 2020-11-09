@@ -51,12 +51,12 @@
 <div class="section" id="terminal">
 <h1>Terminal<a class="headerlink" href="#terminal" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="auto_everything.base.Terminal">
-<em class="property">class </em><code class="descclassname">auto_everything.base.</code><code class="descname">Terminal</code><span class="sig-paren">(</span><em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal" title="Permalink to this definition">¶</a></dt>
+<dt id="auto_everything.terminal.Terminal">
+<em class="property">class </em><code class="descclassname">auto_everything.terminal.</code><code class="descname">Terminal</code><span class="sig-paren">(</span><em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminal simulator for execute bash commands</p>
 <dl class="method">
-<dt id="auto_everything.base.Terminal.exists">
-<code class="descname">exists</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.exists" title="Permalink to this definition">¶</a></dt>
+<dt id="auto_everything.terminal.Terminal.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>cheack if a file or directory exists
 return true is it exists</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -70,8 +70,8 @@ return true is it exists</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="auto_everything.base.Terminal.run">
-<code class="descname">run</code><span class="sig-paren">(</span><em>c</em>, <em>cwd=None</em>, <em>wait=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run" title="Permalink to this definition">¶</a></dt>
+<dt id="auto_everything.terminal.Terminal.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>c</em>, <em>cwd=None</em>, <em>wait=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>run shell commands without value returning</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -89,8 +89,8 @@ return true is it exists</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="auto_everything.base.Terminal.run_command">
-<code class="descname">run_command</code><span class="sig-paren">(</span><em>c</em>, <em>timeout=15</em>, <em>cwd=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run_command" title="Permalink to this definition">¶</a></dt>
+<dt id="auto_everything.terminal.Terminal.run_command">
+<code class="descname">run_command</code><span class="sig-paren">(</span><em>c</em>, <em>timeout=15</em>, <em>cwd=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>run shell commands with return value</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -108,8 +108,8 @@ return true is it exists</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="auto_everything.base.Terminal.run_program">
-<code class="descname">run_program</code><span class="sig-paren">(</span><em>name</em>, <em>cwd=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_program"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run_program" title="Permalink to this definition">¶</a></dt>
+<dt id="auto_everything.terminal.Terminal.run_program">
+<code class="descname">run_program</code><span class="sig-paren">(</span><em>name</em>, <em>cwd=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_program"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_program" title="Permalink to this definition">¶</a></dt>
 <dd><p>run shell commands, especially programs which can be started from terminal.
 This function will not wait program to be finished.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -131,8 +131,8 @@ This function will not wait program to be finished.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="auto_everything.base.Terminal.run_py">
-<code class="descname">run_py</code><span class="sig-paren">(</span><em>file_path_with_command</em>, <em>cwd=None</em>, <em>wait=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run_py" title="Permalink to this definition">¶</a></dt>
+<dt id="auto_everything.terminal.Terminal.run_py">
+<code class="descname">run_py</code><span class="sig-paren">(</span><em>file_path_with_command</em>, <em>cwd=None</em>, <em>wait=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_py" title="Permalink to this definition">¶</a></dt>
 <dd><p>run py_file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -154,8 +154,8 @@ This function will not wait program to be finished.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="auto_everything.base.Terminal.run_sh">
-<code class="descname">run_sh</code><span class="sig-paren">(</span><em>file_path_with_command</em>, <em>cwd=None</em>, <em>wait=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_sh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.run_sh" title="Permalink to this definition">¶</a></dt>
+<dt id="auto_everything.terminal.Terminal.run_sh">
+<code class="descname">run_sh</code><span class="sig-paren">(</span><em>file_path_with_command</em>, <em>cwd=None</em>, <em>wait=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_sh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_sh" title="Permalink to this definition">¶</a></dt>
 <dd><p>run sh_file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -177,8 +177,8 @@ This function will not wait program to be finished.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="auto_everything.base.Terminal.is_running">
-<code class="descname">is_running</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.is_running"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.is_running" title="Permalink to this definition">¶</a></dt>
+<dt id="auto_everything.terminal.Terminal.is_running">
+<code class="descname">is_running</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.is_running"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.is_running" title="Permalink to this definition">¶</a></dt>
 <dd><p>cheack if a program is running</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -191,8 +191,8 @@ This function will not wait program to be finished.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="auto_everything.base.Terminal.kill">
-<code class="descname">kill</code><span class="sig-paren">(</span><em>name</em>, <em>force=True</em>, <em>wait=False</em>, <em>timeout=30</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.base.Terminal.kill" title="Permalink to this definition">¶</a></dt>
+<dt id="auto_everything.terminal.Terminal.kill">
+<code class="descname">kill</code><span class="sig-paren">(</span><em>name</em>, <em>force=True</em>, <em>wait=False</em>, <em>timeout=30</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.kill" title="Permalink to this definition">¶</a></dt>
 <dd><p>kill a program by its name, depends on <cite>kill pid</cite></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -444,9 +444,91 @@ some program like ffmpeg, should set force=False</li>
 </div>
 <div class="section" id="gui">
 <h1>GUI<a class="headerlink" href="#gui" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="auto_everything.gui.GUI">
+<em class="property">class </em><code class="descclassname">auto_everything.gui.</code><code class="descname">GUI</code><span class="sig-paren">(</span><em>project_name=''</em>, <em>time_takes_for_one_click=0.2</em>, <em>grayscale=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#GUI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.GUI" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for pyautogui.</p>
+<dl class="method">
+<dt id="auto_everything.gui.GUI.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>element_name</em>, <em>confidence=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#GUI.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.GUI.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if an image exists at the screen</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>element_name</strong> (<em>string</em>) – image name (those pictures you put into data folder)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.gui.GUI.click">
+<code class="descname">click</code><span class="sig-paren">(</span><em>element_name=None</em>, <em>game=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#GUI.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.GUI.click" title="Permalink to this definition">¶</a></dt>
+<dd><p>click an image at the screen</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>element_name</strong> (<em>string</em>) – image name (those pictures you put into data folder)</li>
+<li><strong>game</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – for games, we click it in a different way</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="androidgui">
 <h1>AndroidGUI<a class="headerlink" href="#androidgui" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="auto_everything.gui.AndroidGUI">
+<em class="property">class </em><code class="descclassname">auto_everything.gui.</code><code class="descname">AndroidGUI</code><span class="sig-paren">(</span><em>scrcpy_window_name</em>, <em>project_name=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#AndroidGUI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.AndroidGUI" title="Permalink to this definition">¶</a></dt>
+<dd><p>To interact with scrcpy by x11 and OpenCV.</p>
+<dl class="method">
+<dt id="auto_everything.gui.AndroidGUI.capture_screen">
+<code class="descname">capture_screen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#AndroidGUI.capture_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.AndroidGUI.capture_screen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get opencv image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.gui.AndroidGUI.find_all">
+<code class="descname">find_all</code><span class="sig-paren">(</span><em>element_name</em>, <em>from_image=None</em>, <em>threshold=0.8</em>, <em>visual=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#AndroidGUI.find_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.AndroidGUI.find_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>find all images at the screen</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>element_name</strong> (<em>string</em>) – name for the sub image</li>
+<li><strong>from_image</strong> (<em>opencv image</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.gui.AndroidGUI.click">
+<code class="descname">click</code><span class="sig-paren">(</span><em>point</em>, <em>landscape=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/gui.html#AndroidGUI.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.gui.AndroidGUI.click" title="Permalink to this definition">¶</a></dt>
+<dd><p>do a click at android screen by using adb</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>point</strong> (<em>{&quot;x&quot;: 1920</em><em>, </em><em>&quot;y&quot;: 1080}</em>) – it’s actually the result you get from function find_all().</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="video">
 <h1>Video<a class="headerlink" href="#video" title="Permalink to this headline">¶</a></h1>
