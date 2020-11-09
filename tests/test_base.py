@@ -26,6 +26,7 @@ def test_fix_path():
 def test_run():
     command = "python3 -m http.server 1998"
     t.run(command, wait=False)
+    time.sleep(SHORT_DELAY)
     assert t.is_running(command) == True
     t.kill(command)
 
@@ -56,7 +57,6 @@ def test_run_program():
     html = t.run_command("wget -qO- 127.0.0.1:1998")
     assert 'HTML' in html
     t.kill(command)
-
 
 def test_exists():
     t.run_command("mkdir yingshaoxo_is_somebody")
@@ -95,7 +95,9 @@ def test_write_and_read_settings():
 
 
 if __name__ == "__main__":
-    t.run("""
-    cd ..
-    pytest
-    """)
+    command = "python3 -m http.server 1998"
+    t.run(command, wait=False)
+    time.sleep(1)
+    print(t.is_running("python3 -m http.server 1998"))
+    while 1:
+        pass

@@ -269,8 +269,8 @@ class Terminal():
         if wait is True:
             try:
                 while p.poll() is None:
-                        line = p.stdout.readline().strip(' \n')
-                        print(line)
+                        line = p.stdout.readline()#strip(' \n')
+                        print(line, end="")
             except KeyboardInterrupt:
                 self.__remove_temp_sh(temp_sh)
                 raise KeyboardInterrupt
