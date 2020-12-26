@@ -3,11 +3,13 @@ import os
 import platform
 import tempfile
 import hashlib
+import time
 from datetime import datetime
 import shlex
 import subprocess
-import psutil
+from typing import Tuple, List
 
+import psutil
 
 
 class Terminal():
@@ -15,49 +17,49 @@ class Terminal():
     Terminal simulator for execute bash commands
     """
 
-    def __init__(self, debug=False):
+    def __init__(self, debug: bool = False):
         """
         Parameters
         ----------
         username
             Linux system username
         """
-        from auto_everything.base import IO
-        self.__debug = debug
+        from auto_everything.io import IO
+        self.__debug: bool = debug
 
-        self.py_version = '{major}.{minor}'.format(
+        self.py_version: str = '{major}.{minor}'.format(
             major=str(sys.version_info[0]), minor=str(sys.version_info[1]))
-        self.py_executable = sys.executable.replace("\\", "/")
+        self.py_executable: str = sys.executable.replace("\\", "/")
         if os.name == "posix":
-            self.system_type = "linux"
+            self.system_type: str = "linux"
         elif os.name == "nt":
-            self.system_type = "win"
+            self.system_type: str = "win"
         else:
-            self.system_type = "none"
-        self.machine_type = platform.machine()
+            self.system_type: str = "none"
+        self.machine_type: str = platform.machine()
         if float(self.py_version) < 3.5:
             print('We only support Python >= 3.5 Versions')
             exit()
 
-        self.current_dir = os.getcwd()
-        self.__current_file_path = os.path.join(self.current_dir, sys.argv[0])
-        self.temp_dir = tempfile.gettempdir()
+        self.current_dir: str = os.getcwd()
+        self.__current_file_path: str = os.path.join(self.current_dir, sys.argv[0])
+        self.temp_dir: str = tempfile.gettempdir()
 
         if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
             os.remove(os.path.join(self.current_dir, 'nohup.out'))
 
         self._io = IO()
 
-    def fix_path(self, path, username=None):
+    def fix_path(self, path: str, username: str = None) -> str:
         # """
         # replace ~ with system username
         # // depressed, please use expanduser_in_path
 
         # Parameters
         # ----------
-        #path : string
+        # path : string
         #    A string which contains ~
-        #username : string
+        # username : string
         #    Linux system username
         # """
         if username is None:
@@ -70,20 +72,20 @@ class Terminal():
                 '~', "/home/{username}".format(username=username))
         return path.replace("\\", "/")
 
-    def expanduser_in_path(self, path, username=None):
+    def expanduser_in_path(self, path: str, username: str = None) -> str:
         # """
         # replace ~ with system username
 
         # Parameters
         # ----------
-        #path : string
+        # path : string
         #    A string which contains ~
-        #username : string
+        # username : string
         #    Linux system username
         # """
-        self.fix_path(path, username)
+        return self.fix_path(path, username)
 
-    def exists(self, path):
+    def exists(self, path: str) -> bool:
         """
         cheack if a file or directory exists
         return true is it exists
@@ -96,23 +98,23 @@ class Terminal():
         path = self.fix_path(path)
         return os.path.exists(path)
 
-    def __text_to_sh(self, text):
+    def __text_to_sh(self, text: str) -> Tuple[str, str]:
         m = hashlib.sha256()
         m.update(str(datetime.now()).encode("utf-8"))
         m.update(text.encode("utf-8"))
         temp_sh = os.path.join(self.temp_dir, m.hexdigest()[:10] + ".sh")
-        #pre_line = f"cd {self.current_dir}\n\n"
-        #text = pre_line + text
+        # pre_line = f"cd {self.current_dir}\n\n"
+        # text = pre_line + text
         self._io.write(temp_sh, text)
         return "bash {path} &".format(path=temp_sh), temp_sh
 
-    def __remove_temp_sh(self, path):
+    def __remove_temp_sh(self, path: str):
         try:
             os.remove(path)
         except Exception:
             pass
 
-    def run(self, c, cwd=None, wait=True):
+    def run(self, c: str, cwd: str = None, wait: bool = True):
         """
         run shell commands without value returning
 
@@ -126,9 +128,9 @@ class Terminal():
             True, this command may keep running forever
         """
         if self.__debug:
-            print('\n' + '-'*20 + '\n')
+            print('\n' + '-' * 20 + '\n')
             print(c)
-            print('\n' + '-'*20 + '\n')
+            print('\n' + '-' * 20 + '\n')
 
         if cwd is None:
             cwd = self.current_dir
@@ -161,7 +163,7 @@ class Terminal():
         else:
             return p
 
-    def run_command(self, c, timeout=15, cwd=None):
+    def run_command(self, c: str, timeout: int = 15, cwd: str = None) -> str:
         """
         run shell commands with return value
 
@@ -175,9 +177,9 @@ class Terminal():
             current working directory
         """
         if self.__debug:
-            print('\n' + '-'*20 + '\n')
+            print('\n' + '-' * 20 + '\n')
             print(c)
-            print('\n' + '-'*20 + '\n')
+            print('\n' + '-' * 20 + '\n')
 
         if cwd is None:
             cwd = self.current_dir
@@ -203,7 +205,7 @@ class Terminal():
             self.__remove_temp_sh(temp_sh)
             return str(e)
 
-    def run_program(self, name, cwd=None):
+    def run_program(self, name: str, cwd: str = None):
         """
         run shell commands, especially programs which can be started from terminal. 
         This function will not wait program to be finished.
@@ -224,9 +226,9 @@ class Terminal():
         else:
             cwd = self.fix_path(cwd)
 
-        subprocess.Popen(args_list, cwd=cwd)  # it return a process
+        return subprocess.Popen(args_list, cwd=cwd)  # it return a process
 
-    def __split_args(self, file_path_with_command):
+    def __split_args(self, file_path_with_command: str) -> Tuple[str, str]:
         file_path_with_command = file_path_with_command.replace("\\", "/")
         args_list = shlex.split(file_path_with_command)
         file_path = args_list[0]
@@ -238,7 +240,7 @@ class Terminal():
             args = ''
         return file_path, args
 
-    def run_py(self, file_path_with_command, cwd=None, wait=False):
+    def run_py(self, file_path_with_command: str, cwd: str = None, wait: bool = False):
         """
         run py_file
 
@@ -255,7 +257,7 @@ class Terminal():
         path, args = self.__split_args(file_path_with_command)
         path = self.fix_path(path)
         command = self.py_executable + \
-            ' {path} {args}'.format(path=path, args=args)
+                  ' {path} {args}'.format(path=path, args=args)
 
         if cwd is None:
             cwd = os.path.dirname(path)
@@ -265,7 +267,7 @@ class Terminal():
         elif wait is True:
             self.run(command, cwd=cwd, wait=True)
 
-    def run_sh(self, file_path_with_command, cwd=None, wait=False):
+    def run_sh(self, file_path_with_command: str, cwd: str = None, wait: bool = False):
         """
         run sh_file
 
@@ -291,7 +293,7 @@ class Terminal():
         elif wait is True:
             self.run(command, cwd=cwd, wait=True)
 
-    def _get_pids(self, name):
+    def _get_pids(self, name: str) -> List[str]:
         """
         name: what's the name of that program ; string
 
@@ -302,7 +304,7 @@ class Terminal():
         for proc in psutil.process_iter():
             try:
                 # Get process name & pid from process object.
-                #processName = proc.name()
+                # processName = proc.name()
                 process_id = proc.pid
                 process_command = ' '.join(proc.cmdline())
                 if name in process_command:
@@ -311,7 +313,7 @@ class Terminal():
                 pass
         return pids
 
-    def is_running(self, name):
+    def is_running(self, name: str) -> bool:
         """
         cheack if a program is running
 
@@ -326,7 +328,7 @@ class Terminal():
         else:
             return False
 
-    def kill(self, name, force=True, wait=False, timeout=30):
+    def kill(self, name: str, force: bool = True, wait: bool = False, timeout: int = 30):
         """
         kill a program by its name, depends on `kill pid`
 
@@ -347,7 +349,7 @@ class Terminal():
                 self.run_command('pkill {name}'.format(name=name))
             else:
                 self.run_command('kill -s SIGINT {num}'.format(num=pid))
-                #import signal
+                # import signal
                 # os.kill(pid, signal.SIGINT) #This is typically initiated by pressing Ctrl+C
 
         if wait is True:

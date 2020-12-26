@@ -1,7 +1,9 @@
 #!/usr/bin/env /usr/bin/python3
 from auto_everything.base import Python, Terminal
+
 py = Python()
 t = Terminal()
+
 
 class Tools():
     def cd(self, to_where):
@@ -25,6 +27,7 @@ terminator --working-directory='/media/newhd/home/yingshaoxo/Codes/Python/ysblog
             #ssh-copy-id root@182.211.142.181
             terminator -x "ssh root@182.211.142.181"
             """)
+
 
 py.make_it_runnable()
 py.fire(Tools)

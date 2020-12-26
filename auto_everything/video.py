@@ -15,18 +15,19 @@ import wave
 import subprocess
 
 from typing import List, Tuple
-from auto_everything.base import Terminal, Python, IO
+from auto_everything.io import IO
+from auto_everything.terminal import Terminal
 from auto_everything.network import Network
 from auto_everything.disk import Disk
+
 t = Terminal(debug=True)
-py = Python()
 io_ = IO()
 network = Network()
 disk = Disk()
 
 
 def print_split_line():
-    print('\n' + '-'*20 + '\n')
+    print('\n' + '-' * 20 + '\n')
 
 
 def done():
@@ -152,15 +153,15 @@ class Video():
                     new_parts.append(list(part))
                     continue
                 else:
-                    noise_interval = (part[0] - parts[index-1][1])
+                    noise_interval = (part[0] - parts[index - 1][1])
                     if (noise_interval > minimum_interval_samples):
-                        time_gaps = (part[0]-parts[index-1][1])*0.1
+                        time_gaps = (part[0] - parts[index - 1][1]) * 0.1
                         # we fear if the time_gaps is too long
                         if time_gaps >= minimum_interval_samples:
                             time_gaps = minimum_interval_samples // 2
                         new_parts.append(
-                            [parts[index-1][1],
-                             parts[index-1][1] + time_gaps
+                            [parts[index - 1][1],
+                             parts[index - 1][1] + time_gaps
                              ]
                         )
                         new_parts.append(
@@ -170,7 +171,7 @@ class Video():
                         )
                         new_parts.append(list(part))
                     else:
-                        new_parts.append([parts[index-1][1], part[0]])
+                        new_parts.append([parts[index - 1][1], part[0]])
                         new_parts.append(list(part))
 
             the_missing_final = new_parts[-1][1]
@@ -182,15 +183,15 @@ class Video():
                     final_parts.append(part)
                     continue
                 else:
-                    inverval = (part[0] - new_parts[index-1][1])
+                    inverval = (part[0] - new_parts[index - 1][1])
                     if (inverval == 0):
                         if first == -1:
-                            first = new_parts[index-1][0]
+                            first = new_parts[index - 1][0]
                     else:
                         if (first == -1):
                             final_parts.append([part[0], part[1]])
                         else:
-                            final_parts.append([first, new_parts[index-1][1]])
+                            final_parts.append([first, new_parts[index - 1][1]])
                             first = -1
 
             final_parts.append([final_parts[-1][1], the_missing_final])
@@ -212,6 +213,7 @@ class Video():
 
             def seconds_to_string_format(num):
                 return str(datetime.timedelta(seconds=num))
+
             for part in parts:
                 part1 = seconds_to_string_format(part[0])
                 part2 = seconds_to_string_format(part[1])
@@ -239,13 +241,13 @@ class Video():
                     new_parts.append(list(part))
                     continue
                 else:
-                    noise_interval = (part[0] - parts[index-1][1])
+                    noise_interval = (part[0] - parts[index - 1][1])
                     if (noise_interval > minimum_interval_samples):
                         new_parts.append(
-                            [parts[index-1][1], parts[index-1][1]])
+                            [parts[index - 1][1], parts[index - 1][1]])
                         new_parts.append(list(part))
                     else:
-                        new_parts.append([parts[index-1][1], part[0]])
+                        new_parts.append([parts[index - 1][1], part[0]])
                         new_parts.append(list(part))
 
             the_missing_final = new_parts[-1][1]
@@ -257,15 +259,15 @@ class Video():
                     final_parts.append(part)
                     continue
                 else:
-                    inverval = (part[0] - new_parts[index-1][1])
+                    inverval = (part[0] - new_parts[index - 1][1])
                     if (inverval == 0):
                         if first == -1:
-                            first = new_parts[index-1][0]
+                            first = new_parts[index - 1][0]
                     else:
                         if (first == -1):
                             final_parts.append([part[0], part[1]])
                         else:
-                            final_parts.append([first, new_parts[index-1][1]])
+                            final_parts.append([first, new_parts[index - 1][1]])
                             first = -1
 
             final_parts.append([final_parts[-1][1], the_missing_final])
@@ -280,6 +282,7 @@ class Video():
 
             def seconds_to_string_format(num):
                 return str(datetime.timedelta(seconds=num))
+
             return [seconds_to_string_format(part[0]), seconds_to_string_format(part[1])]
 
         voice_and_silence_parts = []
@@ -294,7 +297,7 @@ class Video():
                         [1, from_samples_to_seconds([first, second])])
             else:
                 voice_and_silence_parts.append(
-                    [0, from_samples_to_seconds([parts[index-1][1], first])])
+                    [0, from_samples_to_seconds([parts[index - 1][1], first])])
                 voice_and_silence_parts.append(
                     [1, from_samples_to_seconds([first, second])])
 
@@ -321,9 +324,9 @@ class Video():
         for index, part in enumerate(new_parts):
             if index == 0:
                 continue
-            all_silence += (part[0] - new_parts[index-1][1])
+            all_silence += (part[0] - new_parts[index - 1][1])
 
-        ratio = all_silence/new_parts[-1][1]
+        ratio = all_silence / new_parts[-1][1]
         return ratio
 
     def split_video_by_time_part(self, source_video_path, target_video_path, part):
@@ -355,9 +358,9 @@ class Video():
             os.mkdir(target_folder)
 
         for index, part in enumerate(time_intervals):
-            index = (6-len(str(index)))*'0' + str(index)
+            index = (6 - len(str(index))) * '0' + str(index)
 
-            target_video_path = add_path(target_folder, str(index)+".mp4")
+            target_video_path = add_path(target_folder, str(index) + ".mp4")
 
             self.split_video_by_time_part(
                 source_video_path, target_video_path, part)
@@ -499,7 +502,8 @@ class Video():
 
         done()
 
-    def remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, minimum_interval_time_in_seconds=None, voice_only=False):
+    def remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice,
+                                        minimum_interval_time_in_seconds=None, voice_only=False):
         """
         Parameters
         ----------
@@ -522,9 +526,9 @@ class Video():
 
         working_dir = get_directory_name(target_video_path)
         audio_path = convert_video_to_wav(source_video_path, add_path(
-            working_dir, disk.get_hash_of_a_path(source_video_path)+'audio_for_remove_silence_parts_from_video.wav'))
+            working_dir, disk.get_hash_of_a_path(source_video_path) + 'audio_for_remove_silence_parts_from_video.wav'))
         temp_video_path = add_path(
-            working_dir, disk.get_hash_of_a_path(source_video_path)+'temp_for_remove_silence_parts_from_video.mp4')
+            working_dir, disk.get_hash_of_a_path(source_video_path) + 'temp_for_remove_silence_parts_from_video.mp4')
 
         if minimum_interval_time_in_seconds is None:
             parts = self._get_voice_parts(audio_path, top_db)
@@ -540,7 +544,7 @@ class Video():
             try:
                 time_duration = (datetime.datetime.strptime(
                     part[1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[0], '%H:%M:%S.%f')).seconds
-                print(str(int(index/length*100))+"%,", "-".join(
+                print(str(int(index / length * 100)) + "%,", "-".join(
                     [p.split(".")[0] for p in part]) + ",", "cut " + str(time_duration) + " seconds")
             except Exception as e:
                 print(e)
@@ -570,7 +574,8 @@ class Video():
 
         done()
 
-    def humanly_remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, minimum_interval=1):
+    def humanly_remove_silence_parts_from_video(self, source_video_path, target_video_path,
+                                                db_for_split_silence_and_voice, minimum_interval=1):
         """
         No difference with the last one, but in this function, you can check how many silence you can get rid of.
         Then you make the decision wheather you want to do this or not
@@ -601,7 +606,8 @@ class Video():
             #    source_audio_path=audio_path, top_db=db_for_split_silence_and_voice)
             # ratio = int(self._evaluate_voice_parts(parts) * 100)
             target_audio_path = self.remove_silence_parts_from_video(
-                source_video_path, target_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice, minimum_interval_time_in_seconds=minimum_interval, voice_only=True)
+                source_video_path, target_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice,
+                minimum_interval_time_in_seconds=minimum_interval, voice_only=True)
         except Exception as e:
             print(e)
             print()
@@ -619,7 +625,8 @@ class Video():
 
             make_sure_target_does_not_exist(target_audio_path)
             self.remove_silence_parts_from_video(
-                source_video_path, target_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice, minimum_interval_time_in_seconds=minimum_interval)
+                source_video_path, target_video_path, db_for_split_silence_and_voice=db_for_split_silence_and_voice,
+                minimum_interval_time_in_seconds=minimum_interval)
 
             done()
         else:
@@ -643,11 +650,11 @@ class Video():
         make_sure_target_does_not_exist(target_video_path)
 
         speed = float(speed)
-        video_speed = str(float(1/speed))[:6]
+        video_speed = str(float(1 / speed))[:6]
 
         if speed <= 4:
-            parts = math.ceil(speed/2)
-            value_of_each_part = str(speed ** (1/parts))[:6]
+            parts = math.ceil(speed / 2)
+            value_of_each_part = str(speed ** (1 / parts))[:6]
             audio_speed = ",".join(
                 [f"atempo={value_of_each_part}" for i in range(parts)])
 
@@ -673,7 +680,8 @@ class Video():
 
         done()
 
-    def speedup_silence_parts_in_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice, speed=4):
+    def speedup_silence_parts_in_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice,
+                                       speed=4):
         """
         Instead remove silence, we can speed up the silence parts in a video
 
@@ -695,7 +703,7 @@ class Video():
 
         working_dir = get_directory_name(target_video_path)
         audio_path = convert_video_to_wav(source_video_path, add_path(
-            working_dir, disk.get_hash_of_a_path(source_video_path)+'audio_for_speedup_silence_parts_in_video.wav'))
+            working_dir, disk.get_hash_of_a_path(source_video_path) + 'audio_for_speedup_silence_parts_in_video.wav'))
 
         voice_and_silence_parts = self._get_voice_and_silence_parts(
             audio_path, top_db)
@@ -710,8 +718,9 @@ class Video():
             try:
                 time_duration = (datetime.datetime.strptime(
                     part[1][1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[1][0], '%H:%M:%S.%f')).seconds
-                print(str(int(index/length*100))+"%,", "-".join([p.split(".")[
-                      0] for p in part[1]]) + ",", "cut " + str(time_duration) + " seconds")
+                print(str(int(index / length * 100)) + "%,", "-".join([p.split(".")[
+                                                                           0] for p in part[1]]) + ",",
+                      "cut " + str(time_duration) + " seconds")
             except Exception as e:
                 print(e)
             if part[0] == 1:  # voice
@@ -811,7 +820,8 @@ class Video():
 
         done()
 
-    def compress_videos_in_a_folder(self, source_folder, fps: int = 29, resolution: Tuple[int, int] = None, preset: str = 'placebo'):
+    def compress_videos_in_a_folder(self, source_folder, fps: int = 29, resolution: Tuple[int, int] = None,
+                                    preset: str = 'placebo'):
         source_folder = try_to_get_absolutely_path(source_folder)
         make_sure_source_is_absolute_path(source_folder)
 
@@ -840,7 +850,7 @@ class Video():
             target_video_path = add_path(new_folder, basename)
             make_sure_target_does_not_exist(target_video_path)
 
-            #size, unit = convert_bytes(os.path.getsize(file))
+            # size, unit = convert_bytes(os.path.getsize(file))
             # if unit == "GB":
             #    if size > 2:
             if fps and resolution and preset:
@@ -911,7 +921,7 @@ class DeepVideo():
                 print("download error")
 
         # uncompress
-        self.vosk_model_folder = self.config_folder/Path("model")
+        self.vosk_model_folder = self.config_folder / Path("model")
         if not self.vosk_model_folder.exists():
             disk.uncompress(zip_file, self.vosk_model_folder)
 
@@ -927,20 +937,20 @@ class DeepVideo():
                 start = item['start'] - minimum_interval_time_in_seconds
                 if start < 0:
                     start = 0.0
-            if index == length-1:
+            if index == length - 1:
                 end = item['end']
             temp_data.append([start, end])
         parts = []
         index = 0
         length = len(temp_data)
         if length >= 2:
-            while index <= length-1:
+            while index <= length - 1:
                 first_start = temp_data[index][0]
                 first_end = temp_data[index][1]
                 if index == 0:
                     if first_start > 0:
                         parts.append([0.0, first_start, 'silence'])
-                if index == length-1:
+                if index == length - 1:
                     parts.append([first_start, first_end, 'voice'])
                     if video_length != None:
                         if first_end < video_length:
@@ -961,7 +971,8 @@ class DeepVideo():
         else:
             return parts
 
-    def __get_data_from_video(self, path: str, minimum_interval_time_in_seconds: float = 0.0, video_length: float = None):
+    def __get_data_from_video(self, path: str, minimum_interval_time_in_seconds: float = 0.0,
+                              video_length: float = None):
         from vosk import Model, KaldiRecognizer, SetLogLevel
 
         assert os.path.exists(
@@ -994,7 +1005,9 @@ class DeepVideo():
                 pass
         return self.__time_interval_filter(data_list, minimum_interval_time_in_seconds, video_length)
 
-    def remove_silence_parts_from_videos_in_a_folder(self, source_folder: str, target_video_path: str, minimum_interval_time_in_seconds: float = 1.0, fps: int = None, resolution: Tuple[int, int] = None, preset: str = 'placebo'):
+    def remove_silence_parts_from_videos_in_a_folder(self, source_folder: str, target_video_path: str,
+                                                     minimum_interval_time_in_seconds: float = 1.0, fps: int = None,
+                                                     resolution: Tuple[int, int] = None, preset: str = 'placebo'):
         """
         We will first concatenate the files under the source_folder into a video by created_time, then we remove those silence parts in that videoig
 
@@ -1022,7 +1035,7 @@ class DeepVideo():
         length = len(video_files)
         remain_clips = []
         for index, video_file in enumerate(video_files):
-            print("Working on ", str(int(index/length*100)) + " %...")
+            print("Working on ", str(int(index / length * 100)) + " %...")
             parts = self.__get_data_from_video(
                 video_file, minimum_interval_time_in_seconds, parent_clips[index].duration)
             for part in parts:
@@ -1038,7 +1051,9 @@ class DeepVideo():
 
         done()
 
-    def speed_up_silence_parts_from_videos_in_a_folder(self, source_folder: str, target_video_path: str, speed: int = 4, minimum_interval_time_in_seconds: float = 1.0, fps: int = None, resolution: Tuple[int, int] = None, preset: str = 'placebo'):
+    def speed_up_silence_parts_from_videos_in_a_folder(self, source_folder: str, target_video_path: str, speed: int = 4,
+                                                       minimum_interval_time_in_seconds: float = 1.0, fps: int = None,
+                                                       resolution: Tuple[int, int] = None, preset: str = 'placebo'):
         """
         We will first concatenate the files under the source_folder into a video by created_time, then we speed up those silence parts in that videoig
 
@@ -1068,7 +1083,7 @@ class DeepVideo():
         length = len(video_files)
         remain_clips = []
         for index, video_file in enumerate(video_files):
-            print("Working on ", str(int(index/length*100)) + " %...")
+            print("Working on ", str(int(index / length * 100)) + " %...")
             parts = self.__get_data_from_video(
                 video_file, minimum_interval_time_in_seconds, parent_clips[index].duration)
             for part in parts:
@@ -1090,7 +1105,8 @@ class DeepVideo():
 
         done()
 
-    def remove_silence_parts_from_video(self, source_video_path: str, target_video_path: str, minimum_interval_time_in_seconds: float = 1.0):
+    def remove_silence_parts_from_video(self, source_video_path: str, target_video_path: str,
+                                        minimum_interval_time_in_seconds: float = 1.0):
         """
         Parameters
         ----------
@@ -1110,7 +1126,7 @@ class DeepVideo():
             if part[2] == 'voice':
                 try:
                     time_duration = part[1] - part[0]
-                    print(str(int(index/length*100))+"%,", "remain " +
+                    print(str(int(index / length * 100)) + "%,", "remain " +
                           str(int(time_duration)) + " seconds")
                 except Exception as e:
                     print(e)
@@ -1124,7 +1140,9 @@ class DeepVideo():
 
         done()
 
-    def speedup_silence_parts_in_video(self, source_video_path: str, target_video_path: str, speed: int = 4, minimum_interval_time_in_seconds: float = 1.0, fps: int = None, resolution: Tuple[int, int] = None, preset: str = 'placebo'):
+    def speedup_silence_parts_in_video(self, source_video_path: str, target_video_path: str, speed: int = 4,
+                                       minimum_interval_time_in_seconds: float = 1.0, fps: int = None,
+                                       resolution: Tuple[int, int] = None, preset: str = 'placebo'):
         """
         Instead remove silence, we can speed up the silence parts in a video
 
@@ -1149,7 +1167,7 @@ class DeepVideo():
             elif part[2] == 'silence':
                 try:
                     time_duration = part[1] - part[0]
-                    print(str(int(index/length*100))+"%,", "speed up " +
+                    print(str(int(index / length * 100)) + "%,", "speed up " +
                           str(int(time_duration)) + " seconds")
                 except Exception as e:
                     print(e)

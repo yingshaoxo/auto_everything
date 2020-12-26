@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 from pathlib import Path
 import os
 import re
@@ -8,6 +8,7 @@ import unicodedata
 import string
 
 from auto_everything.terminal import Terminal
+
 t = Terminal(debug=True)
 
 
@@ -55,7 +56,7 @@ class Disk():
         type_limiter: List[str]
             a list used to do a type filter, like [".mp3", ".epub"]
         """
-        assert os.path.exists(folder), f"{path} is not exist!"
+        assert os.path.exists(folder), f"{folder} is not exist!"
         if recursive == True:
             files = []
             for root, dirnames, filenames in os.walk(folder):
@@ -71,7 +72,9 @@ class Disk():
 
         else:
             if type_limiter:
-                files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and Path(os.path.join(folder, f)).suffix in type_limiter]
+                files = [os.path.join(folder, f) for f in os.listdir(folder) if
+                         os.path.isfile(os.path.join(folder, f)) and Path(
+                             os.path.join(folder, f)).suffix in type_limiter]
             else:
                 files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
         return files
@@ -80,7 +83,7 @@ class Disk():
         files.sort(key=os.path.getmtime, reverse=reverse)
         return files
 
-    def get_stem_and_suffix_of_a_file(self, path: str) -> str:
+    def get_stem_and_suffix_of_a_file(self, path: str) -> Tuple[str, str]:
         p = Path(path)
         return p.stem, p.suffix
 
@@ -140,7 +143,8 @@ class Disk():
         # keep only whitelisted chars
         cleaned_filename = ''.join(c for c in cleaned_filename if c in whitelist)
         if len(cleaned_filename) > char_limit:
-            print("Warning, filename truncated because it was over {}. Filenames may no longer be unique".format(char_limit))
+            print("Warning, filename truncated because it was over {}. Filenames may no longer be unique".format(
+                char_limit))
         return cleaned_filename[:char_limit]
 
     def get_file_size(self, path: str, level: str = "B") -> int:
@@ -160,9 +164,9 @@ class Disk():
         if (level == "B"):
             return int('{:,.0f}'.format(bytes))
         elif (level == "KB"):
-            return int('{:,.0f}'.format(bytes/float(1 << 10)))
+            return int('{:,.0f}'.format(bytes / float(1 << 10)))
         elif (level == "MB"):
-            return int('{:,.0f}'.format(bytes/float(1 << 20)))
+            return int('{:,.0f}'.format(bytes / float(1 << 20)))
 
     def uncompress(self, path: str, folder: str = None) -> bool:
         """
@@ -219,7 +223,9 @@ class Store():
         def regular_expression(expr, item):
             reg = re.compile(expr, flags=re.DOTALL)
             return reg.search(item) is not None
-        self._sql_conn.create_function("REGEXP", 2, regular_expression)  # 2 here means two parameters. REGEXP is a fixed value
+
+        self._sql_conn.create_function("REGEXP", 2,
+                                       regular_expression)  # 2 here means two parameters. REGEXP is a fixed value
 
         self._sql_cursor = self._sql_conn.cursor()
         self._sql_cursor.execute(f'''CREATE TABLE IF NOT EXISTS {self._store_name}
@@ -333,4 +339,4 @@ if __name__ == "__main__":
     print(store.get_items())
     """
     disk = Disk()
-    #print(disk.get_hash_of_a_path("/home/yingshaoxo/.python_history"))
+    # print(disk.get_hash_of_a_path("/home/yingshaoxo/.python_history"))
