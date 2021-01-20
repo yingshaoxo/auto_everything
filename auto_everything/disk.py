@@ -162,11 +162,11 @@ class Disk():
         assert file.exists(), f"{path} is not exist!"
         bytes = file.stat().st_size
         if (level == "B"):
-            return int('{:,.0f}'.format(bytes))
+            return int('{:.0f}'.format(bytes))
         elif (level == "KB"):
-            return int('{:,.0f}'.format(bytes / float(1 << 10)))
+            return int('{:.0f}'.format(bytes / float(1 << 10)))
         elif (level == "MB"):
-            return int('{:,.0f}'.format(bytes / float(1 << 20)))
+            return int('{:.0f}'.format(bytes / float(1 << 20)))
 
     def uncompress(self, path: str, folder: str = None) -> bool:
         """
