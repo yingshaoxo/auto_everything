@@ -190,7 +190,7 @@ class Disk():
                 if len(os.listdir(folder)) == 1:
                     t.run(f"cd '{folder}' && cd * && mv * .. -f")
             elif suffix == ".gz":
-                t.run(f"tar zxfv '{path}' '{folder}' --strip-components=1")
+                t.run(f"tar zxfv '{path}' --directory '{folder}' --strip-components=1")
             if len(os.listdir(folder)):
                 return True
             else:

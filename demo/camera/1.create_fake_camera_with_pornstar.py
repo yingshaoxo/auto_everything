@@ -2,11 +2,12 @@ from auto_everything.camera import FakeCamera
 import pornstar
 
 def my_handler(frame):
-    frame = pornstar.stylize_background_and_human_body(
-            frame,
-            [pornstar.effect_of_pure_white],
-            [pornstar.effect_of_whitening]
-        )
+    frame = pornstar.effect_of_whitening(frame)
+    #frame = pornstar.stylize_background_and_human_body(
+    #        frame,
+    #        [pornstar.effect_of_pure_white],
+    #        [pornstar.effect_of_whitening]
+    #    )
     fakecam.next(frame, rgb=True)
     return frame
 

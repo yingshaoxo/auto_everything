@@ -771,9 +771,6 @@ class Video():
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
 
-        delay = float(delay)
-        delay = str(delay)
-
         t.run(f"""
             ffmpeg -i "{source_video_path}" "{source_video_path}"
         """)

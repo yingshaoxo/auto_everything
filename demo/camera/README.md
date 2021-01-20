@@ -1,3 +1,4 @@
+```
 from auto_everything.camera import FakeCamera
 import time
 import numpy as np
@@ -18,3 +19,4 @@ while True:
 
     fakecam.next(blue)
     time.sleep(1/30.0)
+```
