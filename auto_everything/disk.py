@@ -87,6 +87,12 @@ class Disk():
         p = Path(path)
         return p.stem, p.suffix
 
+    def getDirectoryName(self, path: str):
+        return os.path.dirname(path)
+
+    def getFileName(self, path: str):
+        return os.path.split(path)[-1]
+
     def get_hash_of_a_file(self, path: str) -> str:
         """
         calculate the blake2s hash string based on the bytes of a file.

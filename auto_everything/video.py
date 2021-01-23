@@ -885,6 +885,36 @@ class Video():
 
         done()
 
+    def removeTopAndBottomOfAVideo(self, source_video_path: str, target_video_path: str, cropRatio: int = 0.12):
+        make_sure_target_does_not_exist(target_video_path)
+
+        clip = VideoFileClip(source_video_path)
+        width = clip.w
+        height = clip.h
+        cropRatio = 0.12
+        cropPixels = int(cropRatio * height)
+        clip = clip.crop(x1=0, y1=cropPixels, x2=width, y2=height - cropPixels)
+        clip.write_videofile(target_video_path)
+
+        done()
+
+    def splitVideoToParts(self, source_video_path: str, target_video_folder: str, numOfParts: int):
+        if not disk.exists(target_video_folder):
+            os.mkdir(target_video_folder)
+
+        clip = VideoFileClip(source_video_path)
+        length = clip.duration
+        partLength = length / numOfParts
+
+        clips = []
+        for i in range(numOfParts):
+            clips.append(clip.subclip(i * partLength, (i + 1) * partLength))
+
+        for i, c in enumerate(clips):
+            c.write_videofile(f"{target_video_folder}/{i}.mp4")
+
+        done()
+
 
 class DeepVideo():
     """
