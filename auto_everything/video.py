@@ -117,6 +117,16 @@ def convert_video_to_wav(source_video_path, target_wav_path):
     return target_wav_path
 
 
+def getMono16khzAudioArray(sourceWavePath: str):
+    y, s = librosa.load(sourceWavePath, mono=True, sr=16000)
+    #s is audio sample rate
+    return y,s
+
+def convertArrayToBatchSamples(y, durationInSecondsForEach=1.0):
+    samplesForEachOne = librosa.time_to_samples(durationInSecondsForEach, sr=16000)
+    num_sections = math.ceil(y.shape[0] / samplesForEachOne)
+    return np.array_split(y, num_sections, axis=0)
+
 def get_wav_infomation(wav_path):
     wav_path = try_to_get_absolutely_path(wav_path)
     make_sure_source_is_absolute_path(wav_path)
@@ -925,6 +935,7 @@ class DeepVideo():
     2. vosk
     3. ffmpeg
     4. moviepy
+    5.librosa
     """
 
     def __init__(self):
@@ -997,6 +1008,47 @@ class DeepVideo():
             return parts
         else:
             return parts
+
+    def __get_raw_data_from_video(self, path: str):
+        from vosk import Model, KaldiRecognizer, SetLogLevel
+
+        assert os.path.exists(
+            path), f"source video file {path} does not exist!"
+
+        SetLogLevel(0)
+        sample_rate = 16000
+        model = Model(self.vosk_model_folder.as_posix())
+        rec = KaldiRecognizer(model, sample_rate)
+
+        process = subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i',
+                                    path,
+                                    '-ar', str(sample_rate), '-ac', '1', '-f', 's16le', '-'],
+                                   stdout=subprocess.PIPE)
+
+        data_list = []
+        while True:
+            data = process.stdout.read(4000)
+            if len(data) == 0:
+                break
+            if rec.AcceptWaveform(data):
+                result = json.loads(rec.Result())
+                if len(result.keys()) >= 2:
+                    """
+                    {'result': 
+                        [
+                            {'conf': 0.875663, 'end': 4.35, 'start': 4.11, 'word': 'nice'}, 
+                            {'conf': 1.0, 'end': 5.13, 'start': 4.59, 'word': 'day'}
+                        ], 
+                     'text': 'nice day'}
+                    """
+                    start = result['result'][0]['start']
+                    end = result['result'][-1]['end']
+                    text = result['result']["text"]
+                    data_list.append({"start": start, "end": end, "text": text})
+            else:
+                # print(rec.PartialResult())
+                pass
+        return data_list
 
     def __get_data_from_video(self, path: str, minimum_interval_time_in_seconds: float = 0.0,
                               video_length: float = None):
@@ -1212,8 +1264,85 @@ class DeepVideo():
 
         done()
 
+    def _get_sounds_parts(self, source_audio_path, top_db):
+        y, sr = get_wav_infomation(source_audio_path)
+        parts = librosa.effects.split(y, top_db=top_db)  # return samples
+
+        def from_samples_to_seconds(parts):
+            parts = librosa.core.samples_to_time(parts, sr)  # return seconds
+            new_parts = []
+
+            for part in parts:
+                part1 = part[0]
+                part2 = part[1]
+                new_parts.append([part1, part2])
+
+            return new_parts
+
+        parts[0] = [0, parts[0][1]]
+        parts = from_samples_to_seconds(parts)
+
+        return parts[1:]
+
+    def _merge_short_parts(self, parts, partSeconds=5):
+        intervals = parts
+
+        # merge continues videos
+        i = 0
+        length = len(intervals)
+        modified = True
+        while modified == True:
+            modified = False
+            i = 0
+            while i < len(intervals):
+                if i + 1 < len(intervals):
+                    A = intervals[i][1]
+                    B = intervals[i + 1][0]
+                    d = B - A
+                    # print(d)
+                    if d < partSeconds:
+                        intervals[i][1] = intervals[i + 1][1]
+                        del intervals[i + 1]
+                        modified = True
+                i += 1
+
+        # remove too short videos
+        i = 0
+        length = len(intervals)
+        modified = True
+        while modified == True:
+            modified = False
+            i = 0
+            while i < len(intervals):
+                A = intervals[i][0]
+                B = intervals[i][1]
+                d = B - A
+                # print(d)
+                if d < partSeconds:
+                    del intervals[i]
+                    i -= 1
+                    modified = True
+                i += 1
+
+        return intervals
+
+    def _getIntersectionOfTwoParts(self, partsA, partsB):
+        # need math theory
+        iA = 0
+        iB = 0
+        lenA = len(partsA)
+        lenB = len(partsB)
+        while iA < lenA or iB < lenB:
+            changed = False
+            if iA < lenA:
+                pass
+            if iB < lenB:
+                pass
+
 
 if __name__ == "__main__":
     video = DeepVideo()
-    video.speedup_silence_parts_in_video(
-        "/home/yingshaoxo/demo.mp4", "/home/yingshaoxo/ok.mp4", 10)
+    rawParts = video._get_sounds_parts("/home/yingshaoxo/Videos/freaks.mp4", 20)
+    parts = video._merge_short_parts(rawParts, 10)
+    print(parts)
+    print(len(parts))
