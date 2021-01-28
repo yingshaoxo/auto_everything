@@ -7,9 +7,14 @@ import io
 import tempfile
 import os
 import hashlib
+import datetime
 
-from auto_everything.video import *
+from auto_everything.video import VideoUtils, Video
+from auto_everything.disk import Store
+
 video = Video()
+videoUtils = VideoUtils()
+
 
 class DataProcessor():
     """
@@ -61,23 +66,18 @@ class AudioClassifier():
 
         # Input: 3 seconds of silence as mono 16 kHz waveform samples.
         waveform = np.zeros(3 * 16000, dtype=np.float32)
+        self.store = Store("AudioClassifier")
 
-    def getWaveFormListFromVideo(self, videoPath:str):
+    def getWaveFormListFromVideo(self, videoPath: str, secondsForOnePart=3):
         self.temp_dir: str = tempfile.gettempdir()
         m = hashlib.sha256()
         m.update(str(datetime.datetime.now()).encode("utf-8"))
         m.update(videoPath.encode("utf-8"))
         temp_audio_file = os.path.join(self.temp_dir, m.hexdigest()[:10] + ".wav")
-        convert_video_to_wav(videoPath, temp_audio_file)
-        soundArray, SampleRate = getMono16khzAudioArray(temp_audio_file)
+        videoUtils.convert_video_to_wav(videoPath, temp_audio_file)
+        soundArray, SampleRate = videoUtils.getMono16khzAudioArray(temp_audio_file)
         os.remove(temp_audio_file)
-        return convertArrayToBatchSamples(soundArray, 3)
-
-    def test(self, videoPath:str):
-        waveformList = self.getWaveFormListFromVideo(videoPath)
-        for i, waveform in enumerate(waveformList):
-            result = self.classify(waveform)
-            print(i, result)
+        return videoUtils.convertArrayToBatchSamples(soundArray, secondsForOnePart)
 
     def classify(self, waveform):
         # https://tfhub.dev/google/yamnet/1
@@ -87,8 +87,26 @@ class AudioClassifier():
         embeddings.shape.assert_is_compatible_with([None, 1024])
         log_mel_spectrogram.shape.assert_is_compatible_with([None, 64])
         result = self.class_names[scores.numpy().mean(axis=0).argmax()]  # Should print 'Silence'.
-        #print(result)
+        # print(result)
         return result
+
+    def label_a_video_with_intervals(self, videoPath: str, intervalLength=3):
+        if self.store.get("lastVideo", "") == videoPath:
+            intervalsAndLabels = store.get("intervalsAndLabels", "[]")
+            if intervalsAndLabels != []:
+                return intervalsAndLabels[0], intervalsAndLabels[1]
+        waveformList = self.getWaveFormListFromVideo(videoPath, secondsForOnePart=intervalLength)
+        labels = []
+        intervals = []
+        for i, waveform in enumerate(waveformList):
+            a = i * intervalLength
+            b = a + intervalLength
+            intervals.append([a, b])
+            result = self.classify(waveform)
+            labels.append(result)
+            # print(i, result)
+        return intervals, labels
+
 
 class SpeechToText():
     pass
@@ -97,6 +115,7 @@ class SpeechToText():
 
 if __name__ == "__main__":
     from pprint import pprint
+
     audioClassfier = AudioClassifier()
     audioClassfier.test("/home/yingshaoxo/Videos/freaks.mp4")
 

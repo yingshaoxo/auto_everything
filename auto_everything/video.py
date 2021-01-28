@@ -117,24 +117,6 @@ def convert_video_to_wav(source_video_path, target_wav_path):
     return target_wav_path
 
 
-def getMono16khzAudioArray(sourceWavePath: str):
-    y, s = librosa.load(sourceWavePath, mono=True, sr=16000)
-    #s is audio sample rate
-    return y,s
-
-def convertArrayToBatchSamples(y, durationInSecondsForEach=1.0):
-    samplesForEachOne = librosa.time_to_samples(durationInSecondsForEach, sr=16000)
-    num_sections = math.ceil(y.shape[0] / samplesForEachOne)
-    return np.array_split(y, num_sections, axis=0)
-
-def get_wav_infomation(wav_path):
-    wav_path = try_to_get_absolutely_path(wav_path)
-    make_sure_source_is_absolute_path(wav_path)
-
-    y, sr = librosa.load(wav_path, sr=None)
-    return y, sr
-
-
 # we'll use ffmpeg to do the real work
 class Video():
     """
@@ -1284,10 +1266,31 @@ class DeepVideo():
 
         return parts[1:]
 
-    def _merge_short_parts(self, parts, partSeconds=5):
-        intervals = parts
 
+class VideoUtils():
+    def convert_video_to_wav(self, source_video_path, target_wav_path):
+        return convert_video_to_wav(source_video_path, target_wav_path)
+
+    def getMono16khzAudioArray(self, sourceWavePath: str):
+        y, s = librosa.load(sourceWavePath, mono=True, sr=16000)
+        # s is audio sample rate
+        return y, s
+
+    def convertArrayToBatchSamples(self, y, durationInSecondsForEach=1.0):
+        samplesForEachOne = librosa.time_to_samples(durationInSecondsForEach, sr=16000)
+        num_sections = math.ceil(y.shape[0] / samplesForEachOne)
+        return np.array_split(y, num_sections, axis=0)
+
+    def get_wav_infomation(self, wav_path):
+        wav_path = try_to_get_absolutely_path(wav_path)
+        make_sure_source_is_absolute_path(wav_path)
+
+        y, sr = librosa.load(wav_path, sr=None)
+        return y, sr
+
+    def mergeContinuesIntervals(self, intervals, thresholdInSeconds):
         # merge continues videos
+        # if time betewwn two intervals are less than thresholdInSeconds, we merge them
         i = 0
         length = len(intervals)
         modified = True
@@ -1300,13 +1303,16 @@ class DeepVideo():
                     B = intervals[i + 1][0]
                     d = B - A
                     # print(d)
-                    if d < partSeconds:
+                    if d < thresholdInSeconds:
                         intervals[i][1] = intervals[i + 1][1]
                         del intervals[i + 1]
                         modified = True
                 i += 1
+        return intervals
 
+    def dropTooShortIntervals(self, intervals, thresholdInSeconds):
         # remove too short videos
+        # if the time delta in a interval is less than thresholdInSeconds, we drop it
         i = 0
         length = len(intervals)
         modified = True
@@ -1318,7 +1324,7 @@ class DeepVideo():
                 B = intervals[i][1]
                 d = B - A
                 # print(d)
-                if d < partSeconds:
+                if d < thresholdInSeconds:
                     del intervals[i]
                     i -= 1
                     modified = True
@@ -1326,18 +1332,29 @@ class DeepVideo():
 
         return intervals
 
-    def _getIntersectionOfTwoParts(self, partsA, partsB):
-        # need math theory
-        iA = 0
-        iB = 0
-        lenA = len(partsA)
-        lenB = len(partsB)
-        while iA < lenA or iB < lenB:
-            changed = False
-            if iA < lenA:
-                pass
-            if iB < lenB:
-                pass
+    def getIntersectionOfTwoIntervals(self, A, B):
+        i = j = 0
+        ans = []
+        while i < len(A) and j < len(B):
+            start_a, end_a = A[i]
+            start_b, end_b = B[j]
+            if start_b <= start_a <= end_b:
+                ans.append([start_a, min(end_a, end_b)])
+                if end_a < end_b:
+                    i += 1
+                else:
+                    j += 1
+            elif start_a <= start_b <= end_a:
+                ans.append([start_b, min(end_a, end_b)])
+                if end_a < end_b:
+                    i += 1
+                else:
+                    j += 1
+            elif start_a < start_b:
+                i += 1
+            else:
+                j += 1
+        return ans
 
 
 if __name__ == "__main__":
