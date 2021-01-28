@@ -215,6 +215,9 @@ class VideoUtils():
         return ans
 
 
+videoUtils = VideoUtils()
+
+
 # we'll use ffmpeg to do the real work
 class Video():
     """
@@ -289,7 +292,8 @@ class Video():
             return np.array(final_parts)
 
         parts = librosa.effects.split(y, top_db=top_db)  # return samples
-        parts = ignore_short_noise(parts)
+
+        # parts = ignore_short_noise(parts)
 
         # new_y = librosa.effects.remix(self._y, parts) # receive samples
         # target_file_path = os.path.join(self._video_directory, "new_" + self._audio_name)
@@ -312,6 +316,21 @@ class Video():
 
         parts[0] = [0, parts[0][1]]
         parts = from_samples_to_seconds(parts)
+
+        numVersionOfParts = []
+
+        def to_seconds(s):
+            hr, min, sec = [float(x) for x in s.split(':')]
+            return hr * 3600 + min * 60 + sec
+
+        for part in parts:
+            A = part[0]
+            B = part[1]
+            A = to_seconds(A)
+            B = to_seconds(B)
+            numVersionOfParts.append([A, B])
+        parts = videoUtils.dropTooShortIntervals(numVersionOfParts, 0.)
+        parts = videoUtils.mergeContinuesIntervals(parts, thresholdInSeconds=1)
 
         return parts[1:]
 
@@ -632,10 +651,8 @@ class Video():
         length = len(parts)
         for index, part in enumerate(parts):
             try:
-                time_duration = (datetime.datetime.strptime(
-                    part[1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[0], '%H:%M:%S.%f')).seconds
-                print(str(int(index / length * 100)) + "%,", "-".join(
-                    [p.split(".")[0] for p in part]) + ",", "cut " + str(time_duration) + " seconds")
+                time_duration = int(part[1] - part[0])
+                print(str(int(index / length * 100)) + "%,", "cut " + str(time_duration) + " seconds")
             except Exception as e:
                 print(e)
             clip_list.append(parent_clip.subclip(part[0], part[1]))
