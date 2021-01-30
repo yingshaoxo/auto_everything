@@ -1032,7 +1032,8 @@ class DeepVideo():
     2. vosk
     3. ffmpeg
     4. moviepy
-    5.librosa
+    5. librosa
+    6. pornstar
     """
 
     def __init__(self):
@@ -1380,6 +1381,17 @@ class DeepVideo():
         parts = from_samples_to_seconds(parts)
 
         return parts[1:]
+
+    def blurPornGraphs(self, source_video_path: str, target_video_path: str):
+        # useless
+        import pornstar
+        def doit(frame):
+            if pornstar.store.nsfw_detector.isPorn(frame, 0.9):
+                classList, ScoreList, PositionList = pornstar.my_object_detector.detect(frame)
+                if "person" in classList:
+                    frame = pornstar.effect_of_blur(frame, kernel=30)
+            return frame
+        pornstar.process_video(path_of_video=source_video_path, effect_function=doit, save_to=target_video_path)
 
 
 if __name__ == "__main__":

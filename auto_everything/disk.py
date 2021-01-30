@@ -1,3 +1,5 @@
+import datetime
+import tempfile
 from typing import List, Tuple
 from pathlib import Path
 import os
@@ -32,7 +34,7 @@ class Disk():
     """
 
     def __init__(self):
-        pass
+        self.temp_dir: str = tempfile.gettempdir()
 
     def exists(self, path: str) -> bool:
         """
@@ -204,6 +206,13 @@ class Disk():
         except Exception as e:
             raise e
 
+    def getATempFilePath(self, filename):
+        m = hashlib.sha256()
+        m.update(str(datetime.datetime.now()).encode("utf-8"))
+        m.update(filename.encode("utf-8"))
+        stem, suffix  = self.get_stem_and_suffix_of_a_file(filename)
+        tempFilePath = os.path.join(self.temp_dir, m.hexdigest()[:10] +  suffix)
+        return tempFilePath
 
 class Store():
     """
