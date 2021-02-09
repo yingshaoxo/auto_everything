@@ -36,6 +36,12 @@ class Disk():
     def __init__(self):
         self.temp_dir: str = tempfile.gettempdir()
 
+    def _expand_user(self, path: str):
+        if len(path) > 0:
+            if path[0] == "~":
+                path = os.path.expanduser(path)
+        return path
+
     def exists(self, path: str) -> bool:
         """
         Check if a file or folder exist.
@@ -45,6 +51,7 @@ class Disk():
         path: string
             the file path
         """
+        path = self._expand_user(path)
         return Path(path).exists()
 
     def get_files(self, folder: str, recursive: bool = True, type_limiter: List[str] = None) -> List[str]:
@@ -58,6 +65,7 @@ class Disk():
         type_limiter: List[str]
             a list used to do a type filter, like [".mp3", ".epub"]
         """
+        folder = self._expand_user(folder)
         assert os.path.exists(folder), f"{folder} is not exist!"
         if recursive == True:
             files = []
@@ -90,6 +98,7 @@ class Disk():
         return p.stem, p.suffix
 
     def getDirectoryName(self, path: str):
+        path = self._expand_user(path)
         return os.path.dirname(path)
 
     def getFileName(self, path: str):
@@ -104,6 +113,7 @@ class Disk():
         path: string
             the file path
         """
+        path = self._expand_user(path)
         with open(path, "rb") as f:
             file_hash = hashlib.blake2s()
             while True:
@@ -166,6 +176,7 @@ class Disk():
         level: string
             B, KB, or MB
         """
+        path = self._expand_user(path)
         file = Path(path)
         assert file.exists(), f"{path} is not exist!"
         bytes = file.stat().st_size
@@ -187,7 +198,10 @@ class Disk():
         folder: string
             where you want to put the uncompressed files into
         """
+        path = self._expand_user(path)
+        folder = self._expand_user(folder)
         assert self.exists(path), f"{path} was not exist"
+
         t.run(f"rm {folder} -fr")
         t.run(f"mkdir -p {folder}")
         assert self.exists(folder), f"{folder} was not exit"
@@ -206,13 +220,40 @@ class Disk():
         except Exception as e:
             raise e
 
+    def compress(self, paths: List[str], target: str):
+        """
+        compress a files to a target.
+
+        Parameters
+        ----------
+        paths: string of list
+        target: string
+            the compressed output file path
+        """
+        paths = [self._expand_user(path) for path in paths]
+        target = self._expand_user(target)
+        t.run(f"rm {target}")
+        for i, path in enumerate(paths):
+            if not self.exists(path):
+                raise Exception(f"{path} is not exist")
+            paths[i] = f'"{path}"'
+        t.run(f"zip -r -D {target} {' '.join(paths)}")
+
     def getATempFilePath(self, filename):
         m = hashlib.sha256()
         m.update(str(datetime.datetime.now()).encode("utf-8"))
         m.update(filename.encode("utf-8"))
-        stem, suffix  = self.get_stem_and_suffix_of_a_file(filename)
-        tempFilePath = os.path.join(self.temp_dir, m.hexdigest()[:10] +  suffix)
+        stem, suffix = self.get_stem_and_suffix_of_a_file(filename)
+        tempFilePath = os.path.join(self.temp_dir, m.hexdigest()[:10] + suffix)
         return tempFilePath
+
+    def create_a_new_folder_under_home(self, folder_name: str):
+        folder_path = self._expand_user(f"~/{folder_name}")
+        if not os.path.exists(folder_path):
+            #os.mkdir(folder_path)
+            t.run_command(f"mkdir -p {folder_path}")
+        return folder_path
+
 
 class Store():
     """
