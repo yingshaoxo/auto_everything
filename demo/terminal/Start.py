@@ -1,13 +1,15 @@
 #!/usr/bin/env /usr/bin/python3
 from auto_everything.base import Python
 from auto_everything.terminal import Terminal
+from auto_everything.gui import Controller
 
 py = Python()
 t = Terminal()
+controller = Controller()
 
 
 class Mission():
-    def play(self):
+    def _kill(self):
         t.kill("jupyter-lab")
         t.kill("kernel")
         t.kill("pycharm")
@@ -17,6 +19,11 @@ class Mission():
         t.kill("evince")
         t.kill("chrome")
         t.kill("obs")
+
+    def play(self):
+        controller.write("cd ~/CS/notebooks")
+        controller.press("enter")
+        self._kill()
         t.run("""
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate cling
@@ -27,15 +34,9 @@ google-chrome "https://leetcode.com/problemset/all/"
                 """, wait=False)
 
     def lab(self):
-        t.kill("jupyter-lab")
-        t.kill("kernel")
-        t.kill("pycharm")
-        t.kill("code/code")
-        t.kill("nautilus")
-        t.kill("xournalpp")
-        t.kill("evince")
-        t.kill("chrome")
-        t.kill("obs")
+        controller.write("cd ~/CS/notebooks")
+        controller.press("enter")
+        self._kill()
         t.run("""
 cd ~/CS/notebooks
 nohup jupyter-lab . &
@@ -44,16 +45,11 @@ google-chrome "https://keras.io/examples/" &
         """, wait=False)
 
     def ui(self):
-        t.kill("jupyter-lab")
-        t.kill("kernel")
-        t.kill("pycharm")
-        t.kill("code/code")
-        t.kill("nautilus")
-        t.kill("xournalpp")
-        t.kill("evince")
-        t.kill("chrome")
-        t.kill("obs")
         path = "~/CS/freedom/2021"
+        controller.write(f"cd {path}")
+        controller.press("enter")
+
+        self._kill()
         t.run(f"""
         google-chrome "https://translate.google.com/" &
         google-chrome "https://google.com" &
@@ -65,16 +61,11 @@ google-chrome "https://keras.io/examples/" &
         """, wait=False)
 
     def py(self):
-        t.kill("jupyter-lab")
-        t.kill("kernel")
-        t.kill("pycharm")
-        t.kill("code/code")
-        t.kill("nautilus")
-        t.kill("xournalpp")
-        t.kill("evince")
-        t.kill("chrome")
-        t.kill("obs")
         path = "~/CS/auto_everything"
+        controller.write(f"cd {path}")
+        controller.press("enter")
+
+        self._kill()
         t.run(f"""
         google-chrome "https://google.com" &
         #terminator --working-directory="{path}"
@@ -83,15 +74,7 @@ google-chrome "https://keras.io/examples/" &
         """)
 
     def math(self):
-        t.kill("jupyter-lab")
-        t.kill("kernel")
-        t.kill("pycharm")
-        t.kill("code/code")
-        t.kill("nautilus")
-        t.kill("xournalpp")
-        t.kill("evince")
-        t.kill("chrome")
-        t.kill("obs")
+        self._kill()
         t.run("""
 google-chrome "https://app.gitbook.com/@yingshaoxo/s/advanced-mathematics-notes/han-shu-de-lian-xu-xing-yu-ji-xian-function-continuity-and-limit/qiu-ji-xian-de-fang-fa" &
 
@@ -104,18 +87,14 @@ nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/Math/[试题册
         """)
 
     def record(self):
-        t.kill("jupyter-lab")
-        t.kill("kernel")
-        t.kill("pycharm")
-        t.kill("code/code")
-        t.kill("nautilus")
-        t.kill("xournalpp")
-        t.kill("evince")
-        t.kill("obs")
-        t.kill("chrome")
+        path = "~/Videos"
+        controller.write(f"cd {path}")
+        controller.press("enter")
+
+        self._kill()
         t.run("""
         xdg-open ~/Videos/doing &
-        terminator --working-directory="~/Videos" &
+        #terminator --working-directory="~/Videos" &
         obs-studio
         """, wait=False)
 
