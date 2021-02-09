@@ -7,6 +7,7 @@ import threading
 
 from auto_everything.terminal import Terminal
 from auto_everything.io import IO
+from auto_everything.python import Python
 
 
 class OS():

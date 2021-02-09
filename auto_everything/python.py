@@ -130,7 +130,7 @@ class Python():
         self.make_it_runnable(py_file_path)
 
         auto_everything_config_folder = "~/.auto_everything"
-        bin_folder = os.path.join(auto_everything_config_folder, "bin")
+        bin_folder = os.path.expanduser(os.path.join(auto_everything_config_folder, "bin"))
         if not self._t.exists(bin_folder):
             self._t.run_command(f"mkdir -p {bin_folder}")
 
@@ -142,10 +142,13 @@ class Python():
             if executable_name == None:
                 _, executable_name = os.path.split(py_file_path)
             runnable_path = os.path.join(bin_folder, executable_name)
-            if not self._disk.exists(runnable_path):
-                self._t.run_command(f"rm {runnable_path}")
+
+            # remove links that the real file has been moved, or, remove links that match this py_file_path but with a different executable name
+            files = os.listdir(bin_folder)
+            [self._t.run(f"cd {bin_folder}; rm {file}") for file in files if not os.path.exists(os.path.join(bin_folder, file))]
             files = self._disk.get_files(bin_folder, recursive=False)
-            [self._t.run(f"rm {file}") for file in files if os.path.realpath(file) == py_file_path and file != self._disk._expand_user(runnable_path)]
+            [self._t.run(f"rm {file}") for file in files if os.path.realpath(file) == py_file_path and file != runnable_path]
+
             self._t.run_command(f"ln -s {py_file_path} {runnable_path}")
 
             bashrc_path = self._t.fix_path(f"~/.bashrc")
