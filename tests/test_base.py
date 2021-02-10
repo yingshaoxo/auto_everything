@@ -1,3 +1,4 @@
+"""
 import os
 import time
 
@@ -101,3 +102,4 @@ if __name__ == "__main__":
     print(t.is_running("python3 -m http.server 1998"))
     while 1:
         pass
+"""

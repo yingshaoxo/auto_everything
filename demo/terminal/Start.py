@@ -54,7 +54,7 @@ google-chrome "https://keras.io/examples/" &
         google-chrome "https://translate.google.com/" &
         google-chrome "https://google.com" &
         #terminator --working-directory="{path}"
-        nohup "xournalpp ~/CS/freedom/2021/Dev Plans.xopp" &
+        nohup xournalpp "~/CS/freedom/2021/Dev Plans.xopp" &
         cd {path}
         xdg-open .
         code freedom
@@ -66,11 +66,12 @@ google-chrome "https://keras.io/examples/" &
         controller.press("enter")
 
         self._kill()
-        t.run(f"""
+        t.run_command(f"""
         google-chrome "https://google.com" &
         #terminator --working-directory="{path}"
         cd {path}
         nohup pycharm-community &
+        nohup xournalpp "~/CS/auto_everything/plans.xopp" &
         """)
 
     def math(self):

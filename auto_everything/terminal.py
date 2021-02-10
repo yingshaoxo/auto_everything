@@ -20,6 +20,7 @@ class Terminal():
     def __init__(self, debug: bool = False):
         """
         Parameters
+
         ----------
         username
             Linux system username
@@ -127,10 +128,6 @@ class Terminal():
         wait: bool
             True, this command may keep running forever
         """
-        if self.__debug:
-            print('\n' + '-' * 20 + '\n')
-            print(c)
-            print('\n' + '-' * 20 + '\n')
 
         if cwd is None:
             cwd = self.current_dir
@@ -138,6 +135,12 @@ class Terminal():
             cwd = self.fix_path(cwd)
 
         # if '\n' in c:
+        c = self.fix_path(c)
+        if self.__debug:
+            print("fuck")
+            print('\n' + '-' * 20 + '\n')
+            print(c)
+            print('\n' + '-' * 20 + '\n')
         c, temp_sh = self.__text_to_sh(c)
 
         try:
@@ -176,20 +179,19 @@ class Terminal():
         cwd: string
             current working directory
         """
-        if self.__debug:
-            print('\n' + '-' * 20 + '\n')
-            print(c)
-            print('\n' + '-' * 20 + '\n')
-
         if cwd is None:
             cwd = self.current_dir
         else:
             cwd = self.fix_path(cwd)
 
         # if '\n' in c:
+        c = self.fix_path(c)
+        if self.__debug:
+            print('\n' + '-' * 20 + '\n')
+            print(c)
+            print('\n' + '-' * 20 + '\n')
         c, temp_sh = self.__text_to_sh(c)
 
-        c = self.fix_path(c)
         args_list = shlex.split(c)
         try:
             try:
@@ -218,6 +220,8 @@ class Terminal():
         cwd: string
             current working directory
         """
+        name = self.fix_path(name)
+
         args_list = shlex.split(name)
         args_list = ['nohup'] + args_list
 
