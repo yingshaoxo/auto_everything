@@ -75,6 +75,9 @@ google-chrome "https://keras.io/examples/" &
         """)
 
     def math(self):
+        path = "/home/yingshaoxo/Documents/01.高数"
+        controller.write(f"cd {path}")
+        controller.press("enter")
         self._kill()
         t.run("""
 google-chrome "https://app.gitbook.com/@yingshaoxo/s/advanced-mathematics-notes/han-shu-de-lian-xu-xing-yu-ji-xian-function-continuity-and-limit/qiu-ji-xian-de-fang-fa" &
