@@ -1,4 +1,5 @@
 import datetime
+import pathlib
 import tempfile
 from typing import List, Tuple
 from pathlib import Path
@@ -37,6 +38,9 @@ class Disk():
         self.temp_dir: str = tempfile.gettempdir()
 
     def _expand_user(self, path: str):
+        print(type(path))
+        if type(path) == pathlib.PosixPath:
+            path = path.as_posix()
         if len(path) > 0:
             if path[0] == "~":
                 path = os.path.expanduser(path)

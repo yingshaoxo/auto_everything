@@ -75,8 +75,10 @@ google-chrome "https://keras.io/examples/" &
         """)
 
     def math(self):
-        path = "/home/yingshaoxo/Documents/01.高数"
-        controller.write(f"cd {path}")
+        path = "/home/yingshaoxo/Documents/HighLevelMathVideos"
+        controller.write(f"cd '{path}'")
+        controller.press("enter")
+        controller.write("xdg-open .")
         controller.press("enter")
         self._kill()
         t.run("""

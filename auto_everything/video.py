@@ -233,7 +233,7 @@ class Video():
     def __init__(self):
         self._cpu_core_numbers = multiprocessing.cpu_count()
 
-    def _get_voice_parts(self, source_audio_path, top_db, minimum_interval_time_in_seconds=1.0):
+    def _get_voice_parts(self, source_audio_path, top_db, minimum_interval_time_in_seconds=1.0, skip_sharp_noise=False):
         y, sr = get_wav_infomation(source_audio_path)
         minimum_interval_samples = librosa.core.time_to_samples(
             minimum_interval_time_in_seconds, sr)
@@ -317,7 +317,7 @@ class Video():
         parts[0] = [0, parts[0][1]]
         parts = from_samples_to_seconds(parts)
 
-        numVersionOfParts = []
+        newVersionOfParts = []
 
         def to_seconds(s):
             hr, min, sec = [float(x) for x in s.split(':')]
@@ -328,9 +328,13 @@ class Video():
             B = part[1]
             A = to_seconds(A)
             B = to_seconds(B)
-            numVersionOfParts.append([A, B])
-        parts = videoUtils.dropTooShortIntervals(numVersionOfParts, 0.)
-        parts = videoUtils.mergeContinuesIntervals(parts, thresholdInSeconds=1)
+            newVersionOfParts.append([A, B])
+
+        parts = newVersionOfParts
+
+        if skip_sharp_noise:
+            parts = videoUtils.dropTooShortIntervals(parts, 0.2)
+            parts = videoUtils.mergeContinuesIntervals(parts, thresholdInSeconds=0.5)
 
         return parts[1:]
 
@@ -612,7 +616,8 @@ class Video():
         done()
 
     def remove_silence_parts_from_video(self, source_video_path, target_video_path, db_for_split_silence_and_voice,
-                                        minimum_interval_time_in_seconds=None, voice_only=False):
+                                        minimum_interval_time_in_seconds=None, voice_only=False,
+                                        skip_sharp_noise=False):
         """
         Parameters
         ----------
@@ -640,10 +645,10 @@ class Video():
             working_dir, disk.get_hash_of_a_path(source_video_path) + 'temp_for_remove_silence_parts_from_video.mp4')
 
         if minimum_interval_time_in_seconds is None:
-            parts = self._get_voice_parts(audio_path, top_db)
+            parts = self._get_voice_parts(audio_path, top_db, skip_sharp_noise=skip_sharp_noise)
         else:
             parts = self._get_voice_parts(
-                audio_path, top_db, minimum_interval_time_in_seconds)
+                audio_path, top_db, minimum_interval_time_in_seconds, skip_sharp_noise=skip_sharp_noise)
 
         # """
         parent_clip = VideoFileClip(source_video_path)
@@ -1391,6 +1396,7 @@ class DeepVideo():
                 if "person" in classList:
                     frame = pornstar.effect_of_blur(frame, kernel=30)
             return frame
+
         pornstar.process_video(path_of_video=source_video_path, effect_function=doit, save_to=target_video_path)
 
 
