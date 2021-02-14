@@ -1,0 +1,5 @@
+auto.egg-info
+
+build/
+
+*.swp
