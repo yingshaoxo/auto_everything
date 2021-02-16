@@ -20,18 +20,22 @@ __version__ = "0.0.1"
 
 ext_modules = [
     Pybind11Extension("auto.terminal",
-                      #["src/terminal.cpp"], #sorted(glob('src/*.cpp'))
-                      sorted(glob('src/terminal/*.cpp')),
+                      # ["src/terminal.cpp"], #sorted(glob('src/*.cpp'))
+                      sorted(
+                          glob('src/disk/*.cpp') + \
+                          glob('src/terminal/*.cpp')
+                      ),
                       include_dirs=[
                           # Path to pybind11 headers
                           # get_include(),
+                          'src/disk',
                           'src/terminal',
                       ],
                       # Example: passing in the version to the compiled code
                       define_macros=[('VERSION_INFO', __version__)],
                       ),
     Pybind11Extension("auto.disk",
-                      #["src/disk.cpp"],
+                      # ["src/disk.cpp"],
                       sorted(glob('src/disk/*.cpp')),
                       include_dirs=[
                           # Path to pybind11 headers
