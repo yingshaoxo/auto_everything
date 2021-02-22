@@ -19,6 +19,7 @@ class Mission():
         t.kill("evince")
         t.kill("chrome")
         t.kill("obs")
+        t.kill("inkscape")
 
     def play(self):
         controller.write("cd ~/CS/notebooks")
@@ -102,6 +103,17 @@ nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/Math/[试题册
         xdg-open ~/Videos/doing &
         #terminator --working-directory="~/Videos" &
         obs-studio
+        """, wait=False)
+
+    def draw(self):
+        path = "/home/yingshaoxo/Downloads/SYNC/Personal/Art"
+        controller.write(f"cd {path}")
+        controller.press("enter")
+
+        self._kill()
+        t.run(f"""
+        xdg-open {path} &
+        inkscape
         """, wait=False)
 
     def pi(self):
