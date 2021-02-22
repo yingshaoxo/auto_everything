@@ -8,7 +8,14 @@
 #include "vector"
 #include "string"
 
-std::vector<std::string> get_files(std::string folder);
-std::vector<std::string> get_folders(std::string folder);
+using namespace std;
+
+vector<string> get_files(string folder);
+vector<string> get_folders(string folder);
+
+void write_string_to_file(const string &text, const string &path);
+string read_file_as_string(const string &path);
+
+
 
 #endif //AUTO_EVERYTHING_DISK_H

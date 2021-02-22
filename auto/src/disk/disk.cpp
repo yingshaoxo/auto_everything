@@ -6,37 +6,65 @@
 #include "string"
 #include <filesystem>
 
+using namespace std;
+
 //def get_files(self, folder: str, recursive: bool = True, type_limiter: List[str] = None) -> List[str]:
-std::vector<std::string> get_files(std::string folder) {
-    std::vector<std::string> list_of_files;
-    for (const auto &entry : std::filesystem::directory_iterator(folder)) {
+bool exists(string path) {
+    return filesystem::exists(path);
+}
+
+vector<string> get_files(string folder) {
+    vector<string> list_of_files;
+    for (const auto &entry : filesystem::directory_iterator(folder)) {
         auto path = entry.path();
-        if (!std::filesystem::is_directory(path)) {
+        if (!filesystem::is_directory(path)) {
             list_of_files.push_back(path);
         }
     }
     return list_of_files;
 }
 
-std::vector<std::string> get_folders(std::string folder) {
-    std::vector<std::string> list_of_files;
-    for (const auto &entry : std::filesystem::directory_iterator(folder)) {
+vector<string> get_folders(string folder) {
+    vector<string> list_of_files;
+    for (const auto &entry : filesystem::directory_iterator(folder)) {
         auto path = entry.path();
-        if (std::filesystem::is_directory(path)) {
+        if (filesystem::is_directory(path)) {
             list_of_files.push_back(path);
         }
     }
     return list_of_files;
 }
+
+
+#include <fstream>
+#include <string>
+#include <iostream>
+
+void write_string_to_file(const string &text, const string &path) {
+    std::ofstream out(path);
+    out << text;
+    out.close();
+}
+
+
+#include <streambuf>
+
+string read_file_as_string(const string &path) {
+    ifstream t(path);
+    string str((istreambuf_iterator<char>(t)),
+               istreambuf_iterator<char>());
+    return str;
+}
+
 
 /*
 struct StorageNode {
-    std::string type;
-    std::string name;
-    std::string path;
-    std::vector<StorageNode> children;
+    string type;
+    string name;
+    string path;
+    vector<StorageNode> children;
 };
-StorageNode get_storage_tree(std::string folder) {
+StorageNode get_storage_tree(string folder) {
     StorageNode node;
     return node;
 }
@@ -62,6 +90,14 @@ PYBIND11_MODULE(disk, m
 
     m.def("get_folders", &get_folders, R"pbdoc(
         get folders under a folder
+    )pbdoc");
+
+    m.def("write_string_to_file", &write_string_to_file, R"pbdoc(
+        write string to a file
+    )pbdoc");
+
+    m.def("read_file_as_string", &read_file_as_string, R"pbdoc(
+        read a file and return a string
     )pbdoc");
 
 /*

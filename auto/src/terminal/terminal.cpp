@@ -5,14 +5,19 @@
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
+
 #include <iostream>
 #include <string>
 #include <bits/stdc++.h>
 
-void run(const std::string &commands) {
+using namespace std;
+
+void run(const string &commands) {
     auto c_string = commands.c_str();
-    std::system(c_string);
+    cout << commands << endl;
+    system(c_string);
 }
+
 
 #include <cstdio>
 #include <iostream>
@@ -20,13 +25,13 @@ void run(const std::string &commands) {
 #include <stdexcept>
 #include <array>
 
-std::string run_command(const std::string &commands) {
+string run_command(const string &commands) {
     const char *cmd = commands.c_str();
-    std::array<char, 128> buffer{};
-    std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    array<char, 128> buffer{};
+    string result;
+    unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
     if (!pipe) {
-        throw std::runtime_error("popen() failed!");
+        throw runtime_error("popen() failed!");
     }
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
         result += buffer.data();
@@ -34,12 +39,10 @@ std::string run_command(const std::string &commands) {
     return result;
 }
 
-// /proc/2801/cmdline
-// This read-only file holds the complete command line for the process
 #include<cctype>
 
-std::vector<std::string> get_pids() {
-    std::vector<std::string> real_pids;
+vector<string> _get_pids() {
+    vector<string> real_pids;
     for (auto &pid : get_folders("/proc")) {
         pid = pid.substr(6, pid.size() - 6);
         if (isdigit(pid[0])) {
@@ -47,6 +50,64 @@ std::vector<std::string> get_pids() {
         }
     }
     return real_pids;
+}
+
+#include <map>
+#include <sstream>
+#include <fstream>
+
+map<string, int> _get_running_processes() {
+    /*
+     * return a map of <comamnd_line, pid>
+     *
+     * it reads every pid file like '/proc/2801/cmdline'
+     * This read-only file holds the complete command line for the process
+     */
+    map<string, int> m;
+    vector<string> pids = _get_pids();
+    for (auto const &pid : pids) {
+        auto file_path = "/proc/" + pid + "/cmdline";
+        string command_line = read_file_as_string(file_path);
+        m.insert(pair<string, int>(command_line, stoi(pid)));
+    }
+    return m;
+}
+
+bool is_running(const string &process_name) {
+    auto processes = _get_running_processes();
+    for (auto const &item : processes) {
+        if (item.first.find(process_name) != string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
+#include <chrono>
+#include <thread>
+#include <sys/types.h>
+#include <signal.h>
+
+void kill_it(const string &process_name, bool force = true) {
+    auto processes = _get_running_processes();
+    if (force) {
+        for (auto const &item : processes) {
+            if (item.first.find(process_name) != string::npos) {
+                int pid = item.second;
+                //run("kill -s SIGKILL " + pid);
+                kill(pid, SIGKILL);
+            }
+        }
+        run("pkill " + process_name);
+    } else {
+        for (auto const &item : processes) {
+            if (item.first.find(process_name) != string::npos) {
+                int pid = item.second;
+                //run("kill -s SIGINT " + pid);
+                kill(pid, SIGINT);
+            }
+        }
+    }
 }
 
 
@@ -65,18 +126,26 @@ PYBIND11_MODULE(terminal, m
 
     m.def("run", &run, R"pbdoc(
         run some commands
-        Some other explanation about the add function.
     )pbdoc");
 
     m.def("run_command", &run_command, R"pbdoc(
         run some commands and return results
-        Some other explanation about the add function.
     )pbdoc");
 
-    m.def("get_pids", &get_pids, R"pbdoc(
+    m.def("_get_pids", &_get_pids, R"pbdoc(
         get pids of running process
-        Some other explanation about the add function.
     )pbdoc");
+
+    m.def("is_running", &is_running, R"pbdoc(
+        check if a process is running
+    )pbdoc");
+
+    m.def("kill", &kill_it,
+          py::arg("process_name"), py::arg("force") = py::bool_(true),
+          R"pbdoc(
+        check if a process is running
+    )pbdoc");
+
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
