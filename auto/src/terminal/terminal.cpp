@@ -21,7 +21,7 @@ void run(const std::string &commands) {
 #include <stdexcept>
 #include <array>
 
-std::string run_commands(const std::string &commands) {
+std::string run_command(const std::string &commands) {
     const char *cmd = commands.c_str();
     std::array<char, 128> buffer{};
     std::string result;
@@ -69,7 +69,7 @@ PYBIND11_MODULE(terminal, m
         Some other explanation about the add function.
     )pbdoc");
 
-    m.def("run_commands", &run_commands, R"pbdoc(
+    m.def("run_command", &run_command, R"pbdoc(
         run some commands and return results
         Some other explanation about the add function.
     )pbdoc");

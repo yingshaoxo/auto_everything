@@ -12,9 +12,13 @@ class Tools():
         t.run('git push origin')
 
     def pull(self):
-        t.run("""
+        branch = "master"
+        for s in t.run_command("git branch").split("\n"):
+            if "*" in s:
+                branch = s.replace("*", "").strip()
+        t.run(f"""
 git fetch --all
-git reset --hard origin/master
+git reset --hard origin/{branch}
 """)
 
     def undo(self):
