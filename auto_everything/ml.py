@@ -68,16 +68,16 @@ class AudioClassifier():
         waveform = np.zeros(3 * 16000, dtype=np.float32)
         self.store = Store("AudioClassifier")
 
-    def getWaveFormListFromVideo(self, videoPath: str, secondsForOnePart=3):
+    def get_waveform_list_from_video(self, videoPath: str, secondsForOnePart=3):
         self.temp_dir: str = tempfile.gettempdir()
         m = hashlib.sha256()
         m.update(str(datetime.datetime.now()).encode("utf-8"))
         m.update(videoPath.encode("utf-8"))
         temp_audio_file = os.path.join(self.temp_dir, m.hexdigest()[:10] + ".wav")
         videoUtils.convert_video_to_wav(videoPath, temp_audio_file)
-        soundArray, SampleRate = videoUtils.getMono16khzAudioArray(temp_audio_file)
+        soundArray, SampleRate = videoUtils.get_mono_16khz_audio_array(temp_audio_file)
         os.remove(temp_audio_file)
-        return videoUtils.convertArrayToBatchSamples(soundArray, secondsForOnePart)
+        return videoUtils.convert_array_to_batch_samples(soundArray, secondsForOnePart)
 
     def classify(self, waveform):
         # https://tfhub.dev/google/yamnet/1
@@ -95,7 +95,7 @@ class AudioClassifier():
             intervalsAndLabels = store.get("intervalsAndLabels", "[]")
             if intervalsAndLabels != []:
                 return intervalsAndLabels[0], intervalsAndLabels[1]
-        waveformList = self.getWaveFormListFromVideo(videoPath, secondsForOnePart=intervalLength)
+        waveformList = self.get_waveform_list_from_video(videoPath, secondsForOnePart=intervalLength)
         labels = []
         intervals = []
         for i, waveform in enumerate(waveformList):
@@ -115,9 +115,6 @@ class SpeechToText():
 
 if __name__ == "__main__":
     from pprint import pprint
-
-    audioClassfier = AudioClassifier()
-    audioClassfier.test("/home/yingshaoxo/Videos/freaks.mp4")
 
     """
     data_processor = DataProcessor()

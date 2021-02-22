@@ -129,12 +129,12 @@ class VideoUtils():
     def convert_video_to_wav(self, source_video_path, target_wav_path):
         return convert_video_to_wav(source_video_path, target_wav_path)
 
-    def getMono16khzAudioArray(self, sourceWavePath: str):
+    def get_mono_16khz_audio_array(self, sourceWavePath: str):
         y, s = librosa.load(sourceWavePath, mono=True, sr=16000)
         # s is audio sample rate
         return y, s
 
-    def convertArrayToBatchSamples(self, y, durationInSecondsForEach=1.0):
+    def convert_array_to_batch_samples(self, y, durationInSecondsForEach=1.0):
         samplesForEachOne = librosa.time_to_samples(durationInSecondsForEach, sr=16000)
         num_sections = math.ceil(y.shape[0] / samplesForEachOne)
         return np.array_split(y, num_sections, axis=0)
@@ -146,7 +146,7 @@ class VideoUtils():
         y, sr = librosa.load(wav_path, sr=None)
         return y, sr
 
-    def mergeContinuesIntervals(self, intervals, thresholdInSeconds):
+    def merge_continues_intervals(self, intervals, thresholdInSeconds):
         # merge continues videos
         # if time betewwn two intervals are less than thresholdInSeconds, we merge them
         i = 0
@@ -168,7 +168,7 @@ class VideoUtils():
                 i += 1
         return intervals
 
-    def dropTooShortIntervals(self, intervals, thresholdInSeconds):
+    def drop_too_short_intervals(self, intervals, thresholdInSeconds):
         # remove too short videos
         # if the time delta in a interval is less than thresholdInSeconds, we drop it
         i = 0
@@ -190,7 +190,7 @@ class VideoUtils():
 
         return intervals
 
-    def getIntersectionOfTwoIntervals(self, A, B):
+    def get_intersection_of_two_intervals(self, A, B):
         i = j = 0
         ans = []
         while i < len(A) and j < len(B):
@@ -1402,7 +1402,8 @@ class DeepVideo():
 
 if __name__ == "__main__":
     video = DeepVideo()
+    videoUtils = VideoUtils()
     rawParts = video._get_sounds_parts("/home/yingshaoxo/Videos/freaks.mp4", 20)
-    parts = video._merge_short_parts(rawParts, 10)
+    parts = videoUtils.merge_continues_intervals(rawParts, 10)
     print(parts)
     print(len(parts))
