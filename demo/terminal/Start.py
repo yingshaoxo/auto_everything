@@ -10,20 +10,28 @@ controller = Controller()
 
 class Mission():
     def _kill(self):
-        t.kill("jupyter-lab")
-        t.kill("kernel")
-        t.kill("pycharm")
-        t.kill("code/code")
-        t.kill("nautilus")
-        t.kill("xournalpp")
-        t.kill("evince")
-        t.kill("chrome")
-        t.kill("obs")
-        t.kill("inkscape")
+        process = [
+            "jupyter-lab",
+            "kernel"
+            "pycharm"
+            "code/code"
+            "nautilus"
+            "xournalpp"
+            "evince"
+            "chrome"
+            "obs"
+            "inkscape"
+            "clion"
+        ]
+        for p in process:
+            t.kill(p)
+
+    def _go_to(self, path):
+        controller.write(f"cd {path}")
+        controller.press("enter")
 
     def play(self):
-        controller.write("cd ~/CS/notebooks")
-        controller.press("enter")
+        self._go_to("~/CS/notebooks")
         self._kill()
         t.run("""
 source ~/miniconda3/etc/profile.d/conda.sh
@@ -35,8 +43,7 @@ google-chrome "https://leetcode.com/problemset/all/"
                 """, wait=False)
 
     def lab(self):
-        controller.write("cd ~/CS/notebooks")
-        controller.press("enter")
+        self._go_to("~/CS/notebooks")
         self._kill()
         t.run("""
 cd ~/CS/notebooks
@@ -47,8 +54,7 @@ google-chrome "https://keras.io/examples/" &
 
     def ui(self):
         path = "~/CS/freedom/2021"
-        controller.write(f"cd {path}")
-        controller.press("enter")
+        self._go_to(path)
 
         self._kill()
         t.run(f"""
@@ -63,9 +69,7 @@ google-chrome "https://keras.io/examples/" &
 
     def py(self):
         path = "~/CS/auto_everything"
-        controller.write(f"cd {path}")
-        controller.press("enter")
-
+        self._go_to(path)
         self._kill()
         t.run_command(f"""
         google-chrome "https://google.com" &
@@ -75,10 +79,21 @@ google-chrome "https://keras.io/examples/" &
         nohup xournalpp "~/CS/auto_everything/plans.xopp" &
         """)
 
+    def cpp(self):
+        path = "~/CS/auto_everything"
+        self._go_to(path)
+        self._kill()
+        t.run_command(f"""
+        google-chrome "https://google.com" &
+        cd {path}
+        nohup pycharm-community &
+        nohup clion &
+        nohup xournalpp "~/CS/auto_everything/plans.xopp" &
+        """)
+
     def math(self):
         path = "/home/yingshaoxo/Documents/HighLevelMathVideos"
-        controller.write(f"cd '{path}'")
-        controller.press("enter")
+        self._go_to(path)
         controller.write("xdg-open .")
         controller.press("enter")
         self._kill()
@@ -95,9 +110,7 @@ nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/Math/[试题册
 
     def record(self):
         path = "~/Videos"
-        controller.write(f"cd {path}")
-        controller.press("enter")
-
+        self._go_to(path)
         self._kill()
         t.run("""
         xdg-open ~/Videos/doing &
@@ -107,9 +120,7 @@ nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/Math/[试题册
 
     def draw(self):
         path = "/home/yingshaoxo/Downloads/SYNC/Personal/Art"
-        controller.write(f"cd {path}")
-        controller.press("enter")
-
+        self._go_to(path)
         self._kill()
         t.run(f"""
         xdg-open {path} &

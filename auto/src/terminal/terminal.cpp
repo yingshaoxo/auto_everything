@@ -12,7 +12,6 @@
 void run(const std::string &commands) {
     auto c_string = commands.c_str();
     std::system(c_string);
-    //std::cout << "result" <<std::endl;
 }
 
 #include <cstdio>
