@@ -12,16 +12,16 @@ class Mission():
     def _kill(self):
         process = [
             "jupyter-lab",
-            "kernel"
-            "pycharm"
-            "code/code"
-            "nautilus"
-            "xournalpp"
-            "evince"
-            "chrome"
-            "obs"
-            "inkscape"
-            "clion"
+            "kernel",
+            "pycharm",
+            "code/code",
+            "nautilus",
+            "xournalpp",
+            "evince",
+            "chrome",
+            "obs",
+            "inkscape",
+            "clion",
         ]
         for p in process:
             t.kill(p)
@@ -29,6 +29,9 @@ class Mission():
     def _go_to(self, path):
         controller.write(f"cd {path}")
         controller.press("enter")
+
+    def sleep(self):
+        self._kill()
 
     def play(self):
         self._go_to("~/CS/notebooks")

@@ -303,6 +303,16 @@ class Terminal():
 
         get a list of pids, only available in Linux ; [string, ...]
         """
+        """
+        pids = os.listdir("/proc")
+        pids = [i for i in pids if i.isdigit()]
+        command_lines = [self._io.read(f"/proc/{i}/cmdline") for i in pids]
+        target_pids = []
+        for pid, command in zip(pids, command_lines):
+            if name in command:
+                target_pids.append(pid)
+        return target_pids
+        """
         pids = []
         # Iterate over all running process
         for proc in psutil.process_iter():
@@ -349,10 +359,10 @@ class Terminal():
         pids = self._get_pids(name)
         for pid in pids:
             if force:
-                self.run_command('kill -s SIGKILL {num}'.format(num=pid))
-                self.run_command('pkill {name}'.format(name=name))
+                self.run('kill -s SIGKILL {num}'.format(num=pid))
+                self.run('pkill {name}'.format(name=name))
             else:
-                self.run_command('kill -s SIGINT {num}'.format(num=pid))
+                self.run('kill -s SIGINT {num}'.format(num=pid))
                 # import signal
                 # os.kill(pid, signal.SIGINT) #This is typically initiated by pressing Ctrl+C
 
@@ -362,4 +372,4 @@ class Terminal():
                 timeout -= 1
             pids = self._get_pids(name)
             for pid in pids:
-                self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
+                self.run('kill -s SIGQUIT {num}'.format(num=pid))
