@@ -45,6 +45,7 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pyfakewebcam</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
 
 <span class="kn">from</span> <span class="nn">auto_everything.base</span> <span class="kn">import</span> <span class="n">Terminal</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -72,7 +73,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">camera</span> <span class="o">=</span> <span class="n">pyfakewebcam</span><span class="o">.</span><span class="n">FakeWebcam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
 
-<div class="viewcode-block" id="FakeCamera.next"><a class="viewcode-back" href="../../index.html#auto_everything.camera.FakeCamera.next">[docs]</a>    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+<div class="viewcode-block" id="FakeCamera.next"><a class="viewcode-back" href="../../index.html#auto_everything.camera.FakeCamera.next">[docs]</a>    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">rgb</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Pipe new frame to the fake camera</span>
 
@@ -80,7 +81,11 @@
 <span class="sd">        ----------</span>
 <span class="sd">        frame: numpy representation of an image</span>
 <span class="sd">            np.zeros((480,640,3), dtype=np.uint8)</span>
+<span class="sd">        rgb: bool</span>
+<span class="sd">            if you want to give me an rgb frame, you&#39;ll have to set this.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">rgb</span><span class="p">:</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2BGR</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">schedule_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FakeCamera.show"><a class="viewcode-back" href="../../index.html#auto_everything.camera.FakeCamera.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

@@ -47,6 +47,7 @@
 <span class="kn">import</span> <span class="nn">cv2</span>
 
 <span class="kn">from</span> <span class="nn">auto_everything.base</span> <span class="kn">import</span> <span class="n">Terminal</span>
+
 <span class="n">t</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
@@ -110,7 +111,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        delay for milliseconds</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">milliseconds</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">milliseconds</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">find_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_text</span><span class="p">,</span> <span class="n">from_image</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -120,7 +121,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="c1">#from PIL import Image</span>
+            <span class="c1"># from PIL import Image</span>
             <span class="kn">import</span> <span class="nn">pyscreenshot</span> <span class="k">as</span> <span class="nn">ImageGrab</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
@@ -152,8 +153,8 @@
                 <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">attribute</span><span class="p">][</span><span class="n">t_index</span><span class="p">]</span>
                     <span class="n">my_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">attribute</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
-                <span class="n">x</span> <span class="o">=</span> <span class="n">my_dict</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">my_dict</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span>
-                <span class="n">y</span> <span class="o">=</span> <span class="n">my_dict</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">my_dict</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">my_dict</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">my_dict</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">my_dict</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">my_dict</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
                 <span class="n">return_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
         <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">return_list</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">return_list</span>
@@ -174,7 +175,7 @@
     <span class="k">def</span> <span class="nf">__click</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">game</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pyautogui</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_takes_for_one_click</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">game</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pyautogui</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_takes_for_one_click</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pyautogui</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_takes_for_one_click</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__get_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element_name</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_make_sure_img_dict_exists</span><span class="p">()</span>
@@ -270,7 +271,41 @@
     <span class="k">def</span> <span class="nf">mouse_click</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">button</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">game</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pyautogui</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">button</span><span class="o">=</span><span class="n">button</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">game</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pyautogui</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">button</span><span class="o">=</span><span class="n">button</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pyautogui</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">button</span><span class="o">=</span><span class="n">button</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pyautogui</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        self.pyautogui.KEYBOARD_KEYS</span>
+
+<span class="sd">        or</span>
+
+<span class="sd">        [&#39;\t&#39;, &#39;\n&#39;, &#39;\r&#39;, &#39; &#39;, &#39;!&#39;, &#39;&quot;&#39;, &#39;#&#39;, &#39;$&#39;, &#39;%&#39;, &#39;&amp;&#39;, &quot;&#39;&quot;, &#39;(&#39;,</span>
+<span class="sd">         &#39;)&#39;, &#39;*&#39;, &#39;+&#39;, &#39;,&#39;, &#39;-&#39;, &#39;.&#39;, &#39;/&#39;, &#39;0&#39;, &#39;1&#39;, &#39;2&#39;, &#39;3&#39;, &#39;4&#39;, &#39;5&#39;, &#39;6&#39;, &#39;7&#39;,</span>
+<span class="sd">         &#39;8&#39;, &#39;9&#39;, &#39;:&#39;, &#39;;&#39;, &#39;&lt;&#39;, &#39;=&#39;, &#39;&gt;&#39;, &#39;?&#39;, &#39;@&#39;, &#39;[&#39;, &#39;\\&#39;, &#39;]&#39;, &#39;^&#39;, &#39;_&#39;, &#39;`&#39;,</span>
+<span class="sd">         &#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;, &#39;h&#39;, &#39;i&#39;, &#39;j&#39;, &#39;k&#39;, &#39;l&#39;, &#39;m&#39;, &#39;n&#39;, &#39;o&#39;,</span>
+<span class="sd">         &#39;p&#39;, &#39;q&#39;, &#39;r&#39;, &#39;s&#39;, &#39;t&#39;, &#39;u&#39;, &#39;v&#39;, &#39;w&#39;, &#39;x&#39;, &#39;y&#39;, &#39;z&#39;, &#39;{&#39;, &#39;|&#39;, &#39;}&#39;, &#39;~&#39;,</span>
+<span class="sd">         &#39;accept&#39;, &#39;add&#39;, &#39;alt&#39;, &#39;altleft&#39;, &#39;altright&#39;, &#39;apps&#39;, &#39;backspace&#39;,</span>
+<span class="sd">         &#39;browserback&#39;, &#39;browserfavorites&#39;, &#39;browserforward&#39;, &#39;browserhome&#39;,</span>
+<span class="sd">         &#39;browserrefresh&#39;, &#39;browsersearch&#39;, &#39;browserstop&#39;, &#39;capslock&#39;, &#39;clear&#39;,</span>
+<span class="sd">         &#39;convert&#39;, &#39;ctrl&#39;, &#39;ctrlleft&#39;, &#39;ctrlright&#39;, &#39;decimal&#39;, &#39;del&#39;, &#39;delete&#39;,</span>
+<span class="sd">         &#39;divide&#39;, &#39;down&#39;, &#39;end&#39;, &#39;enter&#39;, &#39;esc&#39;, &#39;escape&#39;, &#39;execute&#39;, &#39;f1&#39;, &#39;f10&#39;,</span>
+<span class="sd">         &#39;f11&#39;, &#39;f12&#39;, &#39;f13&#39;, &#39;f14&#39;, &#39;f15&#39;, &#39;f16&#39;, &#39;f17&#39;, &#39;f18&#39;, &#39;f19&#39;, &#39;f2&#39;, &#39;f20&#39;,</span>
+<span class="sd">         &#39;f21&#39;, &#39;f22&#39;, &#39;f23&#39;, &#39;f24&#39;, &#39;f3&#39;, &#39;f4&#39;, &#39;f5&#39;, &#39;f6&#39;, &#39;f7&#39;, &#39;f8&#39;, &#39;f9&#39;,</span>
+<span class="sd">         &#39;final&#39;, &#39;fn&#39;, &#39;hanguel&#39;, &#39;hangul&#39;, &#39;hanja&#39;, &#39;help&#39;, &#39;home&#39;, &#39;insert&#39;, &#39;junja&#39;,</span>
+<span class="sd">         &#39;kana&#39;, &#39;kanji&#39;, &#39;launchapp1&#39;, &#39;launchapp2&#39;, &#39;launchmail&#39;,</span>
+<span class="sd">         &#39;launchmediaselect&#39;, &#39;left&#39;, &#39;modechange&#39;, &#39;multiply&#39;, &#39;nexttrack&#39;,</span>
+<span class="sd">         &#39;nonconvert&#39;, &#39;num0&#39;, &#39;num1&#39;, &#39;num2&#39;, &#39;num3&#39;, &#39;num4&#39;, &#39;num5&#39;, &#39;num6&#39;,</span>
+<span class="sd">         &#39;num7&#39;, &#39;num8&#39;, &#39;num9&#39;, &#39;numlock&#39;, &#39;pagedown&#39;, &#39;pageup&#39;, &#39;pause&#39;, &#39;pgdn&#39;,</span>
+<span class="sd">         &#39;pgup&#39;, &#39;playpause&#39;, &#39;prevtrack&#39;, &#39;print&#39;, &#39;printscreen&#39;, &#39;prntscrn&#39;,</span>
+<span class="sd">         &#39;prtsc&#39;, &#39;prtscr&#39;, &#39;return&#39;, &#39;right&#39;, &#39;scrolllock&#39;, &#39;select&#39;, &#39;separator&#39;,</span>
+<span class="sd">         &#39;shift&#39;, &#39;shiftleft&#39;, &#39;shiftright&#39;, &#39;sleep&#39;, &#39;space&#39;, &#39;stop&#39;, &#39;subtract&#39;, &#39;tab&#39;,</span>
+<span class="sd">         &#39;up&#39;, &#39;volumedown&#39;, &#39;volumemute&#39;, &#39;volumeup&#39;, &#39;win&#39;, &#39;winleft&#39;, &#39;winright&#39;, &#39;yen&#39;,</span>
+<span class="sd">         &#39;command&#39;, &#39;option&#39;, &#39;optionleft&#39;, &#39;optionright&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pyautogui</span><span class="o">.</span><span class="n">press</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="AndroidGUI"><a class="viewcode-back" href="../../index.html#auto_everything.gui.AndroidGUI">[docs]</a><span class="k">class</span> <span class="nc">AndroidGUI</span><span class="p">(</span><span class="n">CommonGUI</span><span class="p">):</span>
@@ -290,13 +325,14 @@
 <span class="s2">To use this module, you have to install adb:</span>
 <span class="s2">    sudo apt install android-tools-adb</span>
 <span class="s2">&quot;&quot;&quot;</span>
-        
+
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">uiautomator</span> <span class="kn">import</span> <span class="n">device</span> <span class="k">as</span> <span class="n">d</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">d</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;I suggest you to use uiautomator to handle your android phone. You can install it by: </span><span class="se">\n</span><span class="s2">sudo pip3 install uiautomator&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;I suggest you to use uiautomator to handle your android phone. You can install it by: </span><span class="se">\n</span><span class="s2">sudo pip3 install uiautomator&quot;</span><span class="p">)</span>
 
         <span class="n">info_of_android</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">run_command</span><span class="p">(</span><span class="s2">&quot;adb shell dumpsys display&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">info_of_android</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
@@ -343,7 +379,7 @@
         <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">shape</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">loc</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">w</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
             <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y</span><span class="p">})</span>
             <span class="k">if</span> <span class="n">visual</span><span class="p">:</span>
                 <span class="n">cv2</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(</span><span class="n">from_image</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
@@ -378,17 +414,17 @@
         <span class="n">x</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">landscape</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">__screen_width</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">__android_height</span><span class="p">)</span>
-            <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">__screen_height</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">__android_width</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__screen_width</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">__android_height</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__screen_height</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">__android_width</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">__screen_width</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">__android_width</span><span class="p">)</span>
-            <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">__screen_height</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">__android_height</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__screen_width</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">__android_width</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__screen_height</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">__android_height</span><span class="p">)</span>
         <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;adb shell input tap </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">androidGUI</span> <span class="o">=</span> <span class="n">AndroidGUI</span><span class="p">(</span><span class="s2">&quot;pixel&quot;</span><span class="p">)</span>
-    <span class="k">while</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">while</span> <span class="p">(</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">androidGUI</span><span class="o">.</span><span class="n">capture_screen</span><span class="p">()</span>
         <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="s1">&#39;frame&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cv2</span><span class="o">.</span><span class="n">waitKey</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFF</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s1">&#39;q&#39;</span><span class="p">):</span>

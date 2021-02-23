@@ -52,11 +52,11 @@
 <h1>Terminal<a class="headerlink" href="#terminal" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="auto_everything.terminal.Terminal">
-<em class="property">class </em><code class="descclassname">auto_everything.terminal.</code><code class="descname">Terminal</code><span class="sig-paren">(</span><em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">auto_everything.terminal.</code><code class="descname">Terminal</code><span class="sig-paren">(</span><em>debug: bool = False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/terminal.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminal simulator for execute bash commands</p>
 <dl class="method">
 <dt id="auto_everything.terminal.Terminal.exists">
-<code class="descname">exists</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.exists" title="Permalink to this definition">¶</a></dt>
+<code class="descname">exists</code><span class="sig-paren">(</span><em>path: str</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/auto_everything/terminal.html#Terminal.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>cheack if a file or directory exists
 return true is it exists</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -71,7 +71,7 @@ return true is it exists</p>
 
 <dl class="method">
 <dt id="auto_everything.terminal.Terminal.run">
-<code class="descname">run</code><span class="sig-paren">(</span><em>c</em>, <em>cwd=None</em>, <em>wait=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run</code><span class="sig-paren">(</span><em>c: str</em>, <em>cwd: str = None</em>, <em>wait: bool = True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/terminal.html#Terminal.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>run shell commands without value returning</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -90,7 +90,7 @@ return true is it exists</p>
 
 <dl class="method">
 <dt id="auto_everything.terminal.Terminal.run_command">
-<code class="descname">run_command</code><span class="sig-paren">(</span><em>c</em>, <em>timeout=15</em>, <em>cwd=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_command" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run_command</code><span class="sig-paren">(</span><em>c: str</em>, <em>timeout: int = 15</em>, <em>cwd: str = None</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/auto_everything/terminal.html#Terminal.run_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>run shell commands with return value</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -109,7 +109,7 @@ return true is it exists</p>
 
 <dl class="method">
 <dt id="auto_everything.terminal.Terminal.run_program">
-<code class="descname">run_program</code><span class="sig-paren">(</span><em>name</em>, <em>cwd=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_program"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_program" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run_program</code><span class="sig-paren">(</span><em>name: str</em>, <em>cwd: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/terminal.html#Terminal.run_program"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_program" title="Permalink to this definition">¶</a></dt>
 <dd><p>run shell commands, especially programs which can be started from terminal.
 This function will not wait program to be finished.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -132,7 +132,7 @@ This function will not wait program to be finished.</p>
 
 <dl class="method">
 <dt id="auto_everything.terminal.Terminal.run_py">
-<code class="descname">run_py</code><span class="sig-paren">(</span><em>file_path_with_command</em>, <em>cwd=None</em>, <em>wait=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_py" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run_py</code><span class="sig-paren">(</span><em>file_path_with_command: str</em>, <em>cwd: str = None</em>, <em>wait: bool = False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/terminal.html#Terminal.run_py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_py" title="Permalink to this definition">¶</a></dt>
 <dd><p>run py_file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -155,7 +155,7 @@ This function will not wait program to be finished.</p>
 
 <dl class="method">
 <dt id="auto_everything.terminal.Terminal.run_sh">
-<code class="descname">run_sh</code><span class="sig-paren">(</span><em>file_path_with_command</em>, <em>cwd=None</em>, <em>wait=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.run_sh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_sh" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run_sh</code><span class="sig-paren">(</span><em>file_path_with_command: str</em>, <em>cwd: str = None</em>, <em>wait: bool = False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/terminal.html#Terminal.run_sh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.run_sh" title="Permalink to this definition">¶</a></dt>
 <dd><p>run sh_file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -178,7 +178,7 @@ This function will not wait program to be finished.</p>
 
 <dl class="method">
 <dt id="auto_everything.terminal.Terminal.is_running">
-<code class="descname">is_running</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.is_running"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.is_running" title="Permalink to this definition">¶</a></dt>
+<code class="descname">is_running</code><span class="sig-paren">(</span><em>name: str</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/auto_everything/terminal.html#Terminal.is_running"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.is_running" title="Permalink to this definition">¶</a></dt>
 <dd><p>cheack if a program is running</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -192,7 +192,7 @@ This function will not wait program to be finished.</p>
 
 <dl class="method">
 <dt id="auto_everything.terminal.Terminal.kill">
-<code class="descname">kill</code><span class="sig-paren">(</span><em>name</em>, <em>force=True</em>, <em>wait=False</em>, <em>timeout=30</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/base.html#Terminal.kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.kill" title="Permalink to this definition">¶</a></dt>
+<code class="descname">kill</code><span class="sig-paren">(</span><em>name: str</em>, <em>force: bool = True</em>, <em>wait: bool = False</em>, <em>timeout: int = 30</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/terminal.html#Terminal.kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.terminal.Terminal.kill" title="Permalink to this definition">¶</a></dt>
 <dd><p>kill a program by its name, depends on <cite>kill pid</cite></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -327,6 +327,24 @@ some program like ffmpeg, should set force=False</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>path</strong> (<em>string</em>) – the compressed file path</li>
 <li><strong>folder</strong> (<em>string</em>) – where you want to put the uncompressed files into</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.disk.Disk.compress">
+<code class="descname">compress</code><span class="sig-paren">(</span><em>paths: List[str], target: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/disk.html#Disk.compress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.disk.Disk.compress" title="Permalink to this definition">¶</a></dt>
+<dd><p>compress a files to a target.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>paths</strong> (<em>string of list</em>) – </li>
+<li><strong>target</strong> (<em>string</em>) – the compressed output file path</li>
 </ul>
 </td>
 </tr>
@@ -587,7 +605,7 @@ when false, we sort by name(1, 2, 3)</li>
 
 <dl class="method">
 <dt id="auto_everything.video.Video.remove_silence_parts_from_video">
-<code class="descname">remove_silence_parts_from_video</code><span class="sig-paren">(</span><em>source_video_path</em>, <em>target_video_path</em>, <em>db_for_split_silence_and_voice</em>, <em>minimum_interval_time_in_seconds=None</em>, <em>voice_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.remove_silence_parts_from_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.remove_silence_parts_from_video" title="Permalink to this definition">¶</a></dt>
+<code class="descname">remove_silence_parts_from_video</code><span class="sig-paren">(</span><em>source_video_path</em>, <em>target_video_path</em>, <em>db_for_split_silence_and_voice</em>, <em>minimum_interval_time_in_seconds=None</em>, <em>voice_only=False</em>, <em>skip_sharp_noise=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#Video.remove_silence_parts_from_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.Video.remove_silence_parts_from_video" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -713,7 +731,9 @@ Then you make the decision wheather you want to do this or not</p>
 1. ubuntu core
 2. vosk
 3. ffmpeg
-4. moviepy</p>
+4. moviepy
+5. librosa
+6. pornstar</p>
 <dl class="method">
 <dt id="auto_everything.video.DeepVideo.remove_silence_parts_from_videos_in_a_folder">
 <code class="descname">remove_silence_parts_from_videos_in_a_folder</code><span class="sig-paren">(</span><em>source_folder: str</em>, <em>target_video_path: str</em>, <em>minimum_interval_time_in_seconds: float = 1.0</em>, <em>fps: int = None</em>, <em>resolution: Tuple[int</em>, <em>int] = None</em>, <em>preset: str = 'placebo'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/video.html#DeepVideo.remove_silence_parts_from_videos_in_a_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.video.DeepVideo.remove_silence_parts_from_videos_in_a_folder" title="Permalink to this definition">¶</a></dt>
@@ -801,6 +821,36 @@ Then you make the decision wheather you want to do this or not</p>
 </div>
 <div class="section" id="fakecamera">
 <h1>FakeCamera<a class="headerlink" href="#fakecamera" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="auto_everything.camera.FakeCamera">
+<em class="property">class </em><code class="descclassname">auto_everything.camera.</code><code class="descname">FakeCamera</code><span class="sig-paren">(</span><em>device: str = None</em>, <em>width: int = 640</em>, <em>height: int = 480</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/camera.html#FakeCamera"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.camera.FakeCamera" title="Permalink to this definition">¶</a></dt>
+<dd><p>This module based on <cite>pyfakewebcam</cite>.</p>
+<dl class="method">
+<dt id="auto_everything.camera.FakeCamera.next">
+<code class="descname">next</code><span class="sig-paren">(</span><em>frame</em>, <em>rgb=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/camera.html#FakeCamera.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.camera.FakeCamera.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pipe new frame to the fake camera</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>frame</strong> (<em>numpy representation of an image</em>) – np.zeros((480,640,3), dtype=np.uint8)</li>
+<li><strong>rgb</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if you want to give me an rgb frame, you’ll have to set this.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="auto_everything.camera.FakeCamera.show">
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/auto_everything/camera.html#FakeCamera.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auto_everything.camera.FakeCamera.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show the fake camera by using ffplay</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="selenium">
 <h1>Selenium<a class="headerlink" href="#selenium" title="Permalink to this headline">¶</a></h1>

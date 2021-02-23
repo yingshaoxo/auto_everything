@@ -58,18 +58,19 @@
 <span class="kn">import</span> <span class="nn">subprocess</span>
 
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
-<span class="kn">from</span> <span class="nn">auto_everything.base</span> <span class="kn">import</span> <span class="n">Terminal</span><span class="p">,</span> <span class="n">Python</span><span class="p">,</span> <span class="n">IO</span>
+<span class="kn">from</span> <span class="nn">auto_everything.io</span> <span class="kn">import</span> <span class="n">IO</span>
+<span class="kn">from</span> <span class="nn">auto_everything.terminal</span> <span class="kn">import</span> <span class="n">Terminal</span>
 <span class="kn">from</span> <span class="nn">auto_everything.network</span> <span class="kn">import</span> <span class="n">Network</span>
 <span class="kn">from</span> <span class="nn">auto_everything.disk</span> <span class="kn">import</span> <span class="n">Disk</span>
+
 <span class="n">t</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">py</span> <span class="o">=</span> <span class="n">Python</span><span class="p">()</span>
 <span class="n">io_</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
 <span class="n">network</span> <span class="o">=</span> <span class="n">Network</span><span class="p">()</span>
 <span class="n">disk</span> <span class="o">=</span> <span class="n">Disk</span><span class="p">()</span>
 
 
 <span class="k">def</span> <span class="nf">print_split_line</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span><span class="o">*</span><span class="mi">20</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">*</span> <span class="mi">20</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">done</span><span class="p">():</span>
@@ -167,6 +168,99 @@
     <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">sr</span>
 
 
+<span class="k">class</span> <span class="nc">VideoUtils</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">convert_video_to_wav</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_wav_path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">convert_video_to_wav</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_wav_path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_mono_16khz_audio_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sourceWavePath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sourceWavePath</span><span class="p">,</span> <span class="n">mono</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="mi">16000</span><span class="p">)</span>
+        <span class="c1"># s is audio sample rate</span>
+        <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">convert_array_to_batch_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">durationInSecondsForEach</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="n">samplesForEachOne</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">time_to_samples</span><span class="p">(</span><span class="n">durationInSecondsForEach</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="mi">16000</span><span class="p">)</span>
+        <span class="n">num_sections</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">samplesForEachOne</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">num_sections</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_wav_infomation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wav_path</span><span class="p">):</span>
+        <span class="n">wav_path</span> <span class="o">=</span> <span class="n">try_to_get_absolutely_path</span><span class="p">(</span><span class="n">wav_path</span><span class="p">)</span>
+        <span class="n">make_sure_source_is_absolute_path</span><span class="p">(</span><span class="n">wav_path</span><span class="p">)</span>
+
+        <span class="n">y</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">wav_path</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">sr</span>
+
+    <span class="k">def</span> <span class="nf">merge_continues_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">thresholdInSeconds</span><span class="p">):</span>
+        <span class="c1"># merge continues videos</span>
+        <span class="c1"># if time betewwn two intervals are less than thresholdInSeconds, we merge them</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span>
+        <span class="n">modified</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">while</span> <span class="n">modified</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">modified</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">):</span>
+                    <span class="n">A</span> <span class="o">=</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">B</span> <span class="o">=</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="n">B</span> <span class="o">-</span> <span class="n">A</span>
+                    <span class="c1"># print(d)</span>
+                    <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="n">thresholdInSeconds</span><span class="p">:</span>
+                        <span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">del</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="n">modified</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">intervals</span>
+
+    <span class="k">def</span> <span class="nf">drop_too_short_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">thresholdInSeconds</span><span class="p">):</span>
+        <span class="c1"># remove too short videos</span>
+        <span class="c1"># if the time delta in a interval is less than thresholdInSeconds, we drop it</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span>
+        <span class="n">modified</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">while</span> <span class="n">modified</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">modified</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">):</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">B</span> <span class="o">=</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">B</span> <span class="o">-</span> <span class="n">A</span>
+                <span class="c1"># print(d)</span>
+                <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="n">thresholdInSeconds</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">i</span> <span class="o">-=</span> <span class="mi">1</span>
+                    <span class="n">modified</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">intervals</span>
+
+    <span class="k">def</span> <span class="nf">get_intersection_of_two_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">B</span><span class="p">):</span>
+            <span class="n">start_a</span><span class="p">,</span> <span class="n">end_a</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">start_b</span><span class="p">,</span> <span class="n">end_b</span> <span class="o">=</span> <span class="n">B</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">start_b</span> <span class="o">&lt;=</span> <span class="n">start_a</span> <span class="o">&lt;=</span> <span class="n">end_b</span><span class="p">:</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">start_a</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">end_a</span><span class="p">,</span> <span class="n">end_b</span><span class="p">)])</span>
+                <span class="k">if</span> <span class="n">end_a</span> <span class="o">&lt;</span> <span class="n">end_b</span><span class="p">:</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">start_a</span> <span class="o">&lt;=</span> <span class="n">start_b</span> <span class="o">&lt;=</span> <span class="n">end_a</span><span class="p">:</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">start_b</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">end_a</span><span class="p">,</span> <span class="n">end_b</span><span class="p">)])</span>
+                <span class="k">if</span> <span class="n">end_a</span> <span class="o">&lt;</span> <span class="n">end_b</span><span class="p">:</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">start_a</span> <span class="o">&lt;</span> <span class="n">start_b</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">ans</span>
+
+
+<span class="n">videoUtils</span> <span class="o">=</span> <span class="n">VideoUtils</span><span class="p">()</span>
+
+
 <span class="c1"># we&#39;ll use ffmpeg to do the real work</span>
 <div class="viewcode-block" id="Video"><a class="viewcode-back" href="../../index.html#auto_everything.video.Video">[docs]</a><span class="k">class</span> <span class="nc">Video</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -182,7 +276,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cpu_core_numbers</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_get_voice_parts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_audio_path</span><span class="p">,</span> <span class="n">top_db</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_voice_parts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_audio_path</span><span class="p">,</span> <span class="n">top_db</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">skip_sharp_noise</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">y</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">get_wav_infomation</span><span class="p">(</span><span class="n">source_audio_path</span><span class="p">)</span>
         <span class="n">minimum_interval_samples</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">time_to_samples</span><span class="p">(</span>
             <span class="n">minimum_interval_time_in_seconds</span><span class="p">,</span> <span class="n">sr</span><span class="p">)</span>
@@ -195,15 +289,15 @@
                     <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">part</span><span class="p">))</span>
                     <span class="k">continue</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">noise_interval</span> <span class="o">=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">noise_interval</span> <span class="o">=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">noise_interval</span> <span class="o">&gt;</span> <span class="n">minimum_interval_samples</span><span class="p">):</span>
-                        <span class="n">time_gaps</span> <span class="o">=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="mf">0.1</span>
+                        <span class="n">time_gaps</span> <span class="o">=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mf">0.1</span>
                         <span class="c1"># we fear if the time_gaps is too long</span>
                         <span class="k">if</span> <span class="n">time_gaps</span> <span class="o">&gt;=</span> <span class="n">minimum_interval_samples</span><span class="p">:</span>
                             <span class="n">time_gaps</span> <span class="o">=</span> <span class="n">minimum_interval_samples</span> <span class="o">//</span> <span class="mi">2</span>
                         <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                            <span class="p">[</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
-                             <span class="n">parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">time_gaps</span>
+                            <span class="p">[</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                             <span class="n">parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">time_gaps</span>
                              <span class="p">]</span>
                         <span class="p">)</span>
                         <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -213,7 +307,7 @@
                         <span class="p">)</span>
                         <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">part</span><span class="p">))</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+                        <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
                         <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">part</span><span class="p">))</span>
 
             <span class="n">the_missing_final</span> <span class="o">=</span> <span class="n">new_parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
@@ -225,15 +319,15 @@
                     <span class="n">final_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
                     <span class="k">continue</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">inverval</span> <span class="o">=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">inverval</span> <span class="o">=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">inverval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
                         <span class="k">if</span> <span class="n">first</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                            <span class="n">first</span> <span class="o">=</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">first</span> <span class="o">=</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">if</span> <span class="p">(</span><span class="n">first</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
                             <span class="n">final_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="n">final_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">first</span><span class="p">,</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+                            <span class="n">final_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">first</span><span class="p">,</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
                             <span class="n">first</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
             <span class="n">final_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">final_parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">the_missing_final</span><span class="p">])</span>
@@ -241,7 +335,8 @@
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">final_parts</span><span class="p">)</span>
 
         <span class="n">parts</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">effects</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">top_db</span><span class="o">=</span><span class="n">top_db</span><span class="p">)</span>  <span class="c1"># return samples</span>
-        <span class="n">parts</span> <span class="o">=</span> <span class="n">ignore_short_noise</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+
+        <span class="c1"># parts = ignore_short_noise(parts)</span>
 
         <span class="c1"># new_y = librosa.effects.remix(self._y, parts) # receive samples</span>
         <span class="c1"># target_file_path = os.path.join(self._video_directory, &quot;new_&quot; + self._audio_name)</span>
@@ -255,6 +350,7 @@
 
             <span class="k">def</span> <span class="nf">seconds_to_string_format</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
                 <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">num</span><span class="p">))</span>
+
             <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
                 <span class="n">part1</span> <span class="o">=</span> <span class="n">seconds_to_string_format</span><span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="n">part2</span> <span class="o">=</span> <span class="n">seconds_to_string_format</span><span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -263,6 +359,25 @@
 
         <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">from_samples_to_seconds</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+
+        <span class="n">newVersionOfParts</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">def</span> <span class="nf">to_seconds</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="n">hr</span><span class="p">,</span> <span class="nb">min</span><span class="p">,</span> <span class="n">sec</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="n">hr</span> <span class="o">*</span> <span class="mi">3600</span> <span class="o">+</span> <span class="nb">min</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">+</span> <span class="n">sec</span>
+
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">B</span> <span class="o">=</span> <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">to_seconds</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+            <span class="n">B</span> <span class="o">=</span> <span class="n">to_seconds</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
+            <span class="n">newVersionOfParts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">])</span>
+
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">newVersionOfParts</span>
+
+        <span class="k">if</span> <span class="n">skip_sharp_noise</span><span class="p">:</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">videoUtils</span><span class="o">.</span><span class="n">dropTooShortIntervals</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">videoUtils</span><span class="o">.</span><span class="n">mergeContinuesIntervals</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">thresholdInSeconds</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
 
@@ -282,13 +397,13 @@
                     <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">part</span><span class="p">))</span>
                     <span class="k">continue</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">noise_interval</span> <span class="o">=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">noise_interval</span> <span class="o">=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">noise_interval</span> <span class="o">&gt;</span> <span class="n">minimum_interval_samples</span><span class="p">):</span>
                         <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                            <span class="p">[</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+                            <span class="p">[</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
                         <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">part</span><span class="p">))</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+                        <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
                         <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">part</span><span class="p">))</span>
 
             <span class="n">the_missing_final</span> <span class="o">=</span> <span class="n">new_parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
@@ -300,15 +415,15 @@
                     <span class="n">final_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
                     <span class="k">continue</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">inverval</span> <span class="o">=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">inverval</span> <span class="o">=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">inverval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
                         <span class="k">if</span> <span class="n">first</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                            <span class="n">first</span> <span class="o">=</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">first</span> <span class="o">=</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">if</span> <span class="p">(</span><span class="n">first</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
                             <span class="n">final_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="n">final_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">first</span><span class="p">,</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+                            <span class="n">final_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">first</span><span class="p">,</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
                             <span class="n">first</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
             <span class="n">final_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">final_parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">the_missing_final</span><span class="p">])</span>
@@ -323,6 +438,7 @@
 
             <span class="k">def</span> <span class="nf">seconds_to_string_format</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
                 <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">num</span><span class="p">))</span>
+
             <span class="k">return</span> <span class="p">[</span><span class="n">seconds_to_string_format</span><span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">seconds_to_string_format</span><span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
 
         <span class="n">voice_and_silence_parts</span> <span class="o">=</span> <span class="p">[]</span>
@@ -337,7 +453,7 @@
                         <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">from_samples_to_seconds</span><span class="p">([</span><span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">])])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">voice_and_silence_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">from_samples_to_seconds</span><span class="p">([</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">first</span><span class="p">])])</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">from_samples_to_seconds</span><span class="p">([</span><span class="n">parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">first</span><span class="p">])])</span>
                 <span class="n">voice_and_silence_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">from_samples_to_seconds</span><span class="p">([</span><span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">])])</span>
 
@@ -364,9 +480,9 @@
         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">part</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">new_parts</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="n">all_silence</span> <span class="o">+=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">all_silence</span> <span class="o">+=</span> <span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parts</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
 
-        <span class="n">ratio</span> <span class="o">=</span> <span class="n">all_silence</span><span class="o">/</span><span class="n">new_parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">all_silence</span> <span class="o">/</span> <span class="n">new_parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">ratio</span>
 
     <span class="k">def</span> <span class="nf">split_video_by_time_part</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">part</span><span class="p">):</span>
@@ -398,9 +514,9 @@
             <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">target_folder</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">part</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">time_intervals</span><span class="p">):</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="mi">6</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)))</span><span class="o">*</span><span class="s1">&#39;0&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="mi">6</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)))</span> <span class="o">*</span> <span class="s1">&#39;0&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
 
-            <span class="n">target_video_path</span> <span class="o">=</span> <span class="n">add_path</span><span class="p">(</span><span class="n">target_folder</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;.mp4&quot;</span><span class="p">)</span>
+            <span class="n">target_video_path</span> <span class="o">=</span> <span class="n">add_path</span><span class="p">(</span><span class="n">target_folder</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.mp4&quot;</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">split_video_by_time_part</span><span class="p">(</span>
                 <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">part</span><span class="p">)</span>
@@ -542,7 +658,9 @@
 
         <span class="n">done</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Video.remove_silence_parts_from_video"><a class="viewcode-back" href="../../index.html#auto_everything.video.Video.remove_silence_parts_from_video">[docs]</a>    <span class="k">def</span> <span class="nf">remove_silence_parts_from_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">db_for_split_silence_and_voice</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">voice_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Video.remove_silence_parts_from_video"><a class="viewcode-back" href="../../index.html#auto_everything.video.Video.remove_silence_parts_from_video">[docs]</a>    <span class="k">def</span> <span class="nf">remove_silence_parts_from_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">db_for_split_silence_and_voice</span><span class="p">,</span>
+                                        <span class="n">minimum_interval_time_in_seconds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">voice_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                        <span class="n">skip_sharp_noise</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -565,15 +683,15 @@
 
         <span class="n">working_dir</span> <span class="o">=</span> <span class="n">get_directory_name</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
         <span class="n">audio_path</span> <span class="o">=</span> <span class="n">convert_video_to_wav</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">,</span> <span class="n">add_path</span><span class="p">(</span>
-            <span class="n">working_dir</span><span class="p">,</span> <span class="n">disk</span><span class="o">.</span><span class="n">get_hash_of_a_path</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;audio_for_remove_silence_parts_from_video.wav&#39;</span><span class="p">))</span>
+            <span class="n">working_dir</span><span class="p">,</span> <span class="n">disk</span><span class="o">.</span><span class="n">get_hash_of_a_path</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;audio_for_remove_silence_parts_from_video.wav&#39;</span><span class="p">))</span>
         <span class="n">temp_video_path</span> <span class="o">=</span> <span class="n">add_path</span><span class="p">(</span>
-            <span class="n">working_dir</span><span class="p">,</span> <span class="n">disk</span><span class="o">.</span><span class="n">get_hash_of_a_path</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;temp_for_remove_silence_parts_from_video.mp4&#39;</span><span class="p">)</span>
+            <span class="n">working_dir</span><span class="p">,</span> <span class="n">disk</span><span class="o">.</span><span class="n">get_hash_of_a_path</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;temp_for_remove_silence_parts_from_video.mp4&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">minimum_interval_time_in_seconds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_voice_parts</span><span class="p">(</span><span class="n">audio_path</span><span class="p">,</span> <span class="n">top_db</span><span class="p">)</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_voice_parts</span><span class="p">(</span><span class="n">audio_path</span><span class="p">,</span> <span class="n">top_db</span><span class="p">,</span> <span class="n">skip_sharp_noise</span><span class="o">=</span><span class="n">skip_sharp_noise</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_voice_parts</span><span class="p">(</span>
-                <span class="n">audio_path</span><span class="p">,</span> <span class="n">top_db</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">)</span>
+                <span class="n">audio_path</span><span class="p">,</span> <span class="n">top_db</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">,</span> <span class="n">skip_sharp_noise</span><span class="o">=</span><span class="n">skip_sharp_noise</span><span class="p">)</span>
 
         <span class="c1"># &quot;&quot;&quot;</span>
         <span class="n">parent_clip</span> <span class="o">=</span> <span class="n">VideoFileClip</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span>
@@ -581,10 +699,8 @@
         <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">part</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">parts</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">time_duration</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
-                    <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;%H:%M:%S.</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;%H:%M:%S.</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">seconds</span>
-                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="o">/</span><span class="n">length</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;%,&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                    <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">part</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;cut &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">time_duration</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; seconds&quot;</span><span class="p">)</span>
+                <span class="n">time_duration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span> <span class="o">/</span> <span class="n">length</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;%,&quot;</span><span class="p">,</span> <span class="s2">&quot;cut &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">time_duration</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; seconds&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="n">clip_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parent_clip</span><span class="o">.</span><span class="n">subclip</span><span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
@@ -613,7 +729,8 @@
 
         <span class="n">done</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Video.humanly_remove_silence_parts_from_video"><a class="viewcode-back" href="../../index.html#auto_everything.video.Video.humanly_remove_silence_parts_from_video">[docs]</a>    <span class="k">def</span> <span class="nf">humanly_remove_silence_parts_from_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">db_for_split_silence_and_voice</span><span class="p">,</span> <span class="n">minimum_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="Video.humanly_remove_silence_parts_from_video"><a class="viewcode-back" href="../../index.html#auto_everything.video.Video.humanly_remove_silence_parts_from_video">[docs]</a>    <span class="k">def</span> <span class="nf">humanly_remove_silence_parts_from_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span>
+                                                <span class="n">db_for_split_silence_and_voice</span><span class="p">,</span> <span class="n">minimum_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        No difference with the last one, but in this function, you can check how many silence you can get rid of.</span>
 <span class="sd">        Then you make the decision wheather you want to do this or not</span>
@@ -644,7 +761,8 @@
             <span class="c1">#    source_audio_path=audio_path, top_db=db_for_split_silence_and_voice)</span>
             <span class="c1"># ratio = int(self._evaluate_voice_parts(parts) * 100)</span>
             <span class="n">target_audio_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_silence_parts_from_video</span><span class="p">(</span>
-                <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">db_for_split_silence_and_voice</span><span class="o">=</span><span class="n">db_for_split_silence_and_voice</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="o">=</span><span class="n">minimum_interval</span><span class="p">,</span> <span class="n">voice_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">db_for_split_silence_and_voice</span><span class="o">=</span><span class="n">db_for_split_silence_and_voice</span><span class="p">,</span>
+                <span class="n">minimum_interval_time_in_seconds</span><span class="o">=</span><span class="n">minimum_interval</span><span class="p">,</span> <span class="n">voice_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">()</span>
@@ -662,7 +780,8 @@
 
             <span class="n">make_sure_target_does_not_exist</span><span class="p">(</span><span class="n">target_audio_path</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">remove_silence_parts_from_video</span><span class="p">(</span>
-                <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">db_for_split_silence_and_voice</span><span class="o">=</span><span class="n">db_for_split_silence_and_voice</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="o">=</span><span class="n">minimum_interval</span><span class="p">)</span>
+                <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">db_for_split_silence_and_voice</span><span class="o">=</span><span class="n">db_for_split_silence_and_voice</span><span class="p">,</span>
+                <span class="n">minimum_interval_time_in_seconds</span><span class="o">=</span><span class="n">minimum_interval</span><span class="p">)</span>
 
             <span class="n">done</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -686,11 +805,11 @@
         <span class="n">make_sure_target_does_not_exist</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
 
         <span class="n">speed</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">speed</span><span class="p">)</span>
-        <span class="n">video_speed</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">speed</span><span class="p">))[:</span><span class="mi">6</span><span class="p">]</span>
+        <span class="n">video_speed</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">speed</span><span class="p">))[:</span><span class="mi">6</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">speed</span> <span class="o">&lt;=</span> <span class="mi">4</span><span class="p">:</span>
-            <span class="n">parts</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">speed</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">value_of_each_part</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">speed</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">parts</span><span class="p">))[:</span><span class="mi">6</span><span class="p">]</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">speed</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">value_of_each_part</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">speed</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">parts</span><span class="p">))[:</span><span class="mi">6</span><span class="p">]</span>
             <span class="n">audio_speed</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                 <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;atempo=</span><span class="si">{</span><span class="n">value_of_each_part</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">parts</span><span class="p">)])</span>
 
@@ -716,7 +835,8 @@
 
         <span class="n">done</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Video.speedup_silence_parts_in_video"><a class="viewcode-back" href="../../index.html#auto_everything.video.Video.speedup_silence_parts_in_video">[docs]</a>    <span class="k">def</span> <span class="nf">speedup_silence_parts_in_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">db_for_split_silence_and_voice</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+<div class="viewcode-block" id="Video.speedup_silence_parts_in_video"><a class="viewcode-back" href="../../index.html#auto_everything.video.Video.speedup_silence_parts_in_video">[docs]</a>    <span class="k">def</span> <span class="nf">speedup_silence_parts_in_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">,</span> <span class="n">db_for_split_silence_and_voice</span><span class="p">,</span>
+                                       <span class="n">speed</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instead remove silence, we can speed up the silence parts in a video</span>
 
@@ -738,7 +858,7 @@
 
         <span class="n">working_dir</span> <span class="o">=</span> <span class="n">get_directory_name</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
         <span class="n">audio_path</span> <span class="o">=</span> <span class="n">convert_video_to_wav</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">,</span> <span class="n">add_path</span><span class="p">(</span>
-            <span class="n">working_dir</span><span class="p">,</span> <span class="n">disk</span><span class="o">.</span><span class="n">get_hash_of_a_path</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;audio_for_speedup_silence_parts_in_video.wav&#39;</span><span class="p">))</span>
+            <span class="n">working_dir</span><span class="p">,</span> <span class="n">disk</span><span class="o">.</span><span class="n">get_hash_of_a_path</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;audio_for_speedup_silence_parts_in_video.wav&#39;</span><span class="p">))</span>
 
         <span class="n">voice_and_silence_parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_voice_and_silence_parts</span><span class="p">(</span>
             <span class="n">audio_path</span><span class="p">,</span> <span class="n">top_db</span><span class="p">)</span>
@@ -753,8 +873,9 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">time_duration</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
                     <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;%H:%M:%S.</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;%H:%M:%S.</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">seconds</span>
-                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="o">/</span><span class="n">length</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;%,&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span>
-                      <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;cut &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">time_duration</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; seconds&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span> <span class="o">/</span> <span class="n">length</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;%,&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span>
+                                                                           <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;cut &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">time_duration</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; seconds&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># voice</span>
@@ -805,9 +926,6 @@
         <span class="n">make_sure_target_is_absolute_path</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
         <span class="n">make_sure_target_does_not_exist</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
 
-        <span class="n">delay</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
-        <span class="n">delay</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
-
         <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">            ffmpeg -i &quot;</span><span class="si">{</span><span class="n">source_video_path</span><span class="si">}</span><span class="s2">&quot; &quot;</span><span class="si">{</span><span class="n">source_video_path</span><span class="si">}</span><span class="s2">&quot;</span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
@@ -854,7 +972,8 @@
 
         <span class="n">done</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">compress_videos_in_a_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_folder</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">29</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;placebo&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">compress_videos_in_a_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_folder</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">29</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                    <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;placebo&#39;</span><span class="p">):</span>
         <span class="n">source_folder</span> <span class="o">=</span> <span class="n">try_to_get_absolutely_path</span><span class="p">(</span><span class="n">source_folder</span><span class="p">)</span>
         <span class="n">make_sure_source_is_absolute_path</span><span class="p">(</span><span class="n">source_folder</span><span class="p">)</span>
 
@@ -883,7 +1002,7 @@
             <span class="n">target_video_path</span> <span class="o">=</span> <span class="n">add_path</span><span class="p">(</span><span class="n">new_folder</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
             <span class="n">make_sure_target_does_not_exist</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
 
-            <span class="c1">#size, unit = convert_bytes(os.path.getsize(file))</span>
+            <span class="c1"># size, unit = convert_bytes(os.path.getsize(file))</span>
             <span class="c1"># if unit == &quot;GB&quot;:</span>
             <span class="c1">#    if size &gt; 2:</span>
             <span class="k">if</span> <span class="n">fps</span> <span class="ow">and</span> <span class="n">resolution</span> <span class="ow">and</span> <span class="n">preset</span><span class="p">:</span>
@@ -919,6 +1038,36 @@
 <span class="s2">                ffmpeg -i &quot;</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot; -c:v libx264 -pix_fmt yuv420p -vf scale=1920:1080 &quot;</span><span class="si">{</span><span class="n">target_video_path</span><span class="si">}</span><span class="s2">&quot;</span>
 <span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
 
+        <span class="n">done</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">removeTopAndBottomOfAVideo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cropRatio</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">0.12</span><span class="p">):</span>
+        <span class="n">make_sure_target_does_not_exist</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
+
+        <span class="n">clip</span> <span class="o">=</span> <span class="n">VideoFileClip</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">clip</span><span class="o">.</span><span class="n">w</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="n">clip</span><span class="o">.</span><span class="n">h</span>
+        <span class="n">cropRatio</span> <span class="o">=</span> <span class="mf">0.12</span>
+        <span class="n">cropPixels</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cropRatio</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span>
+        <span class="n">clip</span> <span class="o">=</span> <span class="n">clip</span><span class="o">.</span><span class="n">crop</span><span class="p">(</span><span class="n">x1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y1</span><span class="o">=</span><span class="n">cropPixels</span><span class="p">,</span> <span class="n">x2</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">y2</span><span class="o">=</span><span class="n">height</span> <span class="o">-</span> <span class="n">cropPixels</span><span class="p">)</span>
+        <span class="n">clip</span><span class="o">.</span><span class="n">write_videofile</span><span class="p">(</span><span class="n">target_video_path</span><span class="p">)</span>
+
+        <span class="n">done</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">splitVideoToParts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">numOfParts</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">disk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">target_video_folder</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">target_video_folder</span><span class="p">)</span>
+
+        <span class="n">clip</span> <span class="o">=</span> <span class="n">VideoFileClip</span><span class="p">(</span><span class="n">source_video_path</span><span class="p">)</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="n">clip</span><span class="o">.</span><span class="n">duration</span>
+        <span class="n">partLength</span> <span class="o">=</span> <span class="n">length</span> <span class="o">/</span> <span class="n">numOfParts</span>
+
+        <span class="n">clips</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numOfParts</span><span class="p">):</span>
+            <span class="n">clips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">clip</span><span class="o">.</span><span class="n">subclip</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">partLength</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">partLength</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">clips</span><span class="p">):</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">write_videofile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">target_video_folder</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.mp4&quot;</span><span class="p">)</span>
+
         <span class="n">done</span><span class="p">()</span></div>
 
 
@@ -931,6 +1080,8 @@
 <span class="sd">    2. vosk</span>
 <span class="sd">    3. ffmpeg</span>
 <span class="sd">    4. moviepy</span>
+<span class="sd">    5. librosa</span>
+<span class="sd">    6. pornstar</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -954,7 +1105,7 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;download error&quot;</span><span class="p">)</span>
 
         <span class="c1"># uncompress</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vosk_model_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_folder</span><span class="o">/</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vosk_model_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_folder</span> <span class="o">/</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vosk_model_folder</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">disk</span><span class="o">.</span><span class="n">uncompress</span><span class="p">(</span><span class="n">zip_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vosk_model_folder</span><span class="p">)</span>
 
@@ -970,20 +1121,20 @@
                 <span class="n">start</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">minimum_interval_time_in_seconds</span>
                 <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">start</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="n">length</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="n">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">end</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;end&#39;</span><span class="p">]</span>
             <span class="n">temp_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">])</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">temp_data</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">while</span> <span class="n">index</span> <span class="o">&lt;=</span> <span class="n">length</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">index</span> <span class="o">&lt;=</span> <span class="n">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">first_start</span> <span class="o">=</span> <span class="n">temp_data</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">first_end</span> <span class="o">=</span> <span class="n">temp_data</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">first_start</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">first_start</span><span class="p">,</span> <span class="s1">&#39;silence&#39;</span><span class="p">])</span>
-                <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="n">length</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="n">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">first_start</span><span class="p">,</span> <span class="n">first_end</span><span class="p">,</span> <span class="s1">&#39;voice&#39;</span><span class="p">])</span>
                     <span class="k">if</span> <span class="n">video_length</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">first_end</span> <span class="o">&lt;</span> <span class="n">video_length</span><span class="p">:</span>
@@ -1004,7 +1155,49 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">parts</span>
 
-    <span class="k">def</span> <span class="nf">__get_data_from_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">video_length</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__get_raw_data_from_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">vosk</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">KaldiRecognizer</span><span class="p">,</span> <span class="n">SetLogLevel</span>
+
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+            <span class="n">path</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;source video file </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> does not exist!&quot;</span>
+
+        <span class="n">SetLogLevel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">sample_rate</span> <span class="o">=</span> <span class="mi">16000</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vosk_model_folder</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span>
+        <span class="n">rec</span> <span class="o">=</span> <span class="n">KaldiRecognizer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">)</span>
+
+        <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;ffmpeg&#39;</span><span class="p">,</span> <span class="s1">&#39;-loglevel&#39;</span><span class="p">,</span> <span class="s1">&#39;quiet&#39;</span><span class="p">,</span> <span class="s1">&#39;-i&#39;</span><span class="p">,</span>
+                                    <span class="n">path</span><span class="p">,</span>
+                                    <span class="s1">&#39;-ar&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_rate</span><span class="p">),</span> <span class="s1">&#39;-ac&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;s16le&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">],</span>
+                                   <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+
+        <span class="n">data_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">4000</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">rec</span><span class="o">.</span><span class="n">AcceptWaveform</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">Result</span><span class="p">())</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                    {&#39;result&#39;: </span>
+<span class="sd">                        [</span>
+<span class="sd">                            {&#39;conf&#39;: 0.875663, &#39;end&#39;: 4.35, &#39;start&#39;: 4.11, &#39;word&#39;: &#39;nice&#39;}, </span>
+<span class="sd">                            {&#39;conf&#39;: 1.0, &#39;end&#39;: 5.13, &#39;start&#39;: 4.59, &#39;word&#39;: &#39;day&#39;}</span>
+<span class="sd">                        ], </span>
+<span class="sd">                     &#39;text&#39;: &#39;nice day&#39;}</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;start&#39;</span><span class="p">]</span>
+                    <span class="n">end</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;end&#39;</span><span class="p">]</span>
+                    <span class="n">text</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">][</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+                    <span class="n">data_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># print(rec.PartialResult())</span>
+                <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">data_list</span>
+
+    <span class="k">def</span> <span class="nf">__get_data_from_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+                              <span class="n">video_length</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">vosk</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">KaldiRecognizer</span><span class="p">,</span> <span class="n">SetLogLevel</span>
 
         <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
@@ -1037,7 +1230,9 @@
                 <span class="k">pass</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_interval_filter</span><span class="p">(</span><span class="n">data_list</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">,</span> <span class="n">video_length</span><span class="p">)</span>
 
-<div class="viewcode-block" id="DeepVideo.remove_silence_parts_from_videos_in_a_folder"><a class="viewcode-back" href="../../index.html#auto_everything.video.DeepVideo.remove_silence_parts_from_videos_in_a_folder">[docs]</a>    <span class="k">def</span> <span class="nf">remove_silence_parts_from_videos_in_a_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;placebo&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="DeepVideo.remove_silence_parts_from_videos_in_a_folder"><a class="viewcode-back" href="../../index.html#auto_everything.video.DeepVideo.remove_silence_parts_from_videos_in_a_folder">[docs]</a>    <span class="k">def</span> <span class="nf">remove_silence_parts_from_videos_in_a_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                                     <span class="n">minimum_interval_time_in_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                                     <span class="n">resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;placebo&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        We will first concatenate the files under the source_folder into a video by created_time, then we remove those silence parts in that videoig</span>
 
@@ -1065,7 +1260,7 @@
         <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">video_files</span><span class="p">)</span>
         <span class="n">remain_clips</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">video_file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">video_files</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Working on &quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="o">/</span><span class="n">length</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; %...&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Working on &quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span> <span class="o">/</span> <span class="n">length</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; %...&quot;</span><span class="p">)</span>
             <span class="n">parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_data_from_video</span><span class="p">(</span>
                 <span class="n">video_file</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">,</span> <span class="n">parent_clips</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
@@ -1081,7 +1276,9 @@
 
         <span class="n">done</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="DeepVideo.speed_up_silence_parts_from_videos_in_a_folder"><a class="viewcode-back" href="../../index.html#auto_everything.video.DeepVideo.speed_up_silence_parts_from_videos_in_a_folder">[docs]</a>    <span class="k">def</span> <span class="nf">speed_up_silence_parts_from_videos_in_a_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">speed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;placebo&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="DeepVideo.speed_up_silence_parts_from_videos_in_a_folder"><a class="viewcode-back" href="../../index.html#auto_everything.video.DeepVideo.speed_up_silence_parts_from_videos_in_a_folder">[docs]</a>    <span class="k">def</span> <span class="nf">speed_up_silence_parts_from_videos_in_a_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">speed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+                                                       <span class="n">minimum_interval_time_in_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                                       <span class="n">resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;placebo&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        We will first concatenate the files under the source_folder into a video by created_time, then we speed up those silence parts in that videoig</span>
 
@@ -1111,7 +1308,7 @@
         <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">video_files</span><span class="p">)</span>
         <span class="n">remain_clips</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">video_file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">video_files</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Working on &quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="o">/</span><span class="n">length</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; %...&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Working on &quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span> <span class="o">/</span> <span class="n">length</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; %...&quot;</span><span class="p">)</span>
             <span class="n">parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_data_from_video</span><span class="p">(</span>
                 <span class="n">video_file</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">,</span> <span class="n">parent_clips</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
@@ -1133,7 +1330,8 @@
 
         <span class="n">done</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="DeepVideo.remove_silence_parts_from_video"><a class="viewcode-back" href="../../index.html#auto_everything.video.DeepVideo.remove_silence_parts_from_video">[docs]</a>    <span class="k">def</span> <span class="nf">remove_silence_parts_from_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+<div class="viewcode-block" id="DeepVideo.remove_silence_parts_from_video"><a class="viewcode-back" href="../../index.html#auto_everything.video.DeepVideo.remove_silence_parts_from_video">[docs]</a>    <span class="k">def</span> <span class="nf">remove_silence_parts_from_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                        <span class="n">minimum_interval_time_in_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1153,7 +1351,7 @@
             <span class="k">if</span> <span class="n">part</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;voice&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">time_duration</span> <span class="o">=</span> <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="o">/</span><span class="n">length</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;%,&quot;</span><span class="p">,</span> <span class="s2">&quot;remain &quot;</span> <span class="o">+</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span> <span class="o">/</span> <span class="n">length</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;%,&quot;</span><span class="p">,</span> <span class="s2">&quot;remain &quot;</span> <span class="o">+</span>
                           <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time_duration</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; seconds&quot;</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
@@ -1167,7 +1365,9 @@
 
         <span class="n">done</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="DeepVideo.speedup_silence_parts_in_video"><a class="viewcode-back" href="../../index.html#auto_everything.video.DeepVideo.speedup_silence_parts_in_video">[docs]</a>    <span class="k">def</span> <span class="nf">speedup_silence_parts_in_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">speed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">minimum_interval_time_in_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;placebo&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="DeepVideo.speedup_silence_parts_in_video"><a class="viewcode-back" href="../../index.html#auto_everything.video.DeepVideo.speedup_silence_parts_in_video">[docs]</a>    <span class="k">def</span> <span class="nf">speedup_silence_parts_in_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">speed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+                                       <span class="n">minimum_interval_time_in_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                       <span class="n">resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;placebo&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instead remove silence, we can speed up the silence parts in a video</span>
 
@@ -1192,7 +1392,7 @@
             <span class="k">elif</span> <span class="n">part</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;silence&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">time_duration</span> <span class="o">=</span> <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="o">/</span><span class="n">length</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;%,&quot;</span><span class="p">,</span> <span class="s2">&quot;speed up &quot;</span> <span class="o">+</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span> <span class="o">/</span> <span class="n">length</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;%,&quot;</span><span class="p">,</span> <span class="s2">&quot;speed up &quot;</span> <span class="o">+</span>
                           <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time_duration</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; seconds&quot;</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
@@ -1208,13 +1408,48 @@
         <span class="n">concat_clip</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">parent_clip</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="n">done</span><span class="p">()</span></div></div>
+        <span class="n">done</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_sounds_parts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_audio_path</span><span class="p">,</span> <span class="n">top_db</span><span class="p">):</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">get_wav_infomation</span><span class="p">(</span><span class="n">source_audio_path</span><span class="p">)</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">effects</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">top_db</span><span class="o">=</span><span class="n">top_db</span><span class="p">)</span>  <span class="c1"># return samples</span>
+
+        <span class="k">def</span> <span class="nf">from_samples_to_seconds</span><span class="p">(</span><span class="n">parts</span><span class="p">):</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">samples_to_time</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">sr</span><span class="p">)</span>  <span class="c1"># return seconds</span>
+            <span class="n">new_parts</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+                <span class="n">part1</span> <span class="o">=</span> <span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">part2</span> <span class="o">=</span> <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">new_parts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">part1</span><span class="p">,</span> <span class="n">part2</span><span class="p">])</span>
+
+            <span class="k">return</span> <span class="n">new_parts</span>
+
+        <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">from_samples_to_seconds</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="k">def</span> <span class="nf">blurPornGraphs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># useless</span>
+        <span class="kn">import</span> <span class="nn">pornstar</span>
+        <span class="k">def</span> <span class="nf">doit</span><span class="p">(</span><span class="n">frame</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">pornstar</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">nsfw_detector</span><span class="o">.</span><span class="n">isPorn</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">):</span>
+                <span class="n">classList</span><span class="p">,</span> <span class="n">ScoreList</span><span class="p">,</span> <span class="n">PositionList</span> <span class="o">=</span> <span class="n">pornstar</span><span class="o">.</span><span class="n">my_object_detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;person&quot;</span> <span class="ow">in</span> <span class="n">classList</span><span class="p">:</span>
+                    <span class="n">frame</span> <span class="o">=</span> <span class="n">pornstar</span><span class="o">.</span><span class="n">effect_of_blur</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">frame</span>
+
+        <span class="n">pornstar</span><span class="o">.</span><span class="n">process_video</span><span class="p">(</span><span class="n">path_of_video</span><span class="o">=</span><span class="n">source_video_path</span><span class="p">,</span> <span class="n">effect_function</span><span class="o">=</span><span class="n">doit</span><span class="p">,</span> <span class="n">save_to</span><span class="o">=</span><span class="n">target_video_path</span><span class="p">)</span></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">video</span> <span class="o">=</span> <span class="n">DeepVideo</span><span class="p">()</span>
-    <span class="n">video</span><span class="o">.</span><span class="n">speedup_silence_parts_in_video</span><span class="p">(</span>
-        <span class="s2">&quot;/home/yingshaoxo/demo.mp4&quot;</span><span class="p">,</span> <span class="s2">&quot;/home/yingshaoxo/ok.mp4&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">videoUtils</span> <span class="o">=</span> <span class="n">VideoUtils</span><span class="p">()</span>
+    <span class="n">rawParts</span> <span class="o">=</span> <span class="n">video</span><span class="o">.</span><span class="n">_get_sounds_parts</span><span class="p">(</span><span class="s2">&quot;/home/yingshaoxo/Videos/freaks.mp4&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">videoUtils</span><span class="o">.</span><span class="n">merge_continues_intervals</span><span class="p">(</span><span class="n">rawParts</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">))</span>
 </pre></div>
 
           </div>
