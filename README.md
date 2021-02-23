@@ -19,7 +19,7 @@ sudo bash env_setup.sh
 
 #### Magic
 ```bash
-wget https://github.com/yingshaoxo/auto_everything/raw/master/demo/install_YouCompleteMe.py
+wget https://github.com/yingshaoxo/auto_everything/raw/master/example/install_YouCompleteMe.py
 python3 install_YouCompleteMe.py
 ```
 

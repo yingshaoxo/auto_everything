@@ -111,6 +111,22 @@ nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/Math/2021考研
 nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/Math/[试题册] 2021张宇1000题（数学一）无水印.pdf" &
         """)
 
+    def en(self):
+        self._kill()
+        t.run(f"""
+google-chrome "https://translate.google.com/" &
+
+xdg-open "/home/yingshaoxo/Downloads/SYNC/Resources/Books/English/2010-2020考研英语一答案（一键打印版）.pdf"
+
+nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/English/2010-2020考研英语一真题合集（一键打印）.pdf.xopp" &
+        """)
+
+        t.run("""
+        xdg-open ~/Videos/doing &
+        #terminator --working-directory="~/Videos" &
+        obs-studio
+        """, wait=False)
+
     def record(self):
         path = "~/Videos"
         self._go_to(path)
@@ -126,6 +142,7 @@ nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/Math/[试题册
         self._go_to(path)
         self._kill()
         t.run(f"""
+        google-chrome "https://inkscape.org/doc/keys.html" &
         xdg-open {path} &
         inkscape
         """, wait=False)

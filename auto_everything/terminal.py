@@ -359,10 +359,10 @@ class Terminal():
         pids = self._get_pids(name)
         for pid in pids:
             if force:
-                self.run('kill -s SIGKILL {num}'.format(num=pid))
-                self.run('pkill {name}'.format(name=name))
+                self.run_command('kill -s SIGKILL {num}'.format(num=pid))
+                self.run_command('pkill {name}'.format(name=name))
             else:
-                self.run('kill -s SIGINT {num}'.format(num=pid))
+                self.run_command('kill -s SIGINT {num}'.format(num=pid))
                 # import signal
                 # os.kill(pid, signal.SIGINT) #This is typically initiated by pressing Ctrl+C
 
@@ -372,4 +372,4 @@ class Terminal():
                 timeout -= 1
             pids = self._get_pids(name)
             for pid in pids:
-                self.run('kill -s SIGQUIT {num}'.format(num=pid))
+                self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
