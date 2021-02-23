@@ -83,7 +83,7 @@ ___
 ## For simplify Python development
 #### Import
 ```python
-from auto_everything.base import Python
+from auto_everything.python import Python
 py = Python()
 ```
 
