@@ -22,6 +22,7 @@ class Mission():
             "obs",
             "inkscape",
             "clion",
+            "firefox",
         ]
         for p in process:
             t.kill(p)
@@ -134,7 +135,8 @@ nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/English/2010-20
         t.run("""
         xdg-open ~/Videos/doing &
         #terminator --working-directory="~/Videos" &
-        obs-studio
+        nohup obs-studio &
+        firefox
         """, wait=False)
 
     def draw(self):

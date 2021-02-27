@@ -80,7 +80,7 @@ return true is it exists</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>c</strong> (<em>string</em>) – shell command</li>
 <li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
-<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – True, this command may keep running forever</li>
+<li><strong>wait</strong> (<em>bool</em>) – True, this command may keep running forever</li>
 </ul>
 </td>
 </tr>
@@ -98,7 +98,7 @@ return true is it exists</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>c</strong> (<em>string</em>) – shell command</li>
-<li><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>seconds</em>) – how long this command will take, beyound it, an exception will raise</li>
+<li><strong>timeout</strong> (<em>int</em><em>, </em><em>seconds</em>) – how long this command will take, beyound it, an exception will raise</li>
 <li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
 </ul>
 </td>
@@ -145,7 +145,7 @@ This function will not wait program to be finished.</p>
 </dl>
 </li>
 <li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
-<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if true, it will wait until the python program quit</li>
+<li><strong>wait</strong> (<em>bool</em>) – if true, it will wait until the python program quit</li>
 </ul>
 </td>
 </tr>
@@ -168,7 +168,7 @@ This function will not wait program to be finished.</p>
 </dl>
 </li>
 <li><strong>cwd</strong> (<em>string</em>) – current working directory</li>
-<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if true, it will wait until the bash program quit</li>
+<li><strong>wait</strong> (<em>bool</em>) – if true, it will wait until the bash program quit</li>
 </ul>
 </td>
 </tr>
@@ -200,9 +200,9 @@ This function will not wait program to be finished.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> (<em>string</em>) – what’s the name of that program you want to kill</li>
-<li><strong>force</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – kill it directlly or softly.
+<li><strong>force</strong> (<em>bool</em>) – kill it directlly or softly.
 some program like ffmpeg, should set force=False</li>
-<li><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – true, wait until program totolly quit</li>
+<li><strong>wait</strong> (<em>bool</em>) – true, wait until program totolly quit</li>
 </ul>
 </td>
 </tr>
@@ -243,8 +243,8 @@ some program like ffmpeg, should set force=False</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>folder</strong> (<em>string</em>) – </li>
-<li><strong>recursive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – </li>
-<li><strong>type_limiter</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – a list used to do a type filter, like [“.mp3”, “.epub”]</li>
+<li><strong>recursive</strong> (<em>bool</em>) – </li>
+<li><strong>type_limiter</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – a list used to do a type filter, like [“.mp3”, “.epub”]</li>
 </ul>
 </td>
 </tr>
@@ -450,7 +450,7 @@ some program like ffmpeg, should set force=False</li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">return <cite>false</cite> if the specified size less than the file we downloaded</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
 </td>
 </tr>
 </tbody>
@@ -490,7 +490,7 @@ some program like ffmpeg, should set force=False</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>element_name</strong> (<em>string</em>) – image name (those pictures you put into data folder)</li>
-<li><strong>game</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – for games, we click it in a different way</li>
+<li><strong>game</strong> (<em>bool</em>) – for games, we click it in a different way</li>
 </ul>
 </td>
 </tr>
@@ -570,7 +570,7 @@ some program like ffmpeg, should set force=False</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path_list</strong> (<em>list of video path</em>) – those videos you want to concatenate</li>
 <li><strong>target_video_path</strong> (<em>string</em>) – where to save the concatenated video</li>
-<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
+<li><strong>method</strong> (<em>int</em>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
 </ul>
 </td>
 </tr>
@@ -587,9 +587,9 @@ some program like ffmpeg, should set force=False</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sort_by_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – when true, we sort by time
+<li><strong>sort_by_time</strong> (<em>bool</em>) – when true, we sort by time
 when false, we sort by name(1, 2, 3)</li>
-<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
+<li><strong>method</strong> (<em>int</em>) – 1 to use ffmpeg(low quality), 2 to use moviepy(high quality)</li>
 </ul>
 </td>
 </tr>
@@ -613,9 +613,9 @@ when false, we sort by name(1, 2, 3)</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite>, but for some case if the volume is too small, <cite>30</cite> would be fine</li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
-<li><strong>voice_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if true, it only returns the path of silence removed mp3 file</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<em>int</em>) – normoly, it’s <cite>20</cite> or <cite>25</cite>, but for some case if the volume is too small, <cite>30</cite> would be fine</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<em>float</em>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>voice_only</strong> (<em>bool</em>) – if true, it only returns the path of silence removed mp3 file</li>
 </ul>
 </td>
 </tr>
@@ -635,8 +635,8 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<em>int</em>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<em>float</em>) – longer than this value, we will take it as silence and remove it</li>
 </ul>
 </td>
 </tr>
@@ -654,7 +654,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – how quick you want the video to be</li>
+<li><strong>speed</strong> (<em>float</em>) – how quick you want the video to be</li>
 </ul>
 </td>
 </tr>
@@ -673,8 +673,8 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>db_for_split_silence_and_voice</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – how quick you want the silence parts to be</li>
+<li><strong>db_for_split_silence_and_voice</strong> (<em>int</em>) – normoly, it’s <cite>20</cite> or <cite>25</cite></li>
+<li><strong>speed</strong> (<em>float</em>) – how quick you want the silence parts to be</li>
 </ul>
 </td>
 </tr>
@@ -710,7 +710,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>times</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – 2 times the source_video volume or 3 times the source_video volume</li>
+<li><strong>times</strong> (<em>float</em>) – 2 times the source_video volume or 3 times the source_video volume</li>
 </ul>
 </td>
 </tr>
@@ -745,9 +745,9 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_folder</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
-<li><strong>fps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </li>
-<li><strong>target_resolution</strong> (<em>Tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>)</em>) – Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on.</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<em>float</em>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>fps</strong> (<em>int</em>) – </li>
+<li><strong>target_resolution</strong> (<em>Tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>)</em>) – Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on.</li>
 <li><strong>preset</strong> (<em>string</em>) – Sets the time that FFMPEG will spend optimizing the compression. Choices are: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo. Note that this does not impact the quality of the video, only the size of the video file.</li>
 </ul>
 </td>
@@ -767,10 +767,10 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_folder</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – how quick you want the silence parts to be</li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
-<li><strong>fps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </li>
-<li><strong>target_resolution</strong> (<em>Tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>)</em>) – Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on.</li>
+<li><strong>speed</strong> (<em>float</em>) – how quick you want the silence parts to be</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<em>float</em>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>fps</strong> (<em>int</em>) – </li>
+<li><strong>target_resolution</strong> (<em>Tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>)</em>) – Set to (desired_width, desired_height) to have ffmpeg resize the frames. Choices are: (1920, 1080), (1280, 720), (640, 480) and so on.</li>
 <li><strong>preset</strong> (<em>string</em>) – Sets the time that FFMPEG will spend optimizing the compression. Choices are: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo. Note that this does not impact the quality of the video, only the size of the video file.</li>
 </ul>
 </td>
@@ -789,7 +789,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>minimum_interval_time_in_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – longer than this value, we will take it as silence and remove it</li>
+<li><strong>minimum_interval_time_in_seconds</strong> (<em>float</em>) – longer than this value, we will take it as silence and remove it</li>
 </ul>
 </td>
 </tr>
@@ -808,7 +808,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>source_video_path</strong> (<em>string</em>) – </li>
 <li><strong>target_video_path</strong> (<em>string</em>) – </li>
-<li><strong>speed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – how quick you want the silence parts to be</li>
+<li><strong>speed</strong> (<em>float</em>) – how quick you want the silence parts to be</li>
 </ul>
 </td>
 </tr>
@@ -835,7 +835,7 @@ Then you make the decision wheather you want to do this or not</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>frame</strong> (<em>numpy representation of an image</em>) – np.zeros((480,640,3), dtype=np.uint8)</li>
-<li><strong>rgb</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if you want to give me an rgb frame, you’ll have to set this.</li>
+<li><strong>rgb</strong> (<em>bool</em>) – if you want to give me an rgb frame, you’ll have to set this.</li>
 </ul>
 </td>
 </tr>

@@ -58,6 +58,9 @@ class Disk():
         path = self._expand_user(path)
         return Path(path).exists()
 
+    def concatenate_paths(self, *path):
+        return os.path.join(*path)
+
     def get_files(self, folder: str, recursive: bool = True, type_limiter: List[str] = None) -> List[str]:
         """
         Get files recursively under a folder.
@@ -242,6 +245,14 @@ class Disk():
                 raise Exception(f"{path} is not exist")
             paths[i] = f'"{path}"'
         t.run(f"zip -r -D {target} {' '.join(paths)}")
+
+    def get_a_temp_file_path(self, filename):
+        m = hashlib.sha256()
+        m.update(str(datetime.datetime.now()).encode("utf-8"))
+        m.update(filename.encode("utf-8"))
+        stem, suffix = self.get_stem_and_suffix_of_a_file(filename)
+        tempFilePath = os.path.join(self.temp_dir, m.hexdigest()[:10] + suffix)
+        return tempFilePath
 
     def getATempFilePath(self, filename):
         m = hashlib.sha256()

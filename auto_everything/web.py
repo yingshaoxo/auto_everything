@@ -11,17 +11,26 @@ class Selenium():
     It's a wrap of selenium
     """
 
-    def __init__(self, url, headless=False, timeout=600):
+    def __init__(self, url, headless=False, timeout=600, user_data_dir=None):
+        '''
+        user_data_dir:
+        /home/yingshaoxo/.config/google-chrome/
+        '''
         try:
+            options = Options()
             if headless == False:
-                self.driver = webdriver.Chrome()
+                if user_data_dir:
+                    options.add_argument(f'user-data-dir={user_data_dir}')
+                    options.add_argument(f'--disable-web-security')
+                    options.add_argument(f'--allow-running-insecure-content')
+                    options.add_experimental_option('excludeSwitches', ['enable-automation'])
+                self.driver = webdriver.Chrome(chrome_options=options)
             else:
-                options = Options()
                 options.add_argument('--headless')
                 options.add_argument('--disable-gpu')
                 self.driver = webdriver.Chrome(chrome_options=options)
         except Exception as e:
-            print(e)
+            print(str(e) + "\n---------\n")
             try:
                 self.driver = webdriver.Firefox()
             except Exception as e:
