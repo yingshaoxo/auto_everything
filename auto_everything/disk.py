@@ -38,7 +38,7 @@ class Disk():
         self.temp_dir: str = tempfile.gettempdir()
 
     def _expand_user(self, path: str):
-        print(type(path))
+        # print(type(path))
         if type(path) == pathlib.PosixPath:
             path = path.as_posix()
         if len(path) > 0:
@@ -57,6 +57,9 @@ class Disk():
         """
         path = self._expand_user(path)
         return Path(path).exists()
+
+    def executable(self, path: str) -> bool:
+        return os.access(path, os.X_OK)
 
     def concatenate_paths(self, *path):
         return os.path.join(*path)
@@ -220,6 +223,8 @@ class Disk():
                     t.run(f"cd '{folder}' && cd * && mv * .. -f")
             elif suffix == ".gz":
                 t.run(f"tar zxfv '{path}' --directory '{folder}' --strip-components=1")
+                if len(os.listdir(folder)) == 0:
+                    t.run(f"tar zxfv '{path}' --directory '{folder}'")
             if len(os.listdir(folder)):
                 return True
             else:
@@ -265,7 +270,7 @@ class Disk():
     def create_a_new_folder_under_home(self, folder_name: str):
         folder_path = self._expand_user(f"~/{folder_name}")
         if not os.path.exists(folder_path):
-            #os.mkdir(folder_path)
+            # os.mkdir(folder_path)
             t.run_command(f"mkdir -p {folder_path}")
         return folder_path
 

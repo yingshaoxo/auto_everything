@@ -120,6 +120,8 @@ class Python():
                 codes = expected_first_line + '\n' + codes
                 self._io.write(py_file_path, codes)
                 self._t.run_command('chmod +x {}'.format(py_file_path))
+            if not self._disk.executable(py_file_path):
+                self._t.run_command('chmod +x {}'.format(py_file_path))
 
     def make_it_global_runnable(self, py_file_path=None, executable_name=None):
         """
