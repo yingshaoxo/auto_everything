@@ -154,6 +154,12 @@ nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/English/2010-20
 terminator -e "ssh pi@192.168.49.17"
         """)
 
+    def win(self):
+        t.run("""
+#ssh-copy-id yingshaoxo@192.168.49.92
+terminator -e "ssh yingshaoxo@192.168.49.31"
+        """)
+
     def server(self):
         t.run("""
 terminator -e "ssh root@149.28.229.110"

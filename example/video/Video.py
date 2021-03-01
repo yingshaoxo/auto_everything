@@ -3,6 +3,8 @@ import os
 from auto_everything.base import Terminal, Python
 from auto_everything.video import Video, DeepVideo
 
+os.chdir("/home/yingshaoxo/Videos")
+
 t = Terminal()
 py = Python()
 video = Video()
