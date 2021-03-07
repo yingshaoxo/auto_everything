@@ -314,7 +314,7 @@ class Video():
                 new_parts.append([part1, part2])
             return new_parts
 
-        parts[0] = [0, parts[0][1]]
+        #parts[0] = [0, parts[0][1]]
         parts = from_samples_to_seconds(parts)
 
         newVersionOfParts = []
@@ -336,7 +336,7 @@ class Video():
             parts = videoUtils.dropTooShortIntervals(parts, 0.2)
             parts = videoUtils.mergeContinuesIntervals(parts, thresholdInSeconds=0.5)
 
-        return parts[1:]
+        return parts
 
     def _get_voice_and_silence_parts(self, source_audio_path, top_db, minimum_interval_time_in_seconds=1.5):
         # let's assume 1=voice, 0=noise
