@@ -214,6 +214,19 @@ class VideoUtils():
                 j += 1
         return ans
 
+    def fix_rotation(self, video):
+        """
+            Rotate the video based on orientation
+        """
+        rotation = video.rotation
+        if rotation == 90:  # If video is in portrait
+            video = vfx.rotate(video, -90)
+        elif rotation == 270:  # Moviepy can only cope with 90, -90, and 180 degree turns
+            video = vfx.rotate(video, 90)  # Moviepy can only cope with 90, -90, and 180 degree turns
+        elif rotation == 180:
+            video = vfx.rotate(video, 180)
+        return video
+
 
 videoUtils = VideoUtils()
 
@@ -314,7 +327,7 @@ class Video():
                 new_parts.append([part1, part2])
             return new_parts
 
-        #parts[0] = [0, parts[0][1]]
+        # parts[0] = [0, parts[0][1]]
         parts = from_samples_to_seconds(parts)
 
         newVersionOfParts = []
@@ -518,7 +531,8 @@ class Video():
         elif method == 2:
             # for the stupid moviepy library, it will case memory leak if you give it too much videos
             print(source_video_path_list)
-            clip_list = [VideoFileClip(clip)
+
+            clip_list = [videoUtils.fix_rotation(VideoFileClip(clip))
                          for clip in source_video_path_list]
             final_clip = concatenate_videoclips(clip_list)
             final_clip.write_videofile(
@@ -652,6 +666,7 @@ class Video():
 
         # """
         parent_clip = VideoFileClip(source_video_path)
+        parent_clip = videoUtils.fix_rotation(parent_clip)
         clip_list = []
         length = len(parts)
         for index, part in enumerate(parts):
@@ -707,8 +722,9 @@ class Video():
         target_video_path = os.path.abspath(target_video_path)
 
         working_dir = get_directory_name(target_video_path)
-        audio_path = convert_video_to_wav(source_video_path, add_path(
-            working_dir, 'audio_for_humanly_remove_silence_parts_from_video.wav'))
+        audio_path = add_path(working_dir, 'audio_for_humanly_remove_silence_parts_from_video.wav')
+        if not os.path.exists(audio_path):
+            convert_video_to_wav(source_video_path, audio_path)
 
         temp_video_path = add_path(
             working_dir, 'temp_for_humanly_remove_silence_parts_from_video.mp4')
@@ -730,8 +746,10 @@ class Video():
         make_sure_target_does_not_exist(temp_video_path)
         make_sure_target_does_not_exist(audio_path)
 
+        os.system(f'xdg-open {target_audio_path}')
+
         answer = input(
-            f"Are you happy with the audio file: {target_audio_path}% ? (y/n) (you may have to exit this script to hear your audio from your computers)")
+            f"Are you happy with the audio file: {target_audio_path}% ? (y/n) (you may have to exit this script to hear your audio from your computers)\n")
         if answer.strip() == "y":
             print("ok, let's do it!")
 
@@ -788,6 +806,8 @@ class Video():
 
         clip = VideoFileClip(source_video_path).without_audio().fx(
             vfx.speedx, speed)
+
+        clip = videoUtils.fix_rotation(clip)
         clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
 
         done()
@@ -822,6 +842,7 @@ class Video():
 
         make_sure_target_does_not_exist(audio_path)
         parent_clip = VideoFileClip(source_video_path)
+        parent_clip = videoUtils.fix_rotation(parent_clip)
         clip_list = []
         length = len(voice_and_silence_parts)
         for index, part in enumerate(voice_and_silence_parts):
@@ -1001,6 +1022,7 @@ class Video():
         make_sure_target_does_not_exist(target_video_path)
 
         clip = VideoFileClip(source_video_path)
+        clip = videoUtils.fix_rotation(clip)
         width = clip.w
         height = clip.h
         cropRatio = 0.12
@@ -1015,6 +1037,7 @@ class Video():
             os.mkdir(target_video_folder)
 
         clip = VideoFileClip(source_video_path)
+        clip = videoUtils.fix_rotation(clip)
         length = clip.duration
         partLength = length / numOfParts
 
@@ -1212,8 +1235,9 @@ class DeepVideo():
         video_files = disk.sort_files_by_time(video_files)
         if resolution != None:
             resolution = (resolution[1], resolution[0])
-        parent_clips = [VideoFileClip(
-            video, target_resolution=resolution) for video in video_files]
+
+        parent_clips = [videoUtils.fix_rotation(VideoFileClip(
+            video, target_resolution=resolution)) for video in video_files]
         length = len(video_files)
         remain_clips = []
         for index, video_file in enumerate(video_files):
@@ -1260,8 +1284,8 @@ class DeepVideo():
         video_files = disk.sort_files_by_time(video_files)
         if resolution != None:
             resolution = (resolution[1], resolution[0])
-        parent_clips = [VideoFileClip(
-            video, target_resolution=resolution) for video in video_files]
+        parent_clips = [videoUtils.fix_rotation(VideoFileClip(
+            video, target_resolution=resolution)) for video in video_files]
         length = len(video_files)
         remain_clips = []
         for index, video_file in enumerate(video_files):
@@ -1300,6 +1324,7 @@ class DeepVideo():
         make_sure_target_does_not_exist(target_video_path)
 
         parent_clip = VideoFileClip(source_video_path)
+        parent_clip = videoUtils.fix_rotation(parent_clip)
         parts = self.__get_data_from_video(
             source_video_path, minimum_interval_time_in_seconds, parent_clip.duration)
         clip_list = []
@@ -1339,6 +1364,8 @@ class DeepVideo():
 
         parent_clip = VideoFileClip(
             source_video_path, target_resolution=(resolution[1], resolution[0]))
+
+        parent_clip = videoUtils.fix_rotation(parent_clip)
         parts = self.__get_data_from_video(
             source_video_path, minimum_interval_time_in_seconds, parent_clip.duration)
         clip_list = []

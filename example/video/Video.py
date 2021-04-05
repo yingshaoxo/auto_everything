@@ -55,8 +55,21 @@ class Tools():
 
     def hi(self):
         print("\n\nHi! I'm yingshaoxo!")
-        print("\nThis is my tunnel: https://www.youtube.com/channel/UCbT9GDmkqf555ATReJor6ag")
+        print("\nThis is my channel: https://www.youtube.com/channel/UCbT9GDmkqf555ATReJor6ag")
         print("\n\n")
+
+    def add(self):
+        source = os.path.abspath('./doing.mp4')
+        target = os.path.abspath('./target.mp4')
+        t.run(f"""
+        ffmpeg -y -i "{source}" -vf subtitles=captions.srt "{target}"
+                """)
+
+    def make(self, db=30, minimum_interval=1.4):
+        source = os.path.abspath('./doing.mp4')
+        target = os.path.abspath('./nosilence.mp4')
+        video.humanly_remove_silence_parts_from_video(source_video_path=source, target_video_path=target, db_for_split_silence_and_voice=db, minimum_interval=minimum_interval)
+
 
 py.fire(Tools)
 py.make_it_global_runnable(executable_name="Video")
