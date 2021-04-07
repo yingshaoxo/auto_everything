@@ -7,9 +7,22 @@ t = Terminal()
 
 class Tools():
     def push(self, comment):
-        t.run('git add .')
-        t.run('git commit -m "{}"'.format(comment))
-        t.run('git push origin')
+        t.run(f"""
+        git config --global user.name "yingshaoxo"
+        git config --global user.email "yingshaoxo@gmail.com"
+        git add .
+        git commit -m "{comment}"
+        git push origin
+        """)
+
+    def workpush(self, comment):
+        t.run(f"""
+        git config --global user.name "yingjie.hu"
+        git config --global user.email "yingjie.hu@fargowealth.com.hk"
+        git add .
+        git commit -m "{comment}"
+        git push origin
+        """)
 
     def pull(self):
         branch = "master"
