@@ -58,5 +58,14 @@ sudo rm dist/* -fr
 sudo python3 super_setup.py bdist_wheel
 cd dist
 sudo pip3 install --ignore-installed auto_everything*
+
 cd ..
-cd demo
+cd auto
+user=$(whoami)
+sudo chown -R $user:$user . 
+python -m pip install --ignore-installed .
+sudo pip3 install --ignore-installed .
+cd ..
+
+cd example
+

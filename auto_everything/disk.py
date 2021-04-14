@@ -9,6 +9,7 @@ import json
 import hashlib
 import unicodedata
 import string
+from io import BytesIO
 
 from auto_everything.terminal import Terminal
 
@@ -175,27 +176,29 @@ class Disk():
                 char_limit))
         return cleaned_filename[:char_limit]
 
-    def get_file_size(self, path: str, level: str = "B") -> int:
+    def get_file_size(self, path: str, level: str = "B", bytes_size: int = None) -> int:
         """
         Get file size in the unit of  B, KB, MB.
-
         Parameters
         ----------
         path: string
             the file path
         level: string
             B, KB, or MB
+        bytes_size: int
+            a number represent the file size in bytes level
         """
-        path = self._expand_user(path)
-        file = Path(path)
-        assert file.exists(), f"{path} is not exist!"
-        bytes = file.stat().st_size
-        if (level == "B"):
-            return int('{:.0f}'.format(bytes))
-        elif (level == "KB"):
-            return int('{:.0f}'.format(bytes / float(1 << 10)))
-        elif (level == "MB"):
-            return int('{:.0f}'.format(bytes / float(1 << 20)))
+        if bytes_size is None:
+            path = self._expand_user(path)
+            file = Path(path)
+            assert file.exists(), f"{path} is not exist!"
+            bytes_size = file.stat().st_size
+        if level == "B":
+            return int('{:.0f}'.format(bytes_size))
+        elif level == "KB":
+            return int('{:.0f}'.format(bytes_size / float(1 << 10)))
+        elif level == "MB":
+            return int('{:.0f}'.format(bytes_size / float(1 << 20)))
 
     def uncompress(self, path: str, folder: str = None) -> bool:
         """
@@ -274,6 +277,14 @@ class Disk():
             t.run_command(f"mkdir -p {folder_path}")
         return folder_path
 
+    def get_bytesio_from_a_file(self, filepath: str) -> BytesIO:
+        with open(filepath, 'rb') as fh:
+            buffer = BytesIO(fh.read())
+        return buffer
+
+    def save_bytesio_to_file(self, bytes_io: BytesIO, file_path: str):
+        with open(file_path, "wb") as f:
+            f.write(bytes_io.read())
 
 class Store():
     """

@@ -11,16 +11,3 @@ __all__ = [
     Python,
     Network
 ]
-
-"""
-try:
-    from auto_everything.video import Video, DeepVideo
-    from auto_everything.web import Selenium
-    __all__ += [
-        Video,
-        DeepVideo,
-        Selenium
-    ]
-except Exception:
-    pass
-"""
