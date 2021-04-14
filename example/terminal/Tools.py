@@ -49,6 +49,11 @@ git reset --hard HEAD^
 convert {image} -sampling-factor 4:2:0 -strip -quality 85 -adaptive-resize 60% -interlace JPEG -colorspace RGB compressed_{image}
         """) #-gaussian-blur 0.05 
 
+    def reset_permission(self, path):
+        t.run(f"""
+        sudo chown -R $user:$user {path}
+        """) 
+
     def hi(self):
         print("hi")
 
