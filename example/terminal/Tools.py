@@ -24,7 +24,12 @@ class Tools():
         git push origin
         """)
 
-    def pull(self):
+    def abort(self, comment):
+        t.run(f"""
+        git merge --abort
+        """)
+
+    def forcepull(self):
         branch = "master"
         for s in t.run_command("git branch").split("\n"):
             if "*" in s:
