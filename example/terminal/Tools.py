@@ -56,6 +56,7 @@ convert {image} -sampling-factor 4:2:0 -strip -quality 85 -adaptive-resize 60% -
 
     def reset_permission(self, path):
         t.run(f"""
+        user=$(whoami)
         sudo chown -R $user:$user {path}
         """) 
 
