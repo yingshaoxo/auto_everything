@@ -2,6 +2,10 @@ import json
 import os
 import time
 
+import io
+import hashlib
+import base64
+
 
 class IO():
     """
@@ -110,3 +114,16 @@ class IO():
 
     def get_logs(self):
         return self.read(self.__log_path)
+
+
+class MyIO():
+    def string_to_md5(self, text):
+        result = hashlib.md5(text.encode())
+        return result.hexdigest()
+
+    def base64_to_bytesio(self, base64_string):
+        img_data = base64.b64decode(base64_string)
+        return io.BytesIO(img_data)
+
+    def bytesio_to_base64(self, bytes_io):
+        return base64.b64encode(bytes_io.getvalue()).decode()
