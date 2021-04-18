@@ -31,6 +31,12 @@ class Mission():
         controller.write(f"cd {path}")
         controller.press("enter")
 
+    def create(self):
+        t.run("""
+        cd ~/Documents
+        ./UnityHub.AppImage
+        """)
+
     def sleep(self):
         self._kill()
 
