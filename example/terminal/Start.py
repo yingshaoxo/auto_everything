@@ -31,6 +31,12 @@ class Mission():
         controller.write(f"cd {path}")
         controller.press("enter")
 
+    def worklog(self):
+        t.run("""
+        cd ~/CS/worklog
+        code .
+        """)
+
     def create(self):
         t.run("""
         cd ~/Documents
