@@ -11,14 +11,14 @@ controller = Controller()
 class Mission():
     def _kill(self):
         process = [
-            "jupyter-lab",
+            "jupyter-lab /home/yingshaoxo/CS",
             "kernel",
-            "pycharm",
-            "code/code",
+            #"pycharm",
+            #"code/code",
             "nautilus",
             "xournalpp",
             "evince",
-            "chrome",
+            #"chrome",
             "obs",
             "inkscape",
             "clion",
@@ -53,8 +53,7 @@ class Mission():
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate cling
 
-cd ~/CS/notebooks
-nohup jupyter-lab . &
+nohup jupyter-lab ~/CS/notebooks &
 google-chrome "https://leetcode.com/problemset/all/"
                 """, wait=False)
 
@@ -62,8 +61,7 @@ google-chrome "https://leetcode.com/problemset/all/"
         self._go_to("~/CS/notebooks")
         self._kill()
         t.run("""
-cd ~/CS/notebooks
-nohup jupyter-lab . &
+nohup jupyter-lab ~/CS/notebooks &
 google-chrome "https://translate.google.com/" &
 google-chrome "https://keras.io/examples/" &
         """, wait=False)
