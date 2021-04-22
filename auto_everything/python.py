@@ -2,6 +2,7 @@ import time
 import threading
 import os
 import sys
+from pprint import pprint
 
 
 class Python():
@@ -159,3 +160,37 @@ class Python():
             if bashrc_target_line not in bashrc.split("\n"):
                 bashrc = bashrc + "\n" + bashrc_target_line
                 self._io.write(bashrc_path, bashrc)
+
+    def print(self, data, limit=20):
+        """
+        print `function help info` or print `dict` with length limit (So you could see the structure easily)
+        """
+        if callable(data):
+            self.help(data)
+        else:
+            def infinity_loop(the_data):
+                the_type = type(the_data)
+                if the_type == str:
+                    return the_data[:limit] + "..."
+                elif the_type == dict:
+                    for key, value in the_data.items():
+                        the_data[key] = infinity_loop(value)
+                    return the_data
+                elif the_type == list:
+                    return [infinity_loop(element) for element in the_data]
+                else:
+                    return the_data
+            data = infinity_loop(data)
+            pprint(data)
+
+
+if __name__ == "__main__":
+    py = Python()
+    py.print({
+        "hi": "dasssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggglddlahkdhkashgdkagda",
+        "ok": {
+            "fuck": "dhaslhdhagkdhaksghdashkgsadsagdsalhgsahd",
+            "dhashd": "dsahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhagdagdas",
+            "dsadf": [{"sdf":"sadddddddddddddddddddddddddddddddddd"},"asddddddddddddddddddddddddd"]
+        }
+    }, limit=25)

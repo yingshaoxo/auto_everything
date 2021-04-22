@@ -23,6 +23,7 @@ class Mission():
             "inkscape",
             "clion",
             "firefox",
+            "screenkey",
         ]
         for p in process:
             t.kill(p)
@@ -40,6 +41,7 @@ class Mission():
     def create(self):
         t.run("""
         cd ~/Documents
+        nohup screenkey -t 1 &
         ./UnityHub.AppImage
         """)
 

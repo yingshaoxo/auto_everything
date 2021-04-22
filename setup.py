@@ -34,7 +34,7 @@ setup(name='auto_everything',
           'psutil',
       ],
       extras_require={
-          "video":  ["numpy", "librosa", "moviepy>=1.0.0,<1.0.1", "pyaudio", "vosk"],
+          "video":  ["numpy", "librosa", "moviepy", "pyaudio", "vosk"],
           "gui": ["numpy", "opencv-python", "pyscreenshot", "pytesseract", "pyautogui"],
           "fakecamera": ["pyfakewebcam", "opencv-python"],
           "image":  ["pillow"],
