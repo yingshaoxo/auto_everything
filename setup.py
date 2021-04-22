@@ -38,6 +38,7 @@ setup(name='auto_everything',
           "gui": ["numpy", "opencv-python", "pyscreenshot", "pytesseract", "pyautogui"],
           "fakecamera": ["pyfakewebcam", "opencv-python"],
           "image":  ["pillow"],
+          "all": ["o365"]
       },
       include_package_data=False,
       packages=["auto_everything"],

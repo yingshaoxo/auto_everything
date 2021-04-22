@@ -86,7 +86,6 @@ class Python():
             if doc:
                 print(doc, '\n')
         else:
-            from pprint import pprint
             methods = dir(object_)
             private_methods = []
             public_methods = []
