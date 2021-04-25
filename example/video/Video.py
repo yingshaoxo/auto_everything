@@ -3,7 +3,6 @@ import os
 from auto_everything.base import Terminal, Python
 from auto_everything.video import Video, DeepVideo
 
-os.chdir("/home/yingshaoxo/Videos")
 
 t = Terminal()
 py = Python()
@@ -12,6 +11,9 @@ deepVideo = DeepVideo()
 
 
 class Tools():
+    def __init__(self):
+        os.chdir("/home/yingshaoxo/Videos")
+
     def link(self):
         files = []
         for file in os.listdir('doing'):

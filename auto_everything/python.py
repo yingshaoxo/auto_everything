@@ -167,19 +167,20 @@ class Python():
         if callable(data):
             self.help(data)
         else:
-            def infinity_loop(the_data):
+            data = data.copy()
+            def infinite_loop(the_data):
                 the_type = type(the_data)
                 if the_type == str:
                     return the_data[:limit] + "..."
                 elif the_type == dict:
                     for key, value in the_data.items():
-                        the_data[key] = infinity_loop(value)
+                        the_data[key] = infinite_loop(value)
                     return the_data
                 elif the_type == list:
-                    return [infinity_loop(element) for element in the_data]
+                    return [infinite_loop(element) for element in the_data]
                 else:
                     return the_data
-            data = infinity_loop(data)
+            data = infinite_loop(data)
             pprint(data)
 
 
