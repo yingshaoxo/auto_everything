@@ -113,6 +113,7 @@ set softtabstop=4
 set shiftwidth=4
 set expandtab
 set fileformat=unix
+set number
 " set autoindent
 " autoindent may cause bad behavior when you paste in vim
 set clipboard=unnamedplus
