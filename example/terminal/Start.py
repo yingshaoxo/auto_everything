@@ -34,7 +34,7 @@ class Mission():
 
     def worklog(self):
         t.run("""
-        cd ~/CS/worklog
+        cd ~/work/worklog
         code .
         """)
 
