@@ -3,6 +3,7 @@ import threading
 import os
 import sys
 from pprint import pprint
+import copy
 
 
 class Python():
@@ -167,7 +168,7 @@ class Python():
         if callable(data):
             self.help(data)
         else:
-            data = data.copy()
+            data = copy.deepcopy(data)
             def infinite_loop(the_data):
                 the_type = type(the_data)
                 if the_type == str:
