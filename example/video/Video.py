@@ -2,12 +2,14 @@
 import os
 from auto_everything.base import Terminal, Python
 from auto_everything.video import Video, DeepVideo
+from auto_everything.disk import Disk
 
 
 t = Terminal()
 py = Python()
 video = Video()
 deepVideo = DeepVideo()
+disk = Disk()
 
 
 class Tools():
@@ -16,23 +18,25 @@ class Tools():
 
     def link(self):
         files = []
-        for file in os.listdir('doing'):
+        for file in os.listdir('/home/yingshaoxo/Videos/doing'):
             files.append(os.path.abspath(os.path.join('doing', file)))
         files.sort(key=os.path.getmtime)
         video.link_videos(files, os.path.abspath('./doing.mp4'), method=2)
 
     def preprocessing(self):
         if len(os.listdir("doing")) == 1:
-            t.run_command("rm doing.mp4")
-            t.run_command("mv doing/*.mkv doing.mp4")
+            t.run_command(f"""
+                cd /home/yingshaoxo/Videos
+                rm doing.mp4
+                mv doing/*.mkv doing.mp4
+                    """)
         elif len(os.listdir("doing")) > 1:
             self.link()
 
     def nosilence(self, db=19, interval=0.4, skip_noise=0):  # 21, 0.7
         self.preprocessing()
         source = os.path.abspath('./doing.mp4')
-        if not os.path.exists(source):
-            self.link()
+        print(source)
         target = os.path.abspath('./nosilence.mp4')
         video.remove_silence_parts_from_video(source, target, db, interval, skip_sharp_noise=bool(skip_noise))
         #deepVideo.remove_silence_parts_from_video(source, target, 0.7)
