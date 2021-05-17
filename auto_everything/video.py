@@ -347,7 +347,7 @@ class Video():
 
         if skip_sharp_noise:
             parts = videoUtils.drop_too_short_intervals(parts, 0.1) #0.2
-            #parts = videoUtils.merge_continues_intervals(parts, thresholdInSeconds=0.5)
+            parts = videoUtils.merge_continues_intervals(parts, thresholdInSeconds=0.5) #0.5
 
         return parts
 

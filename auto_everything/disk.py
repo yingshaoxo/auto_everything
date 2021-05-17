@@ -283,6 +283,7 @@ class Disk():
         return buffer
 
     def save_bytesio_to_file(self, bytes_io: BytesIO, file_path: str):
+        bytes_io.seek(0)
         with open(file_path, "wb") as f:
             f.write(bytes_io.read())
 

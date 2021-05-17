@@ -71,10 +71,16 @@ class Tools():
         ffmpeg -y -i "{source}" -vf subtitles=captions.srt "{target}"
                 """)
 
-    def make(self, db=30, minimum_interval=1.4):
+    def make(self):
+        self.preprocessing()
+
+        db = 21
+        minimum_interval = 1.7
+        skip = 1
+
         source = os.path.abspath('./doing.mp4')
         target = os.path.abspath('./nosilence.mp4')
-        video.humanly_remove_silence_parts_from_video(source_video_path=source, target_video_path=target, db_for_split_silence_and_voice=db, minimum_interval=minimum_interval)
+        video.remove_silence_parts_from_video(source, target, db, minimum_interval, skip_sharp_noise=skip)
 
 
 py.fire(Tools)
