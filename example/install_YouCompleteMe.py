@@ -79,6 +79,7 @@ Plugin 'Chiel92/vim-autoformat'
 Plugin 'fatih/vim-go'
 Plugin 'pangloss/vim-javascript'
 Plugin 'mxw/vim-jsx'
+Plugin 'preservim/nerdtree'
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 filetype plugin indent on    " required
@@ -123,6 +124,8 @@ set guioptions-=T  "toolbar
 set guioptions-=r  "scrollbar
 let g:autopep8_max_line_length=10000
 set backupcopy=yes
+"for NERDTree"
+nnoremap <C-t> :NERDTreeToggle<CR>
 """
 with open(t.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
     f.write(vimrc)
