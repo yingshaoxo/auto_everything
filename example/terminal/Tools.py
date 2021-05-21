@@ -7,22 +7,22 @@ t = Terminal()
 
 class Tools():
     def push(self, comment):
-        t.run(f"""
-        git config --global user.name "yingshaoxo"
-        git config --global user.email "yingshaoxo@gmail.com"
-        git add .
-        git commit -m "{comment}"
-        git push origin
-        """)
-
-    def workpush(self, comment):
-        t.run(f"""
-        git config --global user.name "yingjie.hu"
-        git config --global user.email "yingjie.hu@fargowealth.com.hk"
-        git add .
-        git commit -m "{comment}"
-        git push origin
-        """)
+        if "/CS/" in t.run_command("pwd"):
+            t.run(f"""
+            git config --global user.name "yingshaoxo"
+            git config --global user.email "yingshaoxo@gmail.com"
+            git add .
+            git commit -m "{comment}"
+            git push origin
+            """)
+        else:
+            t.run(f"""
+            git config --global user.name "yingjie.hu"
+            git config --global user.email "yingjie.hu@fargowealth.com.hk"
+            git add .
+            git commit -m "{comment}"
+            git push origin
+            """)
 
     def abort(self, comment):
         t.run(f"""
@@ -49,20 +49,20 @@ git reset --mixed HEAD~1
 git reset --hard HEAD^
 """)
 
-    def image_compress(self, image):
-        t.run(f"""
-convert {image} -sampling-factor 4:2:0 -strip -quality 85 -adaptive-resize 60% -interlace JPEG -colorspace RGB compressed_{image}
-        """) #-gaussian-blur 0.05 
-
     def reset_permission(self, path):
         t.run(f"""
         user=$(whoami)
         sudo chown -R $user:$user {path}
-        """) 
+        """)
+
+    def image_compress(self, image):
+        t.run(f"""
+convert {image} -sampling-factor 4:2:0 -strip -quality 85 -adaptive-resize 60% -interlace JPEG -colorspace RGB compressed_{image}
+        """)  # -gaussian-blur 0.05
 
     def hi(self):
         print("hi")
 
 
-py.fire(Tools)
 py.make_it_global_runnable(executable_name="Tools")
+py.fire(Tools)
