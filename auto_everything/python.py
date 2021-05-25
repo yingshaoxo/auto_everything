@@ -15,7 +15,7 @@ class Python():
         from auto_everything.io import IO
         from auto_everything.base import OS
         from auto_everything.terminal import Terminal
-        from auto_everything.disk import  Disk
+        from auto_everything.disk import Disk
         self._io = IO()
         self._os = OS()
         self._t = Terminal()
@@ -148,9 +148,11 @@ class Python():
 
             # remove links that the real file has been moved, or, remove links that match this py_file_path but with a different executable name
             files = os.listdir(bin_folder)
-            [self._t.run(f"cd {bin_folder}; rm {file}") for file in files if not os.path.exists(os.path.join(bin_folder, file))]
+            [self._t.run(f"cd {bin_folder}; rm {file}") for file in files if
+             not os.path.exists(os.path.join(bin_folder, file))]
             files = self._disk.get_files(bin_folder, recursive=False)
-            [self._t.run(f"rm {file}") for file in files if os.path.realpath(file) == py_file_path and file != runnable_path]
+            [self._t.run(f"rm {file}") for file in files if
+             os.path.realpath(file) == py_file_path and file != runnable_path]
 
             self._t.run_command(f"ln -s {py_file_path} {runnable_path}")
 
@@ -169,6 +171,7 @@ class Python():
             self.help(data)
         else:
             data = copy.deepcopy(data)
+
             def infinite_loop(the_data):
                 the_type = type(the_data)
                 if the_type == str:
@@ -181,6 +184,7 @@ class Python():
                     return [infinite_loop(element) for element in the_data]
                 else:
                     return the_data
+
             data = infinite_loop(data)
             pprint(data)
 
@@ -192,6 +196,6 @@ if __name__ == "__main__":
         "ok": {
             "fuck": "dhaslhdhagkdhaksghdashkgsadsagdsalhgsahd",
             "dhashd": "dsahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhagdagdas",
-            "dsadf": [{"sdf":"sadddddddddddddddddddddddddddddddddd"},"asddddddddddddddddddddddddd"]
+            "dsadf": [{"sdf": "sadddddddddddddddddddddddddddddddddd"}, "asddddddddddddddddddddddddd"]
         }
     }, limit=25)

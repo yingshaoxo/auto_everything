@@ -21,7 +21,7 @@ class Friendship():
             self.df = pd.read_csv(self.__df_path)
 
     def __str__(self):
-        return '-'*30 + '\n' + str(self.df.head())
+        return '-' * 30 + '\n' + str(self.df.head())
 
     def add_person(self, name):
         temp_df = self.df.loc[self.df['name'] == name]
@@ -87,7 +87,7 @@ class Friendship():
 
 
 if __name__ == "__main__":
-    print('\n'*50)
+    print('\n' * 50)
     friendship = Friendship('/home/yingshaoxo/Documents/friendship.csv')
     friendship.add_person('A')
     friendship.add_person('B')
@@ -95,4 +95,4 @@ if __name__ == "__main__":
     friendship.taking('B', 3)
     friendship.seek_for_help()
     friendship.can_i_help()
-    #friendship.commit()
+    # friendship.commit()

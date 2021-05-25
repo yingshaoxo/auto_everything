@@ -2,6 +2,7 @@ class Password():
     """
     This is for hash password generation
     """
+
     def __init__(self, base_string):
         """
         base_string: a base_string for PassWord generation
@@ -32,7 +33,7 @@ class Password():
             m.update(data)
 
         result = m.hexdigest()
-        result = result[:length-1]
+        result = result[:length - 1]
         result = "A" + result
         return result
 
@@ -41,6 +42,7 @@ class Calculator():
     """
     A class for advanced mathematics
     """
+
     def __init__(self):
         import sympy
         self.sympy = sympy

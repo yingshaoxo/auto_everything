@@ -1,6 +1,3 @@
-from typing import List
-from pathlib import Path
-import os
 import pyfakewebcam
 import cv2
 
@@ -12,6 +9,7 @@ class FakeCamera():
     """
     This module based on `pyfakewebcam`.
     """
+
     def __init__(self, device: str = None, width: int = 640, height: int = 480):
         list_command = "v4l2-ctl --list-devices"
         list_devices = t.run_command(list_command)
@@ -20,9 +18,9 @@ class FakeCamera():
         lines = list_devices.split("\n")
         the_device = None
         for index, line in enumerate(lines):
-            if index < len(lines)-1:
-                if ("v4l2loopback" in line) and "/dev/video" in lines[index+1]:
-                    the_device = lines[index+1].strip()
+            if index < len(lines) - 1:
+                if ("v4l2loopback" in line) and "/dev/video" in lines[index + 1]:
+                    the_device = lines[index + 1].strip()
         if device == None:
             assert the_device != None, f"{list_devices}\n\ncan't auto find the dummy device, you may have to specify it manullay: FakeCamera('/dev/video*')"
             self.device = the_device

@@ -4,6 +4,7 @@ from io import BytesIO
 from auto_everything.disk import Disk
 disk = Disk()
 
+
 class MyPillow():
     def read_image_from_bytes_io(self, bytes_io):
         return Image.open(bytes_io)

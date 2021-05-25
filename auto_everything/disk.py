@@ -1,7 +1,7 @@
 import datetime
 import pathlib
 import tempfile
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from pathlib import Path
 import os
 import re
@@ -12,11 +12,10 @@ import string
 from io import BytesIO
 
 from auto_everything.terminal import Terminal
-
 t = Terminal(debug=True)
 
 
-class Common():
+class Common:
     def __init__(self):
         self._auto_everything_config_folder = os.path.expanduser("~/.auto_everything")
         # print(self._auto_everything_config_folder)
@@ -30,7 +29,7 @@ class Common():
         return sub_folder_path
 
 
-class Disk():
+class Disk:
     """
     Some useful functions to handle your disk
     """
@@ -38,7 +37,7 @@ class Disk():
     def __init__(self):
         self.temp_dir: str = tempfile.gettempdir()
 
-    def _expand_user(self, path: str):
+    def _expand_user(self, path: Union[str, pathlib.PosixPath]):
         # print(type(path))
         if type(path) == pathlib.PosixPath:
             path = path.as_posix()
@@ -147,7 +146,7 @@ class Disk():
         file_hash.update(path.encode(encoding="UTF-8"))
         return file_hash.hexdigest()
 
-    def get_safe_name(self, filename: str, replace_chars=' ') -> str:
+    def get_safe_name(self, filename: str, replace_chars: str = ' ') -> str:
         """
         get a valid file name by doing a replacement. (English only)
 
@@ -286,6 +285,7 @@ class Disk():
         bytes_io.seek(0)
         with open(file_path, "wb") as f:
             f.write(bytes_io.read())
+
 
 class Store():
     """

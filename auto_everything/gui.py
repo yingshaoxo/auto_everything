@@ -4,7 +4,6 @@ import numpy as np
 import cv2
 
 from auto_everything.base import Terminal
-
 t = Terminal(debug=True)
 
 

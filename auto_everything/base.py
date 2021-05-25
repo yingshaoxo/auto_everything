@@ -1,9 +1,5 @@
 import os
-import sys
-
 import time
-
-import threading
 
 from auto_everything.terminal import Terminal
 from auto_everything.io import IO
@@ -80,44 +76,6 @@ class OS():
         installed_packages = self.list_packages()
         if (force is True) or (package_name in installed_packages):
             self._t.run("sudo apt purge {name} -y".format(name=package_name))
-
-
-
-
-class Git():
-    def __init__(self):
-        self._io = IO()
-        self._os = OS()
-        self._t = Terminal()
-
-    def generate_git_tools(self):
-        sh_scripts = ''' 
-#!/usr/bin/env /usr/bin/python3
-from auto_everything.base import Python, Terminal
-py = Python()
-t = Terminal()
-
-class Tools():
-    def push(self, comment):
-        t.run('git add .')
-        t.run('git commit -m "{}"'.format(comment))
-        t.run('git push origin')
-
-    def pull(self):
-        t.run("""
-git fetch --all
-git reset --hard origin/master
-""")
-
-    def reset(self):
-        t.run("""
-git reset --hard HEAD^
-""")
-
-py.make_it_runnable()
-py.fire(Tools)
-'''
-        self._io.write("Tools.py", sh_scripts)
 
 
 class Deploy():
