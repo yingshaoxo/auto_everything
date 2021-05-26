@@ -4,6 +4,7 @@ import os
 import sys
 from pprint import pprint
 import copy
+import inspect
 
 
 class Python():
@@ -78,8 +79,8 @@ class Python():
         """
         get help information about class or function
         """
+        from inspect import signature
         if callable(object_):
-            from inspect import signature
             arguments = str(signature(object_))
             print(object_.__name__ + arguments)
 
@@ -97,6 +98,26 @@ class Python():
                     public_methods.append(method)
             print(private_methods, '\n')
             pprint(public_methods)
+            """
+            callable_list = inspect.getmembers(object_, predicate=inspect.ismethod) + inspect.getmembers(object_,
+                                                                                                         predicate=inspect.isclass)
+            callable_list = [(one, one[1].__name__ + str(signature(one[1]))) for one in callable_list]
+            not_callable_list = dir(object_)
+            for one in callable_list:
+                if one[0] in not_callable_list:
+                    not_callable_list.remove(one[0])
+            not_callable_list = [(one, "") for one in not_callable_list]
+            private_methods = []
+            public_methods = []
+            for one in not_callable_list + callable_list:
+                if one[0][:1] == "_":
+                    private_methods.append(one[0])
+                else:
+                    public_methods.append(one)
+
+            print(private_methods, "\n")
+            [print(one[0], one[1]) for one in public_methods]
+            """
 
     def fire(self, class_name):
         """
