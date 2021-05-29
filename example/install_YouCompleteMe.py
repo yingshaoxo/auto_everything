@@ -1,20 +1,21 @@
+#!/usr/bin/env python
 
-#!/usr/bin/env python                                                                           
-                                                                                                
-from auto_everything.base import Terminal, IO                                                   
-from os import path                                                                             
-                                                                                                
-t = Terminal()                                                                                  
-io = IO()                                                                                       
-                                                                                                              
-if (t.run_command("echo $DESKTOP_SESSION").strip() != ""):
+from auto_everything.terminal import Terminal
+from auto_everything.io import IO
+from os import path
+
+t = Terminal()
+io_ = IO()
+
+if t.run_command("echo $DESKTOP_SESSION").strip() != "":
     IS_DESKTOP = True
 else:
     IS_DESKTOP = False
 
-print("start...\n\n")                                                                                         
-                                                                                                              
-# 1                                                                                                           
+print("script start...\n\n")
+
+# 1
+print("install building tools...")
 c = """                                                                                                       
 sudo apt install -y build-essential cmake                                                                                        
 sudo apt install -y python3-dev                                                                                                  
@@ -33,11 +34,16 @@ sudo pacman --noconfirm -S cmake
 sudo pacman --noconfirm -S vim
 sudo pacman --noconfirm -S git
 sudo pacman --noconfirm -S curl
+
+sudo apt install -y terminator
+sudo apt install -y tmux 
 """
 t.run(c, wait=True)
 
 # 2
+
 if not t.exists("~/.vim/bundle/YouCompleteMe"):
+    print("install YouCompleteMe...")
     c = """
 cd ~
 mkdir .vim
@@ -52,6 +58,7 @@ sudo python3 ./install.py
 
 # 3
 if not t.exists("~/.vim/bundle/Vundle.vim"):
+    print("install Vundle...")
     c = """
 git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 git clone https://github.com/leafgarland/typescript-vim.git ~/.vim/bundle/typescript-vim
@@ -59,6 +66,7 @@ git clone https://github.com/leafgarland/typescript-vim.git ~/.vim/bundle/typesc
     t.run(c, wait=True)
 
 # 4
+print("setup .vimrc...")
 vimrc = """
 set nocompatible              " be iMproved, required
 filetype off                  " required
@@ -127,10 +135,11 @@ set backupcopy=yes
 "for NERDTree"
 nnoremap <C-t> :NERDTreeToggle<CR>
 """
-with open(t.fix_path("~/.vimrc"), 'w', encoding="utf-8") as f:
+with open(t.fix_path("~/.vimrc"), "w", encoding="utf-8") as f:
     f.write(vimrc)
 
 # 5
+print("setup desktop vim...")
 c = """
 sudo pip3 install autopep8
 sudo pip3 install jedi
@@ -150,24 +159,34 @@ print("\n\nfinished...")
 
 
 # 5.5, for autopep
+print("setup f8 autopep...")
 path = t.fix_path("~/.vim")
 if not t.exists(f"{path}/plugin"):
-    t.run(f"""
+    t.run(
+        f"""
     cd {path}
     sudo mkdir -p {path}/plugin
-    """)
-t.run(f"""
+    """
+    )
+t.run(
+    f"""
 cd {path}/plugin
 sudo wget https://github.com/tell-k/vim-autopep8/raw/master/ftplugin/python_autopep8.vim
-""")
+"""
+)
 
 
 # 6 set terminator
-t.run("""
+print("setup terminator configs...")
+t.run(
+    """
 mkdir -p ~/.config/terminator/
 touch config
-""")
-io.write(t.fix_path('~/.config/terminator/config'), """
+"""
+)
+io_.write(
+    t.fix_path("~/.config/terminator/config"),
+    """
 [global_config]
   always_split_with_profile = True
   borderless = True
@@ -201,10 +220,12 @@ io.write(t.fix_path('~/.config/terminator/config'), """
     scrollbar_position = hidden
     show_titlebar = False
     use_system_font = False
-""")
+""",
+)
 
 
 # 7 copy file to root
+print("copy vim config for root user...")
 c = """
 sudo cp ~/.vim /root/.vim -r
 sudo cp ~/.vimrc /root/.vimrc
@@ -212,12 +233,56 @@ sudo cp ~/.vimrc /root/.vimrc
 t.run(c, wait=True)
 
 
+# 8 confit tmux
+print("config tmux...")
+
+io_.write(
+    t.fix_path("~/.tmux.conf"),
+    """
+#set-option -g default-shell "/bin/bash"
+
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+
+# Enable mouse support
+setw -g mouse on
+#set -g @plugin 'tmux-plugins/tmux-yank'
+bind-key -T copy-mode-vi MouseDragEnd1Pane send -X copy-selection-and-cancel\; run "tmux save-buffer - | xclip -i -sel clipboard > /dev/null"
+
+# Enable vim support when ctrl+b+[
+# This is for terminal copy and paste
+set-window-option -g mode-keys vi
+bind-key -T copy-mode-vi v send -X begin-selection
+bind-key -T copy-mode-vi V send -X select-line
+bind-key -T copy-mode-vi y send -X copy-pipe-and-cancel 'xclip -in -selection clipboard'
+
+# Set new panes to open in current directory
+bind c new-window -c "#{pane_current_path}"
+bind '"' split-window -c "#{pane_current_path}"
+bind % split-window -h -c "#{pane_current_path}"
+
+# Auto save and reload tmux windows
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @continuum-restore 'on'
+
+# Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+run '~/.tmux/plugins/tpm/tpm'
+""",
+)
+
+t.run("tmux source ~/.tmux.conf")
+
+
 last = """
 \n\n\n
-There just left one thing you have to do:
-    start vim by `sudo vim`
+There just left two thing for you to do:
+    1. start vim by `sudo vim`
         then type
             `:PluginInstall`
-After this, enjoy!
+    2. start tmux by `tmux new-session -s test`
+        then type 
+            `ctrl+b+I`
+After these, enjoy!
 """
 print(last)

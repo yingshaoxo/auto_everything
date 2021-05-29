@@ -50,10 +50,14 @@ git reset --hard HEAD^
 """)
 
     def reset_permission(self, path):
-        t.run(f"""
-        user=$(whoami)
-        sudo chown -R $user:$user {path}
-        """)
+        if path != "/":
+            t.run(f"""
+            user=$(whoami)
+            sudo chown -R $user:$user {path}
+            """)
+
+    def check(self, port):
+        t.run(f"sudo netstat -nlp | grep :{port}")
 
     def image_compress(self, image):
         t.run(f"""
