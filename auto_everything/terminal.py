@@ -26,7 +26,7 @@ class Terminal():
             Linux system username
         """
         from auto_everything.io import IO
-        self.__debug: bool = debug
+        self.debug: bool = debug
 
         self.py_version: str = '{major}.{minor}'.format(
             major=str(sys.version_info[0]), minor=str(sys.version_info[1]))
@@ -136,8 +136,7 @@ class Terminal():
 
         # if '\n' in c:
         c = self.fix_path(c)
-        if self.__debug:
-            print("fuck")
+        if self.debug:
             print('\n' + '-' * 20 + '\n')
             print(c)
             print('\n' + '-' * 20 + '\n')
@@ -186,7 +185,7 @@ class Terminal():
 
         # if '\n' in c:
         c = self.fix_path(c)
-        if self.__debug:
+        if self.debug:
             print('\n' + '-' * 20 + '\n')
             print(c)
             print('\n' + '-' * 20 + '\n')
