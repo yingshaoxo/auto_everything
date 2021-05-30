@@ -134,6 +134,8 @@ let g:autopep8_max_line_length=10000
 set backupcopy=yes
 "for NERDTree"
 nnoremap <C-t> :NERDTreeToggle<CR>
+
+set completeopt-=preview
 """
 with open(t.fix_path("~/.vimrc"), "w", encoding="utf-8") as f:
     f.write(vimrc)
