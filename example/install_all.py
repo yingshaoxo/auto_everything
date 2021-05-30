@@ -19,6 +19,7 @@ for soft in apt_softwares:
 
 
 snap_softwares = [
+    "obs-studio",
     "qv2ray",
     "postman",
     "shotcut",
@@ -43,6 +44,6 @@ pip_softwares = ["jupyterlab"]
 for soft in pip_softwares:
     terminal.run(
         f"""
-        sudo pip3 install --no-input --yes {soft}
+        sudo pip3 install --no-input {soft}
         """
     )
