@@ -52,8 +52,7 @@ git reset --hard HEAD^
     def reset_permission(self, path):
         if path != "/":
             t.run(f"""
-            user=$(whoami)
-            sudo chown -R $user:$user {path}
+            sudo chown -R $(whoami):$(whoami) {path}
             """)
 
     def check(self, port):
