@@ -29,7 +29,7 @@ rm get-pip.py
 
 #sudo apt -y install ffmpeg
 #sudo apt -y install python3-opencv
-sudo pip3 install auto_everything --upgrade
+sudo pip3 install git+https://github.com/yingshaoxo/auto_everything.git --upgrade
 
 #########
 # WITH EXTENSIONS
