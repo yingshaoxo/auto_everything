@@ -233,7 +233,7 @@ sudo cp ~/.vimrc /root/.vimrc
 t.run(c, wait=True)
 
 
-# 8 confit tmux
+# 8 config tmux
 print("config tmux...")
 
 io_.write(
@@ -272,6 +272,22 @@ run '~/.tmux/plugins/tpm/tpm'
 )
 
 t.run("tmux source ~/.tmux.conf")
+
+
+# 8 config bashrc
+print("config bashrc")
+io_.append(
+    t.fix_path("~/.bashrc"),
+    """
+if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
+clear
+
+export PATH="$PATH:/home/yingshaoxo/go/bin"
+export PATH="$PATH:/home/yingshaoxo/.auto_everything/bin"
+
+export PROMPT_COMMAND="history -a; history -n"
+    """
+)
 
 
 last = """
