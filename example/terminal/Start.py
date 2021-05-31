@@ -13,12 +13,12 @@ class Mission():
         process = [
             "jupyter-lab /home/yingshaoxo/CS",
             "kernel",
-            #"pycharm",
-            #"code/code",
+            # "pycharm",
+            # "code/code",
             "nautilus",
             "xournalpp",
             "evince",
-            #"chrome",
+            # "chrome",
             "obs",
             "inkscape",
             "clion",
@@ -166,33 +166,21 @@ nohup xournalpp "/home/yingshaoxo/Downloads/SYNC/Resources/Books/English/2010-20
 terminator -e "ssh pi@192.168.49.17"
         """)
 
-    def win(self):
-        t.run("""
-#ssh-copy-id yingshaoxo@192.168.49.92
-terminator -e "ssh yingshaoxo@192.168.49.31"
-        """)
-
-    def server(self):
-        t.run("""
-terminator -e "ssh root@149.28.229.110"
-        """)
+    def server(self, num=""):
+        if num == "":
+            t.run("""
+    terminator -e "ssh root@149.28.229.110"
+            """)
+        else:
+            t.run(f"""
+    terminator -e "ssh ubuntu@192.168.101.{num}"
+            """)
 
     def android(self):
         t.run("""
 cd ~/Android/Sdk/emulator/bin64
 emulator @Pixel_3a_API_30_x86 -no-snapshot-load
         """)
-
-    def night(self):
-        t.run("""
-xcalib -s 0 -invert -alter
-        """)
-
-    def day(self):
-        t.run("""
-xcalib -c
-        """)
-
 
 
 py.fire(Mission)

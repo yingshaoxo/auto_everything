@@ -20,6 +20,7 @@ for soft in apt_softwares:
 
 snap_softwares = [
     "obs-studio",
+    "vlc",
     "qv2ray",
     "postman",
     "shotcut",
