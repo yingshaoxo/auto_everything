@@ -48,3 +48,13 @@ for soft in pip_softwares:
         sudo pip3 install --no-input {soft}
         """
     )
+
+
+npm_softwares = ["yarn"]
+
+for soft in npm_softwares:
+    terminal.run(
+    f"""
+    sudo npm install --global --silent {soft}
+    """
+    )
