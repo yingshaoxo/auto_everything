@@ -975,6 +975,7 @@ class Video():
                 t.run(f"""
                     ffmpeg -i "{file}" -c copy {target_video_path}
                 """)
+                exit()
         done()
 
     def compress_videos_in_a_folder(self, source_folder, fps: int = 29, resolution: Tuple[int, int] = None,
@@ -1030,6 +1031,7 @@ class Video():
                 except KeyboardInterrupt:
                     t.kill("ffmpeg")
                     t.run(f"rm {target_video_path}")
+                    exit()
         done()
 
     def format_videos_in_a_folder(self, source_folder):
