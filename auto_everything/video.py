@@ -951,47 +951,58 @@ class Video():
         done()
 
     def compress_videos_in_a_folder(self, source_folder, fps: int = 29, resolution: Tuple[int, int] = None,
-                                    preset: str = 'placebo'):
+                                    preset: str = 'veryslow'):
+        """
+        Parameters
+        ----------
+        source_video_path: string
+        preset: string
+            A preset is a collection of options that will provide a certain encoding speed to compression ratio. A slower preset will provide better compression
+                ultrafast
+                superfast
+                veryfast
+                faster
+                fast
+                medium – default preset
+                slow
+                slower
+                veryslow
+                placebo – ignore this as it is not useful (see FAQ)
+        """
         source_folder = try_to_get_absolutely_path(source_folder)
         make_sure_source_is_absolute_path(source_folder)
+
+        if not os.path.isdir(source_folder):
+            raise Exception("it needs to be a folder")
 
         working_dir = get_directory_name(source_folder)
         new_folder = add_path(working_dir, 'compressed_' +
                               os.path.basename(source_folder))
         if not os.path.exists(new_folder):
-            os.mkdir(new_folder)
+            os.makedirs(new_folder, exist_ok=True)
 
-        filelist = [os.path.join(source_folder, f) for f in os.listdir(
-            source_folder) if f.endswith(".mp4")]
-
-        def convert_bytes(num):
-            """
-            this function will convert bytes to MB.... GB... etc
-            """
-            for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
-                if num < 1024.0:
-                    return (int(float(f'{num:.1f}')), f'{x}')
-                num /= 1024.0
-
-            return (0, 0)
+        filelist = disk.get_files(source_folder, type_limiter=[".mp4", ".mkv", ".avi"])
 
         for file in filelist:
-            basename = os.path.basename(file)
-            target_video_path = add_path(new_folder, basename)
-            make_sure_target_does_not_exist(target_video_path)
-
-            # size, unit = convert_bytes(os.path.getsize(file))
-            # if unit == "GB":
-            #    if size > 2:
-            if fps and resolution and preset:
-                t.run(f"""
-                    ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale={resolution[0]}:{resolution[1]} -r {fps} -preset {preset} "{target_video_path}"
-                """)
-            else:
-                t.run(f"""
-                    ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale=-2:720 "{target_video_path}"
-                """)
-
+            target_video_path = file.replace(source_folder, new_folder)
+            target_dir = get_directory_name(target_video_path)
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir, exist_ok=True)
+            
+            #make_sure_target_does_not_exist(target_video_path)
+            if not os.path.exists(target_video_path):
+                try:
+                    if resolution:
+                        t.run(f"""
+                            ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale={resolution[0]}:{resolution[1]} -r {fps} -preset {preset} "{target_video_path}"
+                        """)
+                    else:
+                        t.run(f"""
+                            ffmpeg -i "{file}" -c copy -c:v libx264 -vf scale=-2:720 -r {fps} -preset {preset} "{target_video_path}"
+                        """)
+                except KeyboardInterrupt:
+                    t.kill("ffmpeg")
+                    t.run(f"rm {target_video_path}")
         done()
 
     def format_videos_in_a_folder(self, source_folder):
@@ -1428,9 +1439,5 @@ class DeepVideo():
 
 
 if __name__ == "__main__":
-    video = DeepVideo()
-    videoUtils = VideoUtils()
-    rawParts = video._get_sounds_parts("/home/yingshaoxo/Videos/freaks.mp4", 20)
-    parts = videoUtils.merge_continues_intervals(rawParts, 10)
-    print(parts)
-    print(len(parts))
+    video = Video()
+    video.compress_videos_in_a_folder("/home/yingshaoxo/Videos/doing", fps=15)

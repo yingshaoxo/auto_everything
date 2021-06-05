@@ -53,10 +53,14 @@ git reset --hard HEAD^
         if path != "/":
             t.run(f"""
             sudo chown -R $(whoami):$(whoami) {path}
+            sudo chmod g+rw {path}
             """)
 
-    def check(self, port):
-        t.run(f"sudo netstat -nlp | grep :{port}")
+    def check(self, port=None):
+        if port == None:
+            t.run(f"sudo ss -antpl")
+        else:
+            t.run(f"sudo netstat -nlp | grep :{port}")
 
     def image_compress(self, image):
         t.run(f"""
