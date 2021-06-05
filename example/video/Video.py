@@ -98,6 +98,12 @@ class Tools:
         path = os.path.abspath(folder)
         video.compress_videos_in_a_folder(path)
 
+    def fix(self, folder):
+        os.chdir(t.run_command("pwd"))
+
+        path = os.path.abspath(folder)
+        video.fix_corrupt_videos_in_a_folder(path)
+
 
 py.fire(Tools)
 py.make_it_global_runnable(executable_name="Video")

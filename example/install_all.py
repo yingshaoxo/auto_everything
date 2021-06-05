@@ -38,6 +38,9 @@ for soft in snap_softwares:
         sudo snap install {soft} --classic
         """
     )
+terminal.run(f"""
+    sudo snap connect ffmpeg:removable-media
+""")
 
 
 pip_softwares = ["jupyterlab"]

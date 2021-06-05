@@ -949,6 +949,33 @@ class Video():
         """)
 
         done()
+    
+    def fix_corrupt_videos_in_a_folder(self, source_folder: str):
+        source_folder = try_to_get_absolutely_path(source_folder)
+        make_sure_source_is_absolute_path(source_folder)
+
+        if not os.path.isdir(source_folder):
+            raise Exception("it needs to be a folder")
+
+        working_dir = get_directory_name(source_folder)
+        new_folder = add_path(working_dir, 'fixed_' +
+                              os.path.basename(source_folder))
+        if not os.path.exists(new_folder):
+            os.makedirs(new_folder, exist_ok=True)
+
+        filelist = disk.get_files(source_folder, type_limiter=[".mp4", ".mkv", ".avi"])
+
+        for file in filelist:
+            target_video_path = file.replace(source_folder, new_folder)
+            target_dir = get_directory_name(target_video_path)
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir, exist_ok=True)
+            
+            if not os.path.exists(target_video_path):
+                t.run(f"""
+                    ffmpeg -i "{file}" -c copy {target_video_path}
+                """)
+        done()
 
     def compress_videos_in_a_folder(self, source_folder, fps: int = 29, resolution: Tuple[int, int] = None,
                                     preset: str = 'veryslow'):
