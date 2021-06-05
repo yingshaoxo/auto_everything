@@ -93,6 +93,8 @@ class Tools:
         )
 
     def compress(self, folder):
+        os.chdir(t.run_command("pwd"))
+
         path = os.path.abspath(folder)
         video.compress_videos_in_a_folder(path)
 
