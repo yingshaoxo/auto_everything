@@ -972,10 +972,15 @@ class Video():
                 os.makedirs(target_dir, exist_ok=True)
             
             if not os.path.exists(target_video_path):
-                t.run(f"""
-                    ffmpeg -i "{file}" -c copy {target_video_path}
-                """)
-                exit()
+                try:
+                    t.run(f"""
+                        ffmpeg -i "{file}" -c copy {target_video_path}
+                    """)
+                except KeyboardInterrupt:
+                    t.kill("ffmpeg")
+                    t.run(f"rm {target_video_path}")
+                    exit()
+
         done()
 
     def compress_videos_in_a_folder(self, source_folder, fps: int = 29, resolution: Tuple[int, int] = None,
