@@ -24,11 +24,6 @@ class Tools():
             git push origin
             """)
 
-    def abort(self, comment):
-        t.run(f"""
-        git merge --abort
-        """)
-
     def forcepull(self):
         branch = "master"
         for s in t.run_command("git branch").split("\n"):
@@ -39,15 +34,31 @@ git fetch --all
 git reset --hard origin/{branch}
 """)
 
-    def undo(self):
+    def merge_by_hand(self, branch_name):
+        t.run(f"""
+git merge --no-ff --no-commit {branch_name}
+""")
+
+    def delete_branch(self, branch_name):
+        t.run(f"""
+git push origin --delete {branch_name}
+""")
+
+    def undo_commit(self):
         t.run("""
 git reset --mixed HEAD~1
 """)
 
-    def reset(self):
+    def undo_changes(self):
         t.run("""
 git reset --hard HEAD^
 """)
+
+    def abort(self, comment):
+        t.run(f"""
+        git merge --abort
+        """)
+
 
     def reset_permission(self, path):
         if path != "/":
@@ -62,10 +73,13 @@ git reset --hard HEAD^
         else:
             t.run(f"sudo netstat -nlp | grep :{port}")
 
-    def image_compress(self, image):
-        t.run(f"""
-convert {image} -sampling-factor 4:2:0 -strip -quality 85 -adaptive-resize 60% -interlace JPEG -colorspace RGB compressed_{image}
-        """)  # -gaussian-blur 0.05
+    '''
+    def image_compress(self, image=""):
+        if image != "":
+            t.run(f"""
+    convert {image} -sampling-factor 4:2:0 -strip -quality 85 -adaptive-resize 60% -interlace JPEG -colorspace RGB compressed_{image}
+            """)  # -gaussian-blur 0.05
+    '''
 
     def hi(self):
         print("hi")
