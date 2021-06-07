@@ -963,7 +963,7 @@ class Video():
         if not os.path.exists(new_folder):
             os.makedirs(new_folder, exist_ok=True)
 
-        filelist = disk.get_files(source_folder, type_limiter=[".mp4", ".mkv", ".avi"])
+        filelist = disk.get_files(source_folder, type_limiter=[".mp4", ".mkv", ".avi", ".rmvb"])
 
         for file in filelist:
             target_video_path = file.replace(source_folder, new_folder)
@@ -978,7 +978,7 @@ class Video():
                     """)
                 except KeyboardInterrupt:
                     t.kill("ffmpeg")
-                    t.run(f"rm {target_video_path}")
+                    t.run(f'rm "{target_video_path}"')
                     exit()
 
         done()
@@ -1014,7 +1014,7 @@ class Video():
         if not os.path.exists(new_folder):
             os.makedirs(new_folder, exist_ok=True)
 
-        filelist = disk.get_files(source_folder, type_limiter=[".mp4", ".mkv", ".avi"])
+        filelist = disk.get_files(source_folder, type_limiter=[".mp4", ".mkv", ".avi", ".rmvb"])
 
         for file in filelist:
             target_video_path = file.replace(source_folder, new_folder)
@@ -1035,7 +1035,7 @@ class Video():
                         """)
                 except KeyboardInterrupt:
                     t.kill("ffmpeg")
-                    t.run(f"rm {target_video_path}")
+                    t.run(f'rm "{target_video_path}"')
                     exit()
         done()
 
