@@ -64,7 +64,6 @@ google-chrome "https://leetcode.com/problemset/all/"
         self._kill()
         t.run("""
 nohup jupyter-lab ~/CS/notebooks &
-google-chrome "https://translate.google.com/" &
 google-chrome "https://keras.io/examples/" &
         """, wait=False)
 
@@ -178,8 +177,8 @@ terminator -e "ssh pi@192.168.49.17"
 
     def android(self):
         t.run("""
-cd ~/Android/Sdk/emulator/bin64
-emulator @Pixel_3a_API_30_x86 -no-snapshot-load
+cd ~/Android/Sdk/emulator/
+./emulator @Pixel_3a_API_30_x86 -no-snapshot-load
         """)
 
 

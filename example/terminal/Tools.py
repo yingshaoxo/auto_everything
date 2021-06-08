@@ -81,6 +81,16 @@ git reset --hard HEAD^
             """)  # -gaussian-blur 0.05
     '''
 
+    def repair_disk(self, disk_name=""):
+        if disk_name != "":
+            t.run(f"sudo umount {disk_name}")
+            t.run(f"sudo fsck -p {disk_name}")
+            print(f"\n\nsudo fsck {disk_name}")
+        else:
+            t.run(f"lsblk -p")
+            t.run(f"df -hl")
+
+
     def hi(self):
         print("hi")
 
