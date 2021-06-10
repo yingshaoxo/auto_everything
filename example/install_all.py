@@ -20,14 +20,15 @@ for soft in apt_softwares:
 
 snap_softwares = [
     "obs-studio",
+    "ffmpeg",
+    "telegram-desktop",
+    "docker",
     "vlc",
+    "xournalpp",
     "qv2ray",
+    "scrcpy",
     "postman",
     "shotcut",
-    "ffmpeg",
-    "docker",
-    "xournalpp",
-    "telegram-desktop",
     "remmina",
     "flameshot",
 ]

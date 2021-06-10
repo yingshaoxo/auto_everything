@@ -36,7 +36,7 @@ git reset --hard origin/{branch}
 
     def merge_by_hand(self, branch_name):
         t.run(f"""
-git merge --no-ff --no-commit {branch_name}
+git merge --no-ff --no-commit origin/{branch_name}
 """)
 
     def delete_branch(self, branch_name):

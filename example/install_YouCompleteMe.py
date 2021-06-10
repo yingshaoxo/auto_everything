@@ -52,7 +52,7 @@ mkdir bundle
 cd bundle
 git clone --recurse-submodules -j8 https://github.com/ycm-core/YouCompleteMe.git
 cd YouCompleteMe
-sudo python3 ./install.py
+sudo python3 install.py --all
     """
     t.run(c, wait=True)
 
@@ -263,6 +263,10 @@ bind c new-window -c "#{pane_current_path}"
 bind '"' split-window -c "#{pane_current_path}"
 bind % split-window -h -c "#{pane_current_path}"
 
+# Get current working directory for outside program: use $TMUX_WORKING_DIR to get the active dir path of tmux
+#set-hook -g pane-focus-in 'if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)"; else tmux setenv TMUX_WORKING_DIR $(pwd); fi'
+
+
 # Auto save and reload tmux windows
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
@@ -281,8 +285,8 @@ print("config bashrc")
 io_.append(
     t.fix_path("~/.bashrc"),
     """
-if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
-clear
+#if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
+#clear
 
 export PATH="$PATH:/home/yingshaoxo/go/bin"
 export PATH="$PATH:/home/yingshaoxo/.auto_everything/bin"
