@@ -3,8 +3,8 @@ from pymongo.database import Database
 
 class MongoDB:
     #https://www.w3schools.com/python/python_mongodb_create_collection.asp
-    def __init__(self):
-        self.client = MongoClient("mongodb://root:yingshaoxo666@127.0.0.1:27017")
+    def __init__(self, host: str, port: str, user: str, password: str):
+        self.client = MongoClient(f"mongodb://{user}:{password}@{host}:{port}")
     
     def delete_a_database(self, database_name: str):
         self.client.drop_database(database_name)
@@ -16,11 +16,12 @@ class MongoDB:
         return self.client[database_name]
 
 if __name__ == "__main__":
-    mongoDB = MongoDB()
+    mongoDB = MongoDB(host="127.0.0.1", port="27017", user="root", password="yingshaoxo666")
     databases = mongoDB.list_database()
     print(databases)
     db = mongoDB.get_database("test")
     my_table = db.get_collection("my_table")
+    my_table.delete_many({"num": {"$gt": -1}})
     for i in range(10):
         my_table.insert_one({"num": i})
     for one in my_table.find({"num": {"$gt": -1}}):
