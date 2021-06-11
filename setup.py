@@ -34,6 +34,7 @@ setup(name='auto_everything',
           'psutil',
       ],
       extras_require={
+          "database": ["pymongo"],
           "video":  ["numpy", "librosa", "moviepy", "pyaudio", "vosk"],
           "gui": ["numpy", "opencv-python", "pyscreenshot", "pytesseract", "pyautogui"],
           "fakecamera": ["pyfakewebcam", "opencv-python"],
