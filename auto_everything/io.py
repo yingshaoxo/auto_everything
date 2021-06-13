@@ -126,4 +126,5 @@ class MyIO():
         return io.BytesIO(img_data)
 
     def bytesio_to_base64(self, bytes_io):
+        bytes_io.seek(0)
         return base64.b64encode(bytes_io.getvalue()).decode()

@@ -162,10 +162,15 @@ class Python():
             py_file_path = os.path.join(
                 self._t.current_dir, sys.argv[0].strip('./'))
 
+        is_the_first_running = False 
+        runnable_path = None
+
         if os.path.exists(py_file_path):
             if executable_name == None:
                 _, executable_name = os.path.split(py_file_path)
             runnable_path = os.path.join(bin_folder, executable_name)
+            if not os.path.exists(runnable_path):
+                is_the_first_running = True
 
             # remove links that the real file has been moved, or, remove links that match this py_file_path but with a different executable name
             files = os.listdir(bin_folder)
@@ -183,6 +188,9 @@ class Python():
             if bashrc_target_line not in bashrc.split("\n"):
                 bashrc = bashrc + "\n" + bashrc_target_line
                 self._io.write(bashrc_path, bashrc)
+        
+        if is_the_first_running and runnable_path:
+            print(f"\n\n------------------\n\nYou could run \n\n{runnable_path.split('/')[-1]} -- --completion\n\nto get bash completion scripts")
 
     def print(self, data, limit=20):
         """
