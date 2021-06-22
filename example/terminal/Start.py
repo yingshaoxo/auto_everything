@@ -172,6 +172,7 @@ terminator -e "ssh pi@192.168.49.17"
             """)
         else:
             t.run(f"""
+    Copy server_password {num}
     terminator -e "ssh ubuntu@192.168.101.{num}"
             """)
 
