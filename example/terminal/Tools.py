@@ -3,7 +3,7 @@
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 py = Python()
-t = Terminal()
+t = Terminal(debug=True)
 
 
 class Tools():
@@ -23,6 +23,24 @@ class Tools():
             git add .
             git commit -m "{comment}"
             git push origin
+            """)
+
+    def commit(self, comment):
+        if "/CS/" in t.run_command("pwd"):
+            t.run(f"""
+            git config --global user.name "yingshaoxo"
+            git config --global user.email "yingshaoxo@gmail.com"
+            git add .
+            git commit -m "{comment}"
+            #git push origin
+            """)
+        else:
+            t.run(f"""
+            git config --global user.name "yingjie.hu"
+            git config --global user.email "yingjie.hu@fargowealth.com.hk"
+            git add .
+            git commit -m "{comment}"
+            #git push origin
             """)
 
     def forcepull(self):
@@ -91,6 +109,8 @@ git reset --hard HEAD^
             t.run(f"lsblk -p")
             t.run(f"df -hl")
 
+    def pkill(self, name):
+        t.kill(name)
 
     def hi(self):
         print("hi")
