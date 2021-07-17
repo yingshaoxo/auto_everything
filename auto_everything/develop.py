@@ -85,6 +85,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
         t.run(
             f"""
         mkdir {output_folder}
+        dart pub global activate protoc_plugin
         export PATH="$PATH":"$HOME/.pub-cache/bin"
         protoc --proto_path {input_folder} --dart_out=grpc:{output_folder} {input_folder}/*
         """
