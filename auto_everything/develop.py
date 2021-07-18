@@ -27,7 +27,7 @@ class GRPC:
         t.run(
             f"""
         mkdir {output_folder}
-        python3 -m grpc_tools.protoc --proto_path {input_folder}  --python_out={output_folder} --grpc_python_out={output_folder} {input_folder}/*
+        python3 -m grpc_tools.protoc --proto_path {input_folder}  --python_out={output_folder} --grpc_python_out={output_folder} {input_folder}/* --experimental_allow_proto3_optional
         """
         )
 
@@ -61,7 +61,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
         t.run(
             f"""
         mkdir {output_folder}
-        protoc --proto_path {input_folder} --go_out={output_folder} --go_opt=paths=source_relative --go-grpc_out={output_folder} --go-grpc_opt=paths=source_relative {input_folder}/*
+        protoc --proto_path {input_folder} --go_out={output_folder} --go_opt=paths=source_relative --go-grpc_out={output_folder} --go-grpc_opt=paths=source_relative {input_folder}/* --experimental_allow_proto3_optional
         """
         )
 
@@ -87,7 +87,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
         mkdir {output_folder}
         dart pub global activate protoc_plugin
         export PATH="$PATH":"$HOME/.pub-cache/bin"
-        protoc --proto_path {input_folder} --dart_out=grpc:{output_folder} {input_folder}/*
+        protoc --proto_path {input_folder} --dart_out=grpc:{output_folder} {input_folder}/* --experimental_allow_proto3_optional
         """
         )
 
