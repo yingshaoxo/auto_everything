@@ -1,6 +1,7 @@
 from auto_everything.disk import Disk
 from pathlib import Path
 import os
+import http.client as httplib
 
 from auto_everything.base import Terminal, OS
 
@@ -20,6 +21,16 @@ class Network:
         ), """
 'wget' is required for this module to work
 You can install it with `sudo apt install wget`"""
+
+    def available(self, timeout: int = 1):
+        conn = httplib.HTTPConnection("www.google.com", timeout=timeout)
+        try:
+            conn.request("HEAD", "/")
+            conn.close()
+            return True
+        except:
+            conn.close()
+            return False
 
     def download(self, url: str, target: str, size: str = "0B") -> bool:
         """

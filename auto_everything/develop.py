@@ -1,11 +1,13 @@
 from auto_everything.terminal import Terminal
 from auto_everything.io import IO
 from auto_everything.disk import Disk
+from auto_everything.network import Network
 import os
 
 t = Terminal(debug=True)
 disk = Disk()
 io_ = IO()
+network = Network()
 
 
 class GRPC:
@@ -82,14 +84,24 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
         input_folder = input_folder.rstrip("/")
 
         # protoc --dart_out=grpc:lib/src/generated -Iprotos protos/helloworld.proto
-        t.run(
-            f"""
-        mkdir {output_folder}
-        dart pub global activate protoc_plugin
-        export PATH="$PATH":"$HOME/.pub-cache/bin"
-        protoc --proto_path {input_folder} --dart_out=grpc:{output_folder} {input_folder}/* --experimental_allow_proto3_optional
-        """
-        )
+        if network.available():
+            t.run(
+                f"""
+            mkdir {output_folder}
+            dart pub global activate protoc_plugin
+            export PATH="$PATH":"$HOME/.pub-cache/bin"
+            protoc --proto_path {input_folder} --dart_out=grpc:{output_folder} {input_folder}/* --experimental_allow_proto3_optional
+            """
+            )
+        else:
+            t.run(
+                f"""
+            mkdir {output_folder}
+            export PATH="$PATH":"$HOME/.pub-cache/bin"
+            protoc --proto_path {input_folder} --dart_out=grpc:{output_folder} {input_folder}/* --experimental_allow_proto3_optional
+            """
+            )
+
 
 
 if __name__ == "__main__":
