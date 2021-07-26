@@ -3,9 +3,24 @@
 from auto_everything.terminal import Terminal
 from auto_everything.io import IO
 from os import path
+from sys import platform
 
 t = Terminal()
 io_ = IO()
+
+if platform == "linux" or platform == "linux2":
+    pass
+elif platform == "darwin":
+    io_.append(
+        t.fix_path("~/.zshrc"),
+        """
+        source ~/.bashrc
+        """
+    )
+elif platform == "win32":
+    print("Sorry, we don't support windows")
+    exit()
+
 
 if t.run_command("echo $DESKTOP_SESSION").strip() != "":
     IS_DESKTOP = True
