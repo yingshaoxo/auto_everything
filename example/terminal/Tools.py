@@ -1,13 +1,25 @@
-#!/usr/bin/env /home/yingshaoxo/CS/auto_everything/venv/bin/python3
 #!/usr/bin/env /usr/bin/python3
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
+try:
+    from googletrans import Translator
+    translator = Translator()
+except Exception as e:
+    print(e)
+    text = "sudo pip3 install googletrans"
+    print(f"Please install googletrans it by using: \n\n{text}")
+    exit()
 py = Python()
 t = Terminal(debug=True)
 
 
 class Tools():
     def push(self, comment):
+        try: 
+            comment = translator.translate(comment, dest='en')
+        except Exception as e:
+            print(e)
+
         if "/CS/" in t.run_command("pwd"):
             t.run(f"""
             git config --global user.name "yingshaoxo"
