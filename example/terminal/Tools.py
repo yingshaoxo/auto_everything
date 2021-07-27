@@ -16,7 +16,7 @@ t = Terminal(debug=True)
 class Tools():
     def push(self, comment):
         try: 
-            comment = translator.translate(comment, dest='cn')
+            comment = translator.translate(comment, dest='zh-cn')
         except Exception as e:
             print(e)
 
