@@ -3,7 +3,7 @@ from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 try:
     from googletrans import Translator
-    translator = Translator()
+    translator = Translator(proxies={"http": '127.0.0.1:1087'})
 except Exception as e:
     print(e)
     text = "sudo pip3 install googletrans"
