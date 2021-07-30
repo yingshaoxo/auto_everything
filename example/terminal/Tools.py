@@ -6,10 +6,12 @@ try:
     translator = Translator()
 except Exception as e:
     print(e)
-    text = "sudo pip3 install googletrans"
+    text = "sudo pip3 install googletrans==3.1.0a0"
     print(f"Please install googletrans it by using: \n\n{text}")
     print()
-    print(f"After that, you probobly need proxychains")
+    print(f"After that, you probobly need proxychains: \n\n sudo apt install proxychains")
+    print()
+    print("sudo vim /etc/proxychains.conf")
     exit()
 py = Python()
 t = Terminal(debug=True)
@@ -18,7 +20,8 @@ t = Terminal(debug=True)
 class Tools():
     def push(self, comment):
         try: 
-            comment = translator.translate(comment, dest='zh-cn')
+            translated_comment = translator.translate(comment, dest='zh-cn').text
+            comment = f"{translated_comment} {comment}"
         except Exception as e:
             print(e)
 
