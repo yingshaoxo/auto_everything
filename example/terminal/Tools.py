@@ -3,11 +3,13 @@ from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 try:
     from googletrans import Translator
-    translator = Translator(proxies={"http": '127.0.0.1:1087'})
+    translator = Translator()
 except Exception as e:
     print(e)
     text = "sudo pip3 install googletrans"
     print(f"Please install googletrans it by using: \n\n{text}")
+    print()
+    print(f"After that, you probobly need proxychains")
     exit()
 py = Python()
 t = Terminal(debug=True)
