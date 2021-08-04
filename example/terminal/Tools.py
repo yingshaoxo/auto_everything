@@ -21,7 +21,8 @@ class Tools():
     def push(self, comment):
         try: 
             translated_comment = translator.translate(comment, dest='zh-cn').text
-            comment = f"{translated_comment} ({comment})"
+            if translated_comment != comment:
+                comment = f"{translated_comment} ({comment})"
         except Exception as e:
             print(e)
 
