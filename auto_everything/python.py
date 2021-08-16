@@ -187,6 +187,7 @@ class Python():
             bashrc = self._io.read(bashrc_path)
             if bashrc_target_line not in bashrc.split("\n"):
                 bashrc = bashrc + "\n" + bashrc_target_line
+                self._t.run_command(f"touch {bashrc_path}")
                 self._io.write(bashrc_path, bashrc)
         
         if is_the_first_running and runnable_path:
