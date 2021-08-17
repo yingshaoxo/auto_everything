@@ -43,7 +43,8 @@ class Terminal():
             exit()
 
         self.current_dir: str = os.getcwd()
-        self.__current_file_path: str = os.path.join(self.current_dir, sys.argv[0])
+        self.__current_file_path: str = os.path.join(
+            self.current_dir, sys.argv[0])
         self.temp_dir: str = tempfile.gettempdir()
 
         if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
@@ -70,7 +71,8 @@ class Terminal():
                 path = '~' + path[1:]
         else:
             path = path.replace(
-                '~', "/home/{username}".format(username=username))
+                '~', "/".join(os.path.expanduser('~').split("/")[:-1]) + "/" + username)
+            print(path)
         return path.replace("\\", "/")
 
     def expanduser_in_path(self, path: str, username: str = None) -> str:
@@ -260,7 +262,7 @@ class Terminal():
         path, args = self.__split_args(file_path_with_command)
         path = self.fix_path(path)
         command = self.py_executable + \
-                  ' {path} {args}'.format(path=path, args=args)
+            ' {path} {args}'.format(path=path, args=args)
 
         if cwd is None:
             cwd = os.path.dirname(path)

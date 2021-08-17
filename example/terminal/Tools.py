@@ -1,3 +1,4 @@
+#!/usr/bin/env /Applications/Xcode.app/Contents/Developer/usr/bin/python3
 #!/usr/bin/env /usr/bin/python3
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal

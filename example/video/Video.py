@@ -14,11 +14,11 @@ disk = Disk()
 
 class Tools:
     def __init__(self):
-        os.chdir("/home/yingshaoxo/Videos")
+        os.chdir(t.fix_path("~/Videos"))
 
     def link(self):
         files = []
-        for file in os.listdir("/home/yingshaoxo/Videos/doing"):
+        for file in os.listdir(t.fix_path("~/Videos/doing")):
             files.append(os.path.abspath(os.path.join("doing", file)))
         files.sort(key=os.path.getmtime)
         video.link_videos(files, os.path.abspath("./doing.mp4"), method=2)
@@ -26,11 +26,11 @@ class Tools:
     def preprocessing(self):
         if len(os.listdir("doing")) == 1:
             t.run_command(
-                f"""
-                cd /home/yingshaoxo/Videos
+                t.fix_path("""
+                cd ~/Videos
                 rm doing.mp4
                 mv doing/*.mkv doing.mp4
-                    """
+                    """)
             )
         elif len(os.listdir("doing")) > 1:
             self.link()
