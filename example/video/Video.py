@@ -1,3 +1,4 @@
+#!/usr/bin/env /Applications/Xcode.app/Contents/Developer/usr/bin/python3
 #!/usr/bin/env /usr/bin/python3
 import os
 from auto_everything.base import Terminal, Python

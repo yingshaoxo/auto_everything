@@ -536,7 +536,7 @@ class Video():
                          for clip in source_video_path_list]
             final_clip = concatenate_videoclips(clip_list)
             final_clip.write_videofile(
-                target_video_path, threads=self._cpu_core_numbers, preset=preset)
+                target_video_path, threads=self._cpu_core_numbers, preset=preset, audio_codec="aac")
 
             for clip in clip_list:
                 clip.close()
@@ -681,7 +681,8 @@ class Video():
 
         if not voice_only:
             concat_clip.write_videofile(
-                target_video_path, threads=self._cpu_core_numbers)
+                target_video_path, threads=self._cpu_core_numbers, audio_codec="aac"
+            )
             concat_clip.close()
             del concat_clip
             make_sure_target_does_not_exist(audio_path)
@@ -808,7 +809,7 @@ class Video():
             vfx.speedx, speed)
 
         clip = videoUtils.fix_rotation(clip)
-        clip.write_videofile(target_video_path, threads=self._cpu_core_numbers)
+        clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, audio_codec="aac")
 
         done()
 
@@ -868,7 +869,7 @@ class Video():
         concat_clip = concatenate_videoclips(clip_list)
 
         concat_clip.write_videofile(
-            target_video_path, threads=self._cpu_core_numbers)
+            target_video_path, threads=self._cpu_core_numbers, audio_codec="aac")
         concat_clip.close()
         del concat_clip
 
@@ -949,7 +950,7 @@ class Video():
         """)
 
         done()
-    
+
     def fix_corrupt_videos_in_a_folder(self, source_folder: str):
         source_folder = try_to_get_absolutely_path(source_folder)
         make_sure_source_is_absolute_path(source_folder)
@@ -970,7 +971,7 @@ class Video():
             target_dir = get_directory_name(target_video_path)
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir, exist_ok=True)
-            
+
             if not os.path.exists(target_video_path):
                 try:
                     t.run(f"""
@@ -1021,8 +1022,8 @@ class Video():
             target_dir = get_directory_name(target_video_path)
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir, exist_ok=True)
-            
-            #make_sure_target_does_not_exist(target_video_path)
+
+            # make_sure_target_does_not_exist(target_video_path)
             if not os.path.exists(target_video_path):
                 try:
                     if resolution:
@@ -1073,7 +1074,7 @@ class Video():
         cropRatio = 0.12
         cropPixels = int(cropRatio * height)
         clip = clip.crop(x1=0, y1=cropPixels, x2=width, y2=height - cropPixels)
-        clip.write_videofile(target_video_path)
+        clip.write_videofile(target_video_path, audio_codec="aac")
 
         done()
 
@@ -1091,7 +1092,7 @@ class Video():
             clips.append(clip.subclip(i * partLength, (i + 1) * partLength))
 
         for i, c in enumerate(clips):
-            c.write_videofile(f"{target_video_folder}/{i}.mp4")
+            c.write_videofile(f"{target_video_folder}/{i}.mp4", audio_codec="aac")
 
         done()
 
@@ -1295,7 +1296,7 @@ class DeepVideo():
                         parent_clips[index].subclip(part[0], part[1]))
 
         concat_clip = concatenate_videoclips(remain_clips)
-        concat_clip.write_videofile(target_video_path, fps=fps, preset=preset)
+        concat_clip.write_videofile(target_video_path, fps=fps, preset=preset, audio_codec="aac")
         concat_clip.close()
         for parent_clip in parent_clips:
             parent_clip.close()
@@ -1349,7 +1350,7 @@ class DeepVideo():
                     )
 
         concat_clip = concatenate_videoclips(remain_clips)
-        concat_clip.write_videofile(target_video_path, fps=fps, preset=preset)
+        concat_clip.write_videofile(target_video_path, fps=fps, preset=preset, audio_codec="aac")
         concat_clip.close()
         for parent_clip in parent_clips:
             parent_clip.close()
@@ -1386,7 +1387,7 @@ class DeepVideo():
 
         concat_clip = concatenate_videoclips(clip_list)
         concat_clip.write_videofile(
-            target_video_path, threads=self._cpu_core_numbers)
+            target_video_path, threads=self._cpu_core_numbers, audio_codec="aac")
         concat_clip.close()
         parent_clip.close()
 
@@ -1433,7 +1434,7 @@ class DeepVideo():
 
         concat_clip = concatenate_videoclips(clip_list)
         concat_clip.write_videofile(
-            target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset)
+            target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset, audio_codec="aac")
         concat_clip.close()
         parent_clip.close()
 
