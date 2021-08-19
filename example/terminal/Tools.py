@@ -20,13 +20,6 @@ t = Terminal(debug=True)
 
 class Tools():
     def push(self, comment):
-        try: 
-            translated_comment = translator.translate(comment, dest='zh-cn').text
-            if translated_comment != comment:
-                comment = f"{translated_comment} ({comment})"
-        except Exception as e:
-            print(e)
-
         if "/CS/" in t.run_command("pwd"):
             t.run(f"""
             git config --global user.name "yingshaoxo"
@@ -36,6 +29,13 @@ class Tools():
             git push origin
             """)
         else:
+            try:
+                translated_comment = translator.translate(comment, dest='zh-cn').text
+                if translated_comment != comment:
+                    comment = f"{translated_comment} ({comment})"
+            except Exception as e:
+                print(e)
+
             t.run(f"""
             git config --global user.name "yingjie.hu"
             git config --global user.email "yingjie.hu@fargowealth.com.hk"
