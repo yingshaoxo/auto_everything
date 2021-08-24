@@ -20,7 +20,10 @@ class Tools:
     def link(self):
         files = []
         for file in os.listdir(t.fix_path("~/Videos/doing")):
-            files.append(os.path.abspath(os.path.join("doing", file)))
+            splits = file.split(".")
+            if (len(splits) >0 ):
+                if splits[1] in ["mp4", "mkv"]:
+                    files.append(os.path.abspath(os.path.join("doing", file)))
         files.sort(key=os.path.getmtime)
         video.link_videos(files, os.path.abspath("./doing.mp4"), method=2)
 
