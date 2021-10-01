@@ -1,3 +1,4 @@
+#!/usr/bin/env /usr/local/opt/python@3.9/bin/python3.9
 #!/usr/bin/env /usr/bin/python3
 from auto_everything.base import Python
 from auto_everything.terminal import Terminal

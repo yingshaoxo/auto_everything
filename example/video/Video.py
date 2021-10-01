@@ -28,7 +28,8 @@ class Tools:
         video.link_videos(files, os.path.abspath("./doing.mp4"), method=2)
 
     def preprocessing(self):
-        if len(os.listdir("doing")) == 1:
+        files = disk.get_files("doing", recursive=False, type_limiter=[".mp4", '.mkv'])
+        if len(files) == 1:
             t.run_command(
                 t.fix_path("""
                 cd ~/Videos
@@ -36,7 +37,7 @@ class Tools:
                 mv doing/*.mkv doing.mp4
                     """)
             )
-        elif len(os.listdir("doing")) > 1:
+        elif len(files) > 1:
             self.link()
 
     def nosilence(self, db=19, interval=0.4, skip_noise=0):  # 21, 0.7
