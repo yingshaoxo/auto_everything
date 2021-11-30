@@ -1,5 +1,6 @@
 #!/usr/bin/env /Applications/Xcode.app/Contents/Developer/usr/bin/python3
-#!/usr/bin/env /usr/bin/python3
+
+import inquirer
 import os
 from auto_everything.base import Terminal, Python
 from auto_everything.video import Video, DeepVideo
@@ -17,18 +18,73 @@ class Tools:
     def __init__(self):
         os.chdir(t.fix_path("~/Videos"))
 
+    def run(self):
+        questions = [
+            inquirer.List('function',
+                          message="What is the function you want to call?",
+                          choices=['nosilence', 'speedupsilence'],
+                          ),
+            #inquirer.Text('db', message="What's db that split the voice and silence")
+        ]
+        answers = inquirer.prompt(questions)
+
+        function = answers.get('function')
+        if (function == "nosilence"):
+            questions = [
+                inquirer.Text(
+                    'db', message="What's db that split the voice and silence? (default to 50)"),
+                inquirer.Text(
+                    'interval', message="What's minimum interval that when small than that, we never treat it as silence? (default to 1.7)")
+            ]
+            answers = inquirer.prompt(questions)
+
+            db = answers.get("db")
+            interval = answers.get("interval")
+
+            if (db.strip() == ""):
+                db = 50
+            if (interval.strip() == ""):
+                interval = 1.7
+
+            db = int(db)
+            interval = float(interval)
+
+            self.nosilence(db=db, interval=interval)
+        elif (function == "speedupsilence"):
+            questions = [
+                inquirer.Text(
+                    'db', message="What's db that split the voice and silence? (default to 35)"),
+                inquirer.Text(
+                    'speed', message="What's video speed that you want for silence part? (default to 50)")
+            ]
+            answers = inquirer.prompt(questions)
+
+            db = answers.get("db")
+            speed = answers.get("speed")
+
+            if (db.strip() == ""):
+                db = 35
+            if (speed.strip() == ""):
+                speed = 50
+
+            db = int(db)
+            speed = int(speed)
+
+            self.speedupsilence(db=db, speed=speed)
+
     def link(self):
         files = []
         for file in os.listdir(t.fix_path("~/Videos/doing")):
             splits = file.split(".")
-            if (len(splits) >0 ):
+            if (len(splits) > 0):
                 if splits[1] in ["mp4", "mkv"]:
                     files.append(os.path.abspath(os.path.join("doing", file)))
         files.sort(key=os.path.getmtime)
         video.link_videos(files, os.path.abspath("./doing.mp4"), method=2)
 
     def preprocessing(self):
-        files = disk.get_files("doing", recursive=False, type_limiter=[".mp4", '.mkv'])
+        files = disk.get_files("doing", recursive=False,
+                               type_limiter=[".mp4", '.mkv'])
         if len(files) == 1:
             t.run_command(
                 t.fix_path("""
