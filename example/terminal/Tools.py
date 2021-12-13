@@ -1,5 +1,4 @@
-#!/usr/bin/env /Applications/Xcode.app/Contents/Developer/usr/bin/python3
-#!/usr/bin/env /usr/bin/python3
+#!/usr/bin/env /usr/local/opt/python@3.9/bin/python3.9
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 try:
