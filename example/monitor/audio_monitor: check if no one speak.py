@@ -1,64 +1,43 @@
-from auto_everything.monitor import KeyboardAndMouseMonitor
+import librosa
+import tensorflow as tf
+
+from auto_everything.audio import AudioMonitor
 from collections import deque
 import time
-from threading import Timer
 
-keyboardAndMouseMonitor = KeyboardAndMouseMonitor()
+audioMonitor = AudioMonitor()
 
-mouse = keyboardAndMouseMonitor.mouse
-keyboard = keyboardAndMouseMonitor.keyboard
-
-d = deque([time.time()], maxlen=1)
-isInMoving = False
-# t = Timer(3.0, lambda : print("okok"), ())
-# t.start()
-
+d = deque([0], maxlen=1)
+NotInSilence = False
 
 def checkIfDequeTimeLargerThanCurrentTimeBy(seconds):
     return time.time() - d[0] > seconds
 
-
 def get_current_time_in_seconds():
     return time.time()
-
 
 def add_time_to_deque():
     d.append(get_current_time_in_seconds())
 
-
-def on_move(x, y):
-    add_time_to_deque()
-
-
-def on_click(x, y, button, pressed):
-    add_time_to_deque()
-
-
-def on_scroll(x, y, dx, dy):
-    add_time_to_deque()
-
-
-mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
-mouse_listener.start()
-
-
-def on_press(key):
-    add_time_to_deque()
-
-
-def on_release(key):
-    add_time_to_deque()
-
-
-keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-keyboard_listener.start()
-
-
 if __name__ == "__main__":
+    def callBackFunction(data):
+        data = librosa.amplitude_to_db(data)
+        value = tf.math.reduce_mean(data)
+        value = - value.numpy()
+        # print(value)
+        if (value < 50):
+            add_time_to_deque()
+
+    audioHandler1 = audioMonitor.AudioHandler(4, callBackFunction)
+    audioHandler1.start()
+
+    audioHandler2 = audioMonitor.AudioHandler(3, callBackFunction)
+    audioHandler2.start()
+
     while True:
-        time.sleep(1)
-        if checkIfDequeTimeLargerThanCurrentTimeBy(3):
-            isInMoving = False
+        time.sleep(0.1)
+        if checkIfDequeTimeLargerThanCurrentTimeBy(1):
+            NotInSilence = False
         else:
-            isInMoving = True
-        print(isInMoving)
+            NotInSilence = True
+        print(NotInSilence)
