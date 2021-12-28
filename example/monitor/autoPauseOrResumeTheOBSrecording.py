@@ -67,6 +67,8 @@ keyboard_listener.start()
 
 
 if __name__ == "__main__":
+    ws.call(requests.StartRecording())
+
     while True:
         time.sleep(1)
         if checkIfDequeTimeLargerThanCurrentTimeBy(3):
@@ -80,3 +82,5 @@ if __name__ == "__main__":
             ws.call(requests.ResumeRecording())
         else:
             ws.call(requests.PauseRecording())
+
+    ws.call(requests.StopRecording())

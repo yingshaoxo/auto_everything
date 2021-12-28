@@ -1,5 +1,5 @@
 import moviepy.video.fx.all as vfx
-from moviepy.editor import VideoFileClip, concatenate_videoclips
+from moviepy.editor import VideoFileClip, concatenate_videoclips, AudioFileClip
 import shutil
 import datetime
 import librosa
@@ -229,6 +229,42 @@ class VideoUtils():
 
 
 videoUtils = VideoUtils()
+
+class AudioProcessor:
+    def __init__(self):
+        try:
+            import pydub
+            self.pydub = pydub
+        except Exception as e:
+            print("brew install ffmpeg")
+            print("python3 -m pip install pydub")
+            raise e
+
+    def getCompleteTimeRangeForNoSilenceAndSilenceAudioSlice(self, soundObject, silence_threshold=-50):
+        originalSequenceLength = len(soundObject)
+
+        voiceNoSilenceTimeRangeList = self.pydub.silence.detect_nonsilent(soundObject, silence_thresh=silence_threshold)
+
+        new_list = []
+
+        for index, item in enumerate(voiceNoSilenceTimeRangeList):
+            if index == 0:
+                new_list.append([item[0], item[1], 1])
+            else:
+                new_list.append([item[0], item[1], 1])
+                if item[0] != voiceNoSilenceTimeRangeList[index-1][1]:
+                    new_list.insert(-1, [voiceNoSilenceTimeRangeList[index-1][1], item[0], 0])
+
+        if len(new_list):
+            if new_list[0][0] != 0:
+                new_list.insert(0, [0, new_list[0][0], 0])
+            if new_list[-1][1] != originalSequenceLength:
+                new_list.append([new_list[-1][1], originalSequenceLength, 0])
+
+        return new_list
+
+
+audioProcessor = AudioProcessor()
 
 
 # we'll use ffmpeg to do the real work
@@ -1093,6 +1129,68 @@ class Video():
 
         for i, c in enumerate(clips):
             c.write_videofile(f"{target_video_folder}/{i}.mp4", audio_codec="aac")
+
+        done()
+
+    def addMusicFilesToVideoFile(self, source_file_path: str, target_file_path: str, musicFiles: List[str], preDecreaseDBValueForTheMusic: int = 0, howManyDBYouWannaTheMusicToDecreaseWhenYouSpeak: int = 15):
+        make_sure_target_does_not_exist(target_file_path)
+
+        if not disk.exists(source_file_path):
+            print("source video does not exist")
+            return
+
+        if not source_file_path.endswith(".mp4"):
+            print("source video must be a mp4 file")
+            return
+
+        if any([disk.exists(file) == False for file in musicFiles]):
+            print("one of the music files does not exist")
+            return
+
+        if len(musicFiles) == 0:
+            print("no music file gets provided")
+            return
+
+        # handle input voice
+        humanVoice = audioProcessor.pydub.AudioSegment.from_file(source_file_path, format="mp4")
+
+        # handle input music
+        musicSound = audioProcessor.pydub.AudioSegment.from_file(musicFiles[0], format="mp3")
+        for musicFile in musicFiles[1:]:
+            musicSound += audioProcessor.pydub.AudioSegment.from_file(musicFile, format="mp3")
+
+        while len(musicSound) < len(humanVoice):
+            musicSound *= 2
+
+        musicSound = musicSound[:len(humanVoice)]
+        musicSound -= preDecreaseDBValueForTheMusic
+
+        # handle the silence
+        musicSlices = []
+
+        infoOfTheVoice = audioProcessor.getCompleteTimeRangeForNoSilenceAndSilenceAudioSlice(humanVoice)
+
+        for a, b, c in infoOfTheVoice:
+            music_part = musicSound[a:b]
+            if c == 1:
+                music_part -= howManyDBYouWannaTheMusicToDecreaseWhenYouSpeak
+            musicSlices.append(music_part)
+
+        processedMusic = musicSlices[0]
+        for part in musicSlices[1:]:
+            processedMusic += part
+
+        # remix
+        finalSound = humanVoice.overlay(processedMusic)
+        tempMp3FilePath = disk.getATempFilePath(source_file_path)
+        finalSound.export(tempMp3FilePath, format="mp3")
+
+        # add all those sound to a video file
+        videoclip = VideoFileClip(source_file_path)
+        audioclip = AudioFileClip(tempMp3FilePath)
+
+        videoclip.audio = audioclip
+        videoclip.write_videofile(target_file_path)
 
         done()
 
