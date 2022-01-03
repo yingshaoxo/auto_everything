@@ -1,3 +1,4 @@
+#!/usr/bin/env /Users/yingshaoxo/miniforge3/bin/python3
 #!/usr/bin/env /Applications/Xcode.app/Contents/Developer/usr/bin/python3
 
 import inquirer
@@ -13,10 +14,15 @@ video = Video()
 deepVideo = DeepVideo()
 disk = Disk()
 
+t.debug = True
+
+
+RootDIR = "/Users/yingshaoxo/Movies/Videos"
+
 
 class Tools:
     def __init__(self):
-        os.chdir(t.fix_path("~/Videos"))
+        os.chdir(RootDIR)
 
     def run(self):
         questions = [
@@ -74,7 +80,7 @@ class Tools:
 
     def link(self):
         files = []
-        for file in os.listdir(t.fix_path("~/Videos/doing")):
+        for file in os.listdir(t.fix_path("./doing")):
             splits = file.split(".")
             if (len(splits) > 0):
                 if splits[1] in ["mp4", "mkv"]:
@@ -85,12 +91,13 @@ class Tools:
     def preprocessing(self):
         files = disk.get_files("doing", recursive=False,
                                type_limiter=[".mp4", '.mkv'])
+        files = [file for file in files if file != ".DS_Store"]
         if len(files) == 1:
             t.run_command(
-                t.fix_path("""
-                cd ~/Videos
-                rm doing.mp4
-                mv doing/*.mkv doing.mp4
+                t.fix_path(f"""
+                cd {RootDIR}
+                rm -fr doing.mp4
+                mv doing/*.* doing.mp4
                     """)
             )
         elif len(files) > 1:
@@ -106,13 +113,27 @@ class Tools:
         )
         # deepVideo.remove_silence_parts_from_video(source, target, 0.7)
 
-    def speedupsilence(self, db=20, speed=20):  # 21 5
+    def speedupsilence(self, db=35, speed=30):  # 21 5
         self.preprocessing()
         source = os.path.abspath("./doing.mp4")
         if not os.path.exists(source):
+            return
             self.link()
         target = os.path.abspath("./speedupsilence.mp4")
         video.speedup_silence_parts_in_video(source, target, db, speed)
+
+    def addmusic(self, song):
+        video.addMusicFilesToVideoFile(
+            source_file_path="./speedupsilence.mp4",
+            target_file_path="output.mp4",
+            musicFiles=[
+                # "/Users/yingshaoxo/Downloads/永远都会在 - 旅行团乐队.mp3",
+                # "/Users/yingshaoxo/Downloads/wish you were gay - Billie Eilish.mp3"
+                song
+            ],
+            preDecreaseDBValueForTheMusic=18,
+            howManyDBYouWannaTheMusicToDecreaseWhenYouSpeak=15,
+        )
 
     def removeTopAD(self):
         source = os.path.abspath("./nosilence.mp4")

@@ -1,0 +1,12 @@
+name: auto_everything
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - poetry
+  - librosa
+  - moviepy==1.0.1
+  - autopep8
+  - clang_osx-arm64
+  - clangxx_osx-arm64
+prefix: /Users/yingshaoxo/miniforge3/envs/auto_everything

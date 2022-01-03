@@ -10,7 +10,7 @@ from obswebsocket import obsws, requests
 
 host = "localhost"
 port = 4444
-password = "secret"
+password = "highhighlife"
 
 ws = obsws(host, port, password)
 ws.connect()
@@ -50,7 +50,8 @@ def on_scroll(x, y, dx, dy):
     add_time_to_deque()
 
 
-mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
+mouse_listener = mouse.Listener(
+    on_move=on_move, on_click=on_click, on_scroll=on_scroll)
 mouse_listener.start()
 
 
@@ -71,7 +72,7 @@ if __name__ == "__main__":
 
     while True:
         time.sleep(1)
-        if checkIfDequeTimeLargerThanCurrentTimeBy(3):
+        if checkIfDequeTimeLargerThanCurrentTimeBy(5):
             isInMoving = False
         else:
             isInMoving = True
@@ -83,4 +84,4 @@ if __name__ == "__main__":
         else:
             ws.call(requests.PauseRecording())
 
-    ws.call(requests.StopRecording())
+    # ws.call(requests.StopRecording())

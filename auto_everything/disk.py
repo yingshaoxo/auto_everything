@@ -17,13 +17,15 @@ t = Terminal(debug=True)
 
 class Common:
     def __init__(self):
-        self._auto_everything_config_folder = os.path.expanduser("~/.auto_everything")
+        self._auto_everything_config_folder = os.path.expanduser(
+            "~/.auto_everything")
         # print(self._auto_everything_config_folder)
         if not os.path.exists(self._auto_everything_config_folder):
             os.mkdir(self._auto_everything_config_folder)
 
     def _create_a_sub_config_folder_for_auto_everything(self, module_name: str):
-        sub_folder_path = os.path.join(self._auto_everything_config_folder, module_name)
+        sub_folder_path = os.path.join(
+            self._auto_everything_config_folder, module_name)
         if not os.path.exists(sub_folder_path):
             os.mkdir(sub_folder_path)
         return sub_folder_path
@@ -96,7 +98,8 @@ class Disk:
                          os.path.isfile(os.path.join(folder, f)) and Path(
                              os.path.join(folder, f)).suffix in type_limiter]
             else:
-                files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+                files = [os.path.join(folder, f) for f in os.listdir(
+                    folder) if os.path.isfile(os.path.join(folder, f))]
         return files
 
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
@@ -166,10 +169,12 @@ class Disk:
             filename = filename.replace(r, '_')
 
         # keep only valid ascii chars
-        cleaned_filename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode()
+        cleaned_filename = unicodedata.normalize(
+            'NFKD', filename).encode('ASCII', 'ignore').decode()
 
         # keep only whitelisted chars
-        cleaned_filename = ''.join(c for c in cleaned_filename if c in whitelist)
+        cleaned_filename = ''.join(
+            c for c in cleaned_filename if c in whitelist)
         if len(cleaned_filename) > char_limit:
             print("Warning, filename truncated because it was over {}. Filenames may no longer be unique".format(
                 char_limit))
@@ -224,7 +229,8 @@ class Disk:
                 if len(os.listdir(folder)) == 1:
                     t.run(f"cd '{folder}' && cd * && mv * .. -f")
             elif suffix == ".gz":
-                t.run(f"tar zxfv '{path}' --directory '{folder}' --strip-components=1")
+                t.run(
+                    f"tar zxfv '{path}' --directory '{folder}' --strip-components=1")
                 if len(os.listdir(folder)) == 0:
                     t.run(f"tar zxfv '{path}' --directory '{folder}'")
             if len(os.listdir(folder)):
@@ -261,6 +267,9 @@ class Disk:
         tempFilePath = os.path.join(self.temp_dir, m.hexdigest()[:10] + suffix)
         return tempFilePath
 
+    def get_the_temp_dir(self):
+        return self.temp_dir
+
     def getATempFilePath(self, filename):
         m = hashlib.sha256()
         m.update(str(datetime.datetime.now()).encode("utf-8"))
@@ -286,6 +295,22 @@ class Disk:
         with open(file_path, "wb") as f:
             f.write(bytes_io.read())
 
+    def removeAFile(self, file_path: str):
+        file_path = self._expand_user(file_path)
+        if self.exists(file_path):
+            os.remove(file_path)
+
+    def convertBytesToBytesIO(self, bytes_data: bytes) -> BytesIO:
+        bytes_io = BytesIO()
+        bytes_io.write(bytes_data)
+        bytes_io.seek(0)
+        return bytes_io
+
+    def createAFolder(self, folder_path: str):
+        folder_path = self._expand_user(folder_path)
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
+
 
 class Store():
     """
@@ -296,7 +321,8 @@ class Store():
         self._common = Common()
 
         if save_to_folder is None or not os.path.exists(save_to_folder):
-            self._store_folder = self._common._create_a_sub_config_folder_for_auto_everything("store")
+            self._store_folder = self._common._create_a_sub_config_folder_for_auto_everything(
+                "store")
         else:
             self._store_folder = save_to_folder
 
@@ -305,8 +331,10 @@ class Store():
 
     def __initialize_SQL(self):
         import sqlite3 as sqlite3
-        self._SQL_DATA_FILE = os.path.join(self._store_folder, f"{self._store_name}.db")
-        self._sql_conn = sqlite3.connect(self._SQL_DATA_FILE, check_same_thread=False)
+        self._SQL_DATA_FILE = os.path.join(
+            self._store_folder, f"{self._store_name}.db")
+        self._sql_conn = sqlite3.connect(
+            self._SQL_DATA_FILE, check_same_thread=False)
 
         def regular_expression(expr, item):
             reg = re.compile(expr, flags=re.DOTALL)
@@ -329,7 +357,8 @@ class Store():
                 value = json.dumps(value)
             except Exception as e:
                 print(e)
-                raise Exception(f"The value you gave me is not a json object: {str(value)}")
+                raise Exception(
+                    f"The value you gave me is not a json object: {str(value)}")
         return value
 
     def __active_json_value(self, value):
@@ -358,7 +387,8 @@ class Store():
         """
         key = self.__pre_process_key(key)
 
-        results = self._sql_cursor.execute(f'SELECT EXISTS(SELECT 1 FROM {self._store_name} WHERE key="{key}" LIMIT 1)')
+        results = self._sql_cursor.execute(
+            f'SELECT EXISTS(SELECT 1 FROM {self._store_name} WHERE key="{key}" LIMIT 1)')
         if self._sql_cursor.fetchone()[0] > 0:
             return True
         else:
@@ -375,7 +405,8 @@ class Store():
         """
         key = self.__pre_process_key(key)
 
-        self._sql_cursor.execute(f'SELECT * FROM {self._store_name} WHERE key=?', (key,))
+        self._sql_cursor.execute(
+            f'SELECT * FROM {self._store_name} WHERE key=?', (key,))
         result = self._sql_cursor.fetchone()
         if result:
             return self.__active_json_value(result[1])
@@ -395,7 +426,8 @@ class Store():
         value = self.__pre_process_value(value)
 
         if self.has_key(key):
-            self._sql_cursor.execute(f'UPDATE {self._store_name} SET value=? WHERE key=?', (value, key))
+            self._sql_cursor.execute(
+                f'UPDATE {self._store_name} SET value=? WHERE key=?', (value, key))
         else:
             command = f''' INSERT INTO {self._store_name} VALUES(?,?) '''
             self._sql_cursor.execute(command, (key, value))

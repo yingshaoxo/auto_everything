@@ -52,7 +52,8 @@ You can install it with `sudo apt install wget`"""
         """
         target = Path(target).expanduser().absolute()
         directory = target.parent
-        assert os.path.exists(directory), f"target directory '{directory}' is not exits"
+        assert os.path.exists(
+            directory), f"target directory '{directory}' is not exits"
         t.run(f"wget {url} -O {target}")
 
         number = int("".join([i for i in list(size) if i.isdigit()]))

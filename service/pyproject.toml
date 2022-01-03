@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "auto_everything_service"
+version = "0.0.1"
+description = "The backend API service for auto_everything center."
+authors = ["yingshaoxo <yingshaoxo@gmail.com>"]
+packages = [
+    { include = "**/*.py" },
+]
+
+[tool.poetry.dependencies]
+python = "3.8"
+auto-everything = {path = "..", develop=true} #poetry run pip install -e ..
+fastapi = "^0.70.1"
+uvicorn = "^0.16.0"
+SQLAlchemy = "^1.4.29"
+databases = "^0.5.3"
+aiosqlite = "^0.17.0"
+pydub = "^0.25.1"
+python-multipart = "^0.0.5"
+moviepy="1.0.3"
+librosa = "^0.8.1"
+
+[tool.poetry.dev-dependencies]
+auto-everything = {path = "..", develop=true}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+dev = "main:start"
+test = "test:main"

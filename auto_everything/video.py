@@ -9,9 +9,9 @@ import math
 import multiprocessing
 import json
 
-import pyaudio
-import sys
-import wave
+#import pyaudio
+#import sys
+#import wave
 import subprocess
 
 from typing import List, Tuple
@@ -135,7 +135,8 @@ class VideoUtils():
         return y, s
 
     def convert_array_to_batch_samples(self, y, durationInSecondsForEach=1.0):
-        samplesForEachOne = librosa.time_to_samples(durationInSecondsForEach, sr=16000)
+        samplesForEachOne = librosa.time_to_samples(
+            durationInSecondsForEach, sr=16000)
         num_sections = math.ceil(y.shape[0] / samplesForEachOne)
         return np.array_split(y, num_sections, axis=0)
 
@@ -222,13 +223,15 @@ class VideoUtils():
         if rotation == 90:  # If video is in portrait
             video = vfx.rotate(video, -90)
         elif rotation == 270:  # Moviepy can only cope with 90, -90, and 180 degree turns
-            video = vfx.rotate(video, 90)  # Moviepy can only cope with 90, -90, and 180 degree turns
+            # Moviepy can only cope with 90, -90, and 180 degree turns
+            video = vfx.rotate(video, 90)
         elif rotation == 180:
             video = vfx.rotate(video, 180)
         return video
 
 
 videoUtils = VideoUtils()
+
 
 class AudioProcessor:
     def __init__(self):
@@ -243,7 +246,8 @@ class AudioProcessor:
     def getCompleteTimeRangeForNoSilenceAndSilenceAudioSlice(self, soundObject, silence_threshold=-50):
         originalSequenceLength = len(soundObject)
 
-        voiceNoSilenceTimeRangeList = self.pydub.silence.detect_nonsilent(soundObject, silence_thresh=silence_threshold)
+        voiceNoSilenceTimeRangeList = self.pydub.silence.detect_nonsilent(
+            soundObject, silence_thresh=silence_threshold)
 
         new_list = []
 
@@ -253,7 +257,8 @@ class AudioProcessor:
             else:
                 new_list.append([item[0], item[1], 1])
                 if item[0] != voiceNoSilenceTimeRangeList[index-1][1]:
-                    new_list.insert(-1, [voiceNoSilenceTimeRangeList[index-1][1], item[0], 0])
+                    new_list.insert(-1,
+                                    [voiceNoSilenceTimeRangeList[index-1][1], item[0], 0])
 
         if len(new_list):
             if new_list[0][0] != 0:
@@ -333,7 +338,8 @@ class Video():
                         if (first == -1):
                             final_parts.append([part[0], part[1]])
                         else:
-                            final_parts.append([first, new_parts[index - 1][1]])
+                            final_parts.append(
+                                [first, new_parts[index - 1][1]])
                             first = -1
 
             final_parts.append([final_parts[-1][1], the_missing_final])
@@ -383,7 +389,8 @@ class Video():
 
         if skip_sharp_noise:
             parts = videoUtils.drop_too_short_intervals(parts, 0.1)  # 0.2
-            parts = videoUtils.merge_continues_intervals(parts, thresholdInSeconds=0.5)  # 0.5
+            parts = videoUtils.merge_continues_intervals(
+                parts, thresholdInSeconds=0.5)  # 0.5
 
         return parts
 
@@ -429,7 +436,8 @@ class Video():
                         if (first == -1):
                             final_parts.append([part[0], part[1]])
                         else:
-                            final_parts.append([first, new_parts[index - 1][1]])
+                            final_parts.append(
+                                [first, new_parts[index - 1][1]])
                             first = -1
 
             final_parts.append([final_parts[-1][1], the_missing_final])
@@ -695,7 +703,8 @@ class Video():
             working_dir, disk.get_hash_of_a_path(source_video_path) + 'temp_for_remove_silence_parts_from_video.mp4')
 
         if minimum_interval_time_in_seconds is None:
-            parts = self._get_voice_parts(audio_path, top_db, skip_sharp_noise=skip_sharp_noise)
+            parts = self._get_voice_parts(
+                audio_path, top_db, skip_sharp_noise=skip_sharp_noise)
         else:
             parts = self._get_voice_parts(
                 audio_path, top_db, minimum_interval_time_in_seconds, skip_sharp_noise=skip_sharp_noise)
@@ -708,7 +717,8 @@ class Video():
         for index, part in enumerate(parts):
             try:
                 time_duration = int(part[1] - part[0])
-                print(str(int(index / length * 100)) + "%,", "cut " + str(time_duration) + " seconds")
+                print(str(int(index / length * 100)) + "%,",
+                      "cut " + str(time_duration) + " seconds")
             except Exception as e:
                 print(e)
             clip_list.append(parent_clip.subclip(part[0], part[1]))
@@ -759,7 +769,8 @@ class Video():
         target_video_path = os.path.abspath(target_video_path)
 
         working_dir = get_directory_name(target_video_path)
-        audio_path = add_path(working_dir, 'audio_for_humanly_remove_silence_parts_from_video.wav')
+        audio_path = add_path(
+            working_dir, 'audio_for_humanly_remove_silence_parts_from_video.wav')
         if not os.path.exists(audio_path):
             convert_video_to_wav(source_video_path, audio_path)
 
@@ -845,7 +856,8 @@ class Video():
             vfx.speedx, speed)
 
         clip = videoUtils.fix_rotation(clip)
-        clip.write_videofile(target_video_path, threads=self._cpu_core_numbers, audio_codec="aac")
+        clip.write_videofile(
+            target_video_path, threads=self._cpu_core_numbers, audio_codec="aac")
 
         done()
 
@@ -889,8 +901,8 @@ class Video():
                 time_duration = (datetime.datetime.strptime(
                     part[1][1], '%H:%M:%S.%f') - datetime.datetime.strptime(part[1][0], '%H:%M:%S.%f')).seconds
                 print(str(int(index / length * 100)) + "%,", "-".join([p.split(".")[
-                                                                           0] for p in part[1]]) + ",",
-                      "cut " + str(time_duration) + " seconds")
+                    0] for p in part[1]]) + ",",
+                    "cut " + str(time_duration) + " seconds")
             except Exception as e:
                 print(e)
             if part[0] == 1:  # voice
@@ -1000,7 +1012,8 @@ class Video():
         if not os.path.exists(new_folder):
             os.makedirs(new_folder, exist_ok=True)
 
-        filelist = disk.get_files(source_folder, type_limiter=[".mp4", ".mkv", ".avi", ".rmvb", ".ts"])
+        filelist = disk.get_files(source_folder, type_limiter=[
+                                  ".mp4", ".mkv", ".avi", ".rmvb", ".ts"])
 
         for file in filelist:
             target_video_path = file.replace(source_folder, new_folder)
@@ -1051,7 +1064,8 @@ class Video():
         if not os.path.exists(new_folder):
             os.makedirs(new_folder, exist_ok=True)
 
-        filelist = disk.get_files(source_folder, type_limiter=[".mp4", ".mkv", ".avi", ".rmvb", ".ts"])
+        filelist = disk.get_files(source_folder, type_limiter=[
+                                  ".mp4", ".mkv", ".avi", ".rmvb", ".ts"])
 
         for file in filelist:
             target_video_path = file.replace(source_folder, new_folder)
@@ -1128,7 +1142,8 @@ class Video():
             clips.append(clip.subclip(i * partLength, (i + 1) * partLength))
 
         for i, c in enumerate(clips):
-            c.write_videofile(f"{target_video_folder}/{i}.mp4", audio_codec="aac")
+            c.write_videofile(
+                f"{target_video_folder}/{i}.mp4", audio_codec="aac")
 
         done()
 
@@ -1152,12 +1167,15 @@ class Video():
             return
 
         # handle input voice
-        humanVoice = audioProcessor.pydub.AudioSegment.from_file(source_file_path, format="mp4")
+        humanVoice = audioProcessor.pydub.AudioSegment.from_file(
+            source_file_path, format="mp4")
 
         # handle input music
-        musicSound = audioProcessor.pydub.AudioSegment.from_file(musicFiles[0], format="mp3")
+        musicSound = audioProcessor.pydub.AudioSegment.from_file(
+            musicFiles[0], format="mp3")
         for musicFile in musicFiles[1:]:
-            musicSound += audioProcessor.pydub.AudioSegment.from_file(musicFile, format="mp3")
+            musicSound += audioProcessor.pydub.AudioSegment.from_file(
+                musicFile, format="mp3")
 
         while len(musicSound) < len(humanVoice):
             musicSound *= 2
@@ -1168,7 +1186,8 @@ class Video():
         # handle the silence
         musicSlices = []
 
-        infoOfTheVoice = audioProcessor.getCompleteTimeRangeForNoSilenceAndSilenceAudioSlice(humanVoice)
+        infoOfTheVoice = audioProcessor.getCompleteTimeRangeForNoSilenceAndSilenceAudioSlice(
+            humanVoice)
 
         for a, b, c in infoOfTheVoice:
             music_part = musicSound[a:b]
@@ -1314,7 +1333,8 @@ class DeepVideo():
                     start = result['result'][0]['start']
                     end = result['result'][-1]['end']
                     text = result['result']["text"]
-                    data_list.append({"start": start, "end": end, "text": text})
+                    data_list.append(
+                        {"start": start, "end": end, "text": text})
             else:
                 # print(rec.PartialResult())
                 pass
@@ -1394,7 +1414,8 @@ class DeepVideo():
                         parent_clips[index].subclip(part[0], part[1]))
 
         concat_clip = concatenate_videoclips(remain_clips)
-        concat_clip.write_videofile(target_video_path, fps=fps, preset=preset, audio_codec="aac")
+        concat_clip.write_videofile(
+            target_video_path, fps=fps, preset=preset, audio_codec="aac")
         concat_clip.close()
         for parent_clip in parent_clips:
             parent_clip.close()
@@ -1448,7 +1469,8 @@ class DeepVideo():
                     )
 
         concat_clip = concatenate_videoclips(remain_clips)
-        concat_clip.write_videofile(target_video_path, fps=fps, preset=preset, audio_codec="aac")
+        concat_clip.write_videofile(
+            target_video_path, fps=fps, preset=preset, audio_codec="aac")
         concat_clip.close()
         for parent_clip in parent_clips:
             parent_clip.close()
@@ -1561,14 +1583,17 @@ class DeepVideo():
     def blurPornGraphs(self, source_video_path: str, target_video_path: str):
         # useless
         import pornstar
+
         def doit(frame):
             if pornstar.store.nsfw_detector.isPorn(frame, 0.9):
-                classList, ScoreList, PositionList = pornstar.my_object_detector.detect(frame)
+                classList, ScoreList, PositionList = pornstar.my_object_detector.detect(
+                    frame)
                 if "person" in classList:
                     frame = pornstar.effect_of_blur(frame, kernel=30)
             return frame
 
-        pornstar.process_video(path_of_video=source_video_path, effect_function=doit, save_to=target_video_path)
+        pornstar.process_video(path_of_video=source_video_path,
+                               effect_function=doit, save_to=target_video_path)
 
 
 if __name__ == "__main__":
