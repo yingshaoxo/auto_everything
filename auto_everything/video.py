@@ -580,7 +580,7 @@ class Video():
                          for clip in source_video_path_list]
             final_clip = concatenate_videoclips(clip_list)
             final_clip.write_videofile(
-                target_video_path, threads=self._cpu_core_numbers, preset=preset, audio_codec="aac")
+                target_video_path, threads=self._cpu_core_numbers, preset=preset, audio_codec="aac", verbose=False)
 
             for clip in clip_list:
                 clip.close()
@@ -727,7 +727,7 @@ class Video():
 
         if not voice_only:
             concat_clip.write_videofile(
-                target_video_path, threads=self._cpu_core_numbers, audio_codec="aac"
+                target_video_path, threads=self._cpu_core_numbers, audio_codec="aac", verbose=False
             )
             concat_clip.close()
             del concat_clip
@@ -857,7 +857,7 @@ class Video():
 
         clip = videoUtils.fix_rotation(clip)
         clip.write_videofile(
-            target_video_path, threads=self._cpu_core_numbers, audio_codec="aac")
+            target_video_path, threads=self._cpu_core_numbers, audio_codec="aac", verbose=False)
 
         done()
 
@@ -917,7 +917,7 @@ class Video():
         concat_clip = concatenate_videoclips(clip_list)
 
         concat_clip.write_videofile(
-            target_video_path, threads=self._cpu_core_numbers, audio_codec="aac")
+            target_video_path, threads=self._cpu_core_numbers, audio_codec="aac", verbose=False)
         concat_clip.close()
         del concat_clip
 
@@ -1124,7 +1124,8 @@ class Video():
         cropRatio = 0.12
         cropPixels = int(cropRatio * height)
         clip = clip.crop(x1=0, y1=cropPixels, x2=width, y2=height - cropPixels)
-        clip.write_videofile(target_video_path, audio_codec="aac")
+        clip.write_videofile(
+            target_video_path, threads=self._cpu_core_numbers, audio_codec="aac", verbose=False)
 
         done()
 
@@ -1143,7 +1144,7 @@ class Video():
 
         for i, c in enumerate(clips):
             c.write_videofile(
-                f"{target_video_folder}/{i}.mp4", audio_codec="aac")
+                f"{target_video_folder}/{i}.mp4", threads=self._cpu_core_numbers, audio_codec="aac", verbose=False)
 
         done()
 
@@ -1209,7 +1210,8 @@ class Video():
         audioclip = AudioFileClip(tempMp3FilePath)
 
         videoclip.audio = audioclip
-        videoclip.write_videofile(target_file_path)
+        videoclip.write_videofile(
+            target_file_path, threads=self._cpu_core_numbers, verbose=False)
 
         done()
 
@@ -1415,7 +1417,7 @@ class DeepVideo():
 
         concat_clip = concatenate_videoclips(remain_clips)
         concat_clip.write_videofile(
-            target_video_path, fps=fps, preset=preset, audio_codec="aac")
+            target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset, audio_codec="aac", verbose=False)
         concat_clip.close()
         for parent_clip in parent_clips:
             parent_clip.close()
@@ -1470,7 +1472,7 @@ class DeepVideo():
 
         concat_clip = concatenate_videoclips(remain_clips)
         concat_clip.write_videofile(
-            target_video_path, fps=fps, preset=preset, audio_codec="aac")
+            target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset, audio_codec="aac", verbose=False)
         concat_clip.close()
         for parent_clip in parent_clips:
             parent_clip.close()
@@ -1507,7 +1509,7 @@ class DeepVideo():
 
         concat_clip = concatenate_videoclips(clip_list)
         concat_clip.write_videofile(
-            target_video_path, threads=self._cpu_core_numbers, audio_codec="aac")
+            target_video_path, threads=self._cpu_core_numbers, audio_codec="aac", verbose=False)
         concat_clip.close()
         parent_clip.close()
 
@@ -1554,7 +1556,7 @@ class DeepVideo():
 
         concat_clip = concatenate_videoclips(clip_list)
         concat_clip.write_videofile(
-            target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset, audio_codec="aac")
+            target_video_path, threads=self._cpu_core_numbers, fps=fps, preset=preset, audio_codec="aac", verbose=False)
         concat_clip.close()
         parent_clip.close()
 

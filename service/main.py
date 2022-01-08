@@ -13,6 +13,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import File, UploadFile
+from fastapi.responses import FileResponse
 
 from py_backend.tools.networkTool import is_port_in_use
 from py_backend.tools.stringTool import myPrint
@@ -54,19 +55,25 @@ def deleteCorrespondingFileOfAProject(projectID: int) -> None:
 
 
 async def async_func(project_id: int, job: str):
-    if (job == "speedupSilence"):
-        project = await myDatabase.getAProjectByID(project_id)
+    project = await myDatabase.getAProjectByID(project_id)
+    inputPath = project.input
+    outputPath = getFilePathByProjectID(project_id) + ".output.mp4"
 
-        inputPath = project.input
-        outputPath = getFilePathByProjectID(project_id) + ".output.mp4"
+    await myDatabase.setStatusOfAProject(project_id, 1)
 
-        await myDatabase.setStatusOfAProject(project_id, 1)
-        video.speedup_silence_parts_in_video(
-            inputPath, outputPath, 21, speed=30)
+    try:
+        if (job == "speedupSilence"):
+            video.speedup_silence_parts_in_video(
+                inputPath, outputPath, 21, speed=30)
+        elif (job == "removeSilence"):
+            video.remove_silence_parts_from_video(
+                inputPath, outputPath, 35, 1.7)
+    except Exception as e:
+        await myDatabase.setStatusOfAProject(project_id, -1)
+        raise e
 
-        await myDatabase.updateOutputOfAProject(project_id, outputPath)
-
-        await myDatabase.setStatusOfAProject(project_id, 2)
+    await myDatabase.updateOutputOfAProject(project_id, outputPath)
+    await myDatabase.setStatusOfAProject(project_id, 2)
 
 
 def startToWorkOnAProject(project_id: int, job: str):
@@ -110,6 +117,12 @@ async def upload_file(projectID: int, file: UploadFile = File(...)):
     await myDatabase.database.execute(query)
 
     return {"message": "success"}
+
+
+@ app.get("/download_file/")
+async def download_file(filePath: str):
+    project = await myDatabase.getProjectByOutputFilePath(filePath)
+    return FileResponse(path=filePath, media_type='application/octet-stream', filename=project.title + ".mp4")
 
 
 @ app.get("/projects/", response_model=List[ProjectOutput])

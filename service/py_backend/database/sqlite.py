@@ -30,7 +30,6 @@ class ProjectIDInput(BaseModel):
 class ProjectInput(BaseModel):
     title: str
     status: int
-    completed: bool
     input: Optional[str]
 
 
@@ -38,7 +37,6 @@ class ProjectOutput(BaseModel):
     id: int
     title: str
     status: int
-    completed: bool
     input: Optional[str]
     output: Optional[str]
 
@@ -56,7 +54,6 @@ class MyDatabase:
             sqlalchemy.Column("title", sqlalchemy.String),
 
             sqlalchemy.Column("status", sqlalchemy.Integer),
-            sqlalchemy.Column("completed", sqlalchemy.Boolean),
 
             sqlalchemy.Column("input", sqlalchemy.String),
             sqlalchemy.Column("output", sqlalchemy.String),
@@ -93,3 +90,7 @@ class MyDatabase:
         await self.database.execute(query)
 
         return await self.getAProjectByID(projectID)
+
+    async def getProjectByOutputFilePath(self, filePath: str) -> ProjectOutput:
+        query = self.projects.select().where(self.projects.c.output == filePath)
+        return await self.database.fetch_one(query)

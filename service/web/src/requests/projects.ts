@@ -1,13 +1,15 @@
 import functions from '/@/store/functions'
+import { globalDict } from '/@/store/memory';
 
 export interface Project {
     id: number
     title: string
     status: number
-    completed: boolean
     input: string
     output: any
 }
+
+const HOST = 'http://localhost:8000'
 
 export const getProjects = async (): Promise<Project[]> => {
     var requestOptions = {
@@ -15,7 +17,7 @@ export const getProjects = async (): Promise<Project[]> => {
         redirect: 'follow'
     };
 
-    const result = await fetch("http://localhost:8001/projects/")
+    const result = await fetch(HOST + "/projects/")
     return functions.basic.jsonToObj(await result.text())
 }
 
@@ -38,7 +40,7 @@ export const createProject = async (title: string): Promise<Project> => {
         redirect: 'follow'
     } as any;
 
-    const result = await fetch("http://localhost:8001/create_project/", requestOptions)
+    const result = await fetch(HOST + "/create_project/", requestOptions)
     return functions.basic.jsonToObj(await result.text())
 }
 
@@ -59,7 +61,7 @@ export const deleteAProject = async (id: number): Promise<any> => {
         redirect: 'follow'
     } as any;
 
-    const result = await fetch("http://localhost:8001/delete_project/", requestOptions)
+    const result = await fetch(HOST + "/delete_project/", requestOptions)
     return functions.basic.jsonToObj(await result.text())
 }
 
@@ -78,14 +80,18 @@ export const uploadFile = async (projectId: string, file: File | null): Promise<
         redirect: 'follow'
     } as any;
 
-    await fetch(`http://localhost:8001/upload_file?projectID=${projectId}`, requestOptions)
+    await fetch(HOST + `/upload_file?projectID=${projectId}`, requestOptions)
+}
+
+export const getDownloadPath = (outputPath: string): string => {
+    return HOST + `/download_file?filePath=${outputPath}`
 }
 
 
-export const startTheProcessOfAProject = async (id: number): Promise<any> => {
+export const startTheProcessOfAProject = async (id: number, job: typeof globalDict.consts.jobType): Promise<any> => {
     const obj = {
         project_id: id,
-        job: "speedupSilence"
+        job: job
     }
 
     const raw = functions.basic.objToJson(obj)
@@ -100,6 +106,6 @@ export const startTheProcessOfAProject = async (id: number): Promise<any> => {
         redirect: 'follow'
     } as any;
 
-    const result = await fetch("http://localhost:8001/start_process_for_a_project/", requestOptions)
+    const result = await fetch(HOST + "/start_process_for_a_project/", requestOptions)
     return functions.basic.jsonToObj(await result.text())
 }
