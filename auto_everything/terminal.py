@@ -208,7 +208,7 @@ class Terminal():
             self.__remove_temp_sh(temp_sh)
             return str(e)
 
-    def run_program(self, name: str, cwd: str = None):
+    def run_program(self, name: str, cwd: str = None) -> subprocess.Popen:
         """
         run shell commands, especially programs which can be started from terminal. 
         This function will not wait program to be finished.

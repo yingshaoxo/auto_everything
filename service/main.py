@@ -20,6 +20,8 @@ from py_backend.tools.stringTool import myPrint
 from py_backend.database.sqlite import MyDatabase
 from service.py_backend.database.sqlite import ErrorOutput, ProjectIDInput, ProjectInput, ProjectOutput, StartProcessInput, SuccessOutput
 
+from py_backend.routers import test, obs
+
 from auto_everything.disk import Disk
 disk = Disk()
 
@@ -38,6 +40,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(test.router,
+                   prefix="/test",
+                   tags=["test"],
+                   )
+app.include_router(obs.router,
+                   prefix="/obs",
+                   tags=["obs"],
+                   )
 
 
 def getFilePathByProjectID(projectID: int) -> str:

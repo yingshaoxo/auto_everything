@@ -19,6 +19,7 @@ pydub = "^0.25.1"
 python-multipart = "^0.0.5"
 moviepy="1.0.3"
 librosa = "^0.8.1"
+obs-websocket-py = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 auto-everything = {path = "..", develop=true}
