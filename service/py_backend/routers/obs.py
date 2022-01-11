@@ -83,6 +83,7 @@ async def startScript():
 @router.get("/stop_script", tags="obs")
 async def stopScript():
     global theScriptProcess
+    t.kill("autoPauseOrResumeTheOBSrecording.py")
     if theScriptProcess is not None:
         theScriptProcess.kill()
         ws.call(requests.PauseRecording())
