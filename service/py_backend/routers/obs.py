@@ -3,6 +3,7 @@ from obswebsocket import obsws, requests
 from fastapi import APIRouter
 from time import sleep
 import threading
+import os
 
 from auto_everything import Terminal
 t = Terminal()
@@ -76,8 +77,10 @@ async def resume():
 async def startScript():
     global theScriptProcess
     ws.call(requests.ResumeRecording())
+    path = os.path.join(os.path.dirname(os.path.realpath(
+        __file__)), "autoPauseOrResumeTheOBSrecording.py")
     theScriptProcess = t.run_program(
-        "python3 /Users/yingshaoxo/CS/auto_everything/example/monitor/autoPauseOrResumeTheOBSrecording.py")
+        f"python3 '{path}'")
 
 
 @router.get("/stop_script", tags="obs")
