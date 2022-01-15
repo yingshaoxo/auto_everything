@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, reactive } from 'vue';
+import { computed, onBeforeMount, onMounted, reactive } from 'vue';
 import { getProjects, Project } from '/@/requests/projects';
 import UploadWidget from '/@/components/UploadWidget.vue';
 import functions from '/@/store/functions';
@@ -105,7 +105,6 @@ onBeforeMount(async () => {
     await dict.functions.uploadProjectListView();
 });
 
-
 </script>
 
 <template>
@@ -153,7 +152,10 @@ onBeforeMount(async () => {
                 <template v-slot:default="scope">
                     <el-popover placement="top" trigger="hover">
                         <template v-slot:reference>
-                            <div v-if="scope.row.output" class="outputLink">{{ scope.row.output }}</div>
+                            <div
+                                v-show="scope.row.output"
+                                class="outputLink"
+                            >{{ scope.row?.output }}</div>
                         </template>
                         <template v-slot:default>
                             <div class="Center">
@@ -161,7 +163,7 @@ onBeforeMount(async () => {
                                     type="success"
                                     plain
                                     @click="() => {
-                                        let path = functions.requests.projectRequests.getDownloadPath(scope.row.output);
+                                        let path = functions.requests.projectRequests.getDownloadPath(scope.row?.output);
                                         functions.basic.openALink(path)
                                     }"
                                 >Download</el-button>

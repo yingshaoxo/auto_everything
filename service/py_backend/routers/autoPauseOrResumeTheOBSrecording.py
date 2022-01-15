@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     while True:
         time.sleep(1)
-        if checkIfDequeTimeLargerThanCurrentTimeBy(5):
+        if checkIfDequeTimeLargerThanCurrentTimeBy(20):
             isInMoving = False
         else:
             isInMoving = True
