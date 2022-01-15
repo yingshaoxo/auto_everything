@@ -61,6 +61,7 @@ const dict = reactive({
         },
         uploadProjectListView: async () => {
             const projects = await getProjects();
+            projects?.reverse();
             dict.data.projects = projects;
         },
         onAddingProjectButtonConfirm: async () => {
