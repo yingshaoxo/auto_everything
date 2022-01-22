@@ -199,4 +199,4 @@ def start():
     myPrint(f"The service is running on: http://localhost:{port}")
 
     uvicorn.run("main:app", host="0.0.0.0",
-                port=port, debug=True, reload=True)
+                port=port, debug=True, reload=True, workers=1)
