@@ -2,9 +2,12 @@
 #!/usr/bin/env /usr/local/opt/python@3.9/bin/python3.9
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
+
+hasGoogletrans = False
 try:
     from googletrans import Translator
     translator = Translator()
+    hasGoogletrans = True
 except Exception as e:
     print(e)
     text = "sudo pip3 install googletrans==3.1.0a0"
@@ -13,7 +16,6 @@ except Exception as e:
     print(f"After that, you probobly need proxychains: \n\n sudo apt install proxychains")
     print()
     print("sudo vim /etc/proxychains.conf")
-    exit()
 py = Python()
 t = Terminal(debug=True)
 
@@ -29,12 +31,14 @@ class Tools():
             git push origin
             """)
         else:
-            try:
-                translated_comment = translator.translate(comment, dest='zh-cn').text
-                if translated_comment != comment:
-                    comment = f"{translated_comment} ({comment})"
-            except Exception as e:
-                print(e)
+            if hasGoogletrans:
+                try:
+                    translated_comment = translator.translate(
+                        comment, dest='zh-cn').text
+                    if translated_comment != comment:
+                        comment = f"{translated_comment} ({comment})"
+                except Exception as e:
+                    print(e)
 
             t.run(f"""
             git config --global user.name "yingjie.hu"
@@ -96,7 +100,6 @@ git reset --hard HEAD^
         t.run(f"""
         git merge --abort
         """)
-
 
     def reset_permission(self, path):
         if path != "/":
