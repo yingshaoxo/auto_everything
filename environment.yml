@@ -1,0 +1,7 @@
+name: auto_everything_base
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - poetry
+prefix: /Users/yingshaoxo/miniforge3/envs/auto_everything_base

@@ -1,4 +1,3 @@
-
 from obswebsocket import obsws, requests
 from fastapi import APIRouter
 from time import sleep
@@ -6,6 +5,7 @@ import threading
 import os
 
 from auto_everything import Terminal
+
 t = Terminal()
 
 
@@ -14,73 +14,69 @@ router = APIRouter(
 )
 
 
-host = "localhost"
-port = 4444
-password = "highhighlife"
+def myOBScall(theRequest):
+    host = "localhost"
+    port = 4444
+    password = "highhighlife"
+    ws = obsws(host, port, password)
+    ws.connect()
+    ws.call(theRequest)
+    ws.disconnect()
+    return ws
 
-ws = obsws(host, port, password)
+
 theScriptProcess = None
 
 
-def alwaysConnectToOBS():
-    while True:
-        try:
-            # print("connected")
-            # ws.call(requests.GetSceneList())
-            ws.connect()
-        except Exception as e:
-            print(e)
-        sleep(5)
-
-
-@ router.on_event("startup")
+@router.on_event("startup")
 async def startup():
-    th = threading.Thread(target=alwaysConnectToOBS)
-    th.start()
+    pass
 
 
-@ router.on_event("shutdown")
+@router.on_event("shutdown")
 async def shutdown():
     pass
 
 
-@ router.get("/", tags=["obs"])
+@router.get("/", tags=["obs"])
 async def obsHomePage():
     return {"message": "Welcome to the OBS API"}
 
 
-@ router.get("/start", tags=["obs"])
+@router.get("/start", tags=["obs"])
 async def start():
-    ws.call(requests.StartRecording())
+    myOBScall(requests.StartRecording())
     return {"message": "done"}
 
 
-@ router.get("/stop", tags=["obs"])
+@router.get("/stop", tags=["obs"])
 async def stop():
-    ws.call(requests.StopRecording())
+    myOBScall(requests.StopRecording())
     return {"message": "done"}
 
 
-@ router.get("/pause", tags=["obs"])
+@router.get("/pause", tags=["obs"])
 async def pause():
-    ws.call(requests.PauseRecording())
+    myOBScall(requests.PauseRecording())
     return {"message": "done"}
 
 
-@ router.get("/resume", tags=["obs"])
+@router.get("/resume", tags=["obs"])
 async def resume():
-    ws.call(requests.ResumeRecording())
+    myOBScall(requests.ResumeRecording())
     return {"message": "done"}
 
 
 @router.get("/start_script", tags="obs")
 async def startScript():
     global theScriptProcess
-    ws.call(requests.ResumeRecording())
-    path = os.path.join(os.path.dirname(os.path.realpath(
-        __file__)), "autoPauseOrResumeTheOBSrecording.py")
-    theScriptProcess = t.run_program(
-        f"python3 '{path}'")
+    myOBScall(requests.ResumeRecording())
+    path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "autoPauseOrResumeTheOBSrecording.py",
+    )
+    if not t.is_running("autoPauseOrResumeTheOBSrecording.py"):
+        theScriptProcess = t.run_program(f"python3 '{path}'")
 
 
 @router.get("/stop_script", tags="obs")
@@ -89,4 +85,4 @@ async def stopScript():
     t.kill("autoPauseOrResumeTheOBSrecording.py")
     if theScriptProcess is not None:
         theScriptProcess.kill()
-        ws.call(requests.PauseRecording())
+        myOBScall(requests.PauseRecording())
