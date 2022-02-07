@@ -28,16 +28,6 @@ def myOBScall(theRequest):
 theScriptProcess = None
 
 
-@router.on_event("startup")
-async def startup():
-    pass
-
-
-@router.on_event("shutdown")
-async def shutdown():
-    pass
-
-
 @router.get("/", tags=["obs"])
 async def obsHomePage():
     return {"message": "Welcome to the OBS API"}
@@ -67,7 +57,7 @@ async def resume():
     return {"message": "done"}
 
 
-@router.get("/start_script", tags="obs")
+@router.get("/start_script", tags=["obs"])
 async def startScript():
     global theScriptProcess
     myOBScall(requests.ResumeRecording())
@@ -79,7 +69,7 @@ async def startScript():
         theScriptProcess = t.run_program(f"python3 '{path}'")
 
 
-@router.get("/stop_script", tags="obs")
+@router.get("/stop_script", tags=["obs"])
 async def stopScript():
     global theScriptProcess
     t.kill("autoPauseOrResumeTheOBSrecording.py")

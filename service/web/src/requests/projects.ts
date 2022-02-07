@@ -109,3 +109,45 @@ export const startTheProcessOfAProject = async (id: number, job: typeof globalDi
     const result = await fetch(HOST + "/start_process_for_a_project/", requestOptions)
     return functions.basic.jsonToObj(await result.text())
 }
+
+
+export const getAudioVolumeDataByProjectID = async (projectId: number | string): Promise<any> => {
+    const obj = {
+    }
+
+    const raw = functions.basic.objToJson(obj)
+
+    var requestOptions = {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        body: raw,
+        redirect: 'follow'
+    } as any;
+
+    const result = await fetch(HOST + `/video/getAudioVolumeData?projectID=${projectId}`, requestOptions)
+    return functions.basic.jsonToObj(await result.text())
+}
+
+
+export const getVideoSilenceDataByProjectID = async (projectId: number | string, targetDB: number): Promise<any> => {
+    const obj = {
+    }
+
+    const raw = functions.basic.objToJson(obj)
+
+    var requestOptions = {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        body: raw,
+        redirect: 'follow'
+    } as any;
+
+    const result = await fetch(HOST + `/video/getSilenceData?projectID=${projectId}&targetDB=${targetDB}`, requestOptions)
+    return functions.basic.jsonToObj(await result.text())
+}

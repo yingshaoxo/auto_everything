@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, List
 
 from auto_everything.base import Terminal
 
@@ -92,6 +92,31 @@ class AudioMonitor:
             print("python3 -m pip install pyaudio")
             raise e
 
+
+class AudioAnalyzer:
+    def __init__(self):
+        try: 
+            import pydub
+            self.pydub = pydub
+        except Exception as e:
+            print("python3 -m pip install pydub")
+            raise e
+    
+    def get_audio_loudness_per_x_millisecond(self, audio_file_path: str, x: int) -> List[float]:
+        theWholeAudio = self.pydub.AudioSegment.from_file(audio_file_path)
+
+        segmentsList = []
+        totalLength = len(theWholeAudio)
+        i = 0
+        chunkLength = x
+        while i < totalLength:
+            segmentsList.append(theWholeAudio[i:i+chunkLength])
+            i += chunkLength
+
+        loudnessList = []
+        for segment in segmentsList:
+            loudnessList.append(segment.dBFS)
+        return loudnessList
 
 
 if __name__ == "__main__":

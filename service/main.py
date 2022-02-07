@@ -1,30 +1,35 @@
-import databases
+import os
 from auto_everything.video import Video
-from typing import Dict, List, Union
+from auto_everything.disk import Disk
+
+from typing import Dict, List, Optional, Union
 
 import asyncio
-
-from fastapi.param_functions import Query
-from fastapi import BackgroundTasks
-
-from py_backend.store.globalVariables import GlobalStore
 import sys
 import uvicorn
+
+from fastapi import BackgroundTasks, Header
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import File, UploadFile
 from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
+
+
+from py_backend.store.globalVariables import GlobalStore
 
 from py_backend.tools.networkTool import is_port_in_use
 from py_backend.tools.stringTool import myPrint
 from py_backend.database.sqlite import MyDatabase
 from service.py_backend.database.sqlite import ErrorOutput, ProjectIDInput, ProjectInput, ProjectOutput, StartProcessInput, SuccessOutput
 
+from py_backend.tools.diskTool import getFilePathByProjectID
 from py_backend.routers import test, obs
+from py_backend.routers import video as videoRouter
 
-from auto_everything.disk import Disk
+
 disk = Disk()
-
 video = Video()
 
 
@@ -50,9 +55,10 @@ app.include_router(obs.router,
                    tags=["obs"],
                    )
 
-
-def getFilePathByProjectID(projectID: int) -> str:
-    return globalStore.tempFolder + "/" + str(projectID) + ".mp4"
+app.include_router(videoRouter.router,
+                   prefix="/video",
+                   tags=["video"],
+                   )
 
 
 def deleteCorrespondingFileOfAProject(projectID: int) -> None:
@@ -114,7 +120,7 @@ async def upload_file(projectID: int, file: UploadFile = File(...)):
     print(globalStore.tempFolder)
     print(file)
 
-    if (myDatabase.checkIfProjectExistByID(projectID) == False):
+    if (myDatabase.checkIfProjectExistByID(projectID) is False):
         return {"error": "Project ID not exist"}
 
     filePath = getFilePathByProjectID(projectID)
@@ -129,11 +135,46 @@ async def upload_file(projectID: int, file: UploadFile = File(...)):
 
     return {"message": "success"}
 
-
+CONTENT_CHUNK_SIZE=100*1024
 @ app.get("/download_file/")
-async def download_file(filePath: str):
-    project = await myDatabase.getProjectByOutputFilePath(filePath)
-    return FileResponse(path=filePath, media_type='application/octet-stream', filename=project.title + ".mp4")
+async def download_file(filePath:str,range: Optional[str] = Header(None)):
+    def get_file():
+        f = open(filePath,'rb')
+        return f, os.path.getsize(filePath)    
+    
+    def chunk_generator_from_stream(stream, chunk_size, start, size):
+        bytes_read = 0
+        stream.seek(start)
+        while bytes_read < size:
+            bytes_to_read = min(chunk_size,size - bytes_read)
+            yield stream.read(bytes_to_read)
+            bytes_read = bytes_read + bytes_to_read
+        stream.close()
+
+    asked = range or "bytes=0-"
+    print(asked)
+    stream,total_size=get_file()
+    start_byte = int(asked.split("=")[-1].split('-')[0])
+
+    return StreamingResponse(
+        chunk_generator_from_stream(
+            stream,
+            start=start_byte,
+            chunk_size=CONTENT_CHUNK_SIZE,
+            size=total_size
+        )
+        ,headers={
+            "Accept-Ranges": "bytes",
+            "Content-Range": f"bytes {start_byte}-{start_byte+CONTENT_CHUNK_SIZE}/{total_size}",
+            "Content-Type": "video/mp4"
+        },
+        status_code=206)
+
+# @ app.get("/download_file/")
+# async def download_file(filePath: str):
+    # project = await myDatabase.getProjectByInputOrOutputFilePath(filePath)
+    # return FileResponse(path=filePath, media_type='application/octet-stream',
+    #                     filename=project.title + ".mp4")
 
 
 @ app.get("/projects/", response_model=List[ProjectOutput])
@@ -144,7 +185,7 @@ async def read_projects():
 
 @ app.post("/get_project/", response_model=Union[ProjectOutput,  ErrorOutput])
 async def read_project(projectIDInput: ProjectIDInput):
-    record = await myDatabase.getProjectByID(projectIDInput.projectID)
+    record = await myDatabase.getAProjectByID(projectIDInput.project_id)
 
     if record is None:
         return {"error": "Not found"}
@@ -161,7 +202,8 @@ async def create_project(project: ProjectInput):
 
 @ app.post("/delete_project/", response_model=Dict[str, str])
 async def delete_project(projectIDInput: ProjectIDInput):
-    if (myDatabase.checkIfProjectExistByID(projectIDInput.project_id) == False):
+    if (myDatabase.checkIfProjectExistByID(projectIDInput.project_id)
+            is False):
         return {"error": "Project ID not exist"}
 
     query = myDatabase.projects.delete().where(
@@ -173,9 +215,10 @@ async def delete_project(projectIDInput: ProjectIDInput):
     return {"success": "Deleted"}
 
 
-@ app.post("/start_process_for_a_project/", response_model=Union[SuccessOutput, ErrorOutput])
+@ app.post("/start_process_for_a_project/",
+           response_model=Union[SuccessOutput, ErrorOutput])
 async def start_process_for_a_project(StartProcessInput: StartProcessInput, background_tasks: BackgroundTasks):
-    if (myDatabase.checkIfProjectExistByID(StartProcessInput.project_id) == False):
+    if (myDatabase.checkIfProjectExistByID(StartProcessInput.project_id) is False):
         return {"error": "Project ID not exist"}
 
     background_tasks.add_task(

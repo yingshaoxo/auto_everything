@@ -2,7 +2,7 @@ import { ElLoading, ElMessage } from "element-plus"
 import { BuildPropType } from "element-plus/es/utils/props"
 import { pageIdentity, globalDict } from "/@/store/memory"
 
-import { router } from "/@/router"
+import { router } from "/@/store/router"
 
 import * as projectRequests from "/@/requests/projects"
 
@@ -40,9 +40,23 @@ const functions = {
         }
     },
     pages: {
-        switchPage: (page: string) => {
+        switchPage: (page: string, query?: any) => {
             globalDict.pageSelected = page
-            router.push(page)
+            if (query) {
+                router.push({ path: globalDict.pageSelected, query })
+            } else {
+                router.push(page)
+            }
+        },
+        getQueryValueByKey: (query: any, key: string) => {
+            if (query && query[key]) {
+                if (Array.isArray(query[key])) {
+                    return query[key][0]
+                } else {
+                    return query[key]
+                }
+            }
+            return null
         }
     },
     requests: {

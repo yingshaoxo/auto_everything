@@ -4,6 +4,7 @@ import { reactive } from "vue";
 export const pageIdentity = {
     homePage: "/",
     videoPage: '/video',
+    videoPlayGround: '/video_playground',
 }
 
 export const globalDict = reactive({
@@ -17,3 +18,8 @@ export const globalDict = reactive({
         }
     }
 })
+
+export interface VideoPlayGroundPageRouteQueryTypeDefinition {
+    projectId: string | string[],
+    videoURL: string | string[],
+}

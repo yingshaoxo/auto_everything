@@ -4,7 +4,7 @@ import { getProjects, Project } from '/@/requests/projects';
 import UploadWidget from '/@/components/UploadWidget.vue';
 import functions from '/@/store/functions';
 import { Edit, Share, Delete, Search, Upload } from '@element-plus/icons-vue'
-import { globalDict } from '/@/store/memory';
+import * as memory from '/@/store/memory';
 
 const dict = reactive({
     tempData: {
@@ -25,7 +25,7 @@ const dict = reactive({
         },
         startProcess: {
             projectId: '',
-            jobType: globalDict.consts.jobType.speedupSilence as unknown as typeof globalDict.consts.jobType,
+            jobType: memory.globalDict.consts.jobType.speedupSilence as unknown as typeof memory.globalDict.consts.jobType,
         },
     },
     rules:
@@ -131,7 +131,35 @@ onBeforeMount(async () => {
             <el-table-column prop="title" label="Title" width="220" :align="'center'" />
             <el-table-column prop="input" label="Input" :align="'center'">
                 <template v-slot:default="scope">
-                    <div v-if="scope.row.input">{{ scope.row.input }}</div>
+                    <div v-if="scope.row.input">
+                        <el-popover placement="top" trigger="hover">
+                            <template v-slot:reference>
+                                <div>{{ scope.row?.input }}</div>
+                            </template>
+                            <template v-slot:default>
+                                <div class="inputLinkPopups">
+                                    <el-button
+                                        type="primary"
+                                        @click="() => {
+                                            let path = functions.requests.projectRequests.getDownloadPath(scope.row?.input);
+                                            functions.pages.switchPage(memory.pageIdentity.videoPlayGround, {
+                                                projectId: scope.row?.id,
+                                                videoURL: path,
+                                            } as memory.VideoPlayGroundPageRouteQueryTypeDefinition);
+                                        }"
+                                    >Play around</el-button>
+                                    <el-button
+                                        type="success"
+                                        plain
+                                        @click="() => {
+                                            let path = functions.requests.projectRequests.getDownloadPath(scope.row?.input);
+                                            functions.basic.openALink(path)
+                                        }"
+                                    >Download</el-button>
+                                </div>
+                            </template>
+                        </el-popover>
+                    </div>
                     <template v-if="!scope.row.input">
                         <el-button
                             type="success"
@@ -317,7 +345,7 @@ onBeforeMount(async () => {
                     placeholder="Select"
                 >
                     <el-option
-                        v-for="jobType in Object.values(globalDict.consts.jobType)"
+                        v-for="jobType in Object.values(memory.globalDict.consts.jobType)"
                         :key="jobType"
                         :label="jobType"
                         :value="jobType"
@@ -397,5 +425,19 @@ onBeforeMount(async () => {
     background: linear-gradient(to right, #56cf38 0%, #2e99cf 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.inputLinkPopups {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-items: center;
+    align-items: center;
+    align-content: center;
+
+    .el-button + .el-button {
+        margin-left: 0px;
+        margin-top: 15px;
+    }
 }
 </style>
