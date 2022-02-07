@@ -136,8 +136,8 @@ async def upload_file(projectID: int, file: UploadFile = File(...)):
     return {"message": "success"}
 
 CONTENT_CHUNK_SIZE=100*1024
-@ app.get("/download_file/")
-async def download_file(filePath:str,range: Optional[str] = Header(None)):
+@ app.get("/stream_file/")
+async def stream_file(filePath:str,range: Optional[str] = Header(None)):
     def get_file():
         f = open(filePath,'rb')
         return f, os.path.getsize(filePath)    
@@ -152,7 +152,7 @@ async def download_file(filePath:str,range: Optional[str] = Header(None)):
         stream.close()
 
     asked = range or "bytes=0-"
-    print(asked)
+    # print(asked)
     stream,total_size=get_file()
     start_byte = int(asked.split("=")[-1].split('-')[0])
 
@@ -170,11 +170,12 @@ async def download_file(filePath:str,range: Optional[str] = Header(None)):
         },
         status_code=206)
 
-# @ app.get("/download_file/")
-# async def download_file(filePath: str):
-    # project = await myDatabase.getProjectByInputOrOutputFilePath(filePath)
-    # return FileResponse(path=filePath, media_type='application/octet-stream',
-    #                     filename=project.title + ".mp4")
+@ app.get("/download_file/")
+async def download_file(filePath: str):
+    project = await myDatabase.getProjectByInputOrOutputFilePath(filePath)
+    print(filePath)
+    return FileResponse(path=filePath, media_type='application/octet-stream',
+                        filename=project.title + ".mp4")
 
 
 @ app.get("/projects/", response_model=List[ProjectOutput])

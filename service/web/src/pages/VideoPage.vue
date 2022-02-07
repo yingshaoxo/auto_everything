@@ -141,7 +141,7 @@ onBeforeMount(async () => {
                                     <el-button
                                         type="primary"
                                         @click="() => {
-                                            let path = functions.requests.projectRequests.getDownloadPath(scope.row?.input);
+                                            let path = functions.requests.projectRequests.getStreamPath(scope.row?.input);
                                             functions.pages.switchPage(memory.pageIdentity.videoPlayGround, {
                                                 projectId: scope.row?.id,
                                                 videoURL: path,

@@ -92,5 +92,5 @@ class MyDatabase:
         return await self.getAProjectByID(projectID)
 
     async def getProjectByInputOrOutputFilePath(self, filePath: str) -> ProjectOutput:
-        query = self.projects.select().where(self.projects.c.output == filePath or self.projects.c.input == filePath)
+        query = self.projects.select().where((self.projects.c.output == filePath) | (self.projects.c.input == filePath))
         return await self.database.fetch_one(query)

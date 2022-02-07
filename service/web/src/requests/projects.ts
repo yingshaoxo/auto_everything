@@ -83,6 +83,12 @@ export const uploadFile = async (projectId: string, file: File | null): Promise<
     await fetch(HOST + `/upload_file?projectID=${projectId}`, requestOptions)
 }
 
+
+export const getStreamPath = (outputPath: string): string => {
+    return HOST + `/stream_file?filePath=${outputPath}`
+}
+
+
 export const getDownloadPath = (outputPath: string): string => {
     return HOST + `/download_file?filePath=${outputPath}`
 }
