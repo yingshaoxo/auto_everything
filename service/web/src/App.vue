@@ -6,18 +6,24 @@ import {
   Setting,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { defineComponent, nextTick, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, nextTick, onMounted, reactive, ref } from 'vue'
 
 import functions from './store/functions'
 import { pageIdentity, globalDict } from "./store/memory"
 
+import FinalAgree from './dialogs/FinalAgree/index.vue'
+
 const dict = reactive({
-  functions: {
-  }
-})
+  tempData: {
+    showFinalAgreeDialog: false,
+  },
+}) as any
 </script>
 
 <template>
+  <FinalAgree v-model:display="dict.tempData.showFinalAgreeDialog" />
+  <button @click="dict.tempData.showFinalAgreeDialog = true">test button</button>
+
   <div class="topBar">
     <div @click="functions.pages.switchPage(pageIdentity.homePage)">Auto Everyting</div>
     <div

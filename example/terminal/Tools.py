@@ -22,7 +22,7 @@ t = Terminal(debug=True)
 
 class Tools():
     def push(self, comment):
-        if "/CS/" in t.run_command("pwd"):
+        if "/CS/" in t.run_command("pwd") or "/Business/" in t.run_command("pwd"):
             t.run(f"""
             git config --global user.name "yingshaoxo"
             git config --global user.email "yingshaoxo@gmail.com"

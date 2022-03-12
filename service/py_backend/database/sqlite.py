@@ -1,8 +1,9 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import databases
 from fastapi.datastructures import UploadFile
 from fastapi.params import File
+from pkg_resources import UnknownExtra
 
 import sqlalchemy
 
@@ -39,6 +40,8 @@ class ProjectOutput(BaseModel):
     status: int
     input: Optional[str]
     output: Optional[str]
+    class Config:
+        orm_mode = True
 
 
 class MyDatabase:
@@ -69,9 +72,12 @@ class MyDatabase:
         query = self.projects.select().where(self.projects.c.id == projectID)
         return self.database.fetch_one(query) is not None
 
-    async def getAProjectByID(self, projectID: int) -> ProjectOutput:
+    async def getAProjectByID(self, projectID: int) -> Optional[ProjectOutput]:
         query = self.projects.select().where(self.projects.c.id == projectID)
-        return await self.database.fetch_one(query)
+        result = await self.database.fetch_one(query)
+        if result is None:
+            return None
+        return ProjectOutput.parse_obj(result)
 
     async def updateOutputOfAProject(
         self, projectID: int, output: str

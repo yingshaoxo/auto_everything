@@ -1,3 +1,5 @@
+from enum import Enum
+from typing import NewType, TypeVar
 import os
 from auto_everything.video import Video
 from auto_everything.disk import Disk
@@ -135,25 +137,27 @@ async def upload_file(projectID: int, file: UploadFile = File(...)):
 
     return {"message": "success"}
 
-CONTENT_CHUNK_SIZE=100*1024
+CONTENT_CHUNK_SIZE = 100*1024
+
+
 @ app.get("/stream_file/")
-async def stream_file(filePath:str,range: Optional[str] = Header(None)):
+async def stream_file(filePath: str, range: Optional[str] = Header(None)):
     def get_file():
-        f = open(filePath,'rb')
-        return f, os.path.getsize(filePath)    
-    
+        f = open(filePath, 'rb')
+        return f, os.path.getsize(filePath)
+
     def chunk_generator_from_stream(stream, chunk_size, start, size):
         bytes_read = 0
         stream.seek(start)
         while bytes_read < size:
-            bytes_to_read = min(chunk_size,size - bytes_read)
+            bytes_to_read = min(chunk_size, size - bytes_read)
             yield stream.read(bytes_to_read)
             bytes_read = bytes_read + bytes_to_read
         stream.close()
 
     asked = range or "bytes=0-"
     # print(asked)
-    stream,total_size=get_file()
+    stream, total_size = get_file()
     start_byte = int(asked.split("=")[-1].split('-')[0])
 
     return StreamingResponse(
@@ -162,13 +166,13 @@ async def stream_file(filePath:str,range: Optional[str] = Header(None)):
             start=start_byte,
             chunk_size=CONTENT_CHUNK_SIZE,
             size=total_size
-        )
-        ,headers={
+        ), headers={
             "Accept-Ranges": "bytes",
             "Content-Range": f"bytes {start_byte}-{start_byte+CONTENT_CHUNK_SIZE}/{total_size}",
             "Content-Type": "video/mp4"
         },
         status_code=206)
+
 
 @ app.get("/download_file/")
 async def download_file(filePath: str):
@@ -184,12 +188,27 @@ async def read_projects():
     return await myDatabase.database.fetch_all(query)
 
 
+# class EE(Enum):
+#     project: ProjectOutput
+#     err: ErrorOutput
+
+# @ app.post("/get_project/", response_model=EE)
+# async def read_project(projectIDInput: ProjectIDInput):
+#     record = await myDatabase.getAProjectByID(projectIDInput.project_id)
+
+#     if record is None:
+#         return ErrorOutput.parse_obj({"error": "Not found"})
+#     else:
+#         obj: ProjectOutput = record
+#         return EE(obj)
+
+
 @ app.post("/get_project/", response_model=Union[ProjectOutput,  ErrorOutput])
 async def read_project(projectIDInput: ProjectIDInput):
     record = await myDatabase.getAProjectByID(projectIDInput.project_id)
 
     if record is None:
-        return {"error": "Not found"}
+        return ErrorOutput.parse_obj({"error": "Not found"})
     else:
         return record
 
