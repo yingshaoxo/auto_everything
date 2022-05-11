@@ -25,7 +25,7 @@ const dict = reactive({
         },
         startProcess: {
             projectId: '',
-            jobType: memory.globalDict.consts.jobType.speedupSilence as unknown as typeof memory.globalDict.consts.jobType,
+            jobType: memory.globalDict.consts.jobType.removeSilence as unknown as typeof memory.globalDict.consts.jobType,
         },
     },
     rules:
@@ -113,20 +113,11 @@ onBeforeMount(async () => {
         <template #header>
             <div class="card-header">
                 <span>Projects</span>
-                <el-button
-                    class="button"
-                    type="primary"
-                    @click="dict.tempData.showAddingDialog = true"
-                >Add a new project</el-button>
+                <el-button class="button" type="primary" @click="dict.tempData.showAddingDialog = true">Add a new
+                    project</el-button>
             </div>
         </template>
-        <el-table
-            :data="dict.data.projects"
-            style="width: 100%"
-            :border="true"
-            :fit="true"
-            :stripe="true"
-        >
+        <el-table :data="dict.data.projects" style="width: 100%" :border="true" :fit="true" :stripe="true">
             <el-table-column fixed prop="id" label="ID" width="60" :align="'center'" />
             <el-table-column prop="title" label="Title" width="220" :align="'center'" />
             <el-table-column prop="input" label="Input" :align="'center'">
@@ -138,37 +129,26 @@ onBeforeMount(async () => {
                             </template>
                             <template v-slot:default>
                                 <div class="inputLinkPopups">
-                                    <el-button
-                                        type="primary"
-                                        @click="() => {
-                                            let path = functions.requests.projectRequests.getStreamPath(scope.row?.input);
-                                            functions.pages.switchPage(memory.pageIdentity.videoPlayGround, {
-                                                projectId: scope.row?.id,
-                                                videoURL: path,
-                                            } as memory.VideoPlayGroundPageRouteQueryTypeDefinition);
-                                        }"
-                                    >Play around</el-button>
-                                    <el-button
-                                        type="success"
-                                        plain
-                                        @click="() => {
-                                            let path = functions.requests.projectRequests.getDownloadPath(scope.row?.input);
-                                            functions.basic.openALink(path)
-                                        }"
-                                    >Download</el-button>
+                                    <el-button type="primary" @click="() => {
+                                        let path = functions.requests.projectRequests.getStreamPath(scope.row?.input);
+                                        functions.pages.switchPage(memory.pageIdentity.videoPlayGround, {
+                                            projectId: scope.row?.id,
+                                            videoURL: path,
+                                        } as memory.VideoPlayGroundPageRouteQueryTypeDefinition);
+                                    }">Play around</el-button>
+                                    <el-button type="success" plain @click="() => {
+                                        let path = functions.requests.projectRequests.getDownloadPath(scope.row?.input);
+                                        functions.basic.openALink(path)
+                                    }">Download</el-button>
                                 </div>
                             </template>
                         </el-popover>
                     </div>
                     <template v-if="!scope.row.input">
-                        <el-button
-                            type="success"
-                            plain
-                            @click="() => {
-                                dict.forms.uploadingFile.projectId = scope.row.id
-                                dict.tempData.showUploadingDialog = true
-                            }"
-                        >
+                        <el-button type="success" plain @click="() => {
+                            dict.forms.uploadingFile.projectId = scope.row.id
+                            dict.tempData.showUploadingDialog = true
+                        }">
                             Upload
                             <el-icon class="el-icon--right">
                                 <Upload />
@@ -181,21 +161,14 @@ onBeforeMount(async () => {
                 <template v-slot:default="scope">
                     <el-popover placement="top" trigger="hover">
                         <template v-slot:reference>
-                            <div
-                                v-show="scope.row.output"
-                                class="outputLink"
-                            >{{ scope.row?.output }}</div>
+                            <div v-show="scope.row.output" class="outputLink">{{ scope.row?.output }}</div>
                         </template>
                         <template v-slot:default>
                             <div class="Center">
-                                <el-button
-                                    type="success"
-                                    plain
-                                    @click="() => {
-                                        let path = functions.requests.projectRequests.getDownloadPath(scope.row?.output);
-                                        functions.basic.openALink(path)
-                                    }"
-                                >Download</el-button>
+                                <el-button type="success" plain @click="() => {
+                                    let path = functions.requests.projectRequests.getDownloadPath(scope.row?.output);
+                                    functions.basic.openALink(path)
+                                }">Download</el-button>
                             </div>
                         </template>
                     </el-popover>
@@ -209,94 +182,49 @@ onBeforeMount(async () => {
             <el-table-column fixed="right" label="Operations" width="120" :align="'center'">
                 <template #default="scope">
                     <div class="operationBox">
-                        <el-button
-                            type="primary"
-                            plain
-                            size="small"
-                            @click.prevent
-                            @click="() => {
-                                if (scope.row.input) {
-                                    dict.forms.startProcess.projectId = scope.row.id
-                                    dict.tempData.showStartProcessDialog = true
-                                } else {
-                                    functions.basic.print('You need to upload a file first!', 'warning')
-                                }
-                            
-                            }"
-                        >Process</el-button>
-                        <el-button
-                            style="opacity: 0.8;"
-                            type="default"
-                            plain
-                            size="small"
-                            @click.prevent
-                            @click="async () => {
-                                functions.basic.loadingStart();
-                                await functions.requests.projectRequests.deleteAProject(scope.row.id)
-                                await dict.functions.uploadProjectListView()
-                                functions.basic.loadingEnd();
-                            }"
-                        >Remove</el-button>
+                        <el-button type="primary" plain size="small" @click.prevent @click="() => {
+                            if (scope.row.input) {
+                                dict.forms.startProcess.projectId = scope.row.id
+                                dict.tempData.showStartProcessDialog = true
+                            } else {
+                                functions.basic.print('You need to upload a file first!', 'warning')
+                            }
+                        
+                        }">Process</el-button>
+                        <el-button style="opacity: 0.8;" type="default" plain size="small" @click.prevent @click="async () => {
+                            functions.basic.loadingStart();
+                            await functions.requests.projectRequests.deleteAProject(scope.row.id)
+                            await dict.functions.uploadProjectListView()
+                            functions.basic.loadingEnd();
+                        }">Remove</el-button>
                     </div>
                 </template>
             </el-table-column>
         </el-table>
     </el-card>
 
-    <el-dialog
-        v-model="dict.tempData.showAddingDialog"
-        title="Add a new project"
-        width="400px"
-        center
-    >
-        <el-form
-            ref="ruleFormRef"
-            :model="dict.forms.addingProject"
-            :rules="dict.rules.addingProject"
-            status-icon
-            label-width="100px"
-            class="demo-ruleForm"
-        >
+    <el-dialog v-model="dict.tempData.showAddingDialog" title="Add a new project" width="400px" center>
+        <el-form ref="ruleFormRef" :model="dict.forms.addingProject" :rules="dict.rules.addingProject" status-icon
+            label-width="100px" class="demo-ruleForm">
             <el-form-item label="Project Title" prop="title">
-                <el-input
-                    :style="{ width: 80 }"
-                    v-model="dict.forms.addingProject.title"
-                    type="text"
-                    autocomplete="off"
-                ></el-input>
+                <el-input :style="{ width: 80 }" v-model="dict.forms.addingProject.title" type="text"
+                    autocomplete="off"></el-input>
             </el-form-item>
         </el-form>
 
         <template #footer>
             <span class="dialog-footer">
                 <el-button @click="dict.tempData.showAddingDialog = false">Cancel</el-button>
-                <el-button
-                    type="primary"
-                    @click="dict.functions.onAddingProjectButtonConfirm"
-                >Confirm</el-button>
+                <el-button type="primary" @click="dict.functions.onAddingProjectButtonConfirm">Confirm</el-button>
             </span>
         </template>
     </el-dialog>
 
-    <el-dialog
-        v-model="dict.tempData.showUploadingDialog"
-        title="Upload a file"
-        width="500px"
-        center
-    >
-        <el-form
-            label-position="top"
-            :model="dict.forms.uploadingFile"
-            :rules="dict.rules.uploadingFile"
-        >
+    <el-dialog v-model="dict.tempData.showUploadingDialog" title="Upload a file" width="500px" center>
+        <el-form label-position="top" :model="dict.forms.uploadingFile" :rules="dict.rules.uploadingFile">
             <el-form-item label="Project ID" prop>
-                <el-input
-                    :style="{ width: 80 }"
-                    v-model="dict.forms.uploadingFile.projectId"
-                    type="text"
-                    autocomplete="off"
-                    :disabled="true"
-                ></el-input>
+                <el-input :style="{ width: 80 }" v-model="dict.forms.uploadingFile.projectId" type="text"
+                    autocomplete="off" :disabled="true"></el-input>
             </el-form-item>
             <el-form-item label="File" prop>
                 <div class="Center FullSize">
@@ -308,48 +236,23 @@ onBeforeMount(async () => {
         <template #footer>
             <span class="dialog-footer">
                 <el-button @click="dict.tempData.showUploadingDialog = false">Cancel</el-button>
-                <el-button
-                    type="primary"
-                    @click="dict.functions.onUploadingFileButtonConfirm"
-                >Confirm</el-button>
+                <el-button type="primary" @click="dict.functions.onUploadingFileButtonConfirm">Confirm</el-button>
             </span>
         </template>
     </el-dialog>
 
-    <el-dialog
-        v-model="dict.tempData.showStartProcessDialog"
-        title="Start the process"
-        width="500px"
-        center
-    >
-        <el-form
-            label-position="top"
-            :model="dict.forms.startProcess"
-            :rules="dict.rules.startProcess"
-        >
+    <el-dialog v-model="dict.tempData.showStartProcessDialog" title="Start the process" width="500px" center>
+        <el-form label-position="top" :model="dict.forms.startProcess" :rules="dict.rules.startProcess">
             <el-form-item label="Project ID" prop>
-                <el-input
-                    :style="{ width: 80 }"
-                    v-model="dict.forms.startProcess.projectId"
-                    type="text"
-                    autocomplete="off"
-                    :disabled="true"
-                ></el-input>
+                <el-input :style="{ width: 80 }" v-model="dict.forms.startProcess.projectId" type="text"
+                    autocomplete="off" :disabled="true"></el-input>
             </el-form-item>
             <el-form-item label="Job Type" prop="jobType">
                 <!-- <div class="Center FullSize">
                 </div>-->
-                <el-select
-                    class="m-2 FullSize"
-                    v-model="dict.forms.startProcess.jobType"
-                    placeholder="Select"
-                >
-                    <el-option
-                        v-for="jobType in Object.values(memory.globalDict.consts.jobType)"
-                        :key="jobType"
-                        :label="jobType"
-                        :value="jobType"
-                    ></el-option>
+                <el-select class="m-2 FullSize" v-model="dict.forms.startProcess.jobType" placeholder="Select">
+                    <el-option v-for="jobType in Object.values(memory.globalDict.consts.jobType)" :key="jobType"
+                        :label="jobType" :value="jobType"></el-option>
                 </el-select>
             </el-form-item>
         </el-form>
@@ -357,10 +260,7 @@ onBeforeMount(async () => {
         <template #footer>
             <span class="dialog-footer">
                 <el-button @click="dict.tempData.showStartProcessDialog = false">Cancel</el-button>
-                <el-button
-                    type="primary"
-                    @click="dict.functions.onStartProcessButtonConfirm"
-                >Confirm</el-button>
+                <el-button type="primary" @click="dict.functions.onStartProcessButtonConfirm">Confirm</el-button>
             </span>
         </template>
     </el-dialog>
@@ -404,7 +304,7 @@ onBeforeMount(async () => {
 }
 
 .operationBox {
-    .el-button + .el-button {
+    .el-button+.el-button {
         margin-left: 0px;
     }
 
@@ -435,7 +335,7 @@ onBeforeMount(async () => {
     align-items: center;
     align-content: center;
 
-    .el-button + .el-button {
+    .el-button+.el-button {
         margin-left: 0px;
         margin-top: 15px;
     }

@@ -75,6 +75,10 @@ def deleteCorrespondingFileOfAProject(projectID: int) -> None:
 
 async def async_func(project_id: int, job: str):
     project = await myDatabase.getAProjectByID(project_id)
+    if (project is None):
+        await myDatabase.setStatusOfAProject(project_id, -1)
+        return
+
     inputPath = project.input
     outputPath = getFilePathByProjectID(project_id) + ".output.mp4"
 
@@ -128,7 +132,7 @@ async def upload_file(projectID: int, file: UploadFile = File(...)):
     filePath = getFilePathByProjectID(projectID)
 
     contents = await file.read()
-    contents_bytes_io = disk.convertBytesToBytesIO(contents)
+    contents_bytes_io = disk.convertBytesToBytesIO(contents)  # type: ignore
     disk.save_bytesio_to_file(contents_bytes_io, filePath)
 
     query = myDatabase.projects.update().where(
@@ -188,22 +192,21 @@ async def read_projects():
     return await myDatabase.database.fetch_all(query)
 
 
-# class EE(Enum):
+# class ProjectOutputOrErrorOutput(Enum):
 #     project: ProjectOutput
 #     err: ErrorOutput
 
-# @ app.post("/get_project/", response_model=EE)
+# @ app.post("/get_project/", response_model=ProjectOutputOrErrorOutput)
 # async def read_project(projectIDInput: ProjectIDInput):
 #     record = await myDatabase.getAProjectByID(projectIDInput.project_id)
 
 #     if record is None:
 #         return ErrorOutput.parse_obj({"error": "Not found"})
 #     else:
-#         obj: ProjectOutput = record
-#         return EE(obj)
+#         return record
 
-
-@ app.post("/get_project/", response_model=Union[ProjectOutput,  ErrorOutput])
+@ app.post("/get_project/",
+           response_model=Union[ProjectOutput,  ErrorOutput])  # type: ignore
 async def read_project(projectIDInput: ProjectIDInput):
     record = await myDatabase.getAProjectByID(projectIDInput.project_id)
 
@@ -236,7 +239,7 @@ async def delete_project(projectIDInput: ProjectIDInput):
 
 
 @ app.post("/start_process_for_a_project/",
-           response_model=Union[SuccessOutput, ErrorOutput])
+           response_model=Union[SuccessOutput, ErrorOutput])  # type: ignore
 async def start_process_for_a_project(StartProcessInput: StartProcessInput, background_tasks: BackgroundTasks):
     if (myDatabase.checkIfProjectExistByID(StartProcessInput.project_id) is False):
         return {"error": "Project ID not exist"}
@@ -248,16 +251,7 @@ async def start_process_for_a_project(StartProcessInput: StartProcessInput, back
 
 
 def start():
-    # launch with: poetry run dev
-
-    port = sys.argv[-1]
-    if port.isdigit():
-        port = int(port)
-    else:
-        port = 8000
-
-    while is_port_in_use(port):
-        port += 1
+    port = 8765
 
     myPrint(f"The service is running on: http://localhost:{port}")
 

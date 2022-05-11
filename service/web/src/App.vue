@@ -22,17 +22,15 @@ const dict = reactive({
 
 <template>
   <FinalAgree v-model:display="dict.tempData.showFinalAgreeDialog" />
-  <button @click="dict.tempData.showFinalAgreeDialog = true">test button</button>
+  <!-- <button @click="dict.tempData.showFinalAgreeDialog = true">test button</button> -->
 
   <div class="topBar">
     <div @click="functions.pages.switchPage(pageIdentity.homePage)">Auto Everyting</div>
-    <div
-      @click="
-        () => {
-          functions.basic.openALink('https://github.com/yingshaoxo/auto_everything')
-        }
-      "
-    >Github</div>
+    <div @click="
+      () => {
+        functions.basic.openALink('https://github.com/yingshaoxo/auto_everything')
+      }
+    ">Github</div>
   </div>
 
   <el-row>
@@ -45,12 +43,9 @@ const dict = reactive({
             </el-icon>
             <span>Media Processor</span>
           </template>
-          <el-menu-item
-            index="1-1"
-            @click="() => {
-              functions.pages.switchPage(pageIdentity.videoPage)
-            }"
-          >Video</el-menu-item>
+          <el-menu-item index="1-1" @click="() => {
+            functions.pages.switchPage(pageIdentity.videoPage)
+          }">Video</el-menu-item>
           <!-- <el-menu-item
             index="1-2"
             @click="() => {
@@ -79,6 +74,7 @@ body {
   padding: 0;
   margin: 0;
 }
+
 .topBar {
   height: 50px;
   background-color: #f5f5f5;
@@ -93,6 +89,7 @@ body {
   flex-direction: row;
   justify-content: space-between;
 }
+
 .boxContainer {
   @include _center;
   @include _fullSize;

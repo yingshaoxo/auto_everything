@@ -40,6 +40,7 @@ class ProjectOutput(BaseModel):
     status: int
     input: Optional[str]
     output: Optional[str]
+
     class Config:
         orm_mode = True
 
@@ -87,7 +88,7 @@ class MyDatabase:
         ).values(output=output)
         await self.database.execute(query)
 
-        return await self.getAProjectByID(projectID)
+        return ProjectOutput.parse_obj(await self.getAProjectByID(projectID))
 
     async def setStatusOfAProject(self, projectID: int, status: int) -> ProjectOutput:
         query = self.projects.update().where(
@@ -95,8 +96,9 @@ class MyDatabase:
         ).values(status=status)
         await self.database.execute(query)
 
-        return await self.getAProjectByID(projectID)
+        return ProjectOutput.parse_obj(await self.getAProjectByID(projectID))
 
     async def getProjectByInputOrOutputFilePath(self, filePath: str) -> ProjectOutput:
-        query = self.projects.select().where((self.projects.c.output == filePath) | (self.projects.c.input == filePath))
-        return await self.database.fetch_one(query)
+        query = self.projects.select().where((self.projects.c.output == filePath)
+                                             | (self.projects.c.input == filePath))
+        return ProjectOutput.parse_obj(await self.database.fetch_one(query))

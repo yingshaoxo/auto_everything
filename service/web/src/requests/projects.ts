@@ -9,7 +9,7 @@ export interface Project {
     output: any
 }
 
-const HOST = 'http://localhost:8000'
+const HOST = 'http://localhost:8765'
 
 export const getProjects = async (): Promise<Project[]> => {
     var requestOptions = {
