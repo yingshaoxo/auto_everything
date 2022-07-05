@@ -34,6 +34,15 @@ class Tools():
             """)
             return
 
+    def parse(self, url):
+        #export accessToken=""
+        if ("https://" in url):
+            url = url[len("https://"):]
+            accessToken = os.getenv('accessToken')
+            result = f"git clone https://oauth2:{accessToken}@{url}"
+            print(result)
+            t.run(f'echo "{result}" | pbcopy')
+
     def commit(self, comment):
         if "/CS/" in t.run_command("pwd"):
             t.run(f"""
