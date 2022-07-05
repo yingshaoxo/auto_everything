@@ -1,52 +1,38 @@
 #!/usr/bin/env /Users/yingshaoxo/miniforge3/bin/python3
-#!/usr/bin/env /usr/local/opt/python@3.9/bin/python3.9
+import os
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 
-hasGoogletrans = False
-try:
-    from googletrans import Translator
-    translator = Translator()
-    hasGoogletrans = True
-except Exception as e:
-    print(e)
-    text = "sudo pip3 install googletrans==3.1.0a0"
-    print(f"Please install googletrans it by using: \n\n{text}")
-    print()
-    print(f"After that, you probobly need proxychains: \n\n sudo apt install proxychains")
-    print()
-    print("sudo vim /etc/proxychains.conf")
 py = Python()
 t = Terminal(debug=True)
 
+def itIsWindows():
+    if os.name == 'nt':
+        return True
+    return False
 
 class Tools():
     def push(self, comment):
-        if "/CS/" in t.run_command("pwd") or "/Business/" in t.run_command("pwd"):
+        if "/Work/" in t.run_command("pwd"):
             t.run(f"""
-            git config --global user.name "yingshaoxo"
-            git config --global user.email "yingshaoxo@gmail.com"
+            git config --global user.name "leo.wooyj"
+            git config --global user.email "leo.wooyj@finpoints.com" 
+            #"yingjie.hu@fargowealth.com.hk"
+
             git add .
             git commit -m "{comment}"
             git push origin
             """)
         else:
-            if hasGoogletrans:
-                try:
-                    translated_comment = translator.translate(
-                        comment, dest='zh-cn').text
-                    if translated_comment != comment:
-                        comment = f"{translated_comment} ({comment})"
-                except Exception as e:
-                    print(e)
-
             t.run(f"""
-            git config --global user.name "yingjie.hu"
-            git config --global user.email "yingjie.hu@fargowealth.com.hk"
+            git config --global user.name "yingshaoxo"
+            git config --global user.email "yingshaoxo@gmail.com"
+
             git add .
             git commit -m "{comment}"
             git push origin
             """)
+            return
 
     def commit(self, comment):
         if "/CS/" in t.run_command("pwd"):
