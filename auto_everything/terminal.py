@@ -12,7 +12,7 @@ from typing import Tuple, List
 import psutil
 
 
-class Terminal():
+class Terminal:
     """
     Terminal simulator for execute bash commands
     """
@@ -26,10 +26,12 @@ class Terminal():
             Linux system username
         """
         from auto_everything.io import IO
+
         self.debug: bool = debug
 
-        self.py_version: str = '{major}.{minor}'.format(
-            major=str(sys.version_info[0]), minor=str(sys.version_info[1]))
+        self.py_version: str = "{major}.{minor}".format(
+            major=str(sys.version_info[0]), minor=str(sys.version_info[1])
+        )
         self.py_executable: str = sys.executable.replace("\\", "/")
         if os.name == "posix":
             self.system_type: str = "linux"
@@ -38,21 +40,26 @@ class Terminal():
         else:
             self.system_type: str = "none"
         self.machine_type: str = platform.machine()
-        if float(self.py_version) < 3.5:
-            print('We only support Python >= 3.5 Versions')
+
+        _2or3 = sys.version_info[0]
+        _second_version_number = sys.version_info[1]
+        if float(_2or3) <= 2:
+            print("We only support Python3")
+            exit()
+        if (int(_2or3) == 3) and (int(_second_version_number) < 5):
+            print("We only support Python >= 3.5")
             exit()
 
         self.current_dir: str = os.getcwd()
-        self.__current_file_path: str = os.path.join(
-            self.current_dir, sys.argv[0])
+        self.__current_file_path: str = os.path.join(self.current_dir, sys.argv[0])
         self.temp_dir: str = tempfile.gettempdir()
 
-        if os.path.exists(os.path.join(self.current_dir, 'nohup.out')):
-            os.remove(os.path.join(self.current_dir, 'nohup.out'))
+        if os.path.exists(os.path.join(self.current_dir, "nohup.out")):
+            os.remove(os.path.join(self.current_dir, "nohup.out"))
 
         self._io = IO()
 
-    def fix_path(self, path: str, username: str = None) -> str:
+    def fix_path(self, path: str, username: str | None = None) -> str:
         # """
         # replace ~ with system username
         # // depressed, please use expanduser_in_path
@@ -65,17 +72,18 @@ class Terminal():
         #    Linux system username
         # """
         if username is None:
-            path = path.replace('~', os.path.expanduser('~'))
-        elif username == 'root':
-            if path[0] == '~':
-                path = '~' + path[1:]
+            path = path.replace("~", os.path.expanduser("~"))
+        elif username == "root":
+            if path[0] == "~":
+                path = "~" + path[1:]
         else:
             path = path.replace(
-                '~', "/".join(os.path.expanduser('~').split("/")[:-1]) + "/" + username)
+                "~", "/".join(os.path.expanduser("~").split("/")[:-1]) + "/" + username
+            )
             print(path)
         return path.replace("\\", "/")
 
-    def expanduser_in_path(self, path: str, username: str = None) -> str:
+    def expanduser_in_path(self, path: str, username: str | None = None) -> str:
         # """
         # replace ~ with system username
 
@@ -117,7 +125,7 @@ class Terminal():
         except Exception:
             pass
 
-    def run(self, c: str, cwd: str = None, wait: bool = True):
+    def run(self, c: str, cwd: str | None = None, wait: bool = True):
         """
         run shell commands without value returning
 
@@ -139,25 +147,37 @@ class Terminal():
         # if '\n' in c:
         c = self.fix_path(c)
         if self.debug:
-            print('\n' + '-' * 20 + '\n')
+            print("\n" + "-" * 20 + "\n")
             print(c)
-            print('\n' + '-' * 20 + '\n')
+            print("\n" + "-" * 20 + "\n")
         c, temp_sh = self.__text_to_sh(c)
 
         try:
             args_list = shlex.split(c)
-            p = subprocess.Popen(args_list, stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT, universal_newlines=True, cwd=cwd)
+            p = subprocess.Popen(
+                args_list,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                cwd=cwd,
+            )
         except Exception as e:
             print(e)
             c = self.fix_path(c)
             args_list = shlex.split(c)
-            p = subprocess.Popen(args_list, stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT, universal_newlines=True, cwd=cwd)
+            p = subprocess.Popen(
+                args_list,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                cwd=cwd,
+            )
 
         if wait is True:
             try:
                 while p.poll() is None:
+                    if p.stdout is None:
+                        break
                     line = p.stdout.readline()  # strip(' \n')
                     print(line, end="")
             except KeyboardInterrupt:
@@ -167,7 +187,7 @@ class Terminal():
         else:
             return p
 
-    def run_command(self, c: str, timeout: int = 15, cwd: str = None) -> str:
+    def run_command(self, c: str, timeout: int = 15, cwd: str | None = None) -> str:
         """
         run shell commands with return value
 
@@ -188,16 +208,22 @@ class Terminal():
         # if '\n' in c:
         c = self.fix_path(c)
         if self.debug:
-            print('\n' + '-' * 20 + '\n')
+            print("\n" + "-" * 20 + "\n")
             print(c)
-            print('\n' + '-' * 20 + '\n')
+            print("\n" + "-" * 20 + "\n")
         c, temp_sh = self.__text_to_sh(c)
 
         args_list = shlex.split(c)
         try:
             try:
-                result = subprocess.run(args_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                        cwd=cwd, universal_newlines=True, timeout=timeout)
+                result = subprocess.run(
+                    args_list,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    cwd=cwd,
+                    universal_newlines=True,
+                    timeout=timeout,
+                )
                 result = str(result.stdout).strip(" \n")
             except KeyboardInterrupt:
                 self.__remove_temp_sh(temp_sh)
@@ -208,15 +234,15 @@ class Terminal():
             self.__remove_temp_sh(temp_sh)
             return str(e)
 
-    def run_program(self, name: str, cwd: str = None) -> subprocess.Popen:
+    def run_program(self, name: str, cwd: str | None = None) -> subprocess.Popen:
         """
-        run shell commands, especially programs which can be started from terminal. 
+        run shell commands, especially programs which can be started from terminal.
         This function will not wait program to be finished.
 
         Parameters
         ----------
         name: string
-            for example: 
+            for example:
                 `firefox` or `/opt/v2ray/v2ray`
         cwd: string
             current working directory
@@ -224,7 +250,7 @@ class Terminal():
         name = self.fix_path(name)
 
         args_list = shlex.split(name)
-        args_list = ['nohup'] + args_list
+        args_list = ["nohup"] + args_list
 
         if cwd is None:
             cwd = self.current_dir
@@ -240,19 +266,21 @@ class Terminal():
         if file_path[0] != "~":
             file_path = os.path.abspath(file_path)
         if len(file_path) > 1:
-            args = ' '.join(args_list[1:])
+            args = " ".join(args_list[1:])
         else:
-            args = ''
+            args = ""
         return file_path, args
 
-    def run_py(self, file_path_with_command: str, cwd: str = None, wait: bool = False):
+    def run_py(
+        self, file_path_with_command: str, cwd: str | None = None, wait: bool = False
+    ):
         """
         run py_file
 
         Parameters
         ----------
         file_path_with_command: string
-            for example: 
+            for example:
                 `hi.py --name yingshaoxo`
         cwd: string
             current working directory
@@ -261,8 +289,7 @@ class Terminal():
         """
         path, args = self.__split_args(file_path_with_command)
         path = self.fix_path(path)
-        command = self.py_executable + \
-            ' {path} {args}'.format(path=path, args=args)
+        command = self.py_executable + " {path} {args}".format(path=path, args=args)
 
         if cwd is None:
             cwd = os.path.dirname(path)
@@ -272,14 +299,16 @@ class Terminal():
         elif wait is True:
             self.run(command, cwd=cwd, wait=True)
 
-    def run_sh(self, file_path_with_command: str, cwd: str = None, wait: bool = False):
+    def run_sh(
+        self, file_path_with_command: str, cwd: str | None = None, wait: bool = False
+    ):
         """
         run sh_file
 
         Parameters
         ----------
         file_path_with_command: string
-            for example: 
+            for example:
                 `hi.sh --name yingshaoxo`
         cwd: string
             current working directory
@@ -288,7 +317,7 @@ class Terminal():
         """
         path, args = self.__split_args(file_path_with_command)
         path = self.fix_path(path)
-        command = 'bash {path} {args}'.format(path=path, args=args)
+        command = "bash {path} {args}".format(path=path, args=args)
 
         if cwd is None:
             cwd = os.path.dirname(path)
@@ -321,7 +350,7 @@ class Terminal():
                 # Get process name & pid from process object.
                 # processName = proc.name()
                 process_id = proc.pid
-                process_command = ' '.join(proc.cmdline())
+                process_command = " ".join(proc.cmdline())
                 if name in process_command:
                     pids.append(process_id)
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
@@ -343,7 +372,9 @@ class Terminal():
         else:
             return False
 
-    def kill(self, name: str, force: bool = True, wait: bool = False, timeout: int = 30):
+    def kill(
+        self, name: str, force: bool = True, wait: bool = False, timeout: int = 30
+    ):
         """
         kill a program by its name, depends on `kill pid`
 
@@ -352,7 +383,7 @@ class Terminal():
         name: string
             what's the name of that program you want to kill
         force: bool
-            kill it directlly or softly. 
+            kill it directlly or softly.
             some program like ffmpeg, should set force=False
         wait: bool
             true, wait until program totolly quit
@@ -360,17 +391,17 @@ class Terminal():
         pids = self._get_pids(name)
         for pid in pids:
             if force:
-                self.run_command('kill -s SIGKILL {num}'.format(num=pid))
-                self.run_command('pkill {name}'.format(name=name))
+                self.run_command("kill -s SIGKILL {num}".format(num=pid))
+                self.run_command("pkill {name}".format(name=name))
             else:
-                self.run_command('kill -s SIGINT {num}'.format(num=pid))
+                self.run_command("kill -s SIGINT {num}".format(num=pid))
                 # import signal
                 # os.kill(pid, signal.SIGINT) #This is typically initiated by pressing Ctrl+C
 
         if wait is True:
-            while (self.is_running(name) and timeout > 0):
+            while self.is_running(name) and timeout > 0:
                 time.sleep(1)
                 timeout -= 1
             pids = self._get_pids(name)
             for pid in pids:
-                self.run_command('kill -s SIGQUIT {num}'.format(num=pid))
+                self.run_command("kill -s SIGQUIT {num}".format(num=pid))

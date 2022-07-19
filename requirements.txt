@@ -1,0 +1,13 @@
+pymongo
+numpy
+librosa
+moviepy
+pyaudio
+vosk
+opencv-python
+pyscreenshot
+pytesseract
+pyautogui
+pyfakewebcam
+pillow
+o365

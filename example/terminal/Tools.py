@@ -1,4 +1,3 @@
-#!/usr/bin/env /Users/yingshaoxo/miniforge3/bin/python3
 import os
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal

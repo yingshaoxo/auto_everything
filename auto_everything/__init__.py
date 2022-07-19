@@ -5,9 +5,9 @@ from auto_everything.python import Python
 from auto_everything.network import Network
 
 __all__ = [
-    IO,
-    Terminal,
-    Disk,
-    Python,
-    Network
+    'IO',
+    'Terminal',
+    'Disk',
+    'Python',
+    'Network'
 ]

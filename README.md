@@ -5,9 +5,22 @@ Linux(mainly ubuntu) automation
 [<img src="https://github.com/yingshaoxo/yingshaoxo/raw/master/become_a_patron_button.png" width="200">](https://www.patreon.com/bePatron?u=45200693)
 
 
-#### Installation
+#### Installation (For Python >= 3.10)
 ```bash
+poetry add auto_everything
+
+or
+
 sudo pip3 install auto_everything
+```
+
+#### Installation (For 3.5 <= Python < 3.10)
+```bash
+poetry add auto_everything==3.9
+
+or
+
+sudo pip3 install auto_everything==3.9
 ```
 
 or
