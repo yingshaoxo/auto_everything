@@ -7,7 +7,7 @@ t = Terminal()
 
 
 class Mission():
-    def light(self, num:int):
+    def light(self, num:float):
         num = num / 100
         t.run(f"""
 xrandr --output DP-1 --brightness {num}
