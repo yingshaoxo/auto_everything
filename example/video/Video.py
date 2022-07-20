@@ -1,6 +1,4 @@
-#!/usr/bin/env /Users/yingshaoxo/miniforge3/bin/python3
-#!/usr/bin/env /Applications/Xcode.app/Contents/Developer/usr/bin/python3
-
+#!/usr/bin/env /Users/yingshaoxo/Library/Caches/pypoetry/virtualenvs/auto-everything-_Gc1gPdN-py3.10/bin/python
 import inquirer
 import os
 from auto_everything.base import Terminal, Python
@@ -17,7 +15,7 @@ disk = Disk()
 t.debug = True
 
 
-RootDIR = "/Users/yingshaoxo/Movies/Videos"
+RootDIR = "/Users/yingshaoxo/Movies/Videos/good"
 
 
 class Tools:
@@ -26,55 +24,73 @@ class Tools:
 
     def run(self):
         questions = [
-            inquirer.List('function',
-                          message="What is the function you want to call?",
-                          choices=['nosilence', 'speedupsilence'],
-                          ),
-            #inquirer.Text('db', message="What's db that split the voice and silence")
+            inquirer.List(
+                "function",
+                message="What is the function you want to call?",
+                choices=["nosilence", "speedupsilence"],
+            ),
+            # inquirer.Text('db', message="What's db that split the voice and silence")
         ]
         answers = inquirer.prompt(questions)
+        if answers is None:
+            print("You must choose.")
+            return
 
-        function = answers.get('function')
-        if (function == "nosilence"):
+        function = answers.get("function")
+        if function == "nosilence":
             questions = [
                 inquirer.Text(
-                    'db', message="What's db that split the voice and silence? (default to 50)"),
+                    "db",
+                    message="What's db that split the voice and silence? (default to 50)",
+                ),
                 inquirer.Text(
-                    'interval', message="What's minimum interval that when small than that, we never treat it as silence? (default to 1.7)")
+                    "interval",
+                    message="What's minimum interval that when small than that, we never treat it as silence? (default to 1.7)",
+                ),
             ]
             answers = inquirer.prompt(questions)
+            if answers is None:
+                print("You must choose.")
+                return
 
             db = answers.get("db")
             interval = answers.get("interval")
 
-            if (db.strip() == ""):
+            if db is None or db.strip() == "":
                 db = 50
-            if (interval.strip() == ""):
+            if interval is None or interval.strip() == "":
                 interval = 1.7
 
-            db = int(db)
-            interval = float(interval)
+            db = int(db.strip())  # type: ignore
+            interval = float(interval.strip())  # type: ignore
 
             self.nosilence(db=db, interval=interval)
-        elif (function == "speedupsilence"):
+        elif function == "speedupsilence":
             questions = [
                 inquirer.Text(
-                    'db', message="What's db that split the voice and silence? (default to 35)"),
+                    "db",
+                    message="What's db that split the voice and silence? (default to 35)",
+                ),
                 inquirer.Text(
-                    'speed', message="What's video speed that you want for silence part? (default to 50)")
+                    "speed",
+                    message="What's video speed that you want for silence part? (default to 50)",
+                ),
             ]
             answers = inquirer.prompt(questions)
+            if answers is None:
+                print("You must choose.")
+                return
 
             db = answers.get("db")
             speed = answers.get("speed")
 
-            if (db.strip() == ""):
+            if db is None or db.strip() == "":
                 db = 35
-            if (speed.strip() == ""):
+            if speed is None or speed.strip() == "":
                 speed = 50
 
-            db = int(db)
-            speed = int(speed)
+            db = int(db.strip())  # type: ignore
+            speed = int(speed.strip())  # type: ignore
 
             self.speedupsilence(db=db, speed=speed)
 
@@ -82,23 +98,27 @@ class Tools:
         files = []
         for file in os.listdir(t.fix_path("./doing")):
             splits = file.split(".")
-            if (len(splits) > 0):
+            if len(splits) > 0:
                 if splits[1] in ["mp4", "mkv"]:
                     files.append(os.path.abspath(os.path.join("doing", file)))
         files.sort(key=os.path.getmtime)
         video.link_videos(files, os.path.abspath("./doing.mp4"), method=2)
 
     def preprocessing(self):
-        files = disk.get_files("doing", recursive=False,
-                               type_limiter=[".mp4", '.mkv'])
+        if (not disk.exists('./doing')):
+            return
+
+        files = disk.get_files("doing", recursive=False, type_limiter=[".mp4", ".mkv"])
         files = [file for file in files if file != ".DS_Store"]
         if len(files) == 1:
             t.run_command(
-                t.fix_path(f"""
+                t.fix_path(
+                    f"""
                 cd {RootDIR}
                 rm -fr doing.mp4
                 mv doing/*.* doing.mp4
-                    """)
+                    """
+                )
             )
         elif len(files) > 1:
             self.link()
@@ -106,6 +126,24 @@ class Tools:
     def nosilence(self, db=19, interval=0.4, skip_noise=0):  # 21, 0.7
         self.preprocessing()
         source = os.path.abspath("./doing.mp4")
+        if not disk.exists(source):
+            files = disk.get_files('.', recursive=False, type_limiter=['.mp4', '.mkv'])
+
+            questions = [
+                inquirer.List(
+                    "file",
+                    message="What file you want to process?",
+                    choices=files,
+                ),
+            ]
+            answers = inquirer.prompt(questions)
+            if answers is None:
+                print("You must choose.")
+                return
+
+            source = answers.get("file")
+            if (source is None):
+                exit()
         print(source)
         target = os.path.abspath("./nosilence.mp4")
         video.remove_silence_parts_from_video(
@@ -116,9 +154,8 @@ class Tools:
     def speedupsilence(self, db=35, speed=30):  # 21 5
         self.preprocessing()
         source = os.path.abspath("./doing.mp4")
-        if not os.path.exists(source):
-            return
-            self.link()
+        if not disk.exists(source):
+            source = os.path.abspath(".")
         target = os.path.abspath("./speedupsilence.mp4")
         video.speedup_silence_parts_in_video(source, target, db, speed)
 
@@ -171,7 +208,7 @@ class Tools:
         source = os.path.abspath("./doing.mp4")
         target = os.path.abspath("./nosilence.mp4")
         video.remove_silence_parts_from_video(
-            source, target, db, minimum_interval, skip_sharp_noise=skip
+            source, target, db, minimum_interval, skip_sharp_noise=skip == 1
         )
 
     def compress(self, folder):
