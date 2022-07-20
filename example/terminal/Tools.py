@@ -1,3 +1,4 @@
+#!/usr/bin/env /Users/yingshaoxo/Library/Caches/pypoetry/virtualenvs/auto-everything-_Gc1gPdN-py3.10/bin/python
 import os
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
