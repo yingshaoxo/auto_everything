@@ -19,7 +19,12 @@ pydub = "^0.25.1"
 py-dateutil = "^2.2"
 vosk = "^0.3.43"
 inquirer = "^2.9.2"
+speechbrain = "^0.5.12"
+transformers = "^4.20.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+test = "auto_everything.video:test"

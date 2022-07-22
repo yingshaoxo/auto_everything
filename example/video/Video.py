@@ -105,7 +105,7 @@ class Tools:
         video.link_videos(files, os.path.abspath("./doing.mp4"), method=2)
 
     def preprocessing(self):
-        if (not disk.exists('./doing')):
+        if not disk.exists("./doing"):
             return
 
         files = disk.get_files("doing", recursive=False, type_limiter=[".mp4", ".mkv"])
@@ -127,7 +127,7 @@ class Tools:
         self.preprocessing()
         source = os.path.abspath("./doing.mp4")
         if not disk.exists(source):
-            files = disk.get_files('.', recursive=False, type_limiter=['.mp4', '.mkv'])
+            files = disk.get_files(".", recursive=False, type_limiter=[".mp4", ".mkv"])
 
             questions = [
                 inquirer.List(
@@ -142,7 +142,7 @@ class Tools:
                 return
 
             source = answers.get("file")
-            if (source is None):
+            if source is None:
                 exit()
         print(source)
         target = os.path.abspath("./nosilence.mp4")
@@ -160,7 +160,7 @@ class Tools:
         video.speedup_silence_parts_in_video(source, target, db, speed)
 
     def addmusic(self, song):
-        video.addMusicFilesToVideoFile(
+        video.add_background_music_files_into_video(
             source_file_path="./speedupsilence.mp4",
             target_file_path="output.mp4",
             musicFiles=[

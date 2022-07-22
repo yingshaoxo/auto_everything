@@ -14,6 +14,10 @@ import json
 # import wave
 import subprocess
 
+import torchaudio
+# from speechbrain.dataio.dataio import read_audio
+from speechbrain.pretrained import SepformerSeparation as separator
+
 from typing import List, Tuple
 from auto_everything.io import IO
 from auto_everything.terminal import Terminal
@@ -755,7 +759,7 @@ class Video:
         self,
         source_video_path,
         target_video_path,
-        db_for_split_silence_and_voice,
+        db_for_split_silence_and_voice=40,
         minimum_interval_time_in_seconds=None,
         voice_only=False,
         skip_sharp_noise=False,
@@ -1095,16 +1099,55 @@ class Video:
 
         done()
 
-    def get_mp3_from_video(self, source_video_path, target_video_path):
+    def get_audio_from_video(self, source_video_path: str, target_audio_path: str):
         source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_audio_path = try_to_get_absolutely_path(target_audio_path)
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_audio_path)
+        make_sure_target_does_not_exist(target_audio_path)
+
+        t.run(
+            f"""
+            ffmpeg -i "{source_video_path}" "{target_audio_path}"
+        """
+        )
+
+        done()
+
+    def get_wav_from_video(
+        self, source_video_path: str, target_audio_path: str, rate: int = 8000
+    ):
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        target_audio_path = try_to_get_absolutely_path(target_audio_path)
+        make_sure_source_is_absolute_path(source_video_path)
+        make_sure_target_is_absolute_path(target_audio_path)
+        make_sure_target_does_not_exist(target_audio_path)
+
+        if type(rate) != int:
+            raise (Exception("The rate should be an integer!"))
+
+        t.run(
+            f"""
+            ffmpeg -i "{source_video_path}" -vn -ar {str(rate)} "{target_audio_path}"
+        """
+        )
+
+        done()
+
+    def replace_old_audio_with_new_wav_file_for_a_video(
+        self, source_video_path: str, new_wav_audio_path: str, target_video_path: str
+    ):
+        source_video_path = try_to_get_absolutely_path(source_video_path)
+        new_wav_audio_path = try_to_get_absolutely_path(new_wav_audio_path)
         target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_source_is_absolute_path(source_video_path)
+        make_sure_source_is_absolute_path(new_wav_audio_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
 
         t.run(
             f"""
-            ffmpeg -i "{source_video_path}" "{source_video_path}"
+            ffmpeg -i "{source_video_path}" -i "{new_wav_audio_path}" -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 "{target_video_path}"
         """
         )
 
@@ -1336,7 +1379,7 @@ class Video:
 
         done()
 
-    def addMusicFilesToVideoFile(
+    def add_background_music_files_into_video(
         self,
         source_file_path: str,
         target_file_path: str,
@@ -1429,6 +1472,7 @@ class DeepVideo:
     4. moviepy
     5. librosa
     6. pornstar
+    7. speechbrain
     """
 
     def __init__(self):
@@ -1457,6 +1501,44 @@ class DeepVideo:
         self.vosk_model_folder = self.config_folder / Path("model")
         if not self.vosk_model_folder.exists():
             disk.uncompress(zip_file.as_posix(), self.vosk_model_folder.as_posix())
+
+        # handle speech brain
+        speech_model_data_saving_folder = (
+            self.config_folder
+            / Path("speechbrain")
+            / Path("pretrained_models/sepformer-whamr-enhancement")
+        )
+        if not os.path.exists(speech_model_data_saving_folder):
+            t.run_command(f"mkdir -p {speech_model_data_saving_folder}")
+        self.speechbrain_sepformer_voice_enhancement_model = separator.from_hparams(
+            source="speechbrain/sepformer-whamr-enhancement",
+            savedir=speech_model_data_saving_folder,
+        )
+
+    '''
+    def remove_noise_from_video(self):
+        pass
+        """
+        # Experiment for noise removing
+        # What needs to be done is: 1. increase the sample rate. 2. make it work on left-and-right-channel audio
+        video = Video()
+        deepVideo = DeepVideo()
+
+        input_video_path = "/Users/yingshaoxo/Movies/Videos/good/1.mkv"
+        temp_wav_path = "/Users/yingshaoxo/Movies/Videos/good/1_temp.wav"
+        final_wav_path = "/Users/yingshaoxo/Movies/Videos/good/1_final.wav"
+        output_video_path = "/Users/yingshaoxo/Movies/Videos/good/done.mkv"
+        video.get_wav_from_video(input_video_path, temp_wav_path)
+        enhanced_speech = (
+            deepVideo.speechbrain_sepformer_voice_enhancement_model.separate_file(
+                path=temp_wav_path
+            )
+        )
+        enhanced_speech = enhanced_speech[:, :].detach().cpu().squeeze()
+        torchaudio.save(final_wav_path, enhanced_speech, 8000)  # type: ignore
+        video.replace_old_audio_with_new_wav_file_for_a_video(input_video_path, final_wav_path, output_video_path)
+        """
+    '''
 
     def __time_interval_filter(
         self,
@@ -1826,7 +1908,7 @@ class DeepVideo:
         """
         make_sure_target_does_not_exist(target_video_path)
 
-        if (resolution is None):
+        if resolution is None:
             parent_clip = VideoFileClip(source_video_path)
         else:
             parent_clip = VideoFileClip(
@@ -1893,7 +1975,7 @@ class DeepVideo:
 
     def blurPornGraphs(self, source_video_path: str, target_video_path: str):
         # useless
-        import pornstar # type: ignore
+        import pornstar  # type: ignore
 
         def doit(frame):
             if pornstar.store.nsfw_detector.isPorn(frame, 0.9):
@@ -1911,6 +1993,10 @@ class DeepVideo:
         )
 
 
-if __name__ == "__main__":
+def test():
     video = Video()
-    video.compress_videos_in_a_folder("/home/yingshaoxo/Videos/doing", fps=15)
+    deepVideo = DeepVideo()
+
+
+if __name__ == "__main__":
+    pass
