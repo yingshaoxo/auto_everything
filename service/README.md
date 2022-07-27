@@ -5,19 +5,31 @@ We use Python to make backend API here.
 
 ## Env
 ```bash
-conda env update --prefix ./env --file environment.yml  --prune
+poetry shell
+
+brew install llvm
+
+LLVM_CONFIG="/opt/homebrew/Cellar/llvm/14.0.6_1/bin/llvm-config" arch -arm64 python -m pip install llvmlite librosa
 
 poetry install
 
-conda install -c conda-forge tensorflow
+python -m pip install torchaudio torch torchvision 
+
+python -m pip install tensorflow-macos
+
+python -m pip install speechbrain
 ```
 
 ## Usage
 ```bash
 poetry run dev
+
+cd web
+yarn
+yarn dev
 ```
 
-## Docker
+## ~~Docker~~
 ```bash
 poetry export -f requirements.txt --output requirements.txt --without-hashes
 docker build --tag auto_everything_service .
