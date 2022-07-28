@@ -9,7 +9,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.10, <3.11"
-auto-everything = {path = "..", develop=true} #poetry run pip install -e ..
+#auto-everything = {path = "..", develop=true} #poetry run pip install -e ..
+auto-everything = "^3.12"
 fastapi = "^0.70.1"
 uvicorn = "^0.16.0"
 SQLAlchemy = "^1.4.29"
@@ -19,9 +20,6 @@ pydub = "^0.25.1"
 python-multipart = "^0.0.5"
 moviepy="^1.0.3"
 obs-websocket-py = "^0.5.3"
-
-[tool.poetry.dev-dependencies]
-#auto-everything = {path = "..", develop=true}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

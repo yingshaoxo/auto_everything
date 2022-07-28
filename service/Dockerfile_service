@@ -1,0 +1,34 @@
+FROM python:3.10.5-slim as os-base
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+RUN apt-get update
+RUN apt-get install -y curl
+
+FROM os-base as poetry-base
+
+ENV POETRY_HOME /app/poetry/
+RUN curl -sSL https://install.python-poetry.org | python -
+ENV PATH="/app/poetry/bin:${PATH}"
+RUN poetry config virtualenvs.create false
+RUN apt-get remove -y curl
+
+FROM poetry-base as app-base
+
+ARG APPDIR=/auto_everything/
+COPY . $APPDIR
+WORKDIR $APPDIR
+
+#COPY ./pyproject.toml $APPDIR/
+
+RUN poetry install --no-dev
+RUN python -m pip install torchaudio torch torchvision --no-cache-dir
+RUN python -m pip install tensorflow --no-cache-dir
+RUN python -m pip install speechbrain --no-cache-dir
+RUN python -m pip install llvmlite librosa --no-cache-dir
+
+FROM app-base as main
+
+EXPOSE 8765
+
+CMD poetry run dev

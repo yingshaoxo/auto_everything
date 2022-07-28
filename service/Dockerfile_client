@@ -1,0 +1,11 @@
+FROM node:lts-alpine3.15 as node-lts
+
+WORKDIR /web/
+
+COPY web ./
+
+RUN yarn
+
+EXPOSE 52013
+
+CMD yarn dev
