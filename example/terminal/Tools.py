@@ -129,6 +129,9 @@ git reset --hard HEAD^
     def pkill(self, name):
         t.kill(name)
 
+    def find(self, regex_expression):
+        t.run(f"find $(pwd) -type f | grep '{regex_expression}'")
+
     def hi(self):
         print("hi")
 
