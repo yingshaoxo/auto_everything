@@ -155,6 +155,11 @@ set completeopt-=preview
 with open(t.fix_path("~/.vimrc"), "w", encoding="utf-8") as f:
     f.write(vimrc)
 
+if platform == "darwin":
+    more_config_for_macos_vim = "\n\nset clipboard=unnamed"
+    with open(t.fix_path("~/.vimrc"), "a", encoding="utf-8") as f:
+        f.write(vimrc)
+
 # 5
 print("setup desktop vim...")
 c = """

@@ -15,7 +15,7 @@ disk = Disk()
 t.debug = True
 
 
-RootDIR = "/Users/yingshaoxo/Movies/Videos/good"
+RootDIR = "/Users/yingshaoxo/Movies/Videos"
 
 
 class Tools:
