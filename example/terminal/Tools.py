@@ -132,6 +132,9 @@ git reset --hard HEAD^
     def find(self, regex_expression):
         t.run(f"find $(pwd) -type f | grep '{regex_expression}'")
 
+    def find_string(self, regex_expression):
+        t.run(f"grep -r -e '{regex_expression}' $(pwd)")
+
     def hi(self):
         print("hi")
 
