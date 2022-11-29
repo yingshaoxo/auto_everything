@@ -33,7 +33,7 @@ setup(
     install_requires=[
         "setuptools",
         "fire",
-        #"psutil",
+        "psutil",
     ],
     extras_require={
         "database": ["pymongo"],

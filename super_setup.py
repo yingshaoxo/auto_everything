@@ -134,7 +134,7 @@ setup(
     install_requires=[
         "setuptools",
         "fire",
-        #"psutil",
+        "psutil",
     ],
     extras_require={
         "video": ["numpy", "librosa", "moviepy>=1.0.0,<1.0.1", "pyaudio", "vosk"],

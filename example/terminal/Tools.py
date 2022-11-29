@@ -156,6 +156,7 @@ git reset --hard HEAD^
 
     def hi(self):
         print("hi")
+        print(t._get_pids("chrome"))
 
 
 py.make_it_global_runnable(executable_name="Tools")
