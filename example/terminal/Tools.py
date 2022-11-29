@@ -1,5 +1,5 @@
 #!/usr/bin/env /Users/yingshaoxo/Library/Caches/pypoetry/virtualenvs/auto-everything-_Gc1gPdN-py3.10/bin/python
-import os
+import os, re
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 
@@ -136,6 +136,23 @@ git reset --hard HEAD^
     def find_string(self, regex_expression):
         pwd = t.run_command('pwd')
         t.run(f"grep -r -e '{regex_expression}' '{pwd}'")
+
+    def show_space_usage(self, path):
+        if path == None:
+            path = t.run_command('pwd')
+        #path = os.path.abspath(path)
+
+        folder_size_text = t.run_command(f"du -hl -d 1 '{path}'")
+        splits = folder_size_text.split("\n")
+        folder_size_text = "\n".join(splits[:-1])
+        total_size_line = splits[-1].strip(". ")
+
+        file_size_text = t.run_command(f"ls -p -ahl '{path}' | grep -v /")
+        splits = file_size_text.split("\n")[1:]
+        splits = ["     ".join(re.split(r"\s+", line)[4:][::2][::2]) for line in splits]
+        file_size_text = "\n".join(splits)
+
+        print(folder_size_text + "\n\n" + file_size_text + "\n\nTotal Size: " + total_size_line)
 
     def hi(self):
         print("hi")

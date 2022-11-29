@@ -48,7 +48,9 @@ class Tools():
         for file in files:
             print(file)
     
-    def fake_backup(self):
+    def fake_backup(self, backup_file_path=None):
+        if backup_file_path != None:
+            saving_path = backup_file_path
         files = get_folder_and_files(folder=".")
         data_list = []
         for file_or_folder in files:
