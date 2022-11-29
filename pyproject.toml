@@ -8,7 +8,7 @@ license = "GPLv3"
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
 fire = "^0.4.0"
-psutil = "^5.9.1"
+#psutil = "^5.9.1"
 
 [tool.poetry.dev-dependencies]
 moviepy = "^1.0.3"

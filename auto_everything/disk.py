@@ -112,6 +112,30 @@ class Disk:
                 ]
         return files
 
+    # def get_folder_and_files(
+    #     self, folder: str
+    # ) -> List[str]:
+    #     """
+    #     Get files recursively under a folder.
+
+    #     Parameters
+    #     ----------
+    #     folder: string
+    #     recursive: bool
+    #     """
+    #     folder = self._expand_user(folder)
+    #     assert os.path.exists(folder), f"{folder} is not exist!"
+    #     files = []
+    #     for root, dirnames, filenames in os.walk(folder):
+    #         for dirname in dirnames:
+    #             abs_folder_path = os.path.join(root, dirname)
+    #             files.append(abs_folder_path)
+    #         for filename in filenames:
+    #             file = os.path.join(root, filename)
+    #             if os.path.isfile(file):
+    #                 files.append(file)
+    #     return files
+
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)
         return files

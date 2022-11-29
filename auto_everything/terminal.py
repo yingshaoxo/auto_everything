@@ -9,7 +9,7 @@ import shlex
 import subprocess
 from typing import Tuple, List
 
-import psutil
+#import psutil
 
 
 class Terminal:
@@ -333,15 +333,20 @@ class Terminal:
 
         get a list of pids, only available in Linux ; [string, ...]
         """
-        """
-        pids = os.listdir("/proc")
-        pids = [i for i in pids if i.isdigit()]
-        command_lines = [self._io.read(f"/proc/{i}/cmdline") for i in pids]
-        target_pids = []
-        for pid, command in zip(pids, command_lines):
-            if name in command:
-                target_pids.append(pid)
-        return target_pids
+        if self.machine_type == "darwin":
+            # it is mac os
+            lines = self.run_command(f"pgrep {name}").strip("\n ").splits("\n")
+            pids = [i.strip("\n ") for i in lines]
+        else:
+            # it is Linux
+            pids = os.listdir("/proc")
+            pids = [i for i in pids if i.isdigit()]
+            command_lines = [self._io.read(f"/proc/{i}/cmdline") for i in pids]
+            target_pids = []
+            for pid, command in zip(pids, command_lines):
+                if name in command:
+                    target_pids.append(pid)
+            return target_pids
         """
         pids = []
         # Iterate over all running process
@@ -356,6 +361,7 @@ class Terminal:
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return pids
+        """
 
     def is_running(self, name: str) -> bool:
         """
