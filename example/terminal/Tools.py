@@ -154,6 +154,12 @@ git reset --hard HEAD^
 
         print(folder_size_text + "\n\n" + file_size_text + "\n\nTotal Size: " + total_size_line)
 
+    def update_go_dependencies(self):
+        t.run("""
+        go get -d -u -t ./...
+        go mod tidy
+        """)
+
     def hi(self):
         print("hi")
         print(t._get_pids("chrome"))
