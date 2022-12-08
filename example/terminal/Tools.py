@@ -159,6 +159,26 @@ git reset --hard HEAD^
         go get -d -u -t ./...
         go mod tidy
         """)
+    
+    def my_shell(self, type=None):
+        if type == "x":
+            def command_line_transforming(command):
+                return "proxychains4 " + command
+        else:
+            def command_line_transforming(command):
+                return command
+
+        t.debug = False
+        print("Welcome!\n\nLet's begin the journey by type your command here:\n")
+        print("> ", end="")
+        while True:
+            try:
+                command = input("")
+                t.run(command_line_transforming(command=command))
+                print()
+                print("> ", end="")
+            except Exception as e:
+                print(e)
 
     def hi(self):
         print("hi")
