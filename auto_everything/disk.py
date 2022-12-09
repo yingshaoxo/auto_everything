@@ -68,6 +68,9 @@ class Disk:
     def concatenate_paths(self, *path):
         return os.path.join(*path)
 
+    def join_paths(self, *path):
+        return self.concatenate_paths(*path)
+
     def get_files(
         self, folder: str, recursive: bool = True, type_limiter: List[str] | None = None
     ) -> List[str]:
@@ -144,11 +147,11 @@ class Disk:
         p = Path(path)
         return p.stem, p.suffix
 
-    def getDirectoryName(self, path: str):
+    def get_directory_name(self, path: str):
         path = self._expand_user(path)
         return os.path.dirname(path)
 
-    def getFileName(self, path: str):
+    def get_file_name(self, path: str):
         return os.path.split(path)[-1]
 
     def get_hash_of_a_file(self, path: str) -> str:
@@ -297,18 +300,13 @@ class Disk:
             paths[i] = f'"{path}"'
         t.run(f"zip -r -D {target} {' '.join(paths)}")
 
-    def get_a_temp_file_path(self, filename):
-        m = hashlib.sha256()
-        m.update(str(datetime.datetime.now()).encode("utf-8"))
-        m.update(filename.encode("utf-8"))
-        stem, suffix = self.get_stem_and_suffix_of_a_file(filename)
-        tempFilePath = os.path.join(self.temp_dir, m.hexdigest()[:10] + suffix)
-        return tempFilePath
-
     def get_the_temp_dir(self):
         return self.temp_dir
 
-    def getATempFilePath(self, filename):
+    def get_a_temp_file_path(self, filename):
+        """
+        We'll add a hash_string before the filename, so you can use this file path without any worry
+        """
         m = hashlib.sha256()
         m.update(str(datetime.datetime.now()).encode("utf-8"))
         m.update(filename.encode("utf-8"))
@@ -333,18 +331,21 @@ class Disk:
         with open(file_path, "wb") as f:
             f.write(bytes_io.read())
 
-    def removeAFile(self, file_path: str):
+    def remove_a_file(self, file_path: str):
         file_path = self._expand_user(file_path)
         if self.exists(file_path):
             os.remove(file_path)
 
-    def convertBytesToBytesIO(self, bytes_data: bytes) -> BytesIO:
+    def delete_a_file(self, file_path: str):
+        self.remove_a_file(file_path=file_path)
+
+    def convert_bytes_to_bytes_io(self, bytes_data: bytes) -> BytesIO:
         bytes_io = BytesIO()
         bytes_io.write(bytes_data)
         bytes_io.seek(0)
         return bytes_io
 
-    def createAFolder(self, folder_path: str):
+    def create_a_folder(self, folder_path: str):
         folder_path = self._expand_user(folder_path)
         if not os.path.exists(folder_path):
             os.mkdir(folder_path)

@@ -1,10 +1,13 @@
-from auto_everything.video import Video
+from auto_everything.video import Video, DeepVideo
 video = Video()
+deep_video = DeepVideo()
 
 from auto_everything.disk import Disk
 disk = Disk()
 
 import librosa
+import os
+os.environ['LIBROSA_DATA_DIR'] = "/tmp"
 
 def test_hi():
     assert "hi" == "hi"
@@ -46,5 +49,16 @@ def test_speedup_silence_parts_in_video_2():
         speed=30,
         the_maximum_silent_interval_time_in_seconds_you_wish_to_have=0,
         silent_speedup_part=False
+    )
+    assert disk.exists(target_video_path)
+
+
+def test_improve_the_quality_of_human_voice_inside_of_a_video():
+    source_video_path = "/Users/yingshaoxo/Movies/Videos/doing.mkv"
+    target_video_path = "/Users/yingshaoxo/Movies/Videos/done.mp4"
+    deep_video.improve_the_quality_of_human_voice_inside_of_a_video(
+        source_video_path=source_video_path,
+        target_video_path=target_video_path,
+        sample_rate=48000
     )
     assert disk.exists(target_video_path)

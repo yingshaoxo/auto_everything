@@ -1,16 +1,57 @@
 from typing import Callable, List
 
 from auto_everything.base import Terminal
+t = Terminal(debug=True)
 
-import tensorflow as tf
+from auto_everything.python import Python
+python = Python()
+
 import numpy as np
 import time
 
-t = Terminal(debug=True)
+import torch
+import torchaudio
+from speechbrain.pretrained import SpectralMaskEnhancement, SepformerSeparation, WaveformEnhancement
 
+class DeepAudio:
+    def __init__(self):
+        # self._spectral_mask_enhancement_model = SpectralMaskEnhancement.from_hparams(
+        #     source="speechbrain/metricgan-plus-voicebank",
+        #     savedir="pretrained_models/metricgan-plus-voicebank",
+        # )
 
-def checkIfAVaribleIsAFunction(function: Callable) -> bool:
-    return isinstance(function, Callable)
+        # self._sepformer_wham16k_enhancement_model = SepformerSeparation.from_hparams(
+        #     source="speechbrain/sepformer-wham16k-enhancement", 
+        #     savedir='pretrained_models/sepformer-wham16k-enhancement')
+        
+        self._mtl_mimic_voicebank = WaveformEnhancement.from_hparams(
+            source="speechbrain/mtl-mimic-voicebank",
+            savedir="pretrained_models/mtl-mimic-voicebank",
+        )
+
+    def speech_enhancement(self, 
+            source_audio_path,
+            target_audio_path,
+            sample_rate=16000
+        ):
+
+        # # Load and add fake batch dimension
+        # noisy = self._spectral_mask_enhancement_model.load_audio(
+        #     source_audio_path
+        # ).unsqueeze(0)
+        # # Add relative length tensor
+        # enhanced = self._spectral_mask_enhancement_model.enhance_batch(noisy, lengths=torch.tensor([1.]))
+        # # Saving enhanced signal on disk
+        # torchaudio.save(target_audio_path, enhanced.cpu(), sample_rate) # type: ignore    
+
+        # enhanced = self._sepformer_wham16k_enhancement_model.separate_file(path=source_audio_path) 
+        # torchaudio.save(target_audio_path, enhanced[:, :, 0].detach().cpu(), sample_rate) # type: ignore
+
+        enhanced = self._mtl_mimic_voicebank.enhance_file(
+            filename=source_audio_path,
+            # output_filename=target_audio_path
+        )
+        torchaudio.save(target_audio_path, enhanced.unsqueeze(0).cpu(), sample_rate=sample_rate, channels_first=True) # type: ignore
 
 
 class AudioHandler:
@@ -65,7 +106,7 @@ class AudioHandler:
     def callback(self, in_data, frame_count, time_info, flag):
         numpy_array = np.frombuffer(in_data, dtype=np.float32)
 
-        if checkIfAVaribleIsAFunction(self.call_back_function):
+        if python.check_if_a_variable_is_a_function(self.call_back_function):
             self.call_back_function(numpy_array)
 
         # data = librosa.amplitude_to_db(numpy_array)
@@ -119,8 +160,8 @@ class AudioAnalyzer:
         return loudnessList
 
 
-if __name__ == "__main__":
-    audio = AudioHandler()
-    audio.start()  # open the the stream
-    audio.mainloop()  # main operations with librosa
-    audio.stop()
+# if __name__ == "__main__":
+#     audio = AudioHandler()
+#     audio.start()  # open the the stream
+#     audio.mainloop()  # main operations with librosa
+#     audio.stop()

@@ -20,15 +20,18 @@ import torch
 from speechbrain.pretrained import SepformerSeparation as separator
 
 from typing import List, Tuple
+
 from auto_everything.io import IO
 from auto_everything.terminal import Terminal
 from auto_everything.network import Network
 from auto_everything.disk import Disk
+from auto_everything.audio import DeepAudio
 
 t = Terminal(debug=True)
 io_ = IO()
 network = Network()
 disk = Disk()
+deep_audio = DeepAudio()
 
 
 
@@ -123,7 +126,7 @@ def make_sure_target_does_not_exist(path):
                     exit()
 
 
-def convert_video_to_wav(source_video_path, target_wav_path):
+def convert_video_to_wav(source_video_path, target_wav_path, sample_rate=None):
     source_video_path = try_to_get_absolutely_path(source_video_path)
     make_sure_source_is_absolute_path(source_video_path)
     target_wav_path = try_to_get_absolutely_path(target_wav_path)
@@ -131,11 +134,18 @@ def convert_video_to_wav(source_video_path, target_wav_path):
 
     make_sure_target_does_not_exist(target_wav_path)
 
-    t.run(
-        f"""
-        ffmpeg -i "{source_video_path}" "{target_wav_path}"
-    """
-    )
+    if sample_rate == None:
+        t.run(
+            f"""
+            ffmpeg -i "{source_video_path}" "{target_wav_path}"
+            """
+        )
+    else:
+        t.run(
+            f"""
+            ffmpeg -i "{source_video_path}" -vn -acodec pcm_s16le -ar {sample_rate} -ac 2 "{target_wav_path}"
+            """
+        )
 
     return target_wav_path
 
@@ -1447,7 +1457,7 @@ class Video:
         done()
 
     def get_wav_from_video(
-        self, source_video_path: str, target_audio_path: str, rate: int = 8000
+        self, source_video_path: str, target_audio_path: str, rate: int = 48000
     ):
         source_video_path = try_to_get_absolutely_path(source_video_path)
         target_audio_path = try_to_get_absolutely_path(target_audio_path)
@@ -1778,7 +1788,7 @@ class Video:
 
         # remix
         finalSound = humanVoice.overlay(processedMusic)
-        tempMp3FilePath = disk.getATempFilePath(source_file_path)
+        tempMp3FilePath = disk.get_a_temp_file_path(source_file_path)
         finalSound.export(tempMp3FilePath, format="mp3")
 
         # add all those sound to a video file
@@ -1809,6 +1819,8 @@ class DeepVideo:
 
     def __init__(self):
         from pathlib import Path
+
+        self.video = Video()
 
         self._cpu_core_numbers = multiprocessing.cpu_count()
 
@@ -1929,7 +1941,7 @@ class DeepVideo:
         assert os.path.exists(path), f"source video file {path} does not exist!"
 
         SetLogLevel(0)
-        sample_rate = 16000
+        sample_rate = 48000
         model = Model(self.vosk_model_folder.as_posix())
         rec = KaldiRecognizer(model, sample_rate)
 
@@ -2304,6 +2316,41 @@ class DeepVideo:
         parts = from_samples_to_seconds(parts)
 
         return parts[1:]
+    
+    def improve_the_quality_of_human_voice_inside_of_a_video(
+        self, 
+        source_video_path: str,
+        target_video_path: str, 
+        sample_rate=48000
+        ):
+        temp_audio_path = disk.get_a_temp_file_path("temp_audio.wav")
+        target_audio_path = disk.get_a_temp_file_path("temp_audio2.wav") 
+
+        convert_video_to_wav(
+            source_video_path=source_video_path, 
+            target_wav_path=temp_audio_path, 
+            sample_rate=sample_rate
+        )
+
+        current_working_directory = t.run_command("pwd")
+        os.chdir("/tmp")
+        deep_audio.speech_enhancement(
+            source_audio_path=temp_audio_path,
+            target_audio_path=target_audio_path,
+            sample_rate=16000
+        )
+        os.chdir(current_working_directory)
+
+        self.video.replace_old_audio_with_new_wav_file_for_a_video(
+            source_video_path=source_video_path, 
+            new_wav_audio_path=target_audio_path, 
+            target_video_path=target_video_path
+        )
+
+        disk.remove_a_file(temp_audio_path)
+        disk.remove_a_file(target_audio_path)
+
+        done()
 
     def blurPornGraphs(self, source_video_path: str, target_video_path: str):
         # useless

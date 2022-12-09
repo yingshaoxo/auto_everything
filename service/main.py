@@ -76,11 +76,11 @@ app.include_router(
 def deleteCorrespondingFileOfAProject(projectID: int) -> None:
     filePath = getFilePathByProjectID(projectID)
     if disk.exists(filePath):
-        disk.removeAFile(filePath)
+        disk.remove_a_file(filePath)
 
     outputPath = filePath + ".output.mp4"
     if disk.exists(outputPath):
-        disk.removeAFile(outputPath)
+        disk.remove_a_file(outputPath)
 
 
 async def async_func(project_id: int, job: str):
@@ -140,7 +140,7 @@ async def upload_file(projectID: int, file: UploadFile = File(...)):
     filePath = getFilePathByProjectID(projectID)
 
     contents = await file.read()
-    contents_bytes_io = disk.convertBytesToBytesIO(contents)  # type: ignore
+    contents_bytes_io = disk.convert_bytes_to_bytes_io(contents)  # type: ignore
     disk.save_bytesio_to_file(contents_bytes_io, filePath)
 
     query = (

@@ -6,6 +6,8 @@ from pprint import pprint
 import copy
 import inspect
 
+from typing import Callable, List
+
 
 class Python():
     """
@@ -21,6 +23,9 @@ class Python():
         self._os = OS()
         self._t = Terminal()
         self._disk = Disk()
+
+    def check_if_a_variable_is_a_function(self, function: Callable) -> bool:
+        return isinstance(function, Callable)
 
     def list_python_packages(self):
         """

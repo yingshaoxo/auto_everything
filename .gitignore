@@ -1,4 +1,6 @@
+pretrained_models/
 results/
+*.wav
 
 *.xopp
 *.xopp~
