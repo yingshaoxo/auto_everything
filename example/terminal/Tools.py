@@ -91,6 +91,11 @@ git reset --mixed HEAD~1
 git reset --hard HEAD^
 """)
 
+    def delete_git_file(self, filename):
+        t.run(f"""
+bfg --delete-files {filename}
+""")
+
     def abort(self, comment):
         t.run(f"""
         git merge --abort
