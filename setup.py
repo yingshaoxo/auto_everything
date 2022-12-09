@@ -37,7 +37,7 @@ setup(
     ],
     extras_require={
         "database": ["pymongo"],
-        "video": ["numpy", "librosa", "moviepy", "pyaudio", "vosk"],
+        "video": ["librosa", "numpy", "moviepy", "torchaudio", "vosk"],
         "gui": ["numpy", "opencv-python", "pyscreenshot", "pytesseract", "pyautogui"],
         "fakecamera": ["pyfakewebcam", "opencv-python"],
         "image": ["pillow"],
