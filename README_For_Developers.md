@@ -38,18 +38,10 @@ poetry env info
 
 ```bash
 poetry add <package_name>
-
-#or
-
-poetry add --group all --optional <package_name>
 ```
 
 ## Install dependencies
 
 ```bash
 poetry install
-
-#or
-
-poetry install --only all
 ```
