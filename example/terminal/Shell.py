@@ -13,6 +13,7 @@ t = Terminal(debug=False)
 
 store = Store("auto_everything_shell")
 history_command_list_store_key = "history_command_list"
+final_search_keywords_string_key = "final_search_keywords_string"
 final_search_result_store_key = "final_search_result"
 
 MODE = None
@@ -36,9 +37,10 @@ def search_a_command(text: str) -> list[str]:
 def add_a_command_to_history(command: str):
     command = command.strip()
     history_command_list: list[str] = store.get(history_command_list_store_key, [])
-    if command not in history_command_list:
-        history_command_list.append(command)
-        store.set(history_command_list_store_key, history_command_list)
+    history_command_list = history_command_list[-10000:]
+    # if command not in history_command_list:
+    history_command_list.append(command)
+    store.set(history_command_list_store_key, history_command_list)
         
 def get_char():
     #https://www.physics.udel.edu/~watson/scen103/ascii.html
@@ -59,6 +61,14 @@ def delete_one_char():
     sys.stdout.write(" ")
     sys.stdout.write("\b")
     sys.stdout.flush()
+
+def empty_the_line(current_command=None):
+    iterate_nums = 1000
+    if current_command != None:
+        iterate_nums = len(current_command) + 10
+    for _ in range(iterate_nums):
+        delete_one_char()
+    print_without_new_line("> ")
 
 def print_without_new_line(text):
     print(text, end="", flush=True)
@@ -103,7 +113,7 @@ def monitor_the_terminal_keyboard(callback_function_that_takes_input_string, exi
             if char_id == 127:
                 # Delete key
                 delete_one_char()
-                command = command.strip("\n ")
+                # command = command.strip("\n ")
                 command = command[:-1]
             if char_id == 10 or char_id == 13:
                 break
@@ -137,6 +147,7 @@ def my_shell():
     print_without_new_line("> ")
 
     command = ""
+    history_index = 0
     while True:
         try:
             char = get_char()
@@ -151,6 +162,30 @@ def my_shell():
             if char_id in [27, 91]: #unknown
                 continue
             if char_id in [68, 65, 67, 66]: #arrow left,up,right,down
+                if (char_id == 65 or char_id == 66):
+                    empty_the_line()
+                    history_command_list: list[str] = store.get(history_command_list_store_key, [])
+                    if char_id == 65:
+                        #up
+                        history_index += 1
+                    elif char_id == 66:
+                        #down
+                        history_index -= 1
+
+                    if history_index <= 0:
+                        # back to the start before pressing the up or down arrow key
+                        history_index = 0
+                        command = ""
+                        continue
+                    elif history_index >= len(history_command_list) - 1:
+                        history_index = len(history_command_list) - 1
+
+                    #print_with_new_line(history_index)
+                    one_command = history_command_list[-history_index]
+
+                    # normal show when press up or down arrow key
+                    print_without_new_line(one_command)
+                    command = one_command
                 continue
 
             # Print each char on the screen
@@ -173,6 +208,7 @@ def my_shell():
 
                     result = "\n".join(search_a_command(the_command))
                     store.set(final_search_result_store_key, result)
+                    store.set(final_search_keywords_string_key, the_command)
                     print_without_new_line(result)
 
                     print_without_new_line("\n\n" + "__________" + "\n\n")
@@ -189,10 +225,13 @@ def my_shell():
                 print_with_new_line(store.get(final_search_result_store_key, ""))
                 print_with_new_line()
                 print_without_new_line("> ")
+                final_search_string = store.get(final_search_keywords_string_key, "")
+                print_without_new_line(final_search_string)
+                command = final_search_string
             if char_id == 127:
                 # Delete key
                 delete_one_char()
-                command = command.strip("\n ")
+                # command = command.strip("\n ")
                 command = command[:-1]
             if char_id == 10 or char_id == 13:
                 print_with_new_line()
@@ -202,6 +241,7 @@ def my_shell():
                 if len(command) > 0:
                     command_process(command=command)
                 command = ""
+                history_index = 0
 
                 print_with_new_line()
                 print_without_new_line("> ")
