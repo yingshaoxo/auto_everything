@@ -42,6 +42,10 @@ def search_a_command(text: str) -> list[str]:
 
 def add_a_command_to_history(command: str):
     command = command.strip()
+    if MODE == "x":
+        if command.startswith("proxychains4"):
+            command = command[len("proxychains4"):]
+    command = command.strip()
     history_command_list: list[str] = get_history_command_list()
     # if command not in history_command_list:
     history_command_list.append(command)
@@ -190,7 +194,7 @@ def my_shell():
                 continue
             if char_id in [68, 65, 67, 66]: #arrow left,up,right,down
                 if (char_id == 65 or char_id == 66):
-                    empty_the_line()
+                    empty_the_line(command)
                     history_command_list: list[str] = get_history_command_list()
                     if char_id == 65:
                         #up
