@@ -27,6 +27,15 @@ sudo python get-pip.py
 rm get-pip.py
 #sudo pacman --noconfirm -Syu python-tensorflow-cuda
 
+#macos
+export HOMEBREW_INSTALL_FROM_API=1
+export NONINTERACTIVE=1
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+yes | brew install python@3.10
+yes | brew install rustup
+yes | rustup-init
+yes | brew install maturin
+
 #sudo apt -y install ffmpeg
 #sudo apt -y install python3-opencv
 sudo pip3 install git+https://github.com/yingshaoxo/auto_everything.git --upgrade
