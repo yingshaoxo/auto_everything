@@ -12,15 +12,21 @@ py = Python()
 t = Terminal(debug=False)
 
 store = Store("auto_everything_shell")
+# store.reset()
+# exit()
 history_command_list_store_key = "history_command_list"
 final_search_keywords_string_key = "final_search_keywords_string"
 final_search_result_store_key = "final_search_result"
 
 MODE = None
 
+def get_history_command_list() -> list[str]:
+    history_command_list: list[str] = store.get(history_command_list_store_key, [])
+    return history_command_list
+
 def search_a_command(text: str) -> list[str]:
     keyword_list = text.split(" ")
-    history_command_list: list[str] = store.get(history_command_list_store_key, [])
+    history_command_list: list[str] = get_history_command_list()
 
     match_commands = []
     for command in history_command_list:
@@ -36,11 +42,32 @@ def search_a_command(text: str) -> list[str]:
 
 def add_a_command_to_history(command: str):
     command = command.strip()
-    history_command_list: list[str] = store.get(history_command_list_store_key, [])
-    history_command_list = history_command_list[-10000:]
+    history_command_list: list[str] = get_history_command_list()
     # if command not in history_command_list:
     history_command_list.append(command)
     store.set(history_command_list_store_key, history_command_list)
+
+def refine_history():
+    history_command_list: list[str] = get_history_command_list()
+    history_command_list = history_command_list[-10000:]
+    history_command_list.reverse()
+
+    index = 0
+    while 0 <= index < len(history_command_list):
+        one_command = history_command_list[index]
+        the_index_of_the_element_that_needs_to_get_removed = None
+        for index_2, earlier_command in enumerate(history_command_list[index+1:]):
+            index_2 = index + 1 + index_2
+            if one_command == earlier_command:
+                the_index_of_the_element_that_needs_to_get_removed = index_2
+                break
+        if the_index_of_the_element_that_needs_to_get_removed != None:
+            del history_command_list[the_index_of_the_element_that_needs_to_get_removed]
+            index -= 1
+            continue
+        index += 1
+    
+    store.set(history_command_list_store_key, list(reversed(history_command_list)))
         
 def get_char():
     #https://www.physics.udel.edu/~watson/scen103/ascii.html
@@ -164,7 +191,7 @@ def my_shell():
             if char_id in [68, 65, 67, 66]: #arrow left,up,right,down
                 if (char_id == 65 or char_id == 66):
                     empty_the_line()
-                    history_command_list: list[str] = store.get(history_command_list_store_key, [])
+                    history_command_list: list[str] = get_history_command_list()
                     if char_id == 65:
                         #up
                         history_index += 1
@@ -202,6 +229,8 @@ def my_shell():
                 print_without_new_line("> ")
             if char_id == 16:
                 # Ctrl+P to make a search for history commands
+                refine_history()
+
                 result = ""
                 def search_it(the_command):
                     t.run("clear")
