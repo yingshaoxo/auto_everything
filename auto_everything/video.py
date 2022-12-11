@@ -2334,11 +2334,17 @@ class DeepVideo:
 
         current_working_directory = t.run_command("pwd")
         os.chdir("/tmp")
-        deep_audio.speech_enhancement(
-            source_audio_path=temp_audio_path,
-            target_audio_path=target_audio_path,
-            sample_rate=16000
-        )
+        if sample_rate == 16000:
+            deep_audio.speech_enhancement_with_speechbrain(
+                source_audio_path=temp_audio_path,
+                target_audio_path=target_audio_path,
+                sample_rate=16000
+            )
+        else:
+            deep_audio.speech_enhancement_with_deepFilterNet(
+                source_audio_path=temp_audio_path,
+                target_audio_path=target_audio_path,
+            )
         os.chdir(current_working_directory)
 
         self.video.replace_old_audio_with_new_wav_file_for_a_video(

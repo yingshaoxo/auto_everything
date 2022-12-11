@@ -1,4 +1,5 @@
-from typing import Callable, List
+from typing import Any, Callable, List
+import time, os
 
 from auto_everything.base import Terminal
 t = Terminal(debug=True)
@@ -7,11 +8,12 @@ from auto_everything.python import Python
 python = Python()
 
 import numpy as np
-import time
 
 import torch
 import torchaudio
 from speechbrain.pretrained import SpectralMaskEnhancement, SepformerSeparation, WaveformEnhancement
+
+from df import enhance as audio_deep_filter_enhance_module
 
 class DeepAudio:
     def __init__(self):
@@ -29,7 +31,7 @@ class DeepAudio:
             savedir="pretrained_models/mtl-mimic-voicebank",
         )
 
-    def speech_enhancement(self, 
+    def speech_enhancement_with_speechbrain(self, 
             source_audio_path,
             target_audio_path,
             sample_rate=16000
@@ -52,6 +54,30 @@ class DeepAudio:
             # output_filename=target_audio_path
         )
         torchaudio.save(target_audio_path, enhanced.unsqueeze(0).cpu(), sample_rate=sample_rate, channels_first=True) # type: ignore
+    
+    def speech_enhancement_with_deepFilterNet(self,
+        source_audio_path,
+        target_audio_path,
+    ):
+        model, df_state, suffix = audio_deep_filter_enhance_module.init_df(
+            None,
+            post_filter=False,
+            log_level="DEBUG",
+            config_allow_defaults=True,
+        )
+        df_sr = audio_deep_filter_enhance_module.ModelParams().sr
+        audio, meta = audio_deep_filter_enhance_module.load_audio(source_audio_path, df_sr)
+        t0 = time.time()
+        audio = audio_deep_filter_enhance_module.enhance(
+            model, df_state, audio, pad=False, atten_lim_db=None
+        )
+        t1 = time.time()
+        t_audio = audio.shape[-1] / df_sr
+        t = t1 - t0
+        audio = audio_deep_filter_enhance_module.resample(audio, df_sr, meta.sample_rate)
+        audio_deep_filter_enhance_module.save_audio(
+            target_audio_path, audio, sr=meta.sample_rate, log=False
+        )
 
 
 class AudioHandler:
@@ -158,10 +184,3 @@ class AudioAnalyzer:
         for segment in segmentsList:
             loudnessList.append(segment.dBFS)
         return loudnessList
-
-
-# if __name__ == "__main__":
-#     audio = AudioHandler()
-#     audio.start()  # open the the stream
-#     audio.mainloop()  # main operations with librosa
-#     audio.stop()
