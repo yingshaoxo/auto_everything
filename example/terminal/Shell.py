@@ -233,6 +233,8 @@ def my_shell():
                 break
             if char_id in [3]:
                 # Do nothing on ctrl-c
+                empty_the_line()
+                command = ""
                 continue
             if char_id == 12:
                 # Clear screen when press ctrl-l
