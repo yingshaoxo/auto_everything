@@ -49,3 +49,11 @@ poetry install
 
 pip install -e .
 ```
+
+## Build and publish
+
+```bash
+poetry build
+
+poetry publish
+```
