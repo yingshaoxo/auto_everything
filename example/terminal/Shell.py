@@ -1,8 +1,7 @@
 #!/usr/bin/env /opt/homebrew/opt/python@3.10/bin/python3.10
-import os, re
-import tty, termios, sys
-
 from typing import Any
+
+import os, tty, termios, sys
 
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
@@ -167,8 +166,13 @@ def command_process(command):
     if MODE == "x":
         command = f"proxychains4 {command}"
 
-    t.run(command)
     add_a_command_to_history(command=command)
+    try:
+        t.run(command, wait=True)
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        print(e)
 
 def my_shell():
     # how to measure if a shell program is working properly? Can use it to use vim.
@@ -224,9 +228,12 @@ def my_shell():
             if char.isprintable():
                 command += char
 
-            if char_id in [3, 4]:
-                # Exit on ctrl-c, ctrl-d
+            if char_id in [4]:
+                # Exit on ctrl-d
                 break
+            if char_id in [3]:
+                # Do nothing on ctrl-c
+                continue
             if char_id == 12:
                 # Clear screen when press ctrl-l
                 t.run("clear")

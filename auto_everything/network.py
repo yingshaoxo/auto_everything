@@ -50,8 +50,10 @@ You can install it with `sudo apt install wget`"""
         bool
             return `false` if the specified size less than the file we downloaded
         """
-        target = Path(target).expanduser().absolute()
-        directory = target.parent
+        target_path_object = Path(target).expanduser().absolute()
+
+        directory = target_path_object.parent
+        target = str(target_path_object)
         assert os.path.exists(
             directory), f"target directory '{directory}' is not exits"
         t.run(f"wget {url} -O {target}")
@@ -64,7 +66,7 @@ You can install it with `sudo apt install wget`"""
             "MB",
         ], f"number={number}, unit={unit}\nsize error, it should be 700B, 5KB, 40MB and so on."
         the_file_size = disk.get_file_size(target, unit)
-        if the_file_size > number:
+        if the_file_size != None and the_file_size > number:
             return True
         else:
             return False

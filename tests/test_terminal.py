@@ -24,3 +24,11 @@ def test_fix_path_with_username_provided():
     nohup xournalpp "/home/ys/CS/auto_everything/plans.xopp" &
     """.strip()
 
+def test_pid_functions():
+    a_command = "ping baidu.com"
+
+    t.run_program(a_command)
+    assert t.is_running(a_command) == True
+
+    t.kill(a_command)
+    assert t.is_running(a_command) == False

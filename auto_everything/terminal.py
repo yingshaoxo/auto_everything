@@ -1,3 +1,6 @@
+import signal
+from typing import Any, Tuple, List
+
 import sys
 import os
 import platform
@@ -7,7 +10,6 @@ import time
 from datetime import datetime
 import shlex
 import subprocess
-from typing import Tuple, List
 
 import psutil
 
@@ -164,6 +166,7 @@ class Terminal:
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
                 cwd=cwd,
+                preexec_fn=os.setsid
             )
         except Exception as e:
             print(e)
@@ -175,6 +178,7 @@ class Terminal:
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
                 cwd=cwd,
+                preexec_fn=os.setsid
             )
 
         if wait is True:
@@ -186,10 +190,86 @@ class Terminal:
                     print(line, end="")
             except KeyboardInterrupt:
                 self.__remove_temp_sh(temp_sh)
+                self.kill_a_process_by_pid(p.pid)
                 raise KeyboardInterrupt
+            except Exception as e:
+                self.__remove_temp_sh(temp_sh)
+                self.kill_a_process_by_pid(p.pid)
+                raise e
             self.__remove_temp_sh(temp_sh)
         else:
             return p
+
+    # def advanced_run(self, command: str, current_working_directory: str | None = None, wait: bool = True, share_dict: Any = None):
+    #     """
+    #     run shell commands without value returning
+
+    #     Parameters
+    #     ----------
+    #     command: string
+    #         shell command
+    #     current_working_directory: string
+    #         current working directory
+    #     wait: bool
+    #         True, this command may keep running forever
+    #     """
+
+    #     if current_working_directory is None:
+    #         current_working_directory = self.current_dir
+    #     else:
+    #         current_working_directory = self.fix_path(current_working_directory)
+
+    #     # if '\n' in c:
+    #     command = self.fix_path(command)
+    #     if self.debug:
+    #         print("\n" + "-" * 20 + "\n")
+    #         print(command)
+    #         print("\n" + "-" * 20 + "\n")
+    #     command, temp_sh = self.__text_to_sh(command)
+
+    #     try:
+    #         args_list = shlex.split(command)
+    #         p = subprocess.Popen(
+    #             args_list,
+    #             stdout=subprocess.PIPE,
+    #             stderr=subprocess.STDOUT,
+    #             universal_newlines=True,
+    #             cwd=current_working_directory,
+    #             shell=False,
+    #             preexec_fn=os.setsid
+    #         )
+    #     except Exception as e:
+    #         print(e)
+    #         command = self.fix_path(command)
+    #         args_list = shlex.split(command)
+    #         p = subprocess.Popen(
+    #             args_list,
+    #             stdout=subprocess.PIPE,
+    #             stderr=subprocess.STDOUT,
+    #             universal_newlines=True,
+    #             cwd=current_working_directory,
+    #             shell=False,
+    #             preexec_fn=os.setsid
+    #         )
+
+    #     if share_dict != None:
+    #         share_dict['process_instance'] = p
+    #         share_dict['temp_sh_file_path'] = temp_sh
+
+    #     if wait is True:
+    #         try:
+    #             while p.poll() is None:
+    #                 if p.stdout is None:
+    #                     break
+    #                 line = p.stdout.readline()  # strip(' \n')
+    #                 print(line, end="")
+    #         except KeyboardInterrupt:
+    #             self.kill_a_process_by_pid(p.pid)
+    #             self.__remove_temp_sh(temp_sh)
+    #             raise KeyboardInterrupt
+    #         self.__remove_temp_sh(temp_sh)
+    #     else:
+    #         return p
 
     def run_command(self, c: str, timeout: int = 15, cwd: str | None = None) -> str:
         """
@@ -330,7 +410,7 @@ class Terminal:
             self.run_program(command, cwd=cwd)
         elif wait is True:
             self.run(command, cwd=cwd, wait=True)
-
+    
     def _get_pids(self, name: str) -> List[str]:
         """
         name: what's the name of that program ; string
@@ -368,6 +448,19 @@ class Terminal:
                 pass
         return pids
 
+    def _get_all_running_pids(self) -> List[int]:
+        pids = []
+        # Iterate over all running process
+        for proc in psutil.process_iter():
+            try:
+                # Get process name & pid from process object.
+                # processName = proc.name()
+                process_id = proc.pid
+                pids.append(process_id)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        return pids
+
     def is_running(self, name: str) -> bool:
         """
         cheack if a program is running
@@ -382,6 +475,59 @@ class Terminal:
             return True
         else:
             return False
+    
+    def is_running_by_pid(self, pid: int | str) -> bool:
+        """
+        cheack if a program is running by pid
+
+        Parameters
+        ----------
+        pid: int
+            the process id
+        """
+        pids = self._get_all_running_pids()
+        if int(pid) in pids:
+            return True
+        else:
+            return False
+    
+    def kill_a_process_by_pid(self, pid: int | str, force: bool = True, wait: bool = False, timeout: int = 30):
+        """
+        kill a program by its pid(process id)
+
+        Parameters
+        ----------
+        name: string
+            what's the name of that program you want to kill
+        force: bool
+            kill it directlly or softly.
+            some program like ffmpeg, should set force=False
+        wait: bool
+            true, wait until program totolly quit
+        timeout: int
+            wait until timeout, use second unit
+        """
+        if force:
+            try:
+                os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
+                os.killpg(os.getpgid(int(pid)), signal.SIGKILL)
+            except Exception as e:
+                print(e)
+        else:
+            try:
+                os.killpg(os.getpgid(int(pid)), signal.SIGINT)  # This is typically initiated by pressing Ctrl+C
+            except Exception as e:
+                print(e)
+        
+        if wait is True:
+            while self.is_running_by_pid(pid) and timeout > 0:
+                time.sleep(1)
+                timeout -= 1
+
+            try:
+                os.killpg(os.getpgid(int(pid)), signal.SIGQUIT)  # Send the signal to all the process groups
+            except Exception as e:
+                print(e)
 
     def kill(
         self, name: str, force: bool = True, wait: bool = False, timeout: int = 30
@@ -398,6 +544,8 @@ class Terminal:
             some program like ffmpeg, should set force=False
         wait: bool
             true, wait until program totolly quit
+        timeout: int
+            wait until timeout, use second unit
         """
         pids = self._get_pids(name)
         for pid in pids:
@@ -406,13 +554,15 @@ class Terminal:
                 self.run_command("pkill {name}".format(name=name))
             else:
                 self.run_command("kill -s SIGINT {num}".format(num=pid))
-                # import signal
                 # os.kill(pid, signal.SIGINT) #This is typically initiated by pressing Ctrl+C
 
         if wait is True:
             while self.is_running(name) and timeout > 0:
                 time.sleep(1)
                 timeout -= 1
+
             pids = self._get_pids(name)
             for pid in pids:
                 self.run_command("kill -s SIGQUIT {num}".format(num=pid))
+                # os.killpg(os.getpgid(int(pid)), signal.SIGQUIT)  # Send the signal to all the process groups
+

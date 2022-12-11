@@ -44,4 +44,8 @@ poetry add <package_name>
 
 ```bash
 poetry install
+
+#and
+
+pip install -e .
 ```
