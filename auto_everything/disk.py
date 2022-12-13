@@ -10,9 +10,9 @@ import hashlib
 import unicodedata
 import string
 from io import BytesIO
+from fnmatch import fnmatch
 
 from auto_everything.terminal import Terminal
-
 t = Terminal(debug=True)
 
 
@@ -72,7 +72,7 @@ class Disk:
         return self.concatenate_paths(*path)
 
     def get_files(
-        self, folder: str, recursive: bool = True, type_limiter: List[str] | None = None
+        self, folder: str, recursive: bool = True, type_limiter: List[str] | None = None, gitignore_text: str|None = None
     ) -> List[str]:
         """
         Get files recursively under a folder.
@@ -83,6 +83,8 @@ class Disk:
         recursive: bool
         type_limiter: List[str]
             a list used to do a type filter, like [".mp3", ".epub"]
+        gitignore_text: str
+            similar to git's .gitignore file, if any file matchs any rule, it won't be inside of the 'return file list'
         """
         folder = self._expand_user(folder)
         assert os.path.exists(folder), f"{folder} is not exist!"
@@ -113,6 +115,28 @@ class Disk:
                     for f in os.listdir(folder)
                     if os.path.isfile(os.path.join(folder, f))
                 ]
+        
+        if gitignore_text != None:
+            ignore_patten_list = [line for line in gitignore_text.strip().split("\n") if line.strip() != ""]
+            ignore_patten_list = [line+"*" if line.endswith("/") else line for line in ignore_patten_list]
+
+            if not folder.endswith("/"):
+                additional_prefix = folder + "/"
+            else:
+                additional_prefix = folder
+
+            result_files = []
+            for file in files:
+                should_get_filter_out = False
+                for pattern in ignore_patten_list:
+                    if fnmatch(file.removeprefix(additional_prefix), pattern):
+                        should_get_filter_out = True
+                        break
+                if should_get_filter_out == False:
+                    result_files.append(file)
+            
+            files = result_files
+
         return files
 
     # def get_folder_and_files(
