@@ -1,7 +1,9 @@
+from __future__ import annotations
+from dataclasses import dataclass
 import datetime
 import pathlib
 import tempfile
-from typing import List, Tuple, Union
+from typing import Iterable, List, Optional, Tuple, Union
 from pathlib import Path
 import os
 import re
@@ -28,6 +30,18 @@ class Common:
         if not os.path.exists(sub_folder_path):
             os.mkdir(sub_folder_path)
         return sub_folder_path
+
+
+@dataclass
+class _FileInfo:
+    """Data Class for a single file returned by get_files()."""
+    path: str
+    is_folder: bool
+    is_file: bool
+    folder: str
+    name: str
+    level: int | None = None
+    children: List[_FileInfo] | None = None
 
 
 class Disk:
@@ -71,8 +85,44 @@ class Disk:
     def join_paths(self, *path):
         return self.concatenate_paths(*path)
 
+    def _parse_gitignore_text_to_list(self, gitignore_text: str) -> list[str]:
+        ignore_pattern_list = [line for line in gitignore_text.strip().split("\n") if line.strip() != ""]
+        new_ignore_pattern_list = []
+        for pattern in ignore_pattern_list:
+            if pattern.startswith("#"):
+                continue
+            if pattern.endswith("/"):
+                new_ignore_pattern_list.append(pattern.removesuffix("/"))
+                new_ignore_pattern_list.append(pattern + "*")
+            else:
+                new_ignore_pattern_list.append(pattern)
+        return new_ignore_pattern_list
+    
+    def _file_match_the_gitignore_rule_list(self, start_folder: str, file_path: str, ignore_pattern_list: list[str]):
+        if not start_folder.endswith("/"):
+            start_folder = start_folder + "/"
+        else:
+            start_folder = start_folder
+
+        if file_path.startswith("./"):
+            file_path = file_path[2:]
+        
+        # if file_path.endswith(".ipynb_checkpoints"):
+        #     pass
+        
+        match = False
+        for pattern in ignore_pattern_list:
+            if fnmatch(file_path.removeprefix(start_folder), pattern.removeprefix("./")):
+                match = True
+                break
+        return match
+
     def get_files(
-        self, folder: str, recursive: bool = True, type_limiter: List[str] | None = None, gitignore_text: str|None = None
+        self, 
+        folder: str, 
+        recursive: bool = True, 
+        type_limiter: List[str] | None = None, 
+        gitignore_text: str|None = None
     ) -> List[str]:
         """
         Get files recursively under a folder.
@@ -117,51 +167,97 @@ class Disk:
                 ]
         
         if gitignore_text != None:
-            ignore_patten_list = [line for line in gitignore_text.strip().split("\n") if line.strip() != ""]
-            ignore_patten_list = [line+"*" if line.endswith("/") else line for line in ignore_patten_list]
-
-            if not folder.endswith("/"):
-                additional_prefix = folder + "/"
-            else:
-                additional_prefix = folder
+            ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=gitignore_text)
 
             result_files = []
             for file in files:
-                should_get_filter_out = False
-                for pattern in ignore_patten_list:
-                    if fnmatch(file.removeprefix(additional_prefix), pattern):
-                        should_get_filter_out = True
-                        break
-                if should_get_filter_out == False:
+                if self._file_match_the_gitignore_rule_list(
+                    start_folder=folder,
+                    file_path=file,
+                    ignore_pattern_list=ignore_pattern_list
+                ) == False:
                     result_files.append(file)
             
             files = result_files
-
+        
         return files
 
-    # def get_folder_and_files(
-    #     self, folder: str
-    # ) -> List[str]:
-    #     """
-    #     Get files recursively under a folder.
+    def get_folder_and_files(
+        self, 
+        folder: str, 
+        type_limiter: List[str] | None = None,
+        gitignore_text: str|None = None
+    ) -> Iterable[_FileInfo]:
+        """
+        Get files recursively under a folder.
 
-    #     Parameters
-    #     ----------
-    #     folder: string
-    #     recursive: bool
-    #     """
-    #     folder = self._expand_user(folder)
-    #     assert os.path.exists(folder), f"{folder} is not exist!"
-    #     files = []
-    #     for root, dirnames, filenames in os.walk(folder):
-    #         for dirname in dirnames:
-    #             abs_folder_path = os.path.join(root, dirname)
-    #             files.append(abs_folder_path)
-    #         for filename in filenames:
-    #             file = os.path.join(root, filename)
-    #             if os.path.isfile(file):
-    #                 files.append(file)
-    #     return files
+        Parameters
+        ----------
+        folder: string
+        type_limiter: List[str]
+            a list used to do a type filter, like [".mp3", ".epub"]
+        gitignore_text: str
+            similar to git's .gitignore file, if any file matchs any rule, it won't be inside of the 'return file list'
+        """
+        folder = self._expand_user(folder)
+        assert os.path.exists(folder), f"{folder} is not exist!"
+
+        ignore_pattern_list = []
+        if gitignore_text != None:
+            ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=gitignore_text)
+
+        for root, dirnames, filenames in os.walk(folder):
+            level = root.replace(folder, '').count(os.sep)
+
+            for dirname in dirnames:
+                abs_folder_path = os.path.join(root, dirname)
+
+                if gitignore_text != None:
+                    if self._file_match_the_gitignore_rule_list(
+                        start_folder=folder, 
+                        file_path=abs_folder_path,
+                        ignore_pattern_list=ignore_pattern_list,
+                    ):
+                        continue
+                
+                yield _FileInfo(
+                    level=level,
+                    path=abs_folder_path,
+                    is_folder=True,
+                    is_file=False,
+                    folder=self.get_directory_name(abs_folder_path),
+                    name=dirname,
+                )
+
+            for filename in filenames:
+                abs_folder_path = os.path.join(root, filename)
+
+                if type_limiter != None:
+                    should_remain = False
+                    for suffix in type_limiter:
+                        if abs_folder_path.endswith(suffix):
+                            should_remain = True
+                            break
+                    if should_remain == False:
+                        continue
+                
+                if gitignore_text != None:
+                    if self._file_match_the_gitignore_rule_list(
+                        start_folder=folder, 
+                        file_path=abs_folder_path,
+                        ignore_pattern_list=ignore_pattern_list,
+                    ):
+                        continue
+
+                if os.path.isfile(abs_folder_path):
+                    yield _FileInfo(
+                    level=level,
+                    path=abs_folder_path,
+                    is_folder=False,
+                    is_file=True,
+                    folder=self.get_directory_name(abs_folder_path),
+                    name=filename,
+                )
 
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)

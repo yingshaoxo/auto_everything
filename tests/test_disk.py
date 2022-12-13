@@ -14,3 +14,11 @@ def test_get_files():
     files = disk.get_files(".", gitignore_text=gitignore_text)
     for file in files:
         assert not file.endswith(".py")
+
+def test_get_folder_and_files():
+    files = disk.get_folder_and_files(".")
+    for index, file in enumerate(files):
+        #print(file.path, file.level, file.folder, file.name, file.is_file, file.is_folder)
+        assert file.level == 0
+        if index > 1:
+            break
