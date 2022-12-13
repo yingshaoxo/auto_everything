@@ -40,7 +40,7 @@ class _FileInfo:
     is_file: bool
     folder: str
     name: str
-    level: int | None = None
+    level: int
     children: List[_FileInfo] | None = None
 
 
@@ -146,7 +146,7 @@ class Disk:
                     if os.path.isfile(file):
                         if type_limiter:
                             p = Path(file)
-                            if p.suffix in type_limiter:
+                            if len(type_limiter) == 0 or (p.suffix in type_limiter):
                                 files.append(file)
                         else:
                             files.append(file)
@@ -156,8 +156,9 @@ class Disk:
                 files = [
                     os.path.join(folder, f)
                     for f in os.listdir(folder)
-                    if os.path.isfile(os.path.join(folder, f))
-                    and Path(os.path.join(folder, f)).suffix in type_limiter
+                    if len(type_limiter) == 0
+                    or
+                    (os.path.isfile(os.path.join(folder, f)) and Path(os.path.join(folder, f)).suffix in type_limiter)
                 ]
             else:
                 files = [
@@ -208,6 +209,8 @@ class Disk:
 
         for root, dirnames, filenames in os.walk(folder):
             level = root.replace(folder, '').count(os.sep)
+            if level == 0:
+                level = 1
 
             for dirname in dirnames:
                 abs_folder_path = os.path.join(root, dirname)
@@ -234,10 +237,13 @@ class Disk:
 
                 if type_limiter != None:
                     should_remain = False
-                    for suffix in type_limiter:
-                        if abs_folder_path.endswith(suffix):
-                            should_remain = True
-                            break
+                    if len(type_limiter) != 0:
+                        for suffix in type_limiter:
+                            if abs_folder_path.endswith(suffix):
+                                should_remain = True
+                                break
+                    else:
+                        should_remain = True
                     if should_remain == False:
                         continue
                 
@@ -258,6 +264,97 @@ class Disk:
                     folder=self.get_directory_name(abs_folder_path),
                     name=filename,
                 )
+    
+    def _super_sort_key_function(self, element: str) -> int:
+        text = ""
+        for char in element:
+            if char.isdigit():
+                text += char
+            else:
+                break
+        if len(text) == 0:
+            return 0
+        return int(text[:10])
+
+    def get_folder_and_files_tree(
+        self, 
+        folder: str, 
+        reverse: bool = False,
+        type_limiter: List[str] | None = None,
+        gitignore_text: str|None = None,
+    ) -> _FileInfo:
+        """
+        Get files recursively under a folder.
+
+        Parameters
+        ----------
+        folder: string
+        type_limiter: List[str]
+            a list used to do a type filter, like [".mp3", ".epub"]
+        gitignore_text: str
+            similar to git's .gitignore file, if any file matchs any rule, it won't be inside of the 'return file list'
+        """
+        root = _FileInfo(
+            path=folder,
+            is_folder=True,
+            is_file=False,
+            folder=self.get_directory_name(folder),
+            name=self.get_file_name(folder),
+            level=0,
+            children=None
+        )
+
+        ignore_pattern_list = []
+        if gitignore_text != None:
+            ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=gitignore_text)
+
+        def dive(node: _FileInfo):
+            folder = node.path
+
+            if not os.path.isdir(folder):
+                return None
+
+            items = os.listdir(folder)
+            if len(items) == 0:
+                return []
+            
+            files_and_folders: list[_FileInfo] = []
+            for filename in items:
+                file_path = os.path.join(folder, filename)
+                if (os.path.isdir(file_path)) or (type_limiter == None) or (Path(file_path).suffix in type_limiter):
+                    # save
+                    #absolute_file_path = os.path.abspath(file_path)
+
+                    if gitignore_text != None:
+                        if self._file_match_the_gitignore_rule_list(
+                            start_folder=node.path, 
+                            file_path=file_path,
+                            ignore_pattern_list=ignore_pattern_list,
+                        ):
+                            continue
+                    
+                    new_node = _FileInfo(
+                        path=file_path,
+                        is_folder=os.path.isdir(file_path),
+                        is_file=os.path.isfile(file_path),
+                        folder=self.get_directory_name(file_path),
+                        name=self.get_file_name(file_path),
+                        level=node.level + 1,
+                        children=None
+                    )
+                    dive(node=new_node)
+                    files_and_folders.append(
+                        new_node
+                    )
+                else:
+                    # drop
+                    continue
+            files_and_folders.sort(key=lambda node_: self._super_sort_key_function(node_.name), reverse=reverse)
+            node.children = files_and_folders
+        
+        dive(root)
+        
+        return root
 
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)
