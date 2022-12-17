@@ -1,3 +1,4 @@
+#!/usr/bin/env /opt/homebrew/opt/python@3.10/bin/python3.10
 #!/usr/bin/env /Users/yingshaoxo/Library/Caches/pypoetry/virtualenvs/auto-everything-_Gc1gPdN-py3.10/bin/python
 import os, re
 from auto_everything.python import Python
@@ -133,6 +134,11 @@ bfg --delete-files {filename}
 
     def pkill(self, name):
         t.kill(name)
+    
+    def find_port(self, port):
+        t.run(f"""
+            lsof -i:{port}
+        """)
 
     def find(self, regex_expression):
         pwd = t.run_command('pwd') #print working directory
@@ -186,8 +192,10 @@ bfg --delete-files {filename}
                 print(e)
 
     def hi(self):
-        print("hi")
-        print(t._get_pids("chrome"))
+        self.help()
+
+    def help(self):
+        print(help(Tools))
 
 
 py.make_it_global_runnable(executable_name="Tools")
