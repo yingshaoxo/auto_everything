@@ -4,6 +4,8 @@ import os, re
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 
+from pprint import pprint
+
 py = Python()
 t = Terminal(debug=True)
 
@@ -147,6 +149,18 @@ bfg --delete-files {filename}
     def find_string(self, regex_expression):
         pwd = t.run_command('pwd')
         t.run(f"grep -r -e '{regex_expression}' '{pwd}'")
+
+    def get_non_app_launch_items(self):
+        items = t.run_command("launchctl list").split("\n")
+        new_items = []
+        for item in items:
+            if "\tcom.apple." not in item:
+                new_items.append(item.strip().replace("\t", "    "))
+        pprint(new_items)
+
+    def remove_the_stupid_macos_launch_item(self, service_name):
+        print("yeah, macos is stupid!")
+        t.run(f"launchctl bootout gui/501/{service_name}")
 
     def show_space_usage(self, path):
         if path == None:
