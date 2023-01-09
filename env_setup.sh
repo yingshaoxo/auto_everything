@@ -10,6 +10,7 @@ sudo apt -y install python3
 sudo apt -y install python3-pip
 sudo apt -y install python3-dev
 sudo apt -y install tmux
+sudo apt -y install git
 
 #sudo apt-get -y install python3 python-dev python3-dev \
 #     build-essential libssl-dev libffi-dev \
@@ -43,7 +44,7 @@ sudo pip3 install git+https://github.com/yingshaoxo/auto_everything.git --upgrad
 #########
 # WITH EXTENSIONS
 #########
-clear
+#clear
 echo "Do you wish to install some extensions, so you can use some advanced module later?"
 select yn in "Yes" "No"; do
     case $yn in
