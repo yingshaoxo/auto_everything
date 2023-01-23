@@ -1,8 +1,9 @@
+import re
+
 from auto_everything.terminal import Terminal
 from auto_everything.io import IO
 from auto_everything.disk import Disk
 from auto_everything.network import Network
-import os
 
 t = Terminal(debug=True)
 disk = Disk()
@@ -14,42 +15,30 @@ class GRPC:
     def __init__(self):
         pass
 
-    def generate_python_code(self, input_folder: str, output_folder: str = "py_api"):
+    def generate_python_code(self, input_folder: str, output_folder: str = "generated_grpc"):
         if not disk.exists(input_folder):
             raise Exception(f"'{input_folder}' does not exist!")
 
         if "Error" in t.run_command("python3 -m grpc_tools.protoc --help"):
             raise Exception(
-                "You should install grpc_tools by using:\n\npip install grpcio-tools"
+                "You should install grpc_tools by using:\n\npython3 -m pip install grpcio grpcio-tools"
             )
 
         input_folder = input_folder.rstrip("/")
 
-        # python3 -m grpc_tools.protoc -I protos/  --python_out=py_protos --grpc_python_out=py_protos hi.proto
+        t.run(f"""
+        pip install --yes "betterproto[compiler]==2.0.0b5"
+        """)
+
         t.run(
             f"""
         mkdir {output_folder}
-        python3 -m grpc_tools.protoc --proto_path {input_folder}  --python_out={output_folder} --grpc_python_out={output_folder} {input_folder}/* --experimental_allow_proto3_optional
+        python3 -m grpc_tools.protoc --proto_path '{input_folder}' --python_betterproto_out='{output_folder}' '{input_folder}/*'
         """
+        #--experimental_allow_proto3_optional
         )
 
-        init_file = f"{output_folder}/__init__.py"
-        t.run(
-            f"""
-        rm {init_file}
-        echo 
-        """
-        )
-        io_.write(
-            init_file,
-            """
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-        """,
-        )
-
-    def generate_golang_code(self, input_folder: str, output_folder: str = "go_api"):
+    def generate_golang_code(self, input_folder: str, output_folder: str = "generated_grpc"):
         if not disk.exists(input_folder):
             raise Exception(f"'{input_folder}' does not exist!")
 
@@ -60,14 +49,19 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
         input_folder = input_folder.rstrip("/")
 
+        t.run(f"""
+        go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
+        go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+        """)
+
         t.run(
             f"""
         mkdir {output_folder}
-        protoc --proto_path {input_folder} --go_out={output_folder} --go_opt=paths=source_relative --go-grpc_out={output_folder} --go-grpc_opt=paths=source_relative {input_folder}/* --experimental_allow_proto3_optional
+        protoc --proto_path '{input_folder}' --go_out='{output_folder}' --go-grpc_out='{output_folder}' '{input_folder}/*'
         """
         )
 
-    def generate_dart_code(self, input_folder: str, output_folder: str = "dart_api"):
+    def generate_dart_code(self, input_folder: str, output_folder: str = "lib/generated_grpc"):
         if not disk.exists(input_folder):
             raise Exception(f"'{input_folder}' does not exist!")
 
@@ -90,7 +84,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
             mkdir {output_folder}
             dart pub global activate protoc_plugin
             export PATH="$PATH":"$HOME/.pub-cache/bin"
-            protoc --proto_path {input_folder} --dart_out=grpc:{output_folder} {input_folder}/* --experimental_allow_proto3_optional
+            protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} '{input_folder}/*'
             """
             )
         else:
@@ -98,10 +92,79 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
                 f"""
             mkdir {output_folder}
             export PATH="$PATH":"$HOME/.pub-cache/bin"
-            protoc --proto_path {input_folder} --dart_out=grpc:{output_folder} {input_folder}/* --experimental_allow_proto3_optional
+            protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} '{input_folder}/*'
             """
             )
+    
+    def _get_data_from_proto_file(self, proto_file_path: str):
+        proto_string = io_.read(proto_file_path)
 
+        found = re.findall(r"message\s+(?P<object_name>\w+)\s+\{(?P<properties>(\s*.*?\s*)+)\}", proto_string, re.DOTALL)
+        found = [
+                    [string.strip() for string in one][:2]
+                    for one in found
+                ]
+
+        data = {}
+        for one in found:
+            if len(one) == 2:
+                class_name = one[0]
+                property_text = one[1]
+                if len(property_text) == 0:
+                    continue
+                property_list = re.findall(r"\w+\s+(?P<property>\w+)\s+=\s+\d+;", property_text)
+                data[class_name] = property_list
+        
+        return data
+    
+    def generate_key_string_map_from_protocols(self, for_which_language:str , input_folder: str, output_folder: str|None = "grpc_key_string_maps"):
+        #your name
+        """
+        for_which_language: 'rust', 'python', ...
+        """
+        if not disk.is_directory(input_folder):
+            raise Exception(f"The input_folder must be an directory.")
+
+        if output_folder == None:
+            output_folder_variable_name = [ k for k,v in locals().items() if v == output_folder][0]
+            raise Exception(f"You must give '{str(output_folder_variable_name)}' paramater.")
+
+        if for_which_language == "rust":
+            if not disk.exists(input_folder):
+                raise Exception(f"'{input_folder}' does not exist!")
+            input_folder = input_folder.rstrip("/")
+            files = disk.get_files(input_folder, recursive=False, type_limiter=[".proto"])
+
+            for file in files:
+                data_ = self._get_data_from_proto_file(file)
+                filename,_ = disk.get_stem_and_suffix_of_a_file(file)
+                target_file_path = disk.join_paths(output_folder, filename+".rs")
+
+                rust_code = ""
+                for key, value in data_.items():
+                    rust_code += f"""
+\n
+pub struct {key} {{
+}}
+                    """
+
+                    property_text = ''.join([f'    pub const {one}: &str = "{one}";\n' for one in value]).strip()
+
+                    rust_code += f"""
+impl {key} {{
+    {property_text}
+}}
+                    """
+                rust_code = rust_code.strip()
+                io_.write(target_file_path, rust_code)
+
+            mod_file_path = disk.join_paths(output_folder, "mod.rs")
+            disk.delete_a_file(mod_file_path)
+            for file in files:
+                filename,_ = disk.get_stem_and_suffix_of_a_file(file)
+                io_.append(mod_file_path, f"\npub mod {filename};\n")
+        else:
+            raise Exception(f"We don't support '{for_which_language}' language.")
 
 if __name__ == "__main__":
     grpc = GRPC()

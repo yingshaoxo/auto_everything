@@ -75,6 +75,17 @@ class Disk:
         """
         path = self._expand_user(path)
         return Path(path).exists()
+    
+    def is_directory(self, path: str) -> bool:
+        """
+        Check if it is a folder.
+
+        Parameters
+        ----------
+        path: string
+            the file path
+        """
+        return os.path.isdir(path)
 
     def executable(self, path: str) -> bool:
         return os.access(path, os.X_OK)
