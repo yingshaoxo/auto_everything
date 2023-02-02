@@ -120,7 +120,7 @@ class GRPC:
     def generate_key_string_map_from_protocols(self, for_which_language:str , input_folder: str, output_folder: str|None = "grpc_key_string_maps"):
         #your name
         """
-        for_which_language: 'rust', 'python', ...
+        for_which_language: 'rust', 'python', 'kotlin'...
         """
         if not disk.is_directory(input_folder):
             raise Exception(f"The input_folder must be an directory.")
@@ -128,21 +128,27 @@ class GRPC:
         if output_folder == None:
             output_folder_variable_name = [ k for k,v in locals().items() if v == output_folder][0]
             raise Exception(f"You must give '{str(output_folder_variable_name)}' paramater.")
+        else:
+            disk.create_a_folder(output_folder)
+
+        if not disk.exists(input_folder):
+            raise Exception(f"'{input_folder}' does not exist!")
+        input_folder = input_folder.rstrip("/")
+        files = disk.get_files(input_folder, recursive=False, type_limiter=[".proto"])
 
         if for_which_language == "rust":
-            if not disk.exists(input_folder):
-                raise Exception(f"'{input_folder}' does not exist!")
-            input_folder = input_folder.rstrip("/")
-            files = disk.get_files(input_folder, recursive=False, type_limiter=[".proto"])
-
             for file in files:
                 data_ = self._get_data_from_proto_file(file)
+                """
+                    (VoiceRequest, ['uuid', 'timestamp', 'voice'])
+                    (VoiceReply, ['uuid', 'timestamp', 'voice'])
+                """
                 filename,_ = disk.get_stem_and_suffix_of_a_file(file)
                 target_file_path = disk.join_paths(output_folder, filename+".rs")
 
-                rust_code = ""
+                kotlin_code = ""
                 for key, value in data_.items():
-                    rust_code += f"""
+                    kotlin_code += f"""
 \n
 pub struct {key} {{
 }}
@@ -150,19 +156,56 @@ pub struct {key} {{
 
                     property_text = ''.join([f'    pub const {one}: &str = "{one}";\n' for one in value]).strip()
 
-                    rust_code += f"""
+                    kotlin_code += f"""
 impl {key} {{
     {property_text}
 }}
                     """
-                rust_code = rust_code.strip()
-                io_.write(target_file_path, rust_code)
+                kotlin_code = kotlin_code.strip()
+                io_.write(target_file_path, kotlin_code)
 
             mod_file_path = disk.join_paths(output_folder, "mod.rs")
             disk.delete_a_file(mod_file_path)
             for file in files:
                 filename,_ = disk.get_stem_and_suffix_of_a_file(file)
                 io_.append(mod_file_path, f"\npub mod {filename};\n")
+
+        elif for_which_language == "kotlin":
+            for file in files:
+                data_ = self._get_data_from_proto_file(file)
+                filename,_ = disk.get_stem_and_suffix_of_a_file(file)
+                target_file_path = disk.join_paths(output_folder, filename+".kt")
+
+                sub_class_container_list = []
+                for key, value in data_.items():
+                    variable_list = []
+                    for one in value:
+                        variable_list.append(f"""
+                    var {one}: String = "{one}"
+                        """.strip("\n").rstrip())
+                    variable_list_text = "\n".join(variable_list).rstrip()
+                    
+                    sub_class_container_list.append(f"""
+            class {key} {{
+                companion object {{
+                    @JvmField 
+{variable_list_text}
+                }}
+            }}
+                    """.strip("\n").rstrip())
+
+                sub_class_container_list_text = "\n\n".join(sub_class_container_list)
+                kotlin_code = f"""
+package grpc_key_string_maps
+
+class {filename}_key_string_maps {{
+    companion object {{
+{sub_class_container_list_text}
+    }}
+}}
+                """.rstrip()
+
+                io_.write(target_file_path, kotlin_code)
         else:
             raise Exception(f"We don't support '{for_which_language}' language.")
 
