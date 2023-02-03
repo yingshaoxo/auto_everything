@@ -205,6 +205,7 @@ class {filename}_key_string_maps {{
 }}
                 """.rstrip()
 
+                # var __column_key_list: List<String> = listOf<String>()
                 io_.write(target_file_path, kotlin_code)
         else:
             raise Exception(f"We don't support '{for_which_language}' language.")

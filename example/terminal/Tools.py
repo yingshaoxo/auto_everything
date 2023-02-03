@@ -1,6 +1,7 @@
 #!/usr/bin/env /opt/homebrew/opt/python@3.10/bin/python3.10
 #!/usr/bin/env /Users/yingshaoxo/Library/Caches/pypoetry/virtualenvs/auto-everything-_Gc1gPdN-py3.10/bin/python
 import os, re
+import random
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 
@@ -204,6 +205,18 @@ bfg --delete-files {filename}
                 print("> ", end="")
             except Exception as e:
                 print(e)
+
+    def where_to_go(self):
+        places = [
+            "5-KFC",
+            "5-McDonald's",
+            "4-Charger_Space_Left",
+            "4-Charger_Space_Right",
+            "2-KFC",
+            "2-7-family",
+            "1-7-family",
+        ]
+        print(random.choice(places))
 
     def hi(self):
         self.help()
