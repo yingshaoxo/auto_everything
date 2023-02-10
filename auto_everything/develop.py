@@ -136,7 +136,36 @@ class GRPC:
         input_folder = input_folder.rstrip("/")
         files = disk.get_files(input_folder, recursive=False, type_limiter=[".proto"])
 
-        if for_which_language == "rust":
+        if for_which_language == "python":
+            for file in files:
+                data_ = self._get_data_from_proto_file(file)
+                filename,_ = disk.get_stem_and_suffix_of_a_file(file)
+                target_file_path = disk.join_paths(output_folder, filename+".py")
+
+                sub_class_container_list = []
+                for key, value in data_.items():
+                    variable_list = []
+                    for one in value:
+                        variable_list.append(f"""
+    {one}: str = "{one}"
+                        """.strip("\n").rstrip())
+                    variable_list_text = "\n".join(variable_list).rstrip()
+                    
+                    sub_class_container_list.append(f"""
+class {key}:
+{variable_list_text}
+    __property_list__: List[str] = [{", ".join(['"'+one+'"' for one in value])}]
+                    """.strip("\n").rstrip())
+
+                sub_class_container_list_text = "\n\n".join(sub_class_container_list)
+                python_code = f"""
+from typing import List
+
+{sub_class_container_list_text}
+                """.rstrip()
+
+                io_.write(target_file_path, python_code)
+        elif for_which_language == "rust":
             for file in files:
                 data_ = self._get_data_from_proto_file(file)
                 """
@@ -190,6 +219,7 @@ impl {key} {{
                 companion object {{
                     @JvmField 
 {variable_list_text}
+                    val __property_list__: List<String> = listOf({", ".join(['"'+one+'"' for one in value])})
                 }}
             }}
                     """.strip("\n").rstrip())
