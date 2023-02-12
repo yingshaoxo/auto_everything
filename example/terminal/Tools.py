@@ -213,7 +213,8 @@ bfg --delete-files {filename}
             "4-Charger_Space_Left",
             "4-Charger_Space_Right",
             "2-KFC",
-            "2-7-family",
+            "2-7-family_Left",
+            "2-7-family_Right",
             "1-7-family",
         ]
         print(random.choice(places))
