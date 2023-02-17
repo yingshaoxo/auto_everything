@@ -25,7 +25,6 @@ ipykernel = "^6.19.2"
 paddlepaddle = {version = "^2.4.1", optional = true}
 opencv-python = "^4.7.0.68"
 pyautogui = "^0.9.53"
-mac-pyxa = "^0.2.0"
 
 [build-system]
 requires = ["poetry-core"]
