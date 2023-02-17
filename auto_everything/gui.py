@@ -1,4 +1,5 @@
 import os
+import platform
 import time
 import numpy as np
 import cv2
@@ -9,6 +10,10 @@ t = Terminal(debug=True)
 
 class CommonGUI():
     def __init__(self, project_name=""):
+        if platform == "darwin":
+            # OS X
+            print("Sorry, the Mac m1,m2,m3,mx... is totally garbage in my eyes. \nIt even does not support VirtualBox and docker auto-start.\nTry to use Linux, for example, Ubuntu, my friend!")
+            exit()
         try:
             import pyautogui as pyautogui
         except Exception:

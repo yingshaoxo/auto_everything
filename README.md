@@ -1,6 +1,6 @@
 # auto_everything
 
-Linux/MacOS automation
+Linux automation
 
 #### Donation
 
