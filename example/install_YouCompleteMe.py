@@ -151,6 +151,9 @@ set backupcopy=yes
 nnoremap <C-t> :NERDTreeToggle<CR>
 
 set completeopt-=preview
+
+"no auto indent
+filetype indent off
 """
 with open(t.fix_path("~/.vimrc"), "w", encoding="utf-8") as f:
     f.write(vimrc)
