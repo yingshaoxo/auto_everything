@@ -64,8 +64,17 @@ class Tools():
             git commit -m "{comment}"
             #git push origin
             """)
+    
+    def force_push(self):
+        branch = "master"
+        for s in t.run_command("git branch").split("\n"):
+            if "*" in s:
+                branch = s.replace("*", "").strip()
+        t.run(f"""
+git push origin {branch} --force 
+""")
 
-    def forcepull(self):
+    def force_pull(self):
         branch = "master"
         for s in t.run_command("git branch").split("\n"):
             if "*" in s:
