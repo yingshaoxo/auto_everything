@@ -9,12 +9,15 @@ Linux automation
 #### Installation (For Python >= 3.10)
 
 ```bash
+curl -sSL https://install.python-poetry.org | python3
 poetry add auto_everything
 
 or
 
 sudo pip3 install auto_everything
 ```
+
+> Full Installation: `poetry install --with all`
 
 #### Installation (For 3.5 <= Python < 3.10)
 
@@ -26,18 +29,12 @@ or
 sudo pip3 install auto_everything==3.9
 ```
 
-or
-
-```bash
-wget https://github.com/yingshaoxo/auto_everything/raw/master/env_setup.sh
-sudo bash env_setup.sh
-```
-
 #### Magic
 
 ```bash
-wget https://github.com/yingshaoxo/auto_everything/raw/master/example/install_YouCompleteMe.py
-python3 install_YouCompleteMe.py
+curl -sSL https://github.com/yingshaoxo/auto_everything/raw/master/env_setup.sh | bash
+
+wget -O - https://github.com/yingshaoxo/auto_everything/raw/master/example/install_YouCompleteMe.py | python3
 ```
 
 #### Docs
