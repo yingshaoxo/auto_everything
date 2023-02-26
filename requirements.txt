@@ -1,3 +1,6 @@
+psutil
+fire
+
 librosa
 numpy
 moviepy

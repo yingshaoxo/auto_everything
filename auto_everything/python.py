@@ -196,6 +196,7 @@ class Python():
                 self._io.write(bashrc_path, bashrc)
         
         if is_the_first_running and runnable_path:
+            print(f"\n\n------------------\n\nYou could run \n\nsource ~/.bashrc\n\nto get started!")
             print(f"\n\n------------------\n\nYou could run \n\n{runnable_path.split('/')[-1]} -- --completion\n\nto get bash completion scripts")
 
     def print(self, data, limit=20):

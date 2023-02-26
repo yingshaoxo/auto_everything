@@ -1,5 +1,8 @@
 #!/usr/bin/env /opt/homebrew/opt/python@3.10/bin/python3.10
 #!/usr/bin/env /Users/yingshaoxo/Library/Caches/pypoetry/virtualenvs/auto-everything-_Gc1gPdN-py3.10/bin/python
+
+# Run this to generate bash auto complete script: Tools -- --completion
+
 import os, re
 import random
 from auto_everything.python import Python
