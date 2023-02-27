@@ -32,13 +32,20 @@ class GRPC:
 
         t.run(
             f"""
-        mkdir {output_folder}
+        mkdir -p {output_folder}
         python3 -m grpc_tools.protoc --proto_path '{input_folder}' --python_betterproto_out='{output_folder}' '{input_folder}/*'
         """
         #--experimental_allow_proto3_optional
         )
 
-    def generate_golang_code(self, input_folder: str, output_folder: str = "generated_grpc"):
+    def generate_golang_code(self, input_folder: str, input_files: list[str], output_folder: str = "generated_grpc"):
+        """
+        input_folder: where protobuff files was located
+
+        input_files: it is a list, like ["english.proto", "pornhub.proto"]
+
+        output_folder: where those generated golang file was located
+        """
         if not disk.exists(input_folder):
             raise Exception(f"'{input_folder}' does not exist!")
 
@@ -54,10 +61,16 @@ class GRPC:
         go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
         """)
 
+        input_command = ""
+        if len(input_files) == 0:
+            input_command = f'{input_folder}/*'
+        else:
+            input_command = " ".join(input_files)
+        
         t.run(
             f"""
-        mkdir {output_folder}
-        protoc --proto_path '{input_folder}' --go_out='{output_folder}' --go-grpc_out='{output_folder}' '{input_folder}/*'
+        mkdir -p {output_folder}
+        protoc --proto_path '{input_folder}' --go_out='{output_folder}' --go-grpc_out='{output_folder}' {input_command}
         """
         )
 
@@ -81,7 +94,7 @@ class GRPC:
         if network.available():
             t.run(
                 f"""
-            mkdir {output_folder}
+            mkdir -p {output_folder}
             dart pub global activate protoc_plugin
             export PATH="$PATH":"$HOME/.pub-cache/bin"
             protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} '{input_folder}/*'
@@ -90,11 +103,16 @@ class GRPC:
         else:
             t.run(
                 f"""
-            mkdir {output_folder}
+            mkdir -p {output_folder}
             export PATH="$PATH":"$HOME/.pub-cache/bin"
             protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} '{input_folder}/*'
             """
             )
+            
+    def _get_raw_data_from_proto_file(self, proto_file_path: str):
+        proto_string = io_.read(proto_file_path)
+        found = re.findall(r"message\s+(?P<object_name>\w+)\s+\{(?P<properties>(\s*.*?\s*)+)\}", proto_string, re.DOTALL)
+        return found
     
     def _get_data_from_proto_file(self, proto_file_path: str):
         proto_string = io_.read(proto_file_path)
