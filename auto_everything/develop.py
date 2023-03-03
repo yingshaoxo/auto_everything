@@ -108,7 +108,78 @@ class GRPC:
             protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} '{input_folder}/*'
             """
             )
-            
+
+    def generate_typescript_code(self, input_folder: str, input_files: list[str], project_root_folder: str, output_folder: str = "src/generated_grpc"):
+        """
+        input_folder: where protobuff files was located
+
+        input_files: it is a list, like ["english.proto", "pornhub.proto"]
+
+        project_root_folder: where the `package.json` file was located
+
+        output_folder: where those generated golang file was located
+        """
+        if not disk.exists(input_folder):
+            raise Exception(f"'{input_folder}' does not exist!")
+
+        if not disk.exists(project_root_folder):
+            raise Exception(f"'{project_root_folder}' does not exist!")
+
+        files = disk.get_files(folder=project_root_folder, recursive=False)
+        package_json_exists = False
+        for file in files:
+            if "package.json" in file:
+                package_json_exists = True
+                break
+        if not package_json_exists:
+            raise Exception(f"'{project_root_folder}' is not a npm/yarn project, because it doesn't have package.json file!")
+
+        if "not found" in t.run_command("protoc --version"):
+            raise Exception(
+                "You should install protobuf-compiler by using:\n\nsudo apt install -y protobuf-compiler"
+            )
+
+        input_folder = input_folder.rstrip("/")
+
+        t.run(f"""
+cd {project_root_folder}
+
+yarn add grpc-tools --ignore-scripts -D
+yarn add ts-protoc-gen@next -D
+
+# if [[ $OSTYPE == 'darwin'* ]]; then
+    # brew install protobuf@3
+    # brew link --overwrite protobuf@3
+
+    # pushd "{project_root_folder}/node_modules/grpc-tools"
+    # ./node_modules/.bin/node-pre-gyp install --target_arch=x64
+    # popd
+# fi
+
+yarn add @improbable-eng/grpc-web
+        """)
+
+        input_command = ""
+        if len(input_files) == 0:
+            input_command = f'{input_folder}/*'
+        else:
+            input_command = " ".join(input_files)
+        
+        t.run(
+            f"""
+mkdir -p {output_folder}
+
+protoc \
+    --proto_path {input_folder} \
+    --plugin="protoc-gen-ts={project_root_folder}/node_modules/.bin/protoc-gen-ts" \
+    --plugin="protoc-gen-grpc={project_root_folder}/node_modules/.bin/grpc_tools_node_protoc_plugin" \
+    --js_out="import_style=commonjs,binary:{output_folder}" \
+    --ts_out="service=grpc-web,mode=grpc-js:{output_folder}" \
+    --grpc_out="grpc_js:{output_folder}" \
+    {input_command}
+        """
+        )
+
     def _get_raw_data_from_proto_file(self, proto_file_path: str):
         proto_string = io_.read(proto_file_path)
         found = re.findall(r"message\s+(?P<object_name>\w+)\s+\{(?P<properties>(\s*.*?\s*)+)\}", proto_string, re.DOTALL)
@@ -263,9 +334,9 @@ if __name__ == "__main__":
     grpc.generate_python_code(
         input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/py_grpc"
     )
-    grpc.generate_golang_code(
-        input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/go_grpc"
-    )
-    grpc.generate_dart_code(
-        input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/dart_grpc"
-    )
+    # grpc.generate_golang_code(
+    #     input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/go_grpc"
+    # )
+    # grpc.generate_dart_code(
+    #     input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/dart_grpc"
+    # )
