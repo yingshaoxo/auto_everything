@@ -206,10 +206,16 @@ protoc \
         
         return data
     
-    def generate_key_string_map_from_protocols(self, for_which_language:str , input_folder: str, output_folder: str|None = "grpc_key_string_maps"):
+    def generate_key_string_map_from_protocols(self, for_which_language:str , input_folder: str, input_files: list[str], output_folder: str|None = "grpc_key_string_maps"):
         #your name
         """
-        for_which_language: 'rust', 'python', 'kotlin'...
+        for_which_language: 'rust', 'python', 'kotlin', 'go'...
+
+        input_folder: where protobuff files was located
+
+        input_files: it is a list, like ["english.proto", "pornhub.proto"]
+
+        output_folder: where those generated code file was located
         """
         if not disk.is_directory(input_folder):
             raise Exception(f"The input_folder must be an directory.")
@@ -224,6 +230,12 @@ protoc \
             raise Exception(f"'{input_folder}' does not exist!")
         input_folder = input_folder.rstrip("/")
         files = disk.get_files(input_folder, recursive=False, type_limiter=[".proto"])
+
+        new_files = []
+        for file in files:
+            if any([one for one in input_files if file.endswith("/"+one)]):
+                new_files.append(file)
+        files = new_files.copy()
 
         if for_which_language == "python":
             for file in files:
@@ -326,17 +338,73 @@ class {filename}_key_string_maps {{
 
                 # var __column_key_list: List<String> = listOf<String>()
                 io_.write(target_file_path, kotlin_code)
+
+        elif for_which_language == "golang":
+            for file in files:
+                data_ = self._get_data_from_proto_file(file)
+                filename,_ = disk.get_stem_and_suffix_of_a_file(file)
+                sub_folder_path = disk.join_paths(output_folder, f"{filename}_grpc_key_string_maps")
+                if not disk.exists(sub_folder_path):
+                    disk.create_a_folder(sub_folder_path)
+                target_file_path = disk.join_paths(sub_folder_path, filename+".go")
+
+                sub_class_container_list = []
+                for key, value in data_.items():
+                    struct_property_declaration_list = [
+                        f"""
+    {one[0].upper() + one[1:]}    string
+                        """.rstrip() for one in value
+                    ]
+                    struct_property_declaration_list_text = ''.join(struct_property_declaration_list)
+
+                    struct_property_real_value_list = [
+                        f"""
+    {one[0].upper() + one[1:]}:    "{one}",
+                        """.rstrip() for one in value
+                    ]
+                    struct_property_real_value_list_text = ''.join(struct_property_real_value_list)
+
+                    column_key_list_text = ''.join([f'''
+        "{one}",
+                    '''.rstrip() for one in value])
+                    one_part = f"""
+var {key[0].upper() + key[1:]} = struct {{{struct_property_declaration_list_text}
+
+    Column_key_list__    []string
+}} {{{struct_property_real_value_list_text}
+
+    Column_key_list__:    []string{{{column_key_list_text}
+    }},
+}}
+                    """.rstrip()
+                    sub_class_container_list.append(one_part)
+                sub_class_container_list_text = "\n\n".join(sub_class_container_list)
+
+                template = f"""
+package {filename}_grpc_key_string_maps
+
+{sub_class_container_list_text}
+                """.strip()
+
+                # var Column_key_list__: List<String> = listOf<String>()
+                io_.write(target_file_path, template)
         else:
             raise Exception(f"We don't support '{for_which_language}' language.")
 
 if __name__ == "__main__":
     grpc = GRPC()
-    grpc.generate_python_code(
-        input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/py_grpc"
-    )
+    # grpc.generate_python_code(
+    #     input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/py_grpc"
+    # )
     # grpc.generate_golang_code(
     #     input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/go_grpc"
     # )
     # grpc.generate_dart_code(
     #     input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/dart_grpc"
     # )
+    grpc.generate_key_string_map_from_protocols(
+        for_which_language="golang",
+        input_folder="/Users/yingshaoxo/CS/we_love_party/party_protocols/protocols",
+        input_files=["management_service.proto"],
+        output_folder="/Users/yingshaoxo/CS/we_love_party/management_system/golang_backend_service/grpc_key_string_maps",
+    )
