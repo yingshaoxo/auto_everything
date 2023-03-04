@@ -74,7 +74,14 @@ class GRPC:
         """
         )
 
-    def generate_dart_code(self, input_folder: str, output_folder: str = "lib/generated_grpc"):
+    def generate_dart_code(self, input_folder: str, input_files: list[str], output_folder: str = "lib/generated_grpc"):
+        """
+        input_folder: where protobuff files was located
+
+        input_files: it is a list, like ["english.proto", "pornhub.proto"]
+
+        output_folder: where those generated code file was located
+        """
         if not disk.exists(input_folder):
             raise Exception(f"'{input_folder}' does not exist!")
 
@@ -89,6 +96,11 @@ class GRPC:
             )
 
         input_folder = input_folder.rstrip("/")
+        input_command = ""
+        if len(input_files) == 0:
+            input_command = f'{input_folder}/*'
+        else:
+            input_command = " ".join(input_files)
 
         # protoc --dart_out=grpc:lib/src/generated -Iprotos protos/helloworld.proto
         if network.available():
@@ -97,7 +109,7 @@ class GRPC:
             mkdir -p {output_folder}
             dart pub global activate protoc_plugin
             export PATH="$PATH":"$HOME/.pub-cache/bin"
-            protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} '{input_folder}/*'
+            protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} {input_command}
             """
             )
         else:
@@ -105,7 +117,7 @@ class GRPC:
                 f"""
             mkdir -p {output_folder}
             export PATH="$PATH":"$HOME/.pub-cache/bin"
-            protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} '{input_folder}/*'
+            protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} {input_command}
             """
             )
 
@@ -148,15 +160,15 @@ yarn add grpc-tools --ignore-scripts -D
 yarn add ts-protoc-gen@next -D
 
 # if [[ $OSTYPE == 'darwin'* ]]; then
-    # brew install protobuf@3
-    # brew link --overwrite protobuf@3
-
-    # pushd "{project_root_folder}/node_modules/grpc-tools"
-    # ./node_modules/.bin/node-pre-gyp install --target_arch=x64
-    # popd
+#     # brew install protobuf@3
+#     # brew link --overwrite protobuf@3
+    pushd "{project_root_folder}/node_modules/grpc-tools"
+    ./node_modules/.bin/node-pre-gyp install --target_arch=x64
+    popd
 # fi
 
-yarn add @improbable-eng/grpc-web
+yarn add @protobuf-ts/plugin
+# yarn add @improbable-eng/grpc-web
         """)
 
         input_command = ""
@@ -169,16 +181,16 @@ yarn add @improbable-eng/grpc-web
             f"""
 mkdir -p {output_folder}
 
+# --js_out="import_style=commonjs,binary:{output_folder}" \
+
 protoc \
     --proto_path {input_folder} \
     --plugin="protoc-gen-ts={project_root_folder}/node_modules/.bin/protoc-gen-ts" \
     --plugin="protoc-gen-grpc={project_root_folder}/node_modules/.bin/grpc_tools_node_protoc_plugin" \
-    --js_out="import_style=commonjs,binary:{output_folder}" \
     --ts_out="service=grpc-web,mode=grpc-js:{output_folder}" \
     --grpc_out="grpc_js:{output_folder}" \
     {input_command}
-        """
-        )
+""")
 
     def _get_raw_data_from_proto_file(self, proto_file_path: str):
         proto_string = io_.read(proto_file_path)
@@ -402,9 +414,16 @@ if __name__ == "__main__":
     # grpc.generate_dart_code(
     #     input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/dart_grpc"
     # )
-    grpc.generate_key_string_map_from_protocols(
-        for_which_language="golang",
+    # grpc.generate_key_string_map_from_protocols(
+    #     for_which_language="golang",
+    #     input_folder="/Users/yingshaoxo/CS/we_love_party/party_protocols/protocols",
+    #     input_files=["management_service.proto"],
+    #     output_folder="/Users/yingshaoxo/CS/we_love_party/management_system/golang_backend_service/grpc_key_string_maps",
+    # )
+
+    grpc.generate_typescript_code(
         input_folder="/Users/yingshaoxo/CS/we_love_party/party_protocols/protocols",
         input_files=["management_service.proto"],
-        output_folder="/Users/yingshaoxo/CS/we_love_party/management_system/golang_backend_service/grpc_key_string_maps",
+        project_root_folder="/Users/yingshaoxo/CS/we_love_party/management_system/react_web_client",
+        output_folder="/Users/yingshaoxo/CS/we_love_party/management_system/react_web_client/src/generated_grpc",
     )
