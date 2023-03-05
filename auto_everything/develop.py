@@ -103,23 +103,14 @@ class GRPC:
             input_command = " ".join(input_files)
 
         # protoc --dart_out=grpc:lib/src/generated -Iprotos protos/helloworld.proto
-        if network.available():
-            t.run(
-                f"""
-            mkdir -p {output_folder}
-            dart pub global activate protoc_plugin
-            export PATH="$PATH":"$HOME/.pub-cache/bin"
-            protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} {input_command}
-            """
-            )
-        else:
-            t.run(
-                f"""
-            mkdir -p {output_folder}
-            export PATH="$PATH":"$HOME/.pub-cache/bin"
-            protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} {input_command}
-            """
-            )
+        # dart pub global activate protoc_plugin
+        t.run(
+            f"""
+        mkdir -p {output_folder}
+        export PATH="$PATH":"$HOME/.pub-cache/bin"
+        protoc --proto_path '{input_folder}' --dart_out=grpc:{output_folder} {input_command}
+        """
+        )
 
     def generate_typescript_code(self, input_folder: str, input_files: list[str], project_root_folder: str, output_folder: str = "src/generated_grpc"):
         """
