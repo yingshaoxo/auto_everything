@@ -1,4 +1,5 @@
 import re
+from typing import Any, Dict
 
 from auto_everything.terminal import Terminal
 from auto_everything.io import IO
@@ -15,28 +16,62 @@ class GRPC:
     def __init__(self):
         pass
 
-    def generate_python_code(self, input_folder: str, output_folder: str = "generated_grpc"):
+    def generate_python_code(self, python: str, input_folder: str, input_files: list[str], output_folder: str = "generated_grpc"):
+        """
+        python: like python3, python3.10 and so on...
+
+        input_folder: where protobuff files was located
+
+        input_files: it is a list, like ["english.proto", "pornhub.proto"]
+
+        output_folder: where those generated code file was located
+        """
         if not disk.exists(input_folder):
             raise Exception(f"'{input_folder}' does not exist!")
 
-        if "Error" in t.run_command("python3 -m grpc_tools.protoc --help"):
+        if "Usage".lower() not in t.run_command(f"{python} -m grpc_tools.protoc --help").lower():
+            t.run(f"""
+            # # llvm
+            # export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
+            # export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
+            # export LDFLAGS="-L/opt/homebrew/opt/llvm/lib -Wl,-rpath,/opt/homebrew/opt/llvm/lib"
+
+            # # openssl
+            # export CFLAGS="-I/opt/homebrew/opt/openssl/include"
+            # export LDFLAGS="-L/opt/homebrew/opt/openssl/lib"
+            # export C_INCLUDE_PATH=/opt/homebrew/include
+            # export CPLUS_INCLUDE_PATH=/opt/homebrew/include
+            # export LIBRARY_PATH=/opt/homebrew/lib
+
+            # export PKG_CONFIG_PATH="/opt/homebrew/opt/zlib/lib/pkgconfig"
+            # export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:"/opt/homebrew/opt/qt@5/lib/pkgconfig"
+            # export CMAKE_PREFIX_PATH="/opt/homebrew/opt/zlib"
+            # export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:"/opt/homebrew/opt/qt@5"
+
+            source ~/.bashrc
+            {python} -m pip install grpcio grpcio-tools
+            """)
             raise Exception(
-                "You should install grpc_tools by using:\n\npython3 -m pip install grpcio grpcio-tools"
+                f"You should install grpc_tools by using:\n{python} -m pip install grpcio grpcio-tools"
             )
 
-        input_folder = input_folder.rstrip("/")
-
         t.run(f"""
-        pip install --yes "betterproto[compiler]==2.0.0b5"
+        {python} -m pip install "betterproto[compiler]==2.0.0b5"
         """)
+
+        input_folder = input_folder.rstrip("/")
+        input_command = ""
+        if len(input_files) == 0:
+            input_command = f'{input_folder}/*'
+        else:
+            input_command = " ".join(input_files)
 
         t.run(
             f"""
         mkdir -p {output_folder}
-        python3 -m grpc_tools.protoc --proto_path '{input_folder}' --python_betterproto_out='{output_folder}' '{input_folder}/*'
-        """
+        {python} -m grpc_tools.protoc --proto_path '{input_folder}' --python_betterproto_out='{output_folder}' '{input_command}'
+        """)
         #--experimental_allow_proto3_optional
-        )
 
     def generate_golang_code(self, input_folder: str, input_files: list[str], output_folder: str = "generated_grpc"):
         """
@@ -188,7 +223,7 @@ protoc \
         found = re.findall(r"message\s+(?P<object_name>\w+)\s+\{(?P<properties>(\s*.*?\s*)+)\}", proto_string, re.DOTALL)
         return found
     
-    def _get_data_from_proto_file(self, proto_file_path: str):
+    def _get_data_from_proto_file(self, proto_file_path: str) -> Dict[str, Any]:
         proto_string = io_.read(proto_file_path)
 
         found = re.findall(r"message\s+(?P<object_name>\w+)\s+\{(?P<properties>(\s*.*?\s*)+)\}", proto_string, re.DOTALL)
@@ -207,7 +242,7 @@ protoc \
                 property_list = re.findall(r"\w+\s+(?P<property>\w+)\s+=\s+\d+;", property_text)
                 data[class_name] = property_list
         
-        return data
+        return data #type: ignore
     
     def generate_key_string_map_from_protocols(self, for_which_language:str , input_folder: str, input_files: list[str], output_folder: str|None = "grpc_key_string_maps"):
         #your name
@@ -234,7 +269,7 @@ protoc \
         input_folder = input_folder.rstrip("/")
         files = disk.get_files(input_folder, recursive=False, type_limiter=[".proto"])
 
-        new_files = []
+        new_files:list[str] = []
         for file in files:
             if any([one for one in input_files if file.endswith("/"+one)]):
                 new_files.append(file)
@@ -244,11 +279,11 @@ protoc \
             for file in files:
                 data_ = self._get_data_from_proto_file(file)
                 filename,_ = disk.get_stem_and_suffix_of_a_file(file)
-                target_file_path = disk.join_paths(output_folder, filename+".py")
+                target_file_path:str = disk.join_paths(output_folder, filename+".py")
 
-                sub_class_container_list = []
+                sub_class_container_list:list[str] = []
                 for key, value in data_.items():
-                    variable_list = []
+                    variable_list:list[str] = []
                     for one in value:
                         variable_list.append(f"""
     {one}: str = "{one}"

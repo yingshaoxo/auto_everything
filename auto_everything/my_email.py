@@ -1,7 +1,7 @@
 from O365 import Account
 
 class MyO365():
-    def __init__(self, credentials):
+    def __init__(self, credentials: tuple[str, str]):
         """
         credentials = ('dhasldl-b8ab-4730-93f1-cee730a4044b', 'salhdlghsaldh~ufOj2-4~69sCMZ05D_')
         """

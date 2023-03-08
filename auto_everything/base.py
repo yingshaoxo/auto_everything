@@ -1,9 +1,10 @@
 import os
 import time
+from typing import Any
 
 from auto_everything.terminal import Terminal
 from auto_everything.io import IO
-from auto_everything.python import Python
+from auto_everything.python import Python #type: ignore
 
 
 class OS():
@@ -21,7 +22,7 @@ class OS():
         installed_packages = self._t.run_command("pip3 list").lower()
         return installed_packages
 
-    def install_python_package(self, package_name, force=False):
+    def install_python_package(self, package_name: str, force: bool=False):
         self._io.make_sure_sudo_permission()
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
@@ -30,7 +31,7 @@ class OS():
             self._t.run(
                 "sudo pip3 install {name} --upgrade".format(name=package_name))
 
-    def uninstall_python_package(self, package_name, force=False):
+    def uninstall_python_package(self, package_name: str, force: bool=False):
         self._io.make_sure_sudo_permission()
 
         package_name = package_name.strip(" \n").replace('_', '-').lower()
@@ -48,7 +49,7 @@ class OS():
         installed_packages = self._t.run_command("apt list").lower()
         return installed_packages
 
-    def install_package(self, package_name, force=False):
+    def install_package(self, package_name: str, force: bool=False):
         """
         Parameters
         ----------
@@ -63,7 +64,7 @@ class OS():
             self._t.run(
                 "sudo apt install {name} -y --upgrade".format(name=package_name))
 
-    def uninstall_package(self, package_name, force=False):
+    def uninstall_package(self, package_name: str, force: bool=False):
         """
         Parameters
         ----------
@@ -81,9 +82,9 @@ class OS():
 class Deploy():
     def __init__(self):
         self._t = Terminal()
-        self.file_modification_dict = {}
+        self.file_modification_dict: dict[str, Any] = {}
 
-    def whether_a_file_or_dir_has_changed(self, file_path):
+    def whether_a_file_or_dir_has_changed(self, file_path: str):
         last_modification_time = os.path.getmtime(file_path)
 
         def update_dict():
@@ -107,7 +108,7 @@ class Super():
     This is for sudo operations in linux
     """
 
-    def __init__(self, username="root"):
+    def __init__(self, username: str="root"):
         self.__username = username
         if os.getuid() != 0:
             print("\n I only got my super power if you run me with sudo!")
@@ -118,7 +119,7 @@ class Super():
         self._io = IO()
         self._t = Terminal()
 
-    def __get_service_config(self, py_file_path):
+    def __get_service_config(self, py_file_path: str):
         working_dir = os.path.dirname(py_file_path)
 
         display_number = self._t.run_command("who")
@@ -152,7 +153,7 @@ WantedBy=multi-user.target
 
         return content
 
-    def start_service(self, name, py_file_path=None):
+    def start_service(self, name: str, py_file_path: str|None=None):
         """
         start or create a linux service
         after this, the py_file will keep running as long as the computer is running
@@ -207,7 +208,7 @@ WantedBy=multi-user.target
             print("\n".join(self._t.run_command(
                 cheack_command).split("\n")[:6]))
 
-    def stop_service(self, name):
+    def stop_service(self, name: str):
         """
         stop or cancel a linux service
         after this, the py_file will stop running
@@ -234,7 +235,7 @@ WantedBy=multi-user.target
                 cheack_command).split("\n")[:6]))
             self._t.run_command('sudo rm {}'.format(service_path))
 
-    def service(self, name, py_file_path):
+    def service(self, name: str, py_file_path: str):
         """
         start or stop service
         after start, the python script will running forever

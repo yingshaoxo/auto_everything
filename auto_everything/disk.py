@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import datetime
 import pathlib
 import tempfile
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Any, Iterable, List, Tuple
 from pathlib import Path
 import os
 import re
@@ -56,7 +56,7 @@ class Disk:
         # print(type(path))
         new_path: str = ""
         if type(path) == pathlib.PosixPath:
-            new_path = path.as_posix()  # type: ignore
+            new_path = str(path.as_posix()) #type: ignore
         else:
             new_path = path  # type: ignore
         if len(new_path) > 0:
@@ -90,15 +90,15 @@ class Disk:
     def executable(self, path: str) -> bool:
         return os.access(path, os.X_OK)
 
-    def concatenate_paths(self, *path):
-        return os.path.join(*path)
-
-    def join_paths(self, *path):
+    def concatenate_paths(self, *path: str) -> str:
+        return os.path.join(*path) # type: ignore
+ 
+    def join_paths(self, *path: str) -> str:
         return self.concatenate_paths(*path)
 
     def _parse_gitignore_text_to_list(self, gitignore_text: str) -> list[str]:
         ignore_pattern_list = [line for line in gitignore_text.strip().split("\n") if line.strip() != ""]
-        new_ignore_pattern_list = []
+        new_ignore_pattern_list:list[str] = []
         for pattern in ignore_pattern_list:
             if pattern.startswith("#"):
                 continue
@@ -150,10 +150,10 @@ class Disk:
         folder = self._expand_user(folder)
         assert os.path.exists(folder), f"{folder} is not exist!"
         if recursive == True:
-            files = []
+            files:list[str] = []
             for root, dirnames, filenames in os.walk(folder):
                 for filename in filenames:
-                    file = os.path.join(root, filename)
+                    file:str = self.join_paths(root, filename)
                     if os.path.isfile(file):
                         if type_limiter:
                             p = Path(file)
@@ -181,7 +181,7 @@ class Disk:
         if gitignore_text != None:
             ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=gitignore_text)
 
-            result_files = []
+            result_files:list[str] = []
             for file in files:
                 if self._file_match_the_gitignore_rule_list(
                     start_folder=folder,
@@ -323,11 +323,11 @@ class Disk:
             folder = node.path
 
             if not os.path.isdir(folder):
-                return None
+                return 
 
             items = os.listdir(folder)
             if len(items) == 0:
-                return []
+                return 
             
             files_and_folders: list[_FileInfo] = []
             for filename in items:
@@ -531,7 +531,7 @@ class Disk:
     def get_the_temp_dir(self):
         return self.temp_dir
 
-    def get_a_temp_file_path(self, filename):
+    def get_a_temp_file_path(self, filename: str):
         """
         We'll add a hash_string before the filename, so you can use this file path without any worry
         """
@@ -603,7 +603,7 @@ class Store:
         self._SQL_DATA_FILE = os.path.join(self._store_folder, f"{self._store_name}.db")
         self._sql_conn = sqlite3.connect(self._SQL_DATA_FILE, check_same_thread=False)
 
-        def regular_expression(expr, item):
+        def regular_expression(expr: str, item: Any):
             reg = re.compile(expr, flags=re.DOTALL)
             return reg.search(item) is not None
 
@@ -617,11 +617,11 @@ class Store:
                     (key TEXT, value TEXT)"""
         )
 
-    def __pre_process_key(self, key):
+    def __pre_process_key(self, key: Any):
         key = str(key)
         return key
 
-    def __pre_process_value(self, value):
+    def __pre_process_value(self, value: Any):
         if not isinstance(value, str):
             try:
                 value = json.dumps(value)
@@ -632,7 +632,7 @@ class Store:
                 )
         return value
 
-    def __active_json_value(self, value):
+    def __active_json_value(self, value: Any):
         try:
             value = json.loads(value)
         except Exception as e:
@@ -643,14 +643,14 @@ class Store:
         """
         get all key and value tuple in the store
         """
-        rows = []
+        rows:list[Any] = []
         for row in self._sql_cursor.execute(
             f"SELECT * FROM {self._store_name} ORDER BY key"
         ):
             rows.append((row[0], self.__active_json_value(row[1])))
         return rows
 
-    def has_key(self, key) -> bool:
+    def has_key(self, key: str) -> bool:
         """
         check if a key exist in the store
 
@@ -668,7 +668,7 @@ class Store:
         else:
             return False
 
-    def get(self, key, default_value):
+    def get(self, key: str, default_value: Any):
         """
         get a value by using a key
 
@@ -688,7 +688,7 @@ class Store:
         else:
             return default_value
 
-    def set(self, key, value):
+    def set(self, key: str, value: Any):
         """
         set a value by using a key
 

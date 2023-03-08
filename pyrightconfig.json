@@ -1,0 +1,5 @@
+{
+    "reportUnusedVariable": false,
+    "reportUnusedFunction": false,
+    "reportPrivateUsage": false
+}

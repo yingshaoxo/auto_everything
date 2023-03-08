@@ -1,5 +1,5 @@
 import signal
-from typing import Any, Tuple, List
+from typing import Tuple, List
 
 import sys
 import os
@@ -319,7 +319,7 @@ class Terminal:
             self.__remove_temp_sh(temp_sh)
             return str(e)
 
-    def run_program(self, name: str, cwd: str | None = None) -> subprocess.Popen:
+    def run_program(self, name: str, cwd: str | None = None):
         """
         run shell commands, especially programs which can be started from terminal.
         This function will not wait program to be finished.
@@ -435,7 +435,7 @@ class Terminal:
                     target_pids.append(pid)
             return target_pids
         """
-        pids = []
+        pids:list[str] = []
         # Iterate over all running process
         for proc in psutil.process_iter():
             try:
@@ -444,20 +444,20 @@ class Terminal:
                 process_id = proc.pid
                 process_command = " ".join(proc.cmdline())
                 if name in process_command:
-                    pids.append(process_id)
+                    pids.append(str(process_id))
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return pids
 
-    def _get_all_running_pids(self) -> List[int]:
-        pids = []
+    def _get_all_running_pids(self) -> List[str]:
+        pids:list[str] = []
         # Iterate over all running process
         for proc in psutil.process_iter():
             try:
                 # Get process name & pid from process object.
                 # processName = proc.name()
                 process_id = proc.pid
-                pids.append(process_id)
+                pids.append(str(process_id))
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return pids
@@ -487,7 +487,7 @@ class Terminal:
             the process id
         """
         pids = self._get_all_running_pids()
-        if int(pid) in pids:
+        if str(pid) in pids:
             return True
         else:
             return False

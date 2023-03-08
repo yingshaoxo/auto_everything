@@ -6,6 +6,8 @@ import io
 import hashlib
 import base64
 
+from typing import Any
+
 
 class IO():
     """
@@ -89,7 +91,7 @@ class IO():
                 data = json.loads(text)
             except Exception as e:
                 print(e)
-                data = dict()
+                data: dict[Any, Any] = dict()
             data.update({key: value})
             text = json.dumps(data)
             self.write(settings_path, text)
@@ -117,14 +119,14 @@ class IO():
 
 
 class MyIO():
-    def string_to_md5(self, text):
+    def string_to_md5(self, text: str):
         result = hashlib.md5(text.encode())
         return result.hexdigest()
 
-    def base64_to_bytesio(self, base64_string):
+    def base64_to_bytesio(self, base64_string: str):
         img_data = base64.b64decode(base64_string)
         return io.BytesIO(img_data)
 
-    def bytesio_to_base64(self, bytes_io):
+    def bytesio_to_base64(self, bytes_io: io.BytesIO):
         bytes_io.seek(0)
         return base64.b64encode(bytes_io.getvalue()).decode()
