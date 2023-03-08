@@ -429,8 +429,15 @@ package {filename}_grpc_key_string_maps
         else:
             raise Exception(f"We don't support '{for_which_language}' language.")
 
+
+class YRPC:
+    pass
+
+
 if __name__ == "__main__":
-    grpc = GRPC()
+    yrpc = YRPC()
+
+    # grpc = GRPC()
     # grpc.generate_python_code(
     #     input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/py_grpc"
     # )
@@ -446,10 +453,9 @@ if __name__ == "__main__":
     #     input_files=["management_service.proto"],
     #     output_folder="/Users/yingshaoxo/CS/we_love_party/management_system/golang_backend_service/grpc_key_string_maps",
     # )
-
-    grpc.generate_typescript_code(
-        input_folder="/Users/yingshaoxo/CS/we_love_party/party_protocols/protocols",
-        input_files=["management_service.proto"],
-        project_root_folder="/Users/yingshaoxo/CS/we_love_party/management_system/react_web_client",
-        output_folder="/Users/yingshaoxo/CS/we_love_party/management_system/react_web_client/src/generated_grpc",
-    )
+    # grpc.generate_typescript_code(
+    #     input_folder="/Users/yingshaoxo/CS/we_love_party/party_protocols/protocols",
+    #     input_files=["management_service.proto"],
+    #     project_root_folder="/Users/yingshaoxo/CS/we_love_party/management_system/react_web_client",
+    #     output_folder="/Users/yingshaoxo/CS/we_love_party/management_system/react_web_client/src/generated_grpc",
+    # )
