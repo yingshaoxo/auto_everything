@@ -19,6 +19,7 @@ message Empty {
 message hello_request {
    string name = 1;
    UserStatus user_status = 2;
+   repeated UserStatus user_status_list = 3;
 }
 
 message HelloReply {
