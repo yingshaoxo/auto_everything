@@ -706,6 +706,7 @@ class YRPC_OBJECT_BASE_CLASS:
         for key, value in new_dict.items():
             if key in old_self_dict:
                 setattr(self, key, value)
+        return new_dict.copy()
 
     def clone(self):
         return self.create_a_new_instance_from_dict(self.to_dict()) 
