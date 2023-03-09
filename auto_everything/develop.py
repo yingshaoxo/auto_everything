@@ -1,8 +1,6 @@
 import re
 from typing import Any, Dict, Tuple
 
-from numpy import double
-
 from auto_everything.terminal import Terminal
 from auto_everything.io import IO
 from auto_everything.disk import Disk
@@ -435,14 +433,46 @@ package {filename}_grpc_key_string_maps
 class YRPC:
     _yrpc_type_to_python_type_dict = {
         "string": "str",
+        "bytes": "str",
+
         "bool": "bool",
+
         "uint32": "int",
+        "uint64": "int",
+        "sint32": "int",
+        "sint64": "int",
+        "fixed32": "int",
+        "fixed64": "int",
+        "sfixed32": "int",
+        "sfixed64": "int",
         "int32": "int",
         "int64": "int",
         "uint64": "int",
-        "bytes": "str",
+
         "float": "float",
         "double": "float"
+    }
+
+    _yrpc_type_to_dart_type_dict = {
+        "string": "String",
+        "bytes": "String",
+
+        "bool": "bool",
+
+        "uint32": "int",
+        "uint64": "int",
+        "sint32": "int",
+        "sint64": "int",
+        "fixed32": "int",
+        "fixed64": "int",
+        "sfixed32": "int",
+        "sfixed64": "int",
+        "int32": "int",
+        "int64": "int",
+        "uint64": "int",
+
+        "float": "double",
+        "double": "double"
     }
 
     # def _get_python_type_from_yrpc_type(self, type_string: str):
@@ -486,6 +516,8 @@ class YRPC:
             if class_name_list.count(one) > 1:
                 raise Exception("You must make sure there has no duplicated class/message name.")
 
+        enum_class_name_list = [one[1].strip() for one in new_parsed_object_list if one[0].strip() == "enum"]
+
         arguments_defination_tree:dict[str, Any] = {}
         for one in new_parsed_object_list.copy():
             code_block_type = one[0].strip()
@@ -511,6 +543,8 @@ class YRPC:
                 arguments_defination_tree[class_name][name] = {
                     "type": type, 
                     "is_list": True if feature == "repeated" else False,
+                    "is_enum": True if (type in enum_class_name_list) else False,
+                    "is_custom_message_type": True if ((type in class_name_list) and (type not in enum_class_name_list)) else False,
                     "name": name,
                     "feature": feature
                 }
@@ -724,8 +758,246 @@ class YRPC_OBJECT_BASE_CLASS:
         """.strip()
         return template_text.strip()
 
-    def generate_python_code(self, input_folder: str, input_files: list[str], output_folder: str = "src/generated_yrpc"):
+    def _convert_yrpc_code_into_dart_code(self, source_code: str) -> str:
+        arguments_dict, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        enum_code_block_list: list[str] = []
+        dataclass_code_block_list: list[str] = []
+        for class_name, variable_info in arguments_dict.items():
+            code_block_type = variable_info["**type**"]
+            del variable_info["**type**"]
+
+            if code_block_type == "enum":
+                variable_list: list[str] = []
+                for index, one in enumerate(variable_info.values()):
+                    name = one['name']
+                    variable_list.append(f"""
+  {name},
+                    """.rstrip().lstrip('\n'))
+                variable_list_text = "\n".join(variable_list)
+
+                enum_class_text = f"""
+enum {class_name} {{
+{variable_list_text}
+}}
+                """.rstrip().lstrip('\n')
+
+                enum_code_block_list.append(enum_class_text)
+            else:
+                variable_list: list[str] = []
+                constructor_variable_list: list[str] = []
+                property_name_to_its_type_dict_variable_list: list[str] = []
+                key_string_dict_list: list[str] = []
+
+                to_dict_function_variable_list: list[str] = []
+
+                from_dict_function_variable_list_1: list[str] = []
+                from_dict_function_variable_list_2: list[str] = []
+
+                for index, one in enumerate(variable_info.values()):
+                    name = one['name']
+                    type = self._yrpc_type_to_dart_type_dict.get(one['type']) 
+                    if type == None:
+                        if one['type'] in arguments_dict.keys():
+                            type = one['type']
+                        else:
+                            raise Exception(f"We don't support type of '{one['type']}'")
+                    is_list = one['is_list']
+                    is_enum = one['is_enum']
+                    is_custom_message_type = one['is_custom_message_type']
+
+                    if is_list == False:
+                        variable_list.append(f"""
+  {type}? {name};
+                        """.rstrip().lstrip('\n'))
+                    else:
+                        variable_list.append(f"""
+  List<{type}>? {name};
+                        """.rstrip().lstrip('\n'))
+                    
+                    constructor_variable_list.append(f"""
+                    this.{name}
+                    """.strip())
+
+                    property_name_to_its_type_dict_variable_list.append(f"""
+    "{name}": {type},
+                    """.rstrip().lstrip('\n'))
+
+                    key_string_dict_list.append(f"""
+  final String {name} = "{name}";
+                    """.rstrip().lstrip('\n'))
+
+                    if is_enum:
+                        if is_list:
+                            to_dict_function_variable_list.append(f"""
+      '{name}': this.{name}?.map((e) => e.name).toList(),
+                            """.rstrip().lstrip('\n'))
+                        else:
+                            to_dict_function_variable_list.append(f"""
+      '{name}': this.{name}?.name,
+                            """.rstrip().lstrip('\n'))
+                    elif is_custom_message_type:
+                        if is_list:
+                            to_dict_function_variable_list.append(f"""
+      '{name}': this.{name}?.map((e) => e.to_dict()).toList(),
+                            """.rstrip().lstrip('\n'))
+                        else:
+                            to_dict_function_variable_list.append(f"""
+      '{name}': this.{name}?.to_dict(),
+                            """.rstrip().lstrip('\n'))
+                    else:
+                        to_dict_function_variable_list.append(f"""
+      '{name}': this.{name},
+                        """.rstrip().lstrip('\n'))
+
+                    if is_enum:
+                        if is_list:
+                            from_dict_function_variable_list_1.append(f"""
+    this.{name} = json['{name}']?.map((e1) {{
+      return {type}.values
+                  .map((e2) => e2.name)
+                  .toList()
+                  .indexOf(e1) ==
+              -1
+          ? null
+          : {type}.values.byName(e1);
+    }})
+    ?.toList()
+    .cast<{type}>() ?? null
+    ;
+                            """.rstrip().lstrip('\n'))
+                        else:
+                            from_dict_function_variable_list_1.append(f"""
+    this.{name} =
+        {type}.values.map((e) => e.name).toList().indexOf(json['{name}']) == -1
+            ? null
+            : {type}.values.byName(json['{name}']);
+                            """.rstrip().lstrip('\n'))
+                    elif is_custom_message_type:
+                        if is_list:
+                            from_dict_function_variable_list_1.append(f"""
+    this.{name} = json['{name}']
+            ?.map((e) => {type}().from_dict(e))
+            ?.toList()
+            ?.cast<{type}>() ??
+        null;
+                            """.rstrip().lstrip('\n'))
+                        else:
+                            from_dict_function_variable_list_1.append(f"""
+    this.{name} = {type}().from_dict(json['{name}']);
+                            """.rstrip().lstrip('\n'))
+                    else:
+                        from_dict_function_variable_list_1.append(f"""
+    this.{name} = json['{name}'];
+                        """.rstrip().lstrip('\n'))
+
+                    if is_enum:
+                        if is_list:
+                            from_dict_function_variable_list_2.append(f"""
+      {name}: json['{name}']?.map((e1) {{
+        return {type}.values
+                    .map((e2) => e2.name)
+                    .toList()
+                    .indexOf(e1) ==
+                -1
+            ? null
+            : {type}.values.byName(e1);
+      }})
+      ?.toList()
+      .cast<{type}>() ?? null
+      ,
+                            """.rstrip().lstrip('\n'))
+                        else:
+                            from_dict_function_variable_list_2.append(f"""
+      {name}:
+        {type}.values.map((e) => e.name).toList().indexOf(json['{name}']) == -1
+            ? null
+            : {type}.values.byName(json['{name}']),
+                            """.rstrip().lstrip('\n'))
+                    elif is_custom_message_type:
+                        if is_list:
+                            from_dict_function_variable_list_2.append(f"""
+      {name}: json['{name}']
+              ?.map((e) => {type}().from_dict(e))
+              ?.toList()
+              ?.cast<{type}>() ??
+          null,
+                            """.rstrip().lstrip('\n'))
+                        else:
+                            from_dict_function_variable_list_2.append(f"""
+      {name}: {type}().from_dict(json['{name}']),
+                            """.rstrip().lstrip('\n'))
+                    else:
+                        from_dict_function_variable_list_2.append(f"""
+      {name}: json['{name}'],
+                        """.rstrip().lstrip('\n'))
+
+                variable_list_text = "\n".join(variable_list)
+                constructor_variable_list_text = ", ".join(constructor_variable_list) 
+                if (len(constructor_variable_list_text) != 0):
+                    constructor_variable_list_text = "{" + constructor_variable_list_text + "}"
+                property_name_to_its_type_dict_variable_list_text = "\n".join(property_name_to_its_type_dict_variable_list)
+                key_string_dict_list_text = "\n".join(key_string_dict_list)
+
+                to_dict_function_variable_list_text = "\n".join(to_dict_function_variable_list)
+
+                from_dict_function_variable_list_1_text = "\n".join(from_dict_function_variable_list_1)
+                from_dict_function_variable_list_2_text = "\n".join(from_dict_function_variable_list_2)
+
+                dataclass_text = f"""
+class Key_string_dict_for_{class_name}_ {{
+{key_string_dict_list_text}
+}}
+
+class {class_name} {{
+{variable_list_text}
+
+  {class_name}({constructor_variable_list_text});
+
+  final Map<String, dynamic> property_name_to_its_type_dict_ = {{
+{property_name_to_its_type_dict_variable_list_text}
+  }};
+
+  final key_string_dict_for_{class_name}_ =
+      Key_string_dict_for_{class_name}_();
+
+  Map<String, dynamic> to_dict() {{
+    return {{
+{to_dict_function_variable_list_text}
+    }};
+  }}
+
+  {class_name} from_dict(Map<String, dynamic>? json) {{
+    if (json == null) {{
+      return {class_name}();
+    }}
+
+{from_dict_function_variable_list_1_text}
+
+    return {class_name}(
+{from_dict_function_variable_list_2_text}
+    );
+  }}
+}}
+                """.rstrip().lstrip('\n')
+
+                dataclass_code_block_list.append(dataclass_text)
+        
+        enum_code_block_list_text = "\n\n\n".join(enum_code_block_list)
+        dataclass_code_block_list_text = "\n\n\n".join(dataclass_code_block_list)
+
+        template_text = f"""
+{enum_code_block_list_text}
+
+{dataclass_code_block_list_text}
+        """.strip()
+
+        return template_text
+
+    def generate_code(self, which_language: str, input_folder: str, input_files: list[str], output_folder: str = "src/generated_yrpc"):
         """
+        which_language: python, dart, go, kotlin, typescript, rust and so on
+
         input_folder: where protobuff files was located
 
         input_files: it is a list, like ["english.proto", "pornhub.proto"]
@@ -751,12 +1023,25 @@ class YRPC_OBJECT_BASE_CLASS:
                 new_files.append(file)
         files = new_files.copy()
 
+        language_to_file_suffix_dict = {
+            "python": ".py",
+            "dart": ".dart",
+        }
+
+        if which_language not in language_to_file_suffix_dict.keys():
+            raise Exception(f"Sorry, we don't support '{which_language}' language.")
+
         for file in files:
             filename,_ = disk.get_stem_and_suffix_of_a_file(file)
-            target_file_path = disk.join_paths(output_folder, filename+".py")
+            target_file_path = disk.join_paths(output_folder, filename + language_to_file_suffix_dict[which_language])
 
             source_code = io_.read(file_path=file)
-            final_code = self._convert_yrpc_code_into_python_code(source_code=source_code)
+
+            final_code = ""
+            if which_language == "python":
+                final_code = self._convert_yrpc_code_into_python_code(source_code=source_code)
+            elif which_language == "dart":
+                final_code = self._convert_yrpc_code_into_dart_code(source_code=source_code)
 
             io_.write(file_path=target_file_path, content=final_code)
 
@@ -764,18 +1049,16 @@ class YRPC_OBJECT_BASE_CLASS:
 if __name__ == "__main__":
     yrpc = YRPC()
 
-    # source_code = io_.read("./playground/develop/test_protobuff_code.proto")
-    # arguments_dict, rpc_dict = yrpc.get_information_from_yrpc_protocol_code(source_code=source_code)
+    # result1, result2 = yrpc.get_information_from_yrpc_protocol_code(io_.read("/Users/yingshaoxo/CS/auto_everything/playground/develop/test_protobuff_code.proto"))
+    # pprint(result1)
 
-    # print(arguments_dict)
-    # print()
-    # print(rpc_dict)
-
-    yrpc.generate_python_code(
-        input_folder="/Users/yingshaoxo/CS/auto_everything/playground/develop",
-        input_files=["test_protobuff_code.proto"],
-        output_folder="/Users/yingshaoxo/CS/auto_everything/playground/develop/build"
-    )
+    for language in ["python", "dart"]:
+        yrpc.generate_code(
+            which_language=language,
+            input_folder="/Users/yingshaoxo/CS/auto_everything/playground/develop",
+            input_files=["test_protobuff_code.proto"],
+            output_folder="/Users/yingshaoxo/CS/auto_everything/playground/develop/build"
+        )
 
     # grpc = GRPC()
     # grpc.generate_python_code(

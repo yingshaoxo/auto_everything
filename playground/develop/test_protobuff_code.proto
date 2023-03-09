@@ -30,6 +30,7 @@ message Voice_Request {
     string uuid = 1;
     int64 timestamp = 2;
     string voice = 3;
+    repeated Empty empty_list = 4;
 }
 
 message VoiceReply {
