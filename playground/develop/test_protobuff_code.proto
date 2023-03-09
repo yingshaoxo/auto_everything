@@ -3,8 +3,8 @@ package helloworld;
 
 service Greeter {
     rpc SayHello (hello_request) returns (HelloReply);
-    rpc SendVoice(stream Voice_Request) returns (Empty);
-    rpc GetCurrentUsersUUID(Empty) returns (CurrentUsersUUIDReply);
+    rpc SendVoice (stream Voice_Request) returns (Empty);
+    rpc GetCurrentUsersUUID (Empty) returns (CurrentUsersUUIDReply);
     rpc say_hello (hello_request) returns (HelloReply);
 }
 
