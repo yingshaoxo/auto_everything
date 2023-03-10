@@ -37,4 +37,5 @@ opencv-python = "^4.7.0.68"
 pyautogui = "^0.9.53"
 
 [tool.poetry.scripts]
-hi = "auto_everything.terminal:_hi" # You can call 'hi' in everywhere from your terminal after you install this package
+hi = "auto_everything._command_line_interface:_hi" # You can call 'hi' in everywhere from your terminal after you install this package
+auto_everything = "auto_everything._command_line_interface:main"

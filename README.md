@@ -32,6 +32,12 @@ sudo pip3 install auto_everything==3.9
 #### Magic
 
 ```bash
+python3 -m auto_everything
+```
+
+or
+
+```bash
 curl -sSL https://github.com/yingshaoxo/auto_everything/raw/master/env_setup.sh | bash
 
 wget -O - https://github.com/yingshaoxo/auto_everything/raw/master/example/install_YouCompleteMe.py | python3
