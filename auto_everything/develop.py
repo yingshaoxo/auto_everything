@@ -577,7 +577,7 @@ class YRPC:
 
         return arguments_defination_tree, rpc_defination_tree
 
-    def _convert_yrpc_code_into_python_code(self, source_code: str) -> str:
+    def _convert_yrpc_code_into_python_objects_code(self, source_code: str) -> str:
         arguments_dict, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
 
         enum_code_block_list: list[str] = []
@@ -591,7 +591,7 @@ class YRPC:
                 for index, one in enumerate(class_info.values()):
                     name = one['name']
                     variable_list.append(f"""
-    {name} = {index}
+    {name} = "{name}"
                     """.rstrip().lstrip('\n'))
                 variable_list_text = "\n".join(variable_list)
 
@@ -645,13 +645,17 @@ class {class_name}(Enum):
 class {class_name}(YRPC_OBJECT_BASE_CLASS):
 {variable_list_text}
 
-    property_name_to_its_type_dict_ = {{
+    _property_name_to_its_type_dict = {{
 {property_name_to_its_type_dict_variable_list_text}
     }}
 
     @dataclass()
-    class key_string_dict_:
+    class _key_string_dict:
 {key_string_dict_list_text}
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: {class_name} = super().from_dict(dict)
+        return new_variable
                 """.rstrip().lstrip('\n')
 
                 dataclass_code_block_list.append(dataclass_text)
@@ -711,15 +715,15 @@ def convert_pure_dict_into_a_dict_that_has_enum_object(pure_value: Any, refrence
         for key_, value_ in pure_value.items(): #type: ignore
             new_dict[key_] = convert_pure_dict_into_a_dict_that_has_enum_object( #type: ignore
                 pure_value=value_, 
-                refrence_value=refrence_value().property_name_to_its_type_dict_.get(key_)
+                refrence_value=refrence_value()._property_name_to_its_type_dict.get(key_)
             ) #type: ignore
         return new_dict
     else:
         if str(refrence_value).startswith("<enum"):
             default_value = None
-            for temp_index, temp_value in enumerate(refrence_value(0)._member_names_):
+            for temp_index, temp_value in enumerate(refrence_value._member_names_):
                 if temp_value == pure_value:
-                    default_value = refrence_value(temp_index) 
+                    default_value = refrence_value(temp_value) 
                     break
             return default_value
         else:
@@ -734,18 +738,18 @@ class YRPC_OBJECT_BASE_CLASS:
         new_dict = convert_dict_that_has_enum_object_into_pure_dict(value=self.__dict__.copy())
         return new_dict.copy() #type: ignore
 
-    def from_dict(self, dict: dict[str, Any]):
+    def from_dict(self, dict: dict[str, Any]) -> Any:
         new_dict = convert_pure_dict_into_a_dict_that_has_enum_object(pure_value=dict.copy(), refrence_value=self.__class__)
         old_self_dict = self.__dict__.copy() 
         for key, value in new_dict.items():
             if key in old_self_dict:
                 setattr(self, key, value)
-        return new_dict.copy()
+        return self._clone()
 
-    def clone(self):
-        return self.create_a_new_instance_from_dict(self.to_dict()) 
+    def _clone(self) -> Any:
+        return self._create_a_new_instance_from_dict(self.to_dict()) 
 
-    def create_a_new_instance_from_dict(self, dict: dict[str, Any]):
+    def _create_a_new_instance_from_dict(self, dict: dict[str, Any]) -> Any:
         an_object = self.__class__()
         new_dict = convert_pure_dict_into_a_dict_that_has_enum_object(pure_value=dict.copy(), refrence_value=an_object.__class__)
         for key, value in new_dict.items():
@@ -758,7 +762,76 @@ class YRPC_OBJECT_BASE_CLASS:
         """.strip()
         return template_text.strip()
 
-    def _convert_yrpc_code_into_dart_code(self, source_code: str) -> str:
+    def _convert_yrpc_code_into_python_rpc_code(self, identity_name: str, source_code: str) -> str:
+        _, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        service_class_function_list: list[str] = []
+        service_api_function_list: list[str] = []
+        for function_name, parameter_info in rpc_dict.items():
+            input_variable: str = parameter_info["input_variable"]
+            output_variable: str = parameter_info["output_variable"]
+
+            if " " in input_variable:
+                input_variable = re.split(r"\s+", input_variable)[1]
+            if " " in output_variable:
+                output_variable = re.split(r"\s+", output_variable)[1]
+
+            service_class_function_list.append(f"""
+    async def {function_name}(self, item: {input_variable}) -> {output_variable}:
+        return {output_variable}()
+            """.rstrip().lstrip('\n'))
+
+            service_api_function_list.append(f"""
+    @router.post("/{function_name}/", tags=["{identity_name}"])
+    async def {function_name}(item: {input_variable}) -> {output_variable}:
+        item = {input_variable}().from_dict(item.to_dict())
+        return (await service_instance.{function_name}(item)).to_dict()
+            """.rstrip().lstrip('\n'))
+
+        
+        service_class_function_list_text = "\n\n".join(service_class_function_list)
+        service_api_function_list_text = "\n\n".join(service_api_function_list)
+
+        template_text = f"""
+from {identity_name}_objects import *
+
+
+from fastapi import APIRouter, FastAPI
+import uvicorn
+
+
+router = APIRouter()
+
+
+class Service_test_protobuff_code:
+{service_class_function_list_text}
+
+
+def run(service_instance: Any, port: str):
+{service_api_function_list_text}
+
+    app = FastAPI()
+    app.include_router(
+        router,
+        prefix="/{identity_name}",
+    )
+
+    print(f"You can see the docs here: http://127.0.0.1:{{port}}/docs")
+    uvicorn.run( #type: ignore
+        app=app,
+        host="0.0.0.0",
+        port=int(port)
+    ) 
+
+
+if __name__ == "__main__":
+    service_instance = Service_test_protobuff_code()
+    run(service_instance, port="6060")
+        """.strip()
+
+        return template_text
+
+    def _convert_yrpc_code_into_dart_objects_code(self, source_code: str) -> str:
         arguments_dict, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
 
         enum_code_block_list: list[str] = []
@@ -945,7 +1018,7 @@ enum {class_name} {{
                 from_dict_function_variable_list_2_text = "\n".join(from_dict_function_variable_list_2)
 
                 dataclass_text = f"""
-class Key_string_dict_for_{class_name}_ {{
+class _Key_string_dict_for_{class_name} {{
 {key_string_dict_list_text}
 }}
 
@@ -954,12 +1027,12 @@ class {class_name} {{
 
   {class_name}({constructor_variable_list_text});
 
-  final Map<String, dynamic> property_name_to_its_type_dict_ = {{
+  final Map<String, dynamic> _property_name_to_its_type_dict = {{
 {property_name_to_its_type_dict_variable_list_text}
   }};
 
-  final key_string_dict_for_{class_name}_ =
-      Key_string_dict_for_{class_name}_();
+  final _key_string_dict_for_{class_name} =
+      _Key_string_dict_for_{class_name}();
 
   Map<String, dynamic> to_dict() {{
     return {{
@@ -987,12 +1060,17 @@ class {class_name} {{
         dataclass_code_block_list_text = "\n\n\n".join(dataclass_code_block_list)
 
         template_text = f"""
+// ignore_for_file: unused_field
+
 {enum_code_block_list_text}
 
 {dataclass_code_block_list_text}
         """.strip()
 
         return template_text
+
+    def _convert_yrpc_code_into_dart_rpc_code(self, source_code: str) -> str:
+        return ""
 
     def generate_code(self, which_language: str, input_folder: str, input_files: list[str], output_folder: str = "src/generated_yrpc"):
         """
@@ -1030,20 +1108,31 @@ class {class_name} {{
 
         if which_language not in language_to_file_suffix_dict.keys():
             raise Exception(f"Sorry, we don't support '{which_language}' language.")
+        
+        if which_language == "python":
+            init_file_for_python = disk.join_paths(output_folder, "__init__.py")
+            if not disk.exists(init_file_for_python):
+                io_.write(init_file_for_python, "")
 
         for file in files:
             filename,_ = disk.get_stem_and_suffix_of_a_file(file)
-            target_file_path = disk.join_paths(output_folder, filename + language_to_file_suffix_dict[which_language])
+
+            target_objects_file_path = disk.join_paths(output_folder, filename + "_objects" + language_to_file_suffix_dict[which_language])
+            target_rpc_file_path = disk.join_paths(output_folder, filename + "_rpc" + language_to_file_suffix_dict[which_language])
 
             source_code = io_.read(file_path=file)
 
-            final_code = ""
+            objects_code = ""
+            rpc_code = ""
             if which_language == "python":
-                final_code = self._convert_yrpc_code_into_python_code(source_code=source_code)
+                objects_code = self._convert_yrpc_code_into_python_objects_code(source_code=source_code)
+                rpc_code = self._convert_yrpc_code_into_python_rpc_code(identity_name=filename, source_code=source_code)
             elif which_language == "dart":
-                final_code = self._convert_yrpc_code_into_dart_code(source_code=source_code)
+                objects_code = self._convert_yrpc_code_into_dart_objects_code(source_code=source_code)
+                rpc_code = self._convert_yrpc_code_into_dart_rpc_code(source_code=source_code)
 
-            io_.write(file_path=target_file_path, content=final_code)
+            io_.write(file_path=target_objects_file_path, content=objects_code)
+            io_.write(file_path=target_rpc_file_path, content=rpc_code)
 
 
 if __name__ == "__main__":

@@ -7,9 +7,8 @@ _ygrpc_official_types = [int, float, str, bool]
 
 
 class UserStatus(Enum):
-    OFFLINE = 0
-    ONLINE = 1
-
+    OFFLINE = "OFFLINE"
+    ONLINE = "ONLINE"
 
 def convert_dict_that_has_enum_object_into_pure_dict(value: Any) -> dict[str, Any] | list[Any] | Any:
     if type(value) is list:
@@ -51,15 +50,15 @@ def convert_pure_dict_into_a_dict_that_has_enum_object(pure_value: Any, refrence
         for key_, value_ in pure_value.items(): #type: ignore
             new_dict[key_] = convert_pure_dict_into_a_dict_that_has_enum_object( #type: ignore
                 pure_value=value_, 
-                refrence_value=refrence_value().property_name_to_its_type_dict_.get(key_)
+                refrence_value=refrence_value()._property_name_to_its_type_dict.get(key_)
             ) #type: ignore
         return new_dict
     else:
         if str(refrence_value).startswith("<enum"):
             default_value = None
-            for temp_index, temp_value in enumerate(refrence_value(0)._member_names_):
+            for temp_index, temp_value in enumerate(refrence_value._member_names_):
                 if temp_value == pure_value:
-                    default_value = refrence_value(temp_index) 
+                    default_value = refrence_value(temp_value) 
                     break
             return default_value
         else:
@@ -74,17 +73,18 @@ class YRPC_OBJECT_BASE_CLASS:
         new_dict = convert_dict_that_has_enum_object_into_pure_dict(value=self.__dict__.copy())
         return new_dict.copy() #type: ignore
 
-    def from_dict(self, dict: dict[str, Any]):
+    def from_dict(self, dict: dict[str, Any]) -> Any:
         new_dict = convert_pure_dict_into_a_dict_that_has_enum_object(pure_value=dict.copy(), refrence_value=self.__class__)
         old_self_dict = self.__dict__.copy() 
         for key, value in new_dict.items():
             if key in old_self_dict:
                 setattr(self, key, value)
+        return self._clone()
 
-    def clone(self):
-        return self.create_a_new_instance_from_dict(self.to_dict()) 
+    def _clone(self) -> Any:
+        return self._create_a_new_instance_from_dict(self.to_dict()) 
 
-    def create_a_new_instance_from_dict(self, dict: dict[str, Any]):
+    def _create_a_new_instance_from_dict(self, dict: dict[str, Any]) -> Any:
         an_object = self.__class__()
         new_dict = convert_pure_dict_into_a_dict_that_has_enum_object(pure_value=dict.copy(), refrence_value=an_object.__class__)
         for key, value in new_dict.items():
@@ -100,7 +100,7 @@ class Yingshaoxo_info(YRPC_OBJECT_BASE_CLASS):
     sex: str | None = None
     super_power: bool | None = None
 
-    property_name_to_its_type_dict_ = {
+    _property_name_to_its_type_dict = {
         "name": str,
         "age": int,
         "sex": str,
@@ -108,11 +108,15 @@ class Yingshaoxo_info(YRPC_OBJECT_BASE_CLASS):
     }
 
     @dataclass()
-    class key_string_dict_:
+    class _key_string_dict:
         name: str = "name"
         age: str = "age"
         sex: str = "sex"
         super_power: str = "super_power"
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: Yingshaoxo_info = super().from_dict(dict)
+        return new_variable
     
 
 @dataclass()
@@ -122,7 +126,7 @@ class hello_request(YRPC_OBJECT_BASE_CLASS):
     user_status_list: list[UserStatus] | None = None
     yingshaoxo_info: Yingshaoxo_info | None = None
 
-    property_name_to_its_type_dict_ = {
+    _property_name_to_its_type_dict = {
         "name": str,
         "user_status": UserStatus,
         "user_status_list": UserStatus,
@@ -130,11 +134,15 @@ class hello_request(YRPC_OBJECT_BASE_CLASS):
     }
 
     @dataclass()
-    class key_string_dict_:
+    class _key_string_dict:
         name: str = "name"
         user_status: str = "user_status"
         user_status_list: str = "user_status_list"
         yingshaoxo_info: str = "yingshaoxo_info"
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: hello_request = super().from_dict(dict)
+        return new_variable
     
 
 if __name__ == "__main__":
