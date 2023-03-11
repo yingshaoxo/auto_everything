@@ -13,11 +13,15 @@ class Service_test_protobuff_code:
         return hello_request()
 
 
-def run(service_instance: Any, port: str):
+def init(service_instance: Any):
     @router.post("/create_hello_request/", tags=["test_protobuff_code"])
     async def create_hello_request(item: hello_request) -> hello_request:
         item = hello_request().from_dict(item.to_dict())
         return (await service_instance.create_hello_request(item)).to_dict()
+
+
+def run(service_instance: Any, port: str):
+    init(service_instance=service_instance)
 
     app = FastAPI()
     app.include_router(

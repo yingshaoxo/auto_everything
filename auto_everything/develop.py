@@ -807,8 +807,12 @@ class Service_test_protobuff_code:
 {service_class_function_list_text}
 
 
-def run(service_instance: Any, port: str):
+def init(service_instance: Any):
 {service_api_function_list_text}
+
+
+def run(service_instance: Any, port: str):
+    init(service_instance=service_instance)
 
     app = FastAPI()
     app.include_router(
@@ -1069,8 +1073,99 @@ class {class_name} {{
 
         return template_text
 
-    def _convert_yrpc_code_into_dart_rpc_code(self, source_code: str) -> str:
-        return ""
+    def _convert_yrpc_code_into_dart_rpc_code(self, identity_name: str, source_code: str) -> str:
+        _, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        client_function_list: list[str] = []
+        for function_name, parameter_info in rpc_dict.items():
+            input_variable: str = parameter_info["input_variable"]
+            output_variable: str = parameter_info["output_variable"]
+
+            if " " in input_variable:
+                input_variable = re.split(r"\s+", input_variable)[1]
+            if " " in output_variable:
+                output_variable = re.split(r"\s+", output_variable)[1]
+
+            client_function_list.append(f"""
+  Future<{output_variable}?> {function_name}(
+      {{required {input_variable} item, bool ignore_error = false}}) async {{
+    Map<String, dynamic> response_dict = await this
+        ._get_reponse_or_error_by_url_path_and_input(
+            "{function_name}", item.to_dict());
+    if (response_dict.containsKey(this._special_error_key)) {{
+      if (!ignore_error) {{
+        this._error_handle_function!(response_dict[this._special_error_key]);
+      }}
+      return null;
+    }} else {{
+      return {output_variable}().from_dict(response_dict);
+    }}
+  }}
+            """.rstrip().lstrip('\n'))
+
+        client_function_list_text = "\n\n".join(client_function_list)
+
+        template_text = f"""
+import "./{identity_name}_objects.dart";
+
+import 'dart:convert';
+import 'dart:io';
+
+class Client_{identity_name} {{
+  /// [_service_url] is something like: "http://127.0.0.1:80" or "https://127.0.0.1"
+  /// [_error_handle_function] will get called when http request got error, you need to give it a function like: (err: String) {{print(err)}}
+  String _service_url = "";
+  String _special_error_key = "__yingshaoxo's_error__";
+  Function(String error_message)? _error_handle_function;
+
+  Client_{identity_name}(
+      {{required String service_url,
+      Function(String error_message)? error_handle_function}}) {{
+    if (service_url.endsWith("/")) {{
+      service_url =
+          service_url.splitMapJoin(RegExp(r'/$'), onMatch: (p0) => "");
+    }}
+    this._service_url = service_url;
+
+    if (error_handle_function == null) {{
+      error_handle_function = (error_message) {{
+        print(error_message);
+      }};
+    }}
+    this._error_handle_function = error_handle_function;
+  }}
+
+  Future<Map<String, dynamic>> _get_reponse_or_error_by_url_path_and_input(
+      String sub_url, Map<String, dynamic> input_dict) async {{
+    String the_url = "${{this._service_url}}/{identity_name}/${{sub_url}}/";
+
+    var client = HttpClient();
+    client.badCertificateCallback =
+        ((X509Certificate cert, String host, int port) => true);
+    try {{
+      var the_url_data = Uri.parse(the_url);
+
+      HttpClientRequest request = await client.postUrl(the_url_data);
+      request.headers.set('content-type', 'application/json');
+
+      request.add(utf8.encode(json.encode(input_dict)));
+
+      HttpClientResponse response = await request.close();
+      final stringData = await response.transform(utf8.decoder).join();
+      final output_dict = json.decode(stringData);
+      return output_dict;
+    }} catch (e) {{
+      return {{_special_error_key: e.toString()}};
+    }} finally {{
+      client.close();
+    }}
+  }}
+
+{client_function_list_text}
+}}
+        """.strip()
+
+        return template_text
 
     def generate_code(self, which_language: str, input_folder: str, input_files: list[str], output_folder: str = "src/generated_yrpc"):
         """
@@ -1129,7 +1224,7 @@ class {class_name} {{
                 rpc_code = self._convert_yrpc_code_into_python_rpc_code(identity_name=filename, source_code=source_code)
             elif which_language == "dart":
                 objects_code = self._convert_yrpc_code_into_dart_objects_code(source_code=source_code)
-                rpc_code = self._convert_yrpc_code_into_dart_rpc_code(source_code=source_code)
+                rpc_code = self._convert_yrpc_code_into_dart_rpc_code(identity_name=filename, source_code=source_code)
 
             io_.write(file_path=target_objects_file_path, content=objects_code)
             io_.write(file_path=target_rpc_file_path, content=rpc_code)
