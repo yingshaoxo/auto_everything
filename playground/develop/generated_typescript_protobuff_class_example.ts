@@ -120,7 +120,7 @@ class User {
     }
     */
 
-    clone(): User {
+    _clone(): User {
         return structuredClone(this)
     }
 

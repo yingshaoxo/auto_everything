@@ -672,9 +672,6 @@ from typing import Any
 _ygrpc_official_types = [int, float, str, bool]
 
 
-{enum_code_block_list_text}
-
-
 def convert_dict_that_has_enum_object_into_pure_dict(value: Any) -> dict[str, Any] | list[Any] | Any:
     if type(value) is list:
         new_list: list[Any] = []
@@ -696,10 +693,11 @@ def convert_dict_that_has_enum_object_into_pure_dict(value: Any) -> dict[str, An
                 # handle custom message data type
                 if value == None:
                     return None
-                else:
+                elif str(type(value)).startswith("<class"):
                     return convert_dict_that_has_enum_object_into_pure_dict(
                         value=value.to_dict()
                     )
+    return None
 
 
 def convert_pure_dict_into_a_dict_that_has_enum_object(pure_value: Any, refrence_value: Any) -> Any:
@@ -713,10 +711,11 @@ def convert_pure_dict_into_a_dict_that_has_enum_object(pure_value: Any, refrence
     elif type(pure_value) is dict:
         new_dict: dict[str, Any] = {{}}
         for key_, value_ in pure_value.items(): #type: ignore
-            new_dict[key_] = convert_pure_dict_into_a_dict_that_has_enum_object( #type: ignore
-                pure_value=value_, 
-                refrence_value=refrence_value()._property_name_to_its_type_dict.get(key_)
-            ) #type: ignore
+            if key_ in refrence_value()._property_name_to_its_type_dict.keys():
+                new_dict[key_] = convert_pure_dict_into_a_dict_that_has_enum_object( #type: ignore
+                    pure_value=value_, 
+                    refrence_value=refrence_value()._property_name_to_its_type_dict.get(key_)
+                ) #type: ignore
         return new_dict
     else:
         if str(refrence_value).startswith("<enum"):
@@ -735,7 +734,10 @@ def convert_pure_dict_into_a_dict_that_has_enum_object(pure_value: Any, refrence
 
 class YRPC_OBJECT_BASE_CLASS:
     def to_dict(self, ignore_null: bool=False) -> dict[str, Any]:
-        new_dict = convert_dict_that_has_enum_object_into_pure_dict(value=self.__dict__.copy())
+        old_dict = {{}}
+        for key in self._property_name_to_its_type_dict.keys(): #type: ignore
+            old_dict[key] = self.__dict__[key] #type: ignore
+        new_dict = convert_dict_that_has_enum_object_into_pure_dict(value=old_dict.copy())
         return new_dict.copy() #type: ignore
 
     def from_dict(self, dict: dict[str, Any]) -> Any:
@@ -756,6 +758,9 @@ class YRPC_OBJECT_BASE_CLASS:
             if key in an_object.__dict__:
                 setattr(an_object, key, value)
         return an_object
+
+
+{enum_code_block_list_text}
 
         
 {dataclass_code_block_list_text}
