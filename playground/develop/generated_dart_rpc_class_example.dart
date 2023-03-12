@@ -7,17 +7,23 @@ class Client_test_protobuff_code {
   /// [_service_url] is something like: "http://127.0.0.1:80" or "https://127.0.0.1"
   /// [_error_handle_function] will get called when http request got error, you need to give it a function like: (err: String) {print(err)}
   String _service_url = "";
+  Map<String, String> _header = Map<String, String>();
   String _special_error_key = "__yingshaoxo's_error__";
   Function(String error_message)? _error_handle_function;
 
   Client_test_protobuff_code(
       {required String service_url,
+      Map<String, String>? header,
       Function(String error_message)? error_handle_function}) {
     if (service_url.endsWith("/")) {
       service_url =
           service_url.splitMapJoin(RegExp(r'/$'), onMatch: (p0) => "");
     }
     this._service_url = service_url;
+
+    if (header != null) {
+      this._header = header;
+    }
 
     if (error_handle_function == null) {
       error_handle_function = (error_message) {
@@ -39,6 +45,9 @@ class Client_test_protobuff_code {
 
       HttpClientRequest request = await client.postUrl(the_url_data);
       request.headers.set('content-type', 'application/json');
+      _header.forEach((key, value) {
+        request.headers.set(key, value);
+      });
 
       request.add(utf8.encode(json.encode(input_dict)));
 
