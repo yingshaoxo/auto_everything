@@ -1,72 +1,81 @@
 const _ygrpc_official_types = ["string", "number", "boolean"];
 
 const _general_to_dict_function = (object: any): any => {
-    let keys = Object.keys(object);
-    keys = keys.filter((e) => !["_property_name_to_its_type_dict", "_key_string_dict"].includes(e));
-
-    let new_dict: any = {}
-    for (const key of keys) {
-        if (Object.keys(object._key_string_dict).includes(key)) {
-            let value = object[key];
-            if (Array.isArray(value)) {
-                let new_list: any[] = []
-                for (const one of value) {
-                    new_list.push(_general_to_dict_function(one))
+    let the_type = typeof object
+    if (the_type == "object") {
+        if (object == null) {
+            return null
+        } else if (Array.isArray(object)) {
+            let new_list: any[] = []
+            for (const one of object) {
+                new_list.push(_general_to_dict_function(one))
+            }
+            return new_list
+        } else {
+            let keys = Object.keys(object);
+            if (keys.includes("_key_string_dict")) {
+                // custom message type
+                let new_dict: any = {}
+                keys = keys.filter((e) => !["_property_name_to_its_type_dict", "_key_string_dict"].includes(e));
+                for (const key of keys) {
+                    new_dict[key] = _general_to_dict_function(object[key])
+                    // the enum will become a string in the end, so ignore it
                 }
-                new_dict[key] = new_list
-            } else {
-                if (_ygrpc_official_types.includes(typeof value)) {
-                    new_dict[key] = value
-                } else {
-                    if ((typeof value).includes("class")) {
-                        // custom message type
-                        let new_value = _general_to_dict_function(value)
-                        new_dict[key] = new_value
-                    } else {
-                        // enum
-                        new_dict[key] = value
-                    }
-                }
+                return new_dict
             }
         }
+    } else {
+        if (_ygrpc_official_types.includes(typeof object)) {
+            return object
+        } else {
+            return null
+        }
     }
-
-    return new_dict
+    return null
 };
 
 const _general_from_dict_function = (old_object: any, new_object: any): any => {
-    let keys = Object.keys(old_object);
-    keys = keys.filter((e) => !["_property_name_to_its_type_dict", "_key_string_dict"].includes(e));
-
-    let new_dict: any = {}
-    for (const key of keys) {
-        if (Object.keys(new_object).includes(key)) {
-            let value = new_object[key];
-            if (Array.isArray(value)) {
-                let new_list: any[] = []
-                for (const one of value) {
-                    new_list.push(_general_from_dict_function(new (old_object._property_name_to_its_type_dict[key])(), one))
-                }
-                new_dict[key] = new_list
+    let the_type = typeof new_object
+    if (the_type == "object") {
+        if (Array.isArray(new_object)) {
+            //list
+            let new_list: any[] = []
+            for (const one of new_object) {
+                new_list.push(_general_from_dict_function(old_object, one))
+            }
+            return new_list
+        } else {
+            // dict or null
+            if (new_object == null) {
+                return null
             } else {
-                if (_ygrpc_official_types.includes(typeof value)) {
-                    new_dict[key] = value
-                } else {
-                    if (value == null) {
-                        new_dict[key] = null
-                    } else if ((typeof value) == 'object') {
-                        // custom message type
-                        new_dict[key] = _general_from_dict_function(new (old_object._property_name_to_its_type_dict[key])(), value)
-                    } else {
-                        // enum
-                        new_dict[key] = old_object._property_name_to_its_type_dict[key](value)
+                let keys = Object.keys(old_object);
+                if (keys.includes("_key_string_dict")) {
+                    keys = Object.keys(old_object._property_name_to_its_type_dict)
+                    for (const key of keys) {
+                        if (Object.keys(new_object).includes(key)) {
+                            if ((typeof old_object._property_name_to_its_type_dict[key]) == "string") {
+                                // default value type
+                                old_object[key] = new_object[key]
+                            } else {
+                                // custom message type || enum
+                                if ((typeof old_object._property_name_to_its_type_dict[key]).includes("class")) {
+                                    // custom message type
+                                    old_object[key] = _general_from_dict_function(new (old_object._property_name_to_its_type_dict[key])(), new_object[key])
+                                } else {
+                                    // enum
+                                    old_object[key] = new_object[key]
+                                }
+                            }
+                        } 
                     }
+                } else {
+                    return null
                 }
             }
         }
-    }
-
-    return new_dict
+    } 
+    return old_object
 }
 
 enum UserStatus {
@@ -76,14 +85,14 @@ enum UserStatus {
 
 interface _User {
     id: number | null;
-    name: string | null;
+    name: string[] | null;
     user_status: UserStatus | null;
     user: User | null;
 }
 
 class User {
     id: number | null = null;
-    name: string | null = null;
+    name: string[] | null = null;
     user_status: UserStatus | null = null;
     user: User | null = null;
 
@@ -111,19 +120,20 @@ class User {
     }
     */
 
+    clone(): User {
+        return structuredClone(this)
+    }
+
     from_dict(item: _User): User {
         let new_dict = _general_from_dict_function(this, item)
 
-        if (new_dict == null) {
-            return new User()
-        }
-
         let an_item = new User()
         for (const key of Object.keys(new_dict)) {
+            let value = new_dict[key]
             //@ts-ignore
-            this[key] = new_dict[key]
+            this[key] = value
             //@ts-ignore
-            an_item[key] = new_dict[key]
+            an_item[key] = value
         }
 
         return an_item
@@ -132,7 +142,7 @@ class User {
 
 let a_user = new User().from_dict({
     id: 3,
-    name: "yingshaoxo",
+    name: ["yingshaoxo", "yingjie.hu"],
     user_status: UserStatus.ONLINE,
     user: new User()
 });
@@ -140,10 +150,10 @@ let a_user = new User().from_dict({
 // console.log(a_user)
 
 let a_user_dict = a_user.to_dict()
-// console.log(a_user_dict)
+console.log(a_user_dict)
 
 let another_user = new User()
 
-// console.log(String(UserStatus));
-// console.log(String(User));
+// // // console.log(String(UserStatus));
+// // // console.log(String(User));
 console.log(another_user.from_dict(a_user_dict).to_dict())
