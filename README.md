@@ -222,7 +222,7 @@ for language in ["python", "dart", "typescript"]:
 #### Then, you can use it like this:
 
 ```python
-from generated_yrpc.english_rpc.py import *
+from generated_yrpc.english_rpc import *
 
 class NewService(Service_english):
     async def say_hello(self, item: hello_request) -> HelloReply:
