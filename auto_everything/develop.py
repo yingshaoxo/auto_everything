@@ -1432,7 +1432,7 @@ const _general_from_dict_function = (old_object: any, new_object: any): any => {
         template_text = f"""
 import * as {identity_name}_objects from './{identity_name}_objects'
 
-class Client_{identity_name} {{
+export class Client_{identity_name} {{
   /**
    * @param {{string}} _service_url is something like: "http://127.0.0.1:80" or "https://127.0.0.1"
    * @param {{{{ [key: string]: string }}}} _header  http headers, it's a dictionary, liek {{'content-type', 'application/json'}}
@@ -1478,6 +1478,8 @@ class Client_{identity_name} {{
 
 {client_function_list_text}
 }}
+
+export default Client_{identity_name}
         """.strip()
 
         return template_text

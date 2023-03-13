@@ -1,6 +1,6 @@
 import * as test_protobuff_code_objects from './generated_typescript_protobuff_class_example'
 
-class Client_test_protobuff_code {
+export class Client_test_protobuff_code {
   /**
    * @param {string} _service_url is something like: "http://127.0.0.1:80" or "https://127.0.0.1"
    * @param {{ [key: string]: string }} _header  http headers, it's a dictionary, liek {'content-type', 'application/json'}
@@ -56,6 +56,8 @@ class Client_test_protobuff_code {
         }
     }
 }
+
+export default Client_test_protobuff_code
 
 let client = new Client_test_protobuff_code("hhh", {dd: "2"}, )
 let response = await client.a_rpc_function(new test_protobuff_code_objects.User())
