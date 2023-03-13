@@ -17,7 +17,7 @@ or
 sudo pip3 install auto_everything
 ```
 
-> Full Installation: `poetry install --with all`
+> Full Installation: `poetry add auto_everything --extras all`
 
 #### Installation (For 3.5 <= Python < 3.10)
 
@@ -176,7 +176,130 @@ Hi, Python!
 
 ---
 
+## For simplify general server and client development
+
+
+#### Define YRPC Protocols
+
+```grpc
+service Greeter {
+    rpc say_hello (hello_request) returns (HelloReply);
+}
+
+enum UserStatus {
+    OFFLINE = 0;
+    ONLINE = 1;
+}
+
+message hello_request {
+   string name = 1;
+   UserStatus user_status = 2;
+   repeated UserStatus user_status_list = 3;
+}
+
+message HelloReply {
+    string message = 1;
+}
+```
+
+#### Generate Python, Flutter, Typescript code
+
+```python
+from auto_everything.develop import YRPC
+yrpc = YRPC()
+
+for language in ["python", "dart", "typescript"]:
+    yrpc.generate_code(
+        which_language=language,
+        input_folder="/home/yingshaoxo/CS/protocol_test/protocols",
+        input_files=["english.proto"],
+        output_folder="/Users/yingshaoxo/CS/protocol_test/generated_yrpc"
+    )
+```
+
+> Here, we only use python to do the server part job.
+
+#### Then, you can use it like this:
+
+```python
+from generated_yrpc.english_rpc.py import *
+
+class NewService(Service_english):
+    async def say_hello(self, item: hello_request) -> HelloReply:
+        reply = HelloReply()
+        reply.message = item.name
+        return reply
+
+service_instance = NewService()
+run(service_instance, port="6060")
+```
+
+```dart
+void main() async {
+  var client = Client_english(
+    service_url: "http://127.0.0.1:6060",
+    error_handle_function: (error_message) {
+      print(error_message);
+    },
+  );
+
+  var request = hello_request(
+    name: "yingshaoxo"
+  )
+  var result = await client.say_hello(item: request);
+  if (result != null) {
+    print(result);
+  }
+}
+```
+
+___
+
 ## Others
+
+#### Simpler IO
+
+```python
+from auto_everything.base import IO
+io = IO()
+
+io.write("hi.txt", "Hello, world!")
+print(io.read("hi.txt"))
+
+io.append("hi.txt", "\n\nI'm yingshaoxo.")
+print(io.read("hi.txt"))
+```
+
+#### Quick File Operation
+
+```python
+from auto_everything.disk import Disk
+from pprint import pprint
+disk = Disk()
+
+files = disk.get_files(folder=".", type_limiter=[".mp4"])
+files = disk.sort_files_by_time(files)
+pprint(files)
+```
+
+#### Easy Store
+
+```python
+from auto_everything.disk import Store
+store = Store("test")
+
+store.set("author", "yingshaoxo")
+store.delete("author")
+store.set("author", {"email": "yingshaoxo@gmail.com", "name": "yingshaoxo"})
+print(store.get_items())
+
+print(store.has_key("author"))
+print(store.get("author", default_value=""))
+print(store.get("whatever", default_value="alsjdasdfasdfsakfla"))
+
+store.reset()
+print(store.get_items())
+```
 
 #### Web automation
 
@@ -204,45 +327,3 @@ sleep(30)
 d.quit()
 ```
 
-#### Simpler IO
-
-```python
-from auto_everything.base import IO
-io = IO()
-
-io.write("hi.txt", "Hello, world!")
-print(io.read("hi.txt"))
-
-io.append("hi.txt", "\n\nI'm yingshaoxo.")
-print(io.read("hi.txt"))
-```
-
-#### Quick File Operation
-
-```python
-from auto_everything.disk import Disk
-from pprint import pprint
-disk = Disk()
-
-files = disk.get_files(".")
-files = disk.sort_files_by_time(files)
-pprint(files)
-```
-
-#### Easy Store
-
-```python
-from auto_everything.disk import Store
-store = Store("test")
-
-store.set("author", "yingshaoxo")
-store.set("author", {"email": "yingshaoxo@gmail.com", "name": "yingshaoxo"})
-print(store.get_items())
-
-print(store.has_key("author"))
-print(store.get("author", ""))
-print(store.get("whatever", default_value="alsjdasdfasdfsakfla"))
-
-store.reset()
-print(store.get_items())
-```

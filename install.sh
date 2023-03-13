@@ -11,3 +11,7 @@ deactivate
 rm -fr dist/*
 poetry build
 python -m pip install dist/*.whl  --force-reinstall 
+
+# poetry add --editable .
+# [tool.poetry.dependencies]
+# my-package = {path = "../my/path", develop = true}

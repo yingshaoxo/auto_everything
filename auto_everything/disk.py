@@ -709,6 +709,23 @@ class Store:
             self._sql_cursor.execute(command, (key, value))
         self._sql_conn.commit()
 
+    def delete(self, key: str):
+        """
+        delete a value by using a key
+
+        Parameters
+        ----------
+        key: string
+        """
+        key = self.__pre_process_key(key)
+
+        if self.has_key(key):
+            self._sql_cursor.execute(
+                f"DELETE FROM {self._store_name} WHERE key=?", (key,)
+            )
+
+        self._sql_conn.commit()
+
     def reset(self):
         """
         empty the store
@@ -735,4 +752,5 @@ if __name__ == "__main__":
     print(store.get_items())
     """
     disk = Disk()
+    files = disk.get_files(folder=".", type_limiter=[".mp4"])
     # print(disk.get_hash_of_a_path("/home/yingshaoxo/.python_history"))
