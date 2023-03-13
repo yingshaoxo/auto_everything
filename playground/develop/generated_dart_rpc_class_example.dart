@@ -5,6 +5,7 @@ import 'dart:io';
 
 class Client_test_protobuff_code {
   /// [_service_url] is something like: "http://127.0.0.1:80" or "https://127.0.0.1"
+  /// [_header] http headers, it's a dictionary, liek {'content-type', 'application/json'}
   /// [_error_handle_function] will get called when http request got error, you need to give it a function like: (err: String) {print(err)}
   String _service_url = "";
   Map<String, String> _header = Map<String, String>();
