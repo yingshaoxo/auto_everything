@@ -108,7 +108,7 @@ t.kill('terminal')
 
 ---
 
-## For simplify Python development
+## For simplify python development
 
 #### Import
 
@@ -176,7 +176,7 @@ Hi, Python!
 
 ---
 
-## For simplify general server and client development
+## For simplify general `server and client` development
 
 
 #### Define YRPC Protocols
@@ -202,7 +202,7 @@ message HelloReply {
 }
 ```
 
-#### Generate Python, Flutter, Typescript code
+#### Generate `Python, Flutter, Typescript` code
 
 ```python
 from auto_everything.develop import YRPC
@@ -243,10 +243,9 @@ void main() async {
     },
   );
 
-  var request = hello_request(
-    name: "yingshaoxo"
-  )
-  var result = await client.say_hello(item: request);
+  var result = await client.say_hello(
+    item: hello_request(name: "yingshaoxo")
+  );
   if (result != null) {
     print(result);
   }
