@@ -1401,7 +1401,86 @@ const _general_from_dict_function = (old_object: any, new_object: any): any => {
         return template_text
 
     def _convert_yrpc_code_into_typescript_rpc_code(self, identity_name: str, source_code: str) -> str:
-        return ""
+        _, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        client_function_list: list[str] = []
+        for function_name, parameter_info in rpc_dict.items():
+            input_variable: str = parameter_info["input_variable"]
+            output_variable: str = parameter_info["output_variable"]
+
+            if " " in input_variable:
+                input_variable = re.split(r"\s+", input_variable)[1]
+            if " " in output_variable:
+                output_variable = re.split(r"\s+", output_variable)[1]
+
+            client_function_list.append(f"""
+    async {function_name}(item: {identity_name}_objects.{input_variable}, ignore_error?: boolean): Promise<{identity_name}_objects.{output_variable} | null> {{
+        let result = await this._get_reponse_or_error_by_url_path_and_input("{function_name}", item.to_dict())
+        if (Object.keys(result).includes(this._special_error_key)) {{
+            if ((ignore_error != null) && (!ignore_error)) {{
+                this._error_handle_function(result[this._special_error_key])
+            }}
+            return null
+        }} else {{
+            return new {identity_name}_objects.{output_variable}().from_dict(result)
+        }}
+    }}
+            """.rstrip().lstrip('\n'))
+
+        client_function_list_text = "\n\n".join(client_function_list)
+
+        template_text = f"""
+import * as {identity_name}_objects from './{identity_name}_objects'
+
+class Client_{identity_name} {{
+  /**
+   * @param {{string}} _service_url is something like: "http://127.0.0.1:80" or "https://127.0.0.1"
+   * @param {{{{ [key: string]: string }}}} _header  http headers, it's a dictionary, liek {{'content-type', 'application/json'}}
+   * @param {{Function}} _error_handle_function will get called when http request got error, you need to give it a function like: (err: String) {{print(err)}}
+   */
+    _service_url: string
+    _header: {{ [key: string]: string }} = {{}}
+    _error_handle_function: (error: string) => void = (error: string) => {{console.log(error)}}
+    _special_error_key: string = "__yingshaoxo's_error__"
+
+    constructor(service_url: string, header?: {{ [key: string]: string }}, error_handle_function?: (error: string) => void) {{
+        if (service_url.endsWith("/")) {{
+            service_url = service_url.slice(0, service_url.length-1);
+        }}
+        this._service_url = service_url
+        
+        if (header != null) {{
+            this._header = header
+        }}
+
+        if (error_handle_function != null) {{
+            this._error_handle_function = error_handle_function
+        }}
+    }} 
+
+    async _get_reponse_or_error_by_url_path_and_input(sub_url: string, input_dict: {{ [key: string]: any }}): Promise<any> {{
+        let the_url = `${{this._service_url}}/{identity_name}/${{sub_url}}/`
+        try {{
+            const response = await fetch(the_url, 
+            {{
+                method: "POST",
+                body: JSON.stringify(input_dict),
+                headers: {{
+                    "Content-type": "application/json; charset=UTF-8",
+                    ...this._header
+                }}
+            }});
+            return response.json
+        }} catch (e) {{
+            return {{_special_error_key: String(e)}};
+        }}
+    }}
+
+{client_function_list_text}
+}}
+        """.strip()
+
+        return template_text
 
     def generate_code(self, which_language: str, input_folder: str, input_files: list[str], output_folder: str = "src/generated_yrpc"):
         """
