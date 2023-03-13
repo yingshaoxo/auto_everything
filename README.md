@@ -108,7 +108,7 @@ t.kill('terminal')
 
 ---
 
-## For simplify python development
+## For simplifying python development
 
 #### Import
 
@@ -176,7 +176,7 @@ Hi, Python!
 
 ---
 
-## For simplify general `server and client` development
+## For simplifying general `server and client` development
 
 
 #### Define YRPC Protocols
