@@ -78,19 +78,19 @@ const _general_from_dict_function = (old_object: any, new_object: any): any => {
     return old_object
 }
 
-enum UserStatus {
+export enum UserStatus {
     OFFLINE = "OFFLINE",
     ONLINE = "ONLINE",
 }
 
-interface _User {
+export interface _User {
     id: number | null;
     name: string[] | null;
     user_status: UserStatus | null;
     user: User | null;
 }
 
-class User {
+export class User {
     id: number | null = null;
     name: string[] | null = null;
     user_status: UserStatus | null = null;

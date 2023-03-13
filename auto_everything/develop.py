@@ -475,11 +475,27 @@ class YRPC:
         "double": "double"
     }
 
-    # def _get_python_type_from_yrpc_type(self, type_string: str):
-    #     if type_string in self._yrpc_type_to_python_type_dict:
-    #         return self._yrpc_type_to_python_type_dict.get(type_string)
-    #     else:
-    #         return None
+    _yrpc_type_to_typescript_type_dict = {
+        "string": "string",
+        "bytes": "string",
+
+        "bool": "boolean",
+
+        "uint32": "number",
+        "uint64": "number",
+        "sint32": "number",
+        "sint64": "number",
+        "fixed32": "number",
+        "fixed64": "number",
+        "sfixed32": "number",
+        "sfixed64": "number",
+        "int32": "number",
+        "int64": "number",
+        "uint64": "number",
+
+        "float": "number",
+        "double": "number"
+    }
 
     def get_information_from_yrpc_protocol_code(self, source_code: str) -> Tuple[dict[str, Any], dict[str, Any]]:
         code_block_list = re.findall(r"(?P<type>\w+)\s+(?P<object_name>\w+)\s+\{(?P<properties>(\s*.*?\s*)+)\}", source_code, re.DOTALL)
@@ -1181,9 +1197,214 @@ class Client_{identity_name} {{
 
         return template_text
 
+    def _convert_yrpc_code_into_typescript_objects_code(self, source_code: str) -> str:
+        arguments_dict, _ = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        enum_code_block_list: list[str] = []
+        dataclass_code_block_list: list[str] = []
+        for class_name, variable_info in arguments_dict.items():
+            code_block_type = variable_info["**type**"]
+            del variable_info["**type**"]
+
+            if code_block_type == "enum":
+                variable_list: list[str] = []
+                for index, one in enumerate(variable_info.values()):
+                    name = one['name']
+                    variable_list.append(f"""
+    {name} = "{name}",
+                    """.rstrip().lstrip('\n'))
+                variable_list_text = "\n".join(variable_list)
+
+                enum_class_text = f"""
+enum {class_name} {{
+{variable_list_text}
+}}
+                """.rstrip().lstrip('\n')
+
+                enum_code_block_list.append(enum_class_text)
+            else:
+                interface_variable_list: list[str] = []
+                variable_list: list[str] = []
+                property_name_to_its_type_dict_variable_list: list[str] = []
+                key_string_dict_list: list[str] = []
+
+                for index, one in enumerate(variable_info.values()):
+                    name = one['name']
+                    type = self._yrpc_type_to_typescript_type_dict.get(one['type']) 
+                    if type == None:
+                        if one['type'] in arguments_dict.keys():
+                            type = one['type']
+                        else:
+                            raise Exception(f"We don't support type of '{one['type']}'")
+                    is_list = one['is_list']
+                    is_enum = one['is_enum']
+                    is_custom_message_type = one['is_custom_message_type']
+
+                    interface_variable_list.append(f"""
+    {name}: {type}{"[]" if is_list else ""} | null;
+                    """.rstrip().lstrip('\n'))
+
+                    variable_list.append(f"""
+    {name}: {type}{"[]" if is_list else ""} | null = null;
+                    """.rstrip().lstrip('\n'))
+
+                    if is_enum or is_custom_message_type:
+                        property_name_to_its_type_dict_variable_list.append(f"""
+            {name}: {type},
+                        """.rstrip().lstrip('\n'))
+                    else:
+                        property_name_to_its_type_dict_variable_list.append(f"""
+            {name}: "{type}",
+                        """.rstrip().lstrip('\n'))
+
+                    key_string_dict_list.append(f"""
+        {name}: "{name}",
+                    """.rstrip().lstrip('\n'))
+
+                interface_variable_list_text = "\n".join(interface_variable_list)
+                variable_list_text = "\n".join(variable_list)
+                property_name_to_its_type_dict_variable_list_text = "\n".join(property_name_to_its_type_dict_variable_list)
+                key_string_dict_list_text = "\n".join(key_string_dict_list)
+
+                dataclass_text = f"""
+export interface _{class_name} {{
+{interface_variable_list_text}
+}}
+
+export class {class_name} {{
+{variable_list_text}
+
+    _property_name_to_its_type_dict = {{
+{property_name_to_its_type_dict_variable_list_text}
+    }};
+
+    _key_string_dict = {{
+{key_string_dict_list_text}
+    }};
+
+    to_dict(): _{class_name} {{
+        return _general_to_dict_function(this);
+    }}
+
+    _clone(): {class_name} {{
+        return structuredClone(this)
+    }}
+
+    from_dict(item: _{class_name}): {class_name} {{
+        let new_dict = _general_from_dict_function(this, item)
+
+        let an_item = new {class_name}()
+        for (const key of Object.keys(new_dict)) {{
+            let value = new_dict[key]
+            //@ts-ignore
+            this[key] = value
+            //@ts-ignore
+            an_item[key] = value
+        }}
+
+        return an_item
+    }}
+}}
+                """.rstrip().lstrip('\n')
+                dataclass_code_block_list.append(dataclass_text)
+
+        enum_code_block_list_text = "\n\n\n".join(enum_code_block_list)
+        dataclass_code_block_list_text = "\n\n\n".join(dataclass_code_block_list)
+
+        template_text = f"""
+const _ygrpc_official_types = ["string", "number", "boolean"];
+
+const _general_to_dict_function = (object: any): any => {{
+    let the_type = typeof object
+    if (the_type == "object") {{
+        if (object == null) {{
+            return null
+        }} else if (Array.isArray(object)) {{
+            let new_list: any[] = []
+            for (const one of object) {{
+                new_list.push(_general_to_dict_function(one))
+            }}
+            return new_list
+        }} else {{
+            let keys = Object.keys(object);
+            if (keys.includes("_key_string_dict")) {{
+                // custom message type
+                let new_dict: any = {{}}
+                keys = keys.filter((e) => !["_property_name_to_its_type_dict", "_key_string_dict"].includes(e));
+                for (const key of keys) {{
+                    new_dict[key] = _general_to_dict_function(object[key])
+                    // the enum will become a string in the end, so ignore it
+                }}
+                return new_dict
+            }}
+        }}
+    }} else {{
+        if (_ygrpc_official_types.includes(typeof object)) {{
+            return object
+        }} else {{
+            return null
+        }}
+    }}
+    return null
+}};
+
+const _general_from_dict_function = (old_object: any, new_object: any): any => {{
+    let the_type = typeof new_object
+    if (the_type == "object") {{
+        if (Array.isArray(new_object)) {{
+            //list
+            let new_list: any[] = []
+            for (const one of new_object) {{
+                new_list.push(_general_from_dict_function(old_object, one))
+            }}
+            return new_list
+        }} else {{
+            // dict or null
+            if (new_object == null) {{
+                return null
+            }} else {{
+                let keys = Object.keys(old_object);
+                if (keys.includes("_key_string_dict")) {{
+                    keys = Object.keys(old_object._property_name_to_its_type_dict)
+                    for (const key of keys) {{
+                        if (Object.keys(new_object).includes(key)) {{
+                            if ((typeof old_object._property_name_to_its_type_dict[key]) == "string") {{
+                                // default value type
+                                old_object[key] = new_object[key]
+                            }} else {{
+                                // custom message type || enum
+                                if ((typeof old_object._property_name_to_its_type_dict[key]).includes("class")) {{
+                                    // custom message type
+                                    old_object[key] = _general_from_dict_function(new (old_object._property_name_to_its_type_dict[key])(), new_object[key])
+                                }} else {{
+                                    // enum
+                                    old_object[key] = new_object[key]
+                                }}
+                            }}
+                        }} 
+                    }}
+                }} else {{
+                    return null
+                }}
+            }}
+        }}
+    }} 
+    return old_object
+}}
+
+{enum_code_block_list_text}
+
+{dataclass_code_block_list_text}
+        """.strip()
+
+        return template_text
+
+    def _convert_yrpc_code_into_typescript_rpc_code(self, identity_name: str, source_code: str) -> str:
+        return ""
+
     def generate_code(self, which_language: str, input_folder: str, input_files: list[str], output_folder: str = "src/generated_yrpc"):
         """
-        which_language: python, dart, go, kotlin, typescript, rust and so on
+        which_language: python, dart, typescript, go, kotlin, rust and so on
 
         input_folder: where protobuff files was located
 
@@ -1213,6 +1434,7 @@ class Client_{identity_name} {{
         language_to_file_suffix_dict = {
             "python": ".py",
             "dart": ".dart",
+            "typescript": ".ts",
         }
 
         if which_language not in language_to_file_suffix_dict.keys():
@@ -1239,6 +1461,9 @@ class Client_{identity_name} {{
             elif which_language == "dart":
                 objects_code = self._convert_yrpc_code_into_dart_objects_code(source_code=source_code)
                 rpc_code = self._convert_yrpc_code_into_dart_rpc_code(identity_name=filename, source_code=source_code)
+            elif which_language == "typescript":
+                objects_code = self._convert_yrpc_code_into_typescript_objects_code(source_code=source_code)
+                rpc_code = self._convert_yrpc_code_into_typescript_rpc_code(identity_name=filename, source_code=source_code)
 
             io_.write(file_path=target_objects_file_path, content=objects_code)
             io_.write(file_path=target_rpc_file_path, content=rpc_code)
@@ -1250,7 +1475,7 @@ if __name__ == "__main__":
     # result1, result2 = yrpc.get_information_from_yrpc_protocol_code(io_.read("/Users/yingshaoxo/CS/auto_everything/playground/develop/test_protobuff_code.proto"))
     # pprint(result1)
 
-    for language in ["python", "dart"]:
+    for language in ["python", "dart", "typescript"]:
         yrpc.generate_code(
             which_language=language,
             input_folder="/Users/yingshaoxo/CS/auto_everything/playground/develop",
