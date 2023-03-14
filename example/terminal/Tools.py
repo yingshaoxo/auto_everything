@@ -7,11 +7,13 @@ import os, re
 import random
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
+from auto_everything.disk import Disk
 
 from pprint import pprint
 
 py = Python()
 t = Terminal(debug=True)
+disk = Disk()
 
 def itIsWindows():
     if os.name == 'nt':
@@ -230,6 +232,17 @@ bfg --delete-files {filename}
             "1-7-family",
         ]
         print(random.choice(places))
+
+    def show_file_tree(self, level:int | None = None):
+        if level == None:
+            level = 1
+        elif level < 1:
+            level = 1
+        t.run(f"""
+        tree -L {level}
+        """)
+        # files = disk.get_folder_and_files(folder=".")
+        # pprint(list(files))
 
     def hi(self):
         self.help()
