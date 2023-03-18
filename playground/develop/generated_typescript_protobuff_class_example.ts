@@ -1,3 +1,4 @@
+// have to make sure enum key is in enum defination
 const _ygrpc_official_types = ["string", "number", "boolean"];
 
 const _general_to_dict_function = (object: any): any => {
@@ -64,7 +65,11 @@ const _general_from_dict_function = (old_object: any, new_object: any): any => {
                                     old_object[key] = _general_from_dict_function(new (old_object._property_name_to_its_type_dict[key])(), new_object[key])
                                 } else {
                                     // enum
-                                    old_object[key] = new_object[key]
+                                    if (Object.keys(new_object).includes(key)) {
+                                        old_object[key] = new_object[key]
+                                    } else {
+                                        old_object[key] = null
+                                    }
                                 }
                             }
                         } 
