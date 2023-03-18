@@ -818,6 +818,7 @@ from .{identity_name}_objects import *
 
 
 from fastapi import APIRouter, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 
@@ -836,6 +837,13 @@ def run(service_instance: Any, port: str):
     init(service_instance=service_instance)
 
     app = FastAPI()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=['*'],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.include_router(
         router,
         prefix="/{identity_name}",
@@ -1474,7 +1482,7 @@ export class Client_{identity_name} {{
                     ...this._header
                 }}
             }});
-            return response.json
+            return await response.json()
         }} catch (e) {{
             return {{_special_error_key: String(e)}};
         }}

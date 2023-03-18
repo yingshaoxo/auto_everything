@@ -2,6 +2,7 @@ from build.test_protobuff_code_objects import *
 
 
 from fastapi import APIRouter, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 
@@ -24,6 +25,13 @@ def run(service_instance: Any, port: str):
     init(service_instance=service_instance)
 
     app = FastAPI()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=['*'],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.include_router(
         router,
         prefix="/test_protobuff_code",

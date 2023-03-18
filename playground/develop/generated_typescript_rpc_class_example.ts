@@ -38,7 +38,7 @@ export class Client_test_protobuff_code {
                     ...this._header
                 }
             });
-            return response.json
+            return await response.json()
         } catch (e) {
             return {_special_error_key: String(e)};
         }
