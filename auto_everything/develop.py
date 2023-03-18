@@ -814,7 +814,7 @@ class YRPC_OBJECT_BASE_CLASS:
         service_api_function_list_text = "\n\n".join(service_api_function_list)
 
         template_text = f"""
-from {identity_name}_objects import *
+from .{identity_name}_objects import *
 
 
 from fastapi import APIRouter, FastAPI

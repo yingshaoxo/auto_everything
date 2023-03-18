@@ -1,15 +1,24 @@
 from pymongo import MongoClient
+import pymongo
 from pymongo.database import Database
 
 class MongoDB:
+    """
+    MONGO_DB_URL is something like: "mongodb://yingshaoxo:yingshaoxo@127.0.0.1:27017/"
+
     #https://www.w3schools.com/python/python_mongodb_create_collection.asp
-    def __init__(self, host: str, port: str, user: str, password: str):
-        self.client = MongoClient(f"mongodb://{user}:{password}@{host}:{port}")
+    """
+    def __init__(self, url: str):
+        self.client = MongoClient(url)
+
+    @staticmethod
+    def _get_mongodb_client_by_giving_arguments(host: str, port: str, user: str, password: str) -> pymongo.MongoClient:
+        return MongoDB(f"mongodb://{user}:{password}@{host}:{port}")
     
     def delete_a_database(self, database_name: str):
         self.client.drop_database(database_name)
     
-    def list_database(self) -> str:
+    def list_database(self):
         return self.client.database_names()
     
     def get_database(self, database_name: str) -> Database:
