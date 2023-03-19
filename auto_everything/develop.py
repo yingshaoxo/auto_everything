@@ -680,6 +680,7 @@ class {class_name}(YRPC_OBJECT_BASE_CLASS):
         dataclass_code_block_list_text = "\n\n\n".join(dataclass_code_block_list)
 
         template_text = f"""
+import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -725,14 +726,15 @@ def convert_pure_dict_into_a_dict_that_has_enum_object(pure_value: Any, refrence
             ) 
         return new_list
     elif type(pure_value) is dict:
-        new_dict: dict[str, Any] = {{}}
-        for key_, value_ in pure_value.items(): #type: ignore
-            if key_ in refrence_value()._property_name_to_its_type_dict.keys():
-                new_dict[key_] = convert_pure_dict_into_a_dict_that_has_enum_object( #type: ignore
-                    pure_value=value_, 
-                    refrence_value=refrence_value()._property_name_to_its_type_dict.get(key_)
-                ) #type: ignore
-        return new_dict
+        if str(refrence_value).startswith("<class"):
+            new_object = refrence_value()
+            old_property_list = getattr(new_object, "_property_name_to_its_type_dict")
+            for key in old_property_list.keys():
+                if key in pure_value.keys():
+                    setattr(new_object, key, convert_pure_dict_into_a_dict_that_has_enum_object(pure_value[key], old_property_list[key])) # type: ignore
+            return new_object
+        else:
+            return None
     else:
         if str(refrence_value).startswith("<enum"):
             default_value = None
@@ -757,23 +759,17 @@ class YRPC_OBJECT_BASE_CLASS:
         return new_dict.copy() #type: ignore
 
     def from_dict(self, dict: dict[str, Any]) -> Any:
-        new_dict = convert_pure_dict_into_a_dict_that_has_enum_object(pure_value=dict.copy(), refrence_value=self.__class__)
-        old_self_dict = self.__dict__.copy() 
-        for key, value in new_dict.items():
-            if key in old_self_dict:
+        new_object = convert_pure_dict_into_a_dict_that_has_enum_object(pure_value=dict.copy(), refrence_value=self.__class__)
+
+        new_object_dict = new_object.__dict__.copy() 
+        for key, value in new_object_dict.items():
+            if key in self.__dict__:
                 setattr(self, key, value)
-        return self._clone()
+
+        return new_object
 
     def _clone(self) -> Any:
-        return self._create_a_new_instance_from_dict(self.to_dict()) 
-
-    def _create_a_new_instance_from_dict(self, dict: dict[str, Any]) -> Any:
-        an_object = self.__class__()
-        new_dict = convert_pure_dict_into_a_dict_that_has_enum_object(pure_value=dict.copy(), refrence_value=an_object.__class__)
-        for key, value in new_dict.items():
-            if key in an_object.__dict__:
-                setattr(an_object, key, value)
-        return an_object
+        return copy.deepcopy(self)
 
 
 {enum_code_block_list_text}
