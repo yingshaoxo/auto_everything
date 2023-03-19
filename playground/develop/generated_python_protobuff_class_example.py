@@ -181,6 +181,7 @@ if __name__ == "__main__":
     print(object2.to_dict())
     object2.from_dict(object1_dict)
     print(object2.to_dict())
+    print(hello_request()._property_name_to_its_type_dict)
 
     # print("---------")
 

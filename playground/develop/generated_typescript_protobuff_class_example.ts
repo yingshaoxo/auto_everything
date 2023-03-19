@@ -42,7 +42,7 @@ const _general_from_dict_function = (old_object: any, new_object: any): any => {
             //list
             let new_list: any[] = []
             for (const one of new_object) {
-                new_list.push(_general_from_dict_function(old_object, one))
+                new_list.push(structuredClone(_general_from_dict_function(old_object, one)))
             }
             return new_list
         } else {
@@ -55,14 +55,19 @@ const _general_from_dict_function = (old_object: any, new_object: any): any => {
                     keys = Object.keys(old_object._property_name_to_its_type_dict)
                     for (const key of keys) {
                         if (Object.keys(new_object).includes(key)) {
+                            console.log((typeof old_object._property_name_to_its_type_dict[key]))
                             if ((typeof old_object._property_name_to_its_type_dict[key]) == "string") {
                                 // default value type
                                 old_object[key] = new_object[key]
                             } else {
                                 // custom message type || enum
-                                if ((typeof old_object._property_name_to_its_type_dict[key]).includes("class")) {
-                                    // custom message type
-                                    old_object[key] = _general_from_dict_function(new (old_object._property_name_to_its_type_dict[key])(), new_object[key])
+                                if (
+                                    (typeof old_object._property_name_to_its_type_dict[key]).includes("class") || 
+                                    (typeof old_object._property_name_to_its_type_dict[key]).includes("function")
+                                ) {
+                                    // custom message type || a list of custom type
+                                    var reference_object = new (old_object._property_name_to_its_type_dict[key])()
+                                    old_object[key] = structuredClone(_general_from_dict_function(reference_object, new_object[key]))
                                 } else {
                                     // enum
                                     if (Object.keys(new_object).includes(key)) {
@@ -130,9 +135,9 @@ export class User {
     }
 
     from_dict(item: _User): User {
-        let new_dict = _general_from_dict_function(this, item)
-
         let an_item = new User()
+        let new_dict = _general_from_dict_function(an_item, item)
+
         for (const key of Object.keys(new_dict)) {
             let value = new_dict[key]
             //@ts-ignore
