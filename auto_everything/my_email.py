@@ -68,7 +68,8 @@ class SMTP_Service():
     def stop(self):
         self.controller.stop()
     
-    def get_title_from_email_string_data(self, data: str) -> None | str:
+    @staticmethod
+    def get_title_from_email_string_data(data: str) -> None | str:
         title_list = re.findall(r"Subject:\s+(.*)", data, re.IGNORECASE)
         if len(title_list) == 0:
             return None
