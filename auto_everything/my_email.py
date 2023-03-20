@@ -1,4 +1,5 @@
 from typing import Any, Callable
+import re
 
 
 class MyO365():
@@ -66,6 +67,13 @@ class SMTP_Service():
     
     def stop(self):
         self.controller.stop()
+    
+    def get_title_from_email_string_data(self, data: str) -> None | str:
+        title_list = re.findall(r"Subject:\s+(.*)", data, re.IGNORECASE)
+        if len(title_list) == 0:
+            return None
+        else:
+            return title_list[0]
 
 
 if __name__ == '__main__':
