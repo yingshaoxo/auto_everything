@@ -71,11 +71,54 @@ You can install it with `sudo apt install wget`"""
         else:
             return False
 
+    def check_mx_record_by_using_base_domain_url(self, url: str) -> tuple[list[str], list[str]]:
+        """
+        Get mx record list by using a base domain.
+
+        Parameters
+        ----------
+        url: string
+            something like `gmail.com`
+
+        Returns
+        -------
+        tuple(list[str], list[str])
+            one is the record list without base domain, another one is the record list with base domain
+        """
+        url = url.removeprefix("http://")
+        url = url.removeprefix("https://")
+        url = url.removesuffix("/")
+        result = t.run_command(f"dig {url} mx +short")
+        result_list1 = [one.split(" ")[1] for one in result.strip().split("\n") if one.strip() != ""]
+        result_list2 = [one.split(" ")[1]+url for one in result.strip().split("\n") if one.strip() != ""]
+        return result_list1, result_list2
+    
+    def check_a_record_by_using_domain_url(self, url: str) -> list[str]:
+        """
+        Get IP address list by using a domain url.
+
+        Parameters
+        ----------
+        url: string
+            something like `alt4.gmail-smtp-in.l.google.com.`
+
+        Returns
+        -------
+        list[string]
+        """
+        url = url.removeprefix("http://")
+        url = url.removeprefix("https://")
+        url = url.removesuffix("/")
+        result = t.run_command(f"dig {url} a +short")
+        return [one.strip() for one in result.strip().split("\n") if one.strip() != ""]
+
 
 if __name__ == "__main__":
     net = Network()
-    result = net.download(
-        "https://github.com/yingshaoxo/My-books/raw/master/Tools.py",
-        "~/.auto_everything/hi.txt",
-    )
-    print(result)
+    # result = net.download(
+    #     "https://github.com/yingshaoxo/My-books/raw/master/Tools.py",
+    #     "~/.auto_everything/hi.txt",
+    # )
+    # print(result)
+    ip =  net.check_a_record_by_using_domain_url("https://www.linux.com/")
+    print(ip)
