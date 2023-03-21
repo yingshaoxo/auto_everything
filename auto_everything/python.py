@@ -4,9 +4,8 @@ import os
 import sys
 from pprint import pprint
 import copy
-import inspect
 
-from typing import Callable, List
+from typing import Any, Callable
 
 
 class Python():
@@ -24,7 +23,7 @@ class Python():
         self._t = Terminal()
         self._disk = Disk()
 
-    def check_if_a_variable_is_a_function(self, function: Callable) -> bool:
+    def check_if_a_variable_is_a_function(self, function: Any) -> bool:
         return isinstance(function, Callable)
 
     def list_python_packages(self):
@@ -33,7 +32,7 @@ class Python():
         """
         return self._os.list_python_packages()
 
-    def install_package(self, package_name):
+    def install_package(self, package_name: str):
         """
         Parameters
         ----------
@@ -42,7 +41,7 @@ class Python():
         """
         self._os.install_python_package(package_name)
 
-    def uninstall_package(self, package_name):
+    def uninstall_package(self, package_name: str):
         """
         Parameters
         ----------
@@ -52,19 +51,20 @@ class Python():
         self._os.uninstall_python_package(package_name)
 
     class loop():
-        def __init__(self, interval=1, thread=False):
+        def __init__(self, interval: int | float=1, thread:bool=False):
             """
+            interval: inverval in seconds
             new_thread: do you want to open a new thread? True/False
             """
             self.thread = thread
             self.interval = interval
 
-        def __call__(self, func):
+        def __call__(self, func: Any):
             """
             func: a function which you want to run forever
             """
 
-            def new_function(*args, **kwargs):
+            def new_function(*args: Any, **kwargs: Any):
                 def while_function():
                     while 1:
                         try:
@@ -80,7 +80,7 @@ class Python():
 
             return new_function
 
-    def help(self, object_):
+    def help(self, object_: Any):
         """
         get help information about class or function
         """
@@ -94,8 +94,8 @@ class Python():
                 print(doc, '\n')
         else:
             methods = dir(object_)
-            private_methods = []
-            public_methods = []
+            private_methods: list[str] = []
+            public_methods: list[str] = []
             for method in methods:
                 if method[:1] == "_":
                     private_methods.append(method)
@@ -124,14 +124,14 @@ class Python():
             [print(one[0], one[1]) for one in public_methods]
             """
 
-    def fire(self, class_name):
+    def fire(self, class_name: Any):
         """
         fire is a function that will turn any Python class into a command line interface
         """
-        from fire import Fire
+        from fire import Fire #type: ignore
         Fire(class_name)
 
-    def make_it_runnable(self, py_file_path=None):
+    def make_it_runnable(self, py_file_path: str|None=None):
         """
         make python file runnable
 
@@ -150,7 +150,7 @@ class Python():
             if not self._disk.executable(py_file_path):
                 self._t.run_command('chmod +x {}'.format(py_file_path))
 
-    def make_it_global_runnable(self, py_file_path=None, executable_name=None):
+    def make_it_global_runnable(self, py_file_path: str| None=None, executable_name: str | None=None):
         """
         make python file global runnable
 
@@ -199,7 +199,7 @@ class Python():
             print(f"\n\n------------------\n\nYou could run \n\nsource ~/.bashrc\n\nto get started!")
             print(f"\n\n------------------\n\nYou could run \n\n{runnable_path.split('/')[-1]} -- --completion\n\nto get bash completion scripts")
 
-    def print(self, data, limit=20):
+    def print(self, data: Any, limit: int=20):
         """
         print `function help info` or print `dict` with length limit (So you could see the structure easily)
         """
@@ -208,7 +208,7 @@ class Python():
         else:
             data = copy.deepcopy(data)
 
-            def infinite_loop(the_data):
+            def infinite_loop(the_data: Any) -> Any:
                 the_type = type(the_data)
                 if the_type == str:
                     return the_data[:limit] + "..."

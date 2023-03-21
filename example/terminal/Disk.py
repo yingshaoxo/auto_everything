@@ -3,6 +3,7 @@
 
 import os
 import json
+from typing import Any
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 from auto_everything.disk import Disk
@@ -31,7 +32,7 @@ def get_folder_and_files(
     """
     folder = disk._expand_user(folder)
     assert os.path.exists(folder), f"{folder} is not exist!"
-    files = []
+    files: list[str] = []
     for root, dirnames, filenames in os.walk(folder):
         for dirname in dirnames:
             abs_folder_path = os.path.join(root, dirname)
@@ -48,21 +49,23 @@ class Tools():
         for file in files:
             print(file)
     
-    def fake_backup(self, backup_file_path=None):
+    def fake_backup(self, backup_file_path: str | None=None):
+        saving_path = None
         if backup_file_path != None:
             saving_path = backup_file_path
         files = get_folder_and_files(folder=".")
-        data_list = []
+        data_list: list[Any] = []
         for file_or_folder in files:
             data_list.append({
                 "path": file_or_folder,
                 "type": 'folder' if os.path.isdir(file_or_folder) else 'file'
             })
-        with open(saving_path, 'w', encoding="utf-8") as f:
-            f.write(json.dumps(data_list, indent=4))
-        print(f"fake backup is done, it is in: {saving_path}")
+        if (saving_path != None):
+            with open(saving_path, 'w', encoding="utf-8") as f:
+                f.write(json.dumps(data_list, indent=4))
+            print(f"fake backup is done, it is in: {saving_path}")
 
-    def fake_recover(self, storage_tree_json_file=None):
+    def fake_recover(self, storage_tree_json_file: str | None=None):
         if (storage_tree_json_file == None):
             print("you need to give me a json file that was generated from 'fake_backup' function.")
             exit()
