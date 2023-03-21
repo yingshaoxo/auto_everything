@@ -26,21 +26,26 @@ poetry env info
 poetry add <package_name>
 ```
 
-## Install dependencies
+## Install auto_everything with all dependencies
 
 ```bash
-poetry install
+poetry add --extras=all auto_everything
+
+#or
+
+poetry add auto_everything[all]
+```
+
+## Add a package and do the developement without reinstall
+
+```bash
+poetry add --editable --extras=all .
 
 #and
 
 pip install -e .
 ```
 
-## Install all dependencies
-
-```bash
-poetry install --with all
-```
 
 ## Build and publish
 
