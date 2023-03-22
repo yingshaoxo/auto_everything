@@ -1,3 +1,4 @@
+import ipaddress
 from auto_everything.disk import Disk
 from pathlib import Path
 import os
@@ -71,11 +72,93 @@ You can install it with `sudo apt install wget`"""
         else:
             return False
 
+    def get_mail_exchanger_record_by_using_base_domain_url(self, url: str) -> tuple[list[str], list[str]]:
+        """
+        Get mx record list by using a base domain.
+
+        Parameters
+        ----------
+        url: string
+            something like `gmail.com`
+
+        Returns
+        -------
+        tuple(list[str], list[str])
+            one is the record list without base domain, another one is the record list with base domain
+        """
+        url = url.removeprefix("http://")
+        url = url.removeprefix("https://")
+        url = url.removesuffix("/")
+        result = t.run_command(f"dig {url} mx +short")
+        result_list1 = [one.split(" ")[1] for one in result.strip().split("\n") if one.strip() != ""]
+        result_list2 = [one.split(" ")[1]+url for one in result.strip().split("\n") if one.strip() != ""]
+        return result_list1, result_list2
+    
+    def get_domain_to_ip_record_by_using_domain_url(self, url: str) -> list[str]:
+        """
+        Get IP address list by using a domain url.
+
+        Parameters
+        ----------
+        url: string
+            something like `alt4.gmail-smtp-in.l.google.com.`
+
+        Returns
+        -------
+        list[string]
+        """
+        url = url.removeprefix("http://")
+        url = url.removeprefix("https://")
+        url = url.removesuffix("/")
+        result = t.run_command(f"dig {url} a +short")
+        return [one.strip() for one in result.strip().split("\n") if one.strip() != ""]
+
+    def get_text_record_by_using_domain_url(self, url: str) -> list[str]:
+        """
+        Get text record list by using a domain url.
+
+        Parameters
+        ----------
+        url: string
+            something like `gmail.com`
+
+        Returns
+        -------
+        list[string]
+        """
+        url = url.removeprefix("http://")
+        url = url.removeprefix("https://")
+        url = url.removesuffix("/")
+        result = t.run_command(f"dig {url} txt +short")
+        return [one.strip('" \n') for one in result.strip().split("\n") if one.strip('" \n') != ""]
+
+    def check_if_an_ip_in_an_ip_network(self, ip: str, ip_network: str) -> bool:
+        """
+        check_if_an_ip_in_an_ip_network
+
+        Parameters
+        ----------
+        ip: string
+            something like `127.0.0.1`
+        ip_network: string
+            something like `127.0.0.0/24`
+
+        Returns
+        -------
+        bool
+        """
+        an_address = ipaddress.ip_address(ip)
+        a_network = ipaddress.ip_network(ip_network)
+        return an_address in a_network
+
 
 if __name__ == "__main__":
     net = Network()
-    result = net.download(
-        "https://github.com/yingshaoxo/My-books/raw/master/Tools.py",
-        "~/.auto_everything/hi.txt",
-    )
-    print(result)
+    # result = net.download(
+    #     "https://github.com/yingshaoxo/My-books/raw/master/Tools.py",
+    #     "~/.auto_everything/hi.txt",
+    # )
+    # print(result)
+
+    text_info = net.get_text_record_by_using_domain_url("https://gmail.com/")
+    print(text_info)

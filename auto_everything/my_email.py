@@ -1,5 +1,7 @@
 from typing import Any, Callable
 import re
+from auto_everything.network import Network
+net_work = Network()
 
 
 class MyO365():
@@ -29,11 +31,13 @@ class MyO365():
 
 
 class SMTP_Service():
-    def __init__(self, host: str, port: int, handler: Callable[[str, str, str], None]):
+    domain_to_ip_list: dict[str, Any] = {}
+
+    def __init__(self, host: str, port: int, handler: Callable[[str, str, str, str], None], auth_ip_source: bool = False):
         """
         host: 0.0.0.0
         port: 25
-        handler: (from: str, to: str, content: str) => None
+        handler: (from_ip: str, from: str, to: str, content: str) => None
         """
         from aiosmtpd.controller import Controller
 
@@ -42,17 +46,24 @@ class SMTP_Service():
                 mail_from = envelope.mail_from
                 mail_to = envelope.rcpt_tos
                 data = envelope.content
+                source_ip_address = session.peer[0]
+
+                if (auth_ip_source == True):
+                    ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=mail_from, source_ip=source_ip_address)
+                    if not ok:
+                        return
 
                 try:
-                    print(f"mail_from: {mail_from}")
-                    print("\n\n---\n\n")
-                    handler(mail_from, mail_to, data.decode(encoding="utf-8"))
+                    # print(f"mail_from: {mail_from}")
+                    # print("\n\n---\n\n")
+                    handler(source_ip_address, mail_from, mail_to, data.decode(encoding="utf-8"))
                 except Exception as e:
                     print(e)
                     return '500 Could not process your message'
 
                 return '250 OK'
         
+        self.auth_ip_source = auth_ip_source
         self.host = host
         self.port = port
         self.custom_handler = CustomHandler()
@@ -75,10 +86,59 @@ class SMTP_Service():
             return None
         else:
             return title_list[0]
+    
+    @staticmethod
+    def get_authorized_ip_list_from_an_email_domain(email_address: str) -> list[str]:
+        default_result: list[str] = []
+
+        base_domain = email_address
+        if "@" in email_address:
+            base_domain = email_address.split("@")[1].strip()
+        
+        if base_domain in SMTP_Service.domain_to_ip_list.keys():
+            return SMTP_Service.domain_to_ip_list[base_domain]
+        
+        text_record_list = net_work.get_text_record_by_using_domain_url(url=base_domain)
+        found = None
+        for one_record in text_record_list:
+            if "v=spf1" in one_record:
+                found = one_record
+                break
+        
+        if found != None:
+            ipv4_list = re.findall(r"ip4:([\w\.\-\_\/]+)", found)
+            if len(ipv4_list) > 0:
+                return ipv4_list
+
+            result: list[str] = []
+
+            rediret_list = re.findall(r"redirect:([\w\.\-\_\/]+)", found)
+            if len(rediret_list) > 0:
+                result += SMTP_Service.get_authorized_ip_list_from_an_email_domain(email_address=rediret_list[0])
+
+            include_list = re.findall(r"include:([\w\.\-\_\/]+)", found)
+            for one in include_list:
+                result += SMTP_Service.get_authorized_ip_list_from_an_email_domain(email_address=one)
+            
+            if len(result) > 0:
+                SMTP_Service.domain_to_ip_list[base_domain] = result
+
+            return result
+
+        return default_result
+
+    @staticmethod
+    def check_if_an_email_was_sent_from_a_domain(email_address: str, source_ip: str) -> bool:
+        network_or_ip_list = SMTP_Service.get_authorized_ip_list_from_an_email_domain(email_address=email_address)
+        for one in network_or_ip_list:
+            yes = net_work.check_if_an_ip_in_an_ip_network(ip=source_ip, ip_network=one)
+            if yes:
+                return True
+        return False
 
 
 if __name__ == '__main__':
-    def handle_email(from_: str, to: str, message: str):
+    def handle_email(from_id: str, from_: str, to: str, message: str):
         print(from_)
         print(to)
         print(message)
@@ -89,4 +149,15 @@ if __name__ == '__main__':
         handler=handle_email
     )
 
-    smtp_service.start()
+    # smtp_service.start()
+
+    from_email = "ddsd@protonmail.com"
+    result = SMTP_Service.get_authorized_ip_list_from_an_email_domain(from_email)
+    if (len(result) > 0):
+        an_ip = result[0].split("/")[0]
+        ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip=an_ip)
+        print(ok)
+        ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip="127.0.0.1")
+        print(ok)
+        ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip=an_ip)
+        print(ok)
