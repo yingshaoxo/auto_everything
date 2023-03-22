@@ -17,3 +17,5 @@ pyfakewebcam
 pillow
 o365
 tensorflow
+aiosmtpd
+sympy

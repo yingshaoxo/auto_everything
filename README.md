@@ -300,6 +300,25 @@ store.reset()
 print(store.get_items())
 ```
 
+#### Encryption and Decryption
+
+```python
+encryption_and_decryption = EncryptionAndDecryption()
+
+a_dict = encryption_and_decryption.get_secret_alphabet_dict("hello, world")
+
+a_sentence = "I'm yingshaoxo."
+
+encrypted_sentence = encryption_and_decryption.encode_message(a_secret_dict=a_dict, message=a_sentence)
+print()
+print(encrypted_sentence)
+> B'i ybjdqahkxk.
+
+decrypted_sentence = encryption_and_decryption.decode_message(a_secret_dict=a_dict, message=encrypted_sentence)
+print(decrypted_sentence)
+> I'm yingshaoxo.
+```
+
 #### Web automation
 
 ```python
