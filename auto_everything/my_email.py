@@ -42,6 +42,7 @@ class SMTP_Service():
                 mail_from = envelope.mail_from
                 mail_to = envelope.rcpt_tos
                 data = envelope.content
+                source_ip_address = session.peer[0]
 
                 try:
                     print(f"mail_from: {mail_from}")
