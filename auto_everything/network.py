@@ -1,3 +1,4 @@
+import ipaddress
 from auto_everything.disk import Disk
 from pathlib import Path
 import os
@@ -131,6 +132,25 @@ You can install it with `sudo apt install wget`"""
         result = t.run_command(f"dig {url} txt +short")
         return [one.strip('" \n') for one in result.strip().split("\n") if one.strip('" \n') != ""]
 
+    def check_if_an_ip_in_an_ip_network(self, ip: str, ip_network: str) -> bool:
+        """
+        check_if_an_ip_in_an_ip_network
+
+        Parameters
+        ----------
+        ip: string
+            something like `127.0.0.1`
+        ip_network: string
+            something like `127.0.0.0/24`
+
+        Returns
+        -------
+        bool
+        """
+        an_address = ipaddress.ip_address(ip)
+        a_network = ipaddress.ip_network(ip_network)
+        return an_address in a_network
+
 
 if __name__ == "__main__":
     net = Network()
@@ -139,5 +159,6 @@ if __name__ == "__main__":
     #     "~/.auto_everything/hi.txt",
     # )
     # print(result)
+
     text_info = net.get_text_record_by_using_domain_url("https://gmail.com/")
     print(text_info)

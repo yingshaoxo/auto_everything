@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "auto-everything"
-version = "3.15"
+version = "3.16"
 description = "do automate things on Linux"
 authors = ["yingshaoxo <yingshaoxo@gmail.com>"]
 license = "GPLv3"
@@ -13,8 +13,8 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-psutil = "^5.9.4"
-fire = "^0.5.0"
+psutil = "5.9.4"
+fire = "0.5.0"
 
 [tool.poetry.group.all]
 optional = true
@@ -28,13 +28,13 @@ speechbrain = "^0.5.13"
 vosk = "^0.3.44"
 pydub = "^0.25.1"
 py-dateutil = "^2.2"
-fire = "^0.4.0"
 pytest = "^7.2.0"
 o365 = "^2.0.23"
 ipykernel = "^6.19.2"
 paddlepaddle = "^2.4.1"
 opencv-python = "^4.7.0.68"
 pyautogui = "^0.9.53"
+aiosmtpd = "1.4.4.post2"
 
 [tool.poetry.scripts]
 hi = "auto_everything._command_line_interface:_hi" # You can call 'hi' in everywhere from your terminal after you install this package
