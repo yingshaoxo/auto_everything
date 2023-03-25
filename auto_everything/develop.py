@@ -1292,7 +1292,8 @@ export class {class_name} {{
     }}
 
     _clone(): {class_name} {{
-        return structuredClone(this)
+        let clone = Object.assign(Object.create(Object.getPrototypeOf(this)), this)
+        return clone
     }}
 
     from_dict(item: _{class_name}): {class_name} {{

@@ -131,7 +131,9 @@ export class User {
     */
 
     _clone(): User {
-        return structuredClone(this)
+        let clone = Object.assign(Object.create(Object.getPrototypeOf(this)), this)
+        return clone
+        // return structuredClone(this)
     }
 
     from_dict(item: _User): User {
