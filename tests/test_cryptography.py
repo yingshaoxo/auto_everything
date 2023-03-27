@@ -12,7 +12,7 @@ def test_cryptography():
 
     a_dict = encryption_and_decryption.get_secret_alphabet_dict("hello, world")
 
-    a_sentence = "I'm yingshaoxo."
+    a_sentence = "I'm yingshaoxo. Here is the test number: 9111108848."
 
     encrypted_sentence = encryption_and_decryption.encode_message(a_secret_dict=a_dict, message=a_sentence)
     print()
