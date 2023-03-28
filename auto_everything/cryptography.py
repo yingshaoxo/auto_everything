@@ -1,3 +1,4 @@
+import random
 import string
 
 
@@ -42,6 +43,36 @@ class Password_Generator():
         result = result[:length - 1]
         # result = "A" + result
         return result
+
+    def get_random_password(self, 
+                            use_numbers: bool = True, 
+                            use_ascii_lowercase_characters: bool = True, 
+                            use_ascii_uppercase_characters: bool = True, 
+                            use_punctuation: bool = False, 
+                            additional_string_at_head: str = "",
+                            length: int = 12):
+        """
+        return a random string, you can use the returned string as your password
+
+        Parameters
+        ----------
+        additional_string_at_head: str
+            You can put some string like '@yingshaoxo_' in this argument, so for each password you get, it will start with '@yingshaoxo_'
+
+        length: int
+            password length
+        """
+        characters_list: list[str] = []
+        if (use_numbers == True):
+            characters_list += list(string.digits)
+        if (use_ascii_lowercase_characters == True):
+            characters_list += list(string.ascii_lowercase)
+        if (use_ascii_uppercase_characters == True):
+            characters_list += list(string.ascii_uppercase)
+        if (use_punctuation == True):
+            characters_list += list(string.punctuation)
+        result = ''.join(random.choices(characters_list, k=length))
+        return additional_string_at_head + result
 
 
 class EncryptionAndDecryption():
@@ -121,15 +152,19 @@ class EncryptionAndDecryption():
 
 
 if __name__ == "__main__":
-    encryption_and_decryption = EncryptionAndDecryption()
+    # encryption_and_decryption = EncryptionAndDecryption()
 
-    a_dict = encryption_and_decryption.get_secret_alphabet_dict("hello, world")
+    # a_dict = encryption_and_decryption.get_secret_alphabet_dict("hello, world")
 
-    a_sentence = "I'm yingshaoxo. Here is the test number: 9111108848."
+    # a_sentence = "I'm yingshaoxo. Here is the test number: 9111108848."
 
-    encrypted_sentence = encryption_and_decryption.encode_message(a_secret_dict=a_dict, message=a_sentence)
-    print()
-    print(encrypted_sentence)
+    # encrypted_sentence = encryption_and_decryption.encode_message(a_secret_dict=a_dict, message=a_sentence)
+    # print()
+    # print(encrypted_sentence)
 
-    decrypted_sentence = encryption_and_decryption.decode_message(a_secret_dict=a_dict, message=encrypted_sentence)
-    print(decrypted_sentence)
+    # decrypted_sentence = encryption_and_decryption.decode_message(a_secret_dict=a_dict, message=encrypted_sentence)
+    # print(decrypted_sentence)
+
+
+    password_generator = Password_Generator("yingshaoxo")
+    print(password_generator.get_random_password(use_punctuation=False, additional_string_at_head="@yingshaoxo_"))

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "auto-everything"
-version = "3.18"
+version = "3.19"
 description = "do automate things on Linux"
 authors = ["yingshaoxo <yingshaoxo@gmail.com>"]
 license = "GPLv3"
