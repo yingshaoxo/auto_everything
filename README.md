@@ -4,7 +4,7 @@ Linux automation
 
 #### Help Wanted
 
-**I lost my job for almost a year. If you wish to see me alive, please buy me some food:**
+I lost my job for almost a year. If you wish to see me alive, please buy me some food:
 
 * Paypal: https://paypal.me/yingshaoxo
 * Patron: https://www.patreon.com/bePatron?u=45200693
