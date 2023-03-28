@@ -46,13 +46,12 @@ class Password_Generator():
 
 class EncryptionAndDecryption():
     def get_secret_alphabet_dict(self, a_secret_string: str) -> dict[str, str]:
-        new_key = a_secret_string[::-1].replace(" ", "").lower()
-        for char in new_key:
-            if new_key.count(char) >= 2:
-                new_key = new_key.replace(char, "", 1)
-        a_secret_string = new_key[::-1]
-
-        character_list = [char for char in a_secret_string if char.isalpha()]
+        a_secret_string = a_secret_string.replace(" ", "").lower()
+        character_list: list[str] = []
+        for char in a_secret_string:
+            if char.isalpha():
+                if char not in character_list:
+                    character_list.append(char)
 
         if len(character_list) >= 26:
             character_list = character_list[:26]
@@ -64,15 +63,37 @@ class EncryptionAndDecryption():
             character_list = character_list + characters_that_the_key_didnt_cover
 
         final_dict: dict[str, str] = {}
+
+        # for alphabet
         for index, char in enumerate(list(string.ascii_lowercase)):
             final_dict[char] = character_list[index]
-
+        
+        # for numbers
+        original_numbers_in_alphabet_format = list(string.ascii_lowercase)[:10] #0-9 representations in alphabet format
+        secret_numbers_in_alphabet_format = list(final_dict.values())[:10]
+        final_number_list: list[str] = []
+        for index in range(0, 10):
+            secret_char = secret_numbers_in_alphabet_format[index]
+            if secret_char in original_numbers_in_alphabet_format:
+                final_number_list.append(str(original_numbers_in_alphabet_format.index(secret_char)))
+        if len(final_number_list) >= 10:
+            final_number_list = final_number_list[:10]
+        else:
+            numbers_that_didnt_get_cover: list[str] = []
+            for char in range(0, 10):
+                char = str(char)
+                if char not in final_number_list:
+                    numbers_that_didnt_get_cover.append(char)
+            final_number_list = final_number_list + numbers_that_didnt_get_cover
+        for index, char in enumerate(final_number_list):
+            final_dict[str(index)] = char
+        
         return final_dict
 
     def encode_message(self, a_secret_dict: dict[str, str], message: str) -> str:
         new_message: str = ""
         for char in message:
-            if not char.isalpha():
+            if (not char.isalpha()) and (not char.isnumeric()):
                 new_message += char
                 continue
             new_char = a_secret_dict[char.lower()]
@@ -89,7 +110,7 @@ class EncryptionAndDecryption():
 
         new_message: str = ""
         for char in message:
-            if not char.isalpha():
+            if (not char.isalpha()) and (not char.isnumeric()):
                 new_message += char
                 continue
             new_char = a_secret_dict[char.lower()]
@@ -100,4 +121,15 @@ class EncryptionAndDecryption():
 
 
 if __name__ == "__main__":
-    pass
+    encryption_and_decryption = EncryptionAndDecryption()
+
+    a_dict = encryption_and_decryption.get_secret_alphabet_dict("hello, world")
+
+    a_sentence = "I'm yingshaoxo. Here is the test number: 9111108848."
+
+    encrypted_sentence = encryption_and_decryption.encode_message(a_secret_dict=a_dict, message=a_sentence)
+    print()
+    print(encrypted_sentence)
+
+    decrypted_sentence = encryption_and_decryption.decode_message(a_secret_dict=a_dict, message=encrypted_sentence)
+    print(decrypted_sentence)

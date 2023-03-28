@@ -10,9 +10,10 @@ def test_password():
 def test_cryptography():
     encryption_and_decryption = EncryptionAndDecryption()
 
-    a_dict = encryption_and_decryption.get_secret_alphabet_dict("hello, world")
+    a_dict = encryption_and_decryption.get_secret_alphabet_dict("yingshaoxo is the best")
+    print(a_dict)
 
-    a_sentence = "I'm yingshaoxo."
+    a_sentence = "Hello, world, I'm yingshaoxo. Here is the test number: 9111108848."
 
     encrypted_sentence = encryption_and_decryption.encode_message(a_secret_dict=a_dict, message=a_sentence)
     print()

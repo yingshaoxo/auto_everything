@@ -33,11 +33,11 @@ class MyO365():
 class SMTP_Service():
     domain_to_ip_list: dict[str, Any] = {}
 
-    def __init__(self, host: str, port: int, handler: Callable[[str, str, str, str], None], auth_ip_source: bool = False):
+    def __init__(self, host: str, port: int, handler: Callable[[str, str, list[str], str], None], auth_ip_source: bool = False):
         """
         host: 0.0.0.0
         port: 25
-        handler: (from_ip: str, from: str, to: str, content: str) => None
+        handler: (from_ip: str, from: str, to: list[str], content: str) => None
         """
         from aiosmtpd.controller import Controller
 
@@ -138,7 +138,7 @@ class SMTP_Service():
 
 
 if __name__ == '__main__':
-    def handle_email(from_id: str, from_: str, to: str, message: str):
+    def handle_email(from_id: str, from_: str, to: list[str], message: str):
         print(from_)
         print(to)
         print(message)
