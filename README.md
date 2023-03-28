@@ -2,9 +2,14 @@
 
 Linux automation
 
-#### Donation
+#### Help Wanted
 
-[<img src="https://github.com/yingshaoxo/yingshaoxo/raw/master/become_a_patron_button.png" width="200">](https://www.patreon.com/bePatron?u=45200693)
+**I lost my job for almost a year. If you wish to see me alive, please buy me some food:**
+
+* Paypal: https://paypal.me/yingshaoxo
+* Patron: https://www.patreon.com/bePatron?u=45200693
+
+<!-- [<img src="https://github.com/yingshaoxo/yingshaoxo/raw/master/become_a_patron_button.png" width="200">](https://www.patreon.com/bePatron?u=45200693) -->
 
 #### Installation (For Python >= 3.10)
 
