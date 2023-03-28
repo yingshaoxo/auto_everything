@@ -319,6 +319,26 @@ print(decrypted_sentence)
 > I'm yingshaoxo.
 ```
 
+#### JWT Tool (Json-Web-Token Tool) 
+```python
+jwt_tool  = JWT_Tool()
+
+secret = "I'm going to tell you a secret: yingshaoxo is the best."
+
+a_jwt_string = jwt_tool.my_jwt_encode(data={"name": "yingshaoxo"}, a_secret_string_for_integrity_verifying=secret)
+print(a_jwt_string)
+> eyJhbGciOiAiTUQ1IiwgInR5cCI6ICJKV1QifQ==.eyJuYW1lIjogInlpbmdzaGFveG8ifQ==.583085987ba46636662dc71ca6227c0a
+
+original_dict = jwt_tool.my_jwt_decode(jwt_string=a_jwt_string, a_secret_string_for_integrity_verifying=secret)
+print(original_dict)
+> {'name': 'yingshaoxo'}
+
+fake_jwt_string = "aaaaaa.bbbbbb.abcdefg"
+original_dict = jwt_tool.my_jwt_decode(jwt_string=fake_jwt_string, a_secret_string_for_integrity_verifying=secret)
+print(original_dict)
+> None
+```
+
 #### Web automation
 
 ```python

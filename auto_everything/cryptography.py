@@ -1,5 +1,84 @@
+from typing import Any
+
 import random
 import string
+import hashlib
+import base64
+import json
+
+
+class JWT_Tool():
+    def my_jwt_encode(self, data: dict[str, Any], a_secret_string_for_integrity_verifying: str, use_md5: bool = True) -> str:
+        """
+        return the jwt string. it should only be used as a temporary password, you should not contain any sensitive information in it.
+
+        Parameters
+        ----------
+        data: 
+            a_dict, which contains the real information
+
+        a_secret_string_for_integrity_verifying: string
+            a secret string
+        """
+        header = {
+            "alg": "SHA256",
+            "typ": "JWT"
+        }
+        if (use_md5):
+            header["alg"] = "MD5"
+        header_base64_string = base64.b64encode(json.dumps(header).encode(encoding="utf-8")).decode("ascii")
+
+        payload = data
+        payload_base64_string = base64.b64encode(json.dumps(payload).encode(encoding="utf-8")).decode("ascii")
+
+        if (use_md5):
+            m = hashlib.md5()
+        else:
+            m = hashlib.sha256()
+
+        m.update((header_base64_string + "." + payload_base64_string + "." + a_secret_string_for_integrity_verifying).encode(encoding="utf-8"))
+        signature_ = m.hexdigest()
+
+        return header_base64_string + "." + payload_base64_string + "." + signature_
+
+    def my_jwt_decode(self, jwt_string: str, a_secret_string_for_integrity_verifying: str) -> dict[str, Any] | None:
+        """
+        return `None` if verifying didn't pass
+
+        Parameters
+        ----------
+        jwt_string: 
+            any string
+
+        a_secret_string_for_integrity_verifying: string
+            a secret string
+        """
+        try:
+            splits = jwt_string.split(".")
+            if len(splits) != 3:
+                return None
+            
+            header = json.loads(base64.b64decode(splits[0]).decode(encoding="utf-8")) 
+            header_base64_string = base64.b64encode(json.dumps(header).encode(encoding="utf-8")).decode("ascii")
+
+            payload = json.loads(base64.b64decode(splits[1]).decode(encoding="utf-8"))
+            payload_base64_string = base64.b64encode(json.dumps(payload).encode(encoding="utf-8")).decode("ascii")
+
+            if (header['alg'] == "MD5"):
+                m = hashlib.md5()
+            else:
+                m = hashlib.sha256()
+
+            m.update((header_base64_string + "." + payload_base64_string + "." + a_secret_string_for_integrity_verifying).encode(encoding="utf-8"))
+            signature_ = m.hexdigest()
+
+            if signature_ == splits[2]:
+                return payload
+            else:
+                return None
+        except Exception as e:
+            print(f"error: {e}")
+            return None
 
 
 class Password_Generator():
@@ -11,8 +90,6 @@ class Password_Generator():
         """
         base_string: a base_string for PassWord generation
         """
-        import hashlib
-        self.hashlib = hashlib
         self.__base_data = base_secret_string.encode("utf-8")
 
     def get_password(self, secret_string_list: list[str], length: int = 12):
@@ -33,7 +110,7 @@ class Password_Generator():
 
         data_list = [string.encode("utf-8") for string in secret_string_list]
 
-        m = self.hashlib.sha512()
+        m = hashlib.sha512()
         m.update(self.__base_data)
 
         for data in data_list:
@@ -166,5 +243,20 @@ if __name__ == "__main__":
     # print(decrypted_sentence)
 
 
-    password_generator = Password_Generator("yingshaoxo")
-    print(password_generator.get_random_password(use_punctuation=False, additional_string_at_head="@yingshaoxo_"))
+    # password_generator = Password_Generator("yingshaoxo")
+    # print(password_generator.get_random_password(use_punctuation=False, additional_string_at_head="@yingshaoxo_"))
+
+
+    jwt_tool  = JWT_Tool()
+
+    secret = "secret is a secret"
+
+    a_jwt_string = jwt_tool.my_jwt_encode(data={"name": "yingshaoxo"}, a_secret_string_for_integrity_verifying=secret, use_md5=True)
+    print(a_jwt_string)
+
+    original_dict = jwt_tool.my_jwt_decode(jwt_string=a_jwt_string, a_secret_string_for_integrity_verifying=secret)
+    print(original_dict)
+
+    fake_jwt_string = "eyJhbGciOiAiU0hBMjU2IiwgInR5cCI6ICJKV1QifQ==.eyJuYW1lIjogInlpbmdzaGFveG8ifQ==.53c4df02e99e2ce3d3f8d230c799e9f0cbe9963e484b45efe171f38ebe58d690"
+    original_dict = jwt_tool.my_jwt_decode(jwt_string=fake_jwt_string, a_secret_string_for_integrity_verifying=secret)
+    print(original_dict)
