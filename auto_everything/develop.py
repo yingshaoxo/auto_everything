@@ -1320,6 +1320,107 @@ export class {class_name} {{
         template_text = f"""
 const _ygrpc_official_types = ["string", "number", "boolean"];
 
+export const clone_object_ = (obj: any) =>  JSON.parse(JSON.stringify(obj));
+
+export const get_secret_alphabet_dict_ = (a_secret_string: string) =>  {{
+    const ascii_lowercase = "abcdefghijklmnopqrstuvwxyz".split("")
+    const number_0_to_9 = "0123456789".split("")
+
+    var new_key = a_secret_string.replace(" ", "").toLowerCase().split("")
+    var character_list: string[] = []
+    for (var char of new_key) {{
+        if ((/[a-zA-Z]/).test(char)) {{
+            if (!character_list.includes(char)) {{
+                character_list.push(char)
+            }}
+        }}
+    }}
+
+    if (character_list.length >= 26) {{
+        character_list = character_list.slice(0, 26)
+    }} else {{
+        var characters_that_the_key_didnt_cover: string[] = []
+        for (var char of ascii_lowercase) {{
+            if (!character_list.includes(char)) {{
+                characters_that_the_key_didnt_cover.push(char)
+            }}
+        }}
+        character_list = character_list.concat(characters_that_the_key_didnt_cover) 
+    }}
+
+    var final_dict = {{}} as Record<string, string>
+
+    // for alphabet
+    for (let [index, char] of ascii_lowercase.entries()) {{
+        final_dict[char] = character_list[index]
+    }}
+
+    // for numbers
+    var original_numbers_in_alphabet_format = ascii_lowercase.slice(0, 10) // 0-9 representations in alphabet format
+    var secret_numbers_in_alphabet_format = Object.values(final_dict).slice(0, 10)
+    var final_number_list = [] as string[]
+    for (var index in number_0_to_9) {{
+        var secret_char = secret_numbers_in_alphabet_format[index]
+        if (original_numbers_in_alphabet_format.includes(secret_char)) {{
+            final_number_list.push(String(original_numbers_in_alphabet_format.findIndex((x) => x===secret_char)))
+        }}
+    }}
+    if (final_number_list.length >= 10) {{
+        final_number_list = final_number_list.slice(0, 10)
+    }} else {{
+        var numbers_that_didnt_get_cover = [] as string[]
+        for (var char of number_0_to_9) {{
+            if (!final_number_list.includes(char)) {{
+                numbers_that_didnt_get_cover.push(char)
+            }}
+        }}
+        final_number_list = final_number_list.concat(numbers_that_didnt_get_cover)
+    }}
+    for (let [index, char] of final_number_list.entries()) {{
+        final_dict[String(index)] = char
+    }}
+
+    return final_dict
+}};
+
+export const encode_message_ = (a_secret_dict: Record<string, string>, message: string):string => {{
+    var new_message = ""
+    for (const char of message) {{
+        if ((!(/[a-zA-Z]/).test(char)) && (!(/^\d$/).test(char))) {{
+            new_message += char
+            continue
+        }}
+        var new_char = a_secret_dict[char.toLowerCase()]
+        if ((/[A-Z]/).test(char)) {{
+            new_char = new_char.toUpperCase()
+        }}
+        new_message += new_char
+    }}
+    return new_message
+}}
+
+export const decode_message_ = (a_secret_dict: Record<string, string>, message: string):string => {{
+    var new_secret_dict = {{}} as Record<string, string>
+    for (var key of Object.keys(a_secret_dict)) {{
+        new_secret_dict[a_secret_dict[key]] = key
+    }}
+    a_secret_dict = new_secret_dict
+
+    var new_message = ""
+    for (const char of message) {{
+        if ((!(/[a-zA-Z]/).test(char)) && (!(/^\d$/).test(char))) {{
+            new_message += char
+            continue
+        }}
+        var new_char = a_secret_dict[char.toLowerCase()]
+        if ((/[A-Z]/).test(char)) {{
+            new_char = new_char.toUpperCase()
+        }}
+        new_message += new_char
+    }}
+    return new_message
+}}
+
 const _general_to_dict_function = (object: any): any => {{
     let the_type = typeof object
     if (the_type == "object") {{
