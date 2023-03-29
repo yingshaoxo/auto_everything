@@ -2,8 +2,11 @@ from build.test_protobuff_code_objects import *
 
 
 from fastapi import APIRouter, FastAPI
+from fastapi.staticfiles import StaticFiles
+from starlette.responses import FileResponse 
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import os
 
 
 router = APIRouter()
@@ -21,7 +24,7 @@ def init(service_instance: Any):
         return (await service_instance.create_hello_request(item)).to_dict()
 
 
-def run(service_instance: Any, port: str):
+def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
     init(service_instance=service_instance)
 
     app = FastAPI()
@@ -36,6 +39,19 @@ def run(service_instance: Any, port: str):
         router,
         prefix="/test_protobuff_code",
     )
+
+    if (html_folder_path != ""):
+        if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
+            app.mount(serve_html_under_which_url, StaticFiles(directory=html_folder_path, html = True), name="web")
+            @app.get(serve_html_under_which_url, response_model=str)
+            async def index_page():
+                return FileResponse(os.path.join(html_folder_path, 'index.html'))
+            @app.exception_handler(404) #type: ignore
+            async def custom_404_handler(_, __):  #type: ignore
+                return FileResponse(os.path.join(html_folder_path, 'index.html'))
+            print(f"the website is running at: http://127.0.0.1:{port}/")
+        else:
+            print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
 
     print(f"You can see the docs here: http://127.0.0.1:{port}/docs")
     uvicorn.run( #type: ignore
@@ -52,4 +68,4 @@ if __name__ == "__main__":
                 item.name += "---"
             return item
     service_instance = NewService()
-    run(service_instance, port="6060")
+    run(service_instance, port="6060", html_folder_path="/Users/yingshaoxo/CS/it_has_alternatives/backend_service/backend_service/vue")
