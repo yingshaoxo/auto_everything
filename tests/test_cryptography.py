@@ -28,6 +28,22 @@ def test_cryptography():
     print(decrypted_sentence)
 
 
+def test_encryption():
+    encryption_and_decryption = EncryptionAndDecryption()
+
+    a_dict = encryption_and_decryption.get_secret_alphabet_dict("Asking is not a bad thing if the person you ask are comfortable with it.")
+    print(a_dict)
+
+    a_sentence = "yingshaoxo@gmail.com"
+
+    encrypted_sentence = encryption_and_decryption.encode_message(a_secret_dict=a_dict, message=a_sentence)
+    print()
+    print(encrypted_sentence)
+
+    decrypted_sentence = encryption_and_decryption.decode_message(a_secret_dict=a_dict, message=encrypted_sentence)
+    print(decrypted_sentence)
+
+
 def test_jwt():
     jwt_tool  = JWT_Tool()
 

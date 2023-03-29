@@ -821,7 +821,7 @@ import uvicorn
 router = APIRouter()
 
 
-class Service_test_protobuff_code:
+class Service_{identity_name}:
 {service_class_function_list_text}
 
 
@@ -854,7 +854,7 @@ def run(service_instance: Any, port: str):
 
 
 if __name__ == "__main__":
-    service_instance = Service_test_protobuff_code()
+    service_instance = Service_{identity_name}()
     run(service_instance, port="6060")
         """.strip()
 
@@ -1475,7 +1475,6 @@ const _general_from_dict_function = (old_object: any, new_object: any): any => {
                     keys = Object.keys(old_object._property_name_to_its_type_dict)
                     for (const key of keys) {{
                         if (Object.keys(new_object).includes(key)) {{
-                            console.log((typeof old_object._property_name_to_its_type_dict[key]))
                             if ((typeof old_object._property_name_to_its_type_dict[key]) == "string") {{
                                 // default value type
                                 old_object[key] = new_object[key]

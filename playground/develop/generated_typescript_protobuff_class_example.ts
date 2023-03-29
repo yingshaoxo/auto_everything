@@ -156,7 +156,7 @@ const _general_from_dict_function = (old_object: any, new_object: any): any => {
                     keys = Object.keys(old_object._property_name_to_its_type_dict)
                     for (const key of keys) {
                         if (Object.keys(new_object).includes(key)) {
-                            console.log((typeof old_object._property_name_to_its_type_dict[key]))
+                            // console.log((typeof old_object._property_name_to_its_type_dict[key]))
                             if ((typeof old_object._property_name_to_its_type_dict[key]) == "string") {
                                 // default value type
                                 old_object[key] = new_object[key]
