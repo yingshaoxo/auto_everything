@@ -24,6 +24,10 @@ poetry env info
 
 ```bash
 poetry add <package_name>
+
+#or
+
+poetry add --group all <package_name>
 ```
 
 ## Install auto_everything with all dependencies
