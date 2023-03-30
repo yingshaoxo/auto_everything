@@ -1,3 +1,4 @@
+#!/usr/bin/env /opt/homebrew/opt/python@3.10/bin/python3.10
 #!/usr/bin/env /usr/bin/python3
 from auto_everything.base import Python, Terminal
 py = Python()
@@ -60,11 +61,12 @@ git reset --hard origin/master
     def make_docs(self):
         t.run("""
         sudo apt install -y python3-sphinx
-        sudo pip3 install Flask-Sphinx-Themes
+        #brew install sphinx-doc
+        pip3 install Flask-Sphinx-Themes
         cd docs
         make html
-        cp docs/html/* . -fr
-        rm docs -fr
+        cp -fr docs/html/* .
+        rm -fr docs
         """)
 
     def publish(self):
