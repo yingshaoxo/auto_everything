@@ -38,6 +38,10 @@ poetry add --extras=all auto_everything
 #or
 
 poetry add auto_everything[all]
+
+#or
+
+pip install git+https://github.com/yingshaoxo/auto_everything.git@dev
 ```
 
 ## Add a package and do the developement without reinstall
