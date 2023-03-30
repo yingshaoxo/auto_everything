@@ -163,10 +163,14 @@ error: You should install python-telegram-bot by using:
 python -m pip install python-telegram-bot
             """)
     
-    async def send_message(self, chat_id: str, text: str):
-        async with self.bot:
-            await self.bot.send_message(text=text, chat_id=int(chat_id)) #type: ignore
-    
+    def send_message(self, chat_id: str, text: str):
+        async def send_message_function():
+            async with self.bot:
+                await self.bot.send_message(text=text, chat_id=int(chat_id)) #type: ignore
+        loop = asyncio.get_event_loop()
+        task = loop.create_task(send_message_function())
+        loop.run_until_complete(task)
+        
     async def get_new_message_updates(self):
         messages: list[self.telegram.Update] = []
         if self.last_update_id != None:
@@ -216,33 +220,49 @@ python -m pip install python-telegram-bot
                     except Exception as e:
                         print(f"error: {e}")
                 await asyncio.sleep(sleep_time_in_second)
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        asyncio.ensure_future(loop_function())
-        loop.run_forever()
+        loop = asyncio.get_event_loop()
+        task = loop.create_task(loop_function())
+        loop.run_until_complete(task)
+        # loop = asyncio.new_event_loop()
+        # asyncio.set_event_loop(loop)
+        # asyncio.ensure_future(loop_function())
+        # loop.run_forever()
 
 
 if __name__ == '__main__':
-    def handle_email(from_id: str, from_: str, to: list[str], message: str):
-        print(from_)
-        print(to)
-        print(message)
+    # def handle_email(from_id: str, from_: str, to: list[str], message: str):
+    #     print(from_)
+    #     print(to)
+    #     print(message)
 
-    smtp_service = SMTP_Service(
-        host="0.0.0.0",
-        port=25,
-        handler=handle_email
-    )
+    # smtp_service = SMTP_Service(
+    #     host="0.0.0.0",
+    #     port=25,
+    #     handler=handle_email
+    # )
 
-    # smtp_service.start()
+    # # smtp_service.start()
 
-    from_email = "ddsd@protonmail.com"
-    result = SMTP_Service.get_authorized_ip_list_from_an_email_domain(from_email)
-    if (len(result) > 0):
-        an_ip = result[0].split("/")[0]
-        ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip=an_ip)
-        print(ok)
-        ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip="127.0.0.1")
-        print(ok)
-        ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip=an_ip)
-        print(ok)
+    # from_email = "ddsd@protonmail.com"
+    # result = SMTP_Service.get_authorized_ip_list_from_an_email_domain(from_email)
+    # if (len(result) > 0):
+    #     an_ip = result[0].split("/")[0]
+    #     ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip=an_ip)
+    #     print(ok)
+    #     ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip="127.0.0.1")
+    #     print(ok)
+    #     ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip=an_ip)
+    #     print(ok)
+
+    # from auto_everything.my_email import Telegram_Bot
+    # telegram_bot = Telegram_Bot(token="")
+
+    # def message_handler(msg_object):
+    #     print(msg_object.text)
+
+    # if __name__ == '__main__':
+    #     telegram_bot.get_message_loop(
+    #         new_message_handler=message_handler
+    #     )
+
+    pass
