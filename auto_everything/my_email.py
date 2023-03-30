@@ -138,17 +138,18 @@ class SMTP_Service():
 
 
 class Telegram_Bot():
-    import telegram
     def __init__(self, token: str):
-        self.bot = telegram.Bot(token)
+        import telegram
+        self.telegram = telegram
+        self.bot: telegram.Bot = telegram.Bot(token)
     
     async def send_message(self, chat_id: int, text: str):
         async with self.bot:
-            await self.bot.send_message(text=text, chat_id=chat_id)
+            await self.bot.send_message(text=text, chat_id=chat_id) #type: ignore
     
     async def get_messages(self):
         async with self.bot:
-            update_object_list = await self.bot.get_updates()
+            update_object_list: list[self.telegram.Update] = await self.bot.get_updates() #type: ignore
             return update_object_list
 
 
