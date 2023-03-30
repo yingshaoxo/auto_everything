@@ -1,5 +1,8 @@
+from dataclasses import dataclass
 from typing import Any, Callable
 import re
+import asyncio
+
 from auto_everything.network import Network
 net_work = Network()
 
@@ -137,24 +140,87 @@ class SMTP_Service():
         return False
 
 
+@dataclass()
+class My_Telegram_Message():
+    from_chat_id: str | None = None
+    from_user_id: str | None = None
+    from_user_name: str | None = None
+    text: str | None = None
+
+
 class Telegram_Bot():
     def __init__(self, token: str):
-        import telegram
-        self.telegram = telegram
-        self.bot: telegram.Bot = telegram.Bot(token)
+        try:
+            import telegram
+            self.telegram = telegram
+            self.bot: telegram.Bot = telegram.Bot(token)
+            self.last_update_id = None
+        except Exception as e:
+            print(e)
+            print(f"""
+error: You should install python-telegram-bot by using:
+
+python -m pip install python-telegram-bot
+            """)
     
-    async def send_message(self, chat_id: int, text: str):
+    async def send_message(self, chat_id: str, text: str):
         async with self.bot:
-            await self.bot.send_message(text=text, chat_id=chat_id) #type: ignore
+            await self.bot.send_message(text=text, chat_id=int(chat_id)) #type: ignore
     
-    async def get_messages(self):
-        async with self.bot:
-            update_object_list: list[self.telegram.Update] = await self.bot.get_updates() #type: ignore
-            return update_object_list
+    async def get_new_message_updates(self):
+        messages: list[self.telegram.Update] = []
+        if self.last_update_id != None:
+            messages = list(await self.bot.get_updates(offset=self.last_update_id+1)) #type: ignore
+        else:
+            messages = list(await self.bot.get_updates()) #type: ignore
+        if len(messages) > 0:
+            self.last_update_id = messages[-1].update_id
+        return messages
+
+    async def get_messages(self) -> list[My_Telegram_Message]:
+        messages: list[My_Telegram_Message] = []
+        updates = await self.get_new_message_updates()
+        for update in updates:
+            if update.message != None and update.message.from_user != None and update.message.from_user.username != None and update.message.text != None:
+                """
+                Message(channel_chat_created=False, chat=Chat(first_name='yingshao', id=131513300, last_name='xo', type=<ChatType.PRIVATE>, username='yingshaoxo'), date=datetime.datetime(2023, 3, 30, 9, 4, 23, tzinfo=<UTC>), delete_chat_photo=False, from_user=User(first_name='yingshao', id=131513300, is_bot=False, language_code='en', last_name='xo', username='yingshaoxo'), group_chat_created=False, message_id=1363, supergroup_chat_created=False, text='hi')
+                """
+                messages.append(My_Telegram_Message(
+                    from_chat_id=str(update.message.chat.id),
+                    from_user_id=str(update.message.from_user.id),
+                    from_user_name=str(update.message.from_user.username),
+                    text=str(update.message.text)
+                ))
+        return messages
+
+    def get_message_loop(self, new_message_handler: Callable[[My_Telegram_Message], None], sleep_time_in_second: float = 1):
+        """
+        new_message_handler: (My_Telegram_Message) => None
+            it is a function that handles new message, it will receive an object like this:
+            ```
+            @dataclass()
+            class My_Telegram_Message():
+                from_chat_id: str | None = None
+                from_user_id: str | None = None
+                from_user_name: str | None = None
+                text: str | None = None
+            ```
+        """
+        async def loop_function():
+            while True:
+                messages: list[My_Telegram_Message] = []
+                messages = await self.get_messages()
+                for msg in messages:
+                    try:
+                        print(msg)
+                        new_message_handler(msg)
+                    except Exception as e:
+                        print(f"error: {e}")
+                await asyncio.sleep(sleep_time_in_second)
+        asyncio.run(loop_function())
 
 
 if __name__ == '__main__':
-    exit()
     def handle_email(from_id: str, from_: str, to: list[str], message: str):
         print(from_)
         print(to)
