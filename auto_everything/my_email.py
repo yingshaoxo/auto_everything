@@ -170,9 +170,9 @@ python -m pip install python-telegram-bot
     async def get_new_message_updates(self):
         messages: list[self.telegram.Update] = []
         if self.last_update_id != None:
-            messages = list(await self.bot.get_updates(offset=self.last_update_id+1, offset=30)) #type: ignore
+            messages = list(await self.bot.get_updates(offset=self.last_update_id+1, timeout=30)) #type: ignore
         else:
-            messages = list(await self.bot.get_updates(offset=30)) #type: ignore
+            messages = list(await self.bot.get_updates(timeout=30)) #type: ignore
         if len(messages) > 0:
             self.last_update_id = messages[-1].update_id
         return messages
