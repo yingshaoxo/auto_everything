@@ -24,6 +24,10 @@ poetry env info
 
 ```bash
 poetry add <package_name>
+
+#or
+
+poetry add --group all <package_name>
 ```
 
 ## Install auto_everything with all dependencies
@@ -34,6 +38,10 @@ poetry add --extras=all auto_everything
 #or
 
 poetry add auto_everything[all]
+
+#or
+
+pip install git+https://github.com/yingshaoxo/auto_everything.git@dev
 ```
 
 ## Add a package and do the developement without reinstall

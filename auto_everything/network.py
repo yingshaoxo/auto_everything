@@ -1,4 +1,5 @@
 import ipaddress
+from typing import Any
 from auto_everything.disk import Disk
 from pathlib import Path
 import os
@@ -21,7 +22,63 @@ class Network:
             "wget"
         ), """
 'wget' is required for this module to work
-You can install it with `sudo apt install wget`"""
+You can install it with `sudo apt install wget`"""  
+
+    def ip_port_forward(self, from_ip_port: str, to_ip_port: str):
+        import socket
+        import threading
+
+        def handle(buffer: Any, direction: Any, src_address: Any, src_port: Any, dst_address: Any, dst_port: Any):
+            '''
+            intercept the data flows between local port and the target port
+            '''
+            # if direction:
+            #     print(f"{src_address, src_port} -> {dst_address, dst_port} {len(buffer)} bytes")
+            # else:
+            #     print(f"{src_address, src_port} <- {dst_address, dst_port} {len(buffer)} bytes")
+            return buffer
+
+        def transfer(src: Any, dst: Any, direction: Any):
+            src_address, src_port = src.getsockname()
+            dst_address, dst_port = dst.getsockname()
+            while True:
+                try:
+                    buffer = src.recv(4096)
+                    if len(buffer) > 0:
+                        dst.send(handle(buffer, direction, src_address, src_port, dst_address, dst_port))
+                except Exception as e:
+                    print("error: ", repr(e))
+                    break
+            # logging.warning(f"Closing connect {src_address, src_port}! ")
+            src.close()
+            # logging.warning(f"Closing connect {dst_address, dst_port}! ")
+            dst.close()
+
+        def server(local_host: Any, local_port: Any, remote_host: Any, remote_port: Any):
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server_socket.bind((local_host, local_port))
+            server_socket.listen(0x40)
+            # logging.info(f"Server started {local_host, local_port}")
+            # logging.info(f"Connect to {local_host, local_port} to get the content of {remote_host, remote_port}")
+            while True:
+                src_socket, src_address = server_socket.accept()
+                # logging.info(f"[Establishing] {src_address} -> {local_host, local_port} -> ? -> {remote_host, remote_port}")
+                try:
+                    dst_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    dst_socket.connect((remote_host, remote_port))
+                    # logging.info(f"[OK] {src_address} -> {local_host, local_port} -> {dst_socket.getsockname()} -> {remote_host, remote_port}")
+                    s = threading.Thread(target=transfer, args=(dst_socket, src_socket, False))
+                    r = threading.Thread(target=transfer, args=(src_socket, dst_socket, True))
+                    s.start()
+                    r.start()
+                except Exception as e:
+                    # logging.error(repr(e))
+                    print("error: ", repr(e))
+
+        from_ = from_ip_port.split(":")
+        to_ = to_ip_port.split(":")
+        server(local_host=from_[0], local_port=int(from_[1]), remote_host=to_[0], remote_port=int(to_[1]))
 
     def available(self, timeout: int = 1):
         conn = httplib.HTTPConnection("www.google.com", timeout=timeout)
@@ -153,12 +210,14 @@ You can install it with `sudo apt install wget`"""
 
 
 if __name__ == "__main__":
-    net = Network()
+    network = Network()
     # result = net.download(
     #     "https://github.com/yingshaoxo/My-books/raw/master/Tools.py",
     #     "~/.auto_everything/hi.txt",
     # )
     # print(result)
 
-    text_info = net.get_text_record_by_using_domain_url("https://gmail.com/")
-    print(text_info)
+    # text_info = net.get_text_record_by_using_domain_url("https://gmail.com/")
+    # print(text_info)
+
+    network.ip_port_forward("127.0.0.1:9998", "127.0.0.1:5551")

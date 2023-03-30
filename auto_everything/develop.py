@@ -814,14 +814,17 @@ from .{identity_name}_objects import *
 
 
 from fastapi import APIRouter, FastAPI
+from fastapi.staticfiles import StaticFiles
+from starlette.responses import FileResponse 
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import os
 
 
 router = APIRouter()
 
 
-class Service_test_protobuff_code:
+class Service_{identity_name}:
 {service_class_function_list_text}
 
 
@@ -829,7 +832,7 @@ def init(service_instance: Any):
 {service_api_function_list_text}
 
 
-def run(service_instance: Any, port: str):
+def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
     init(service_instance=service_instance)
 
     app = FastAPI()
@@ -845,7 +848,20 @@ def run(service_instance: Any, port: str):
         prefix="/{identity_name}",
     )
 
-    print(f"You can see the docs here: http://127.0.0.1:{{port}}/docs")
+    if (html_folder_path != ""):
+        if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
+            app.mount(serve_html_under_which_url, StaticFiles(directory=html_folder_path, html = True), name="web")
+            @app.get(serve_html_under_which_url, response_model=str)
+            async def index_page():
+                return FileResponse(os.path.join(html_folder_path, 'index.html'))
+            @app.exception_handler(404) #type: ignore
+            async def custom_404_handler(_, __): #type: ignore
+                return FileResponse(os.path.join(html_folder_path, 'index.html'))
+            print(f"The website is running at: http://127.0.0.1:{{port}}/")
+        else:
+            print(f"Error: You should give me an absolute html_folder_path than {{html_folder_path}}")
+
+    print(f"You can see the docs here: http://127.0.0.1:{{{{port}}}}/docs")
     uvicorn.run( #type: ignore
         app=app,
         host="0.0.0.0",
@@ -854,7 +870,7 @@ def run(service_instance: Any, port: str):
 
 
 if __name__ == "__main__":
-    service_instance = Service_test_protobuff_code()
+    service_instance = Service_{identity_name}()
     run(service_instance, port="6060")
         """.strip()
 
@@ -1475,7 +1491,6 @@ const _general_from_dict_function = (old_object: any, new_object: any): any => {
                     keys = Object.keys(old_object._property_name_to_its_type_dict)
                     for (const key of keys) {{
                         if (Object.keys(new_object).includes(key)) {{
-                            console.log((typeof old_object._property_name_to_its_type_dict[key]))
                             if ((typeof old_object._property_name_to_its_type_dict[key]) == "string") {{
                                 // default value type
                                 old_object[key] = new_object[key]
@@ -1561,6 +1576,18 @@ export class Client_{identity_name} {{
     constructor(service_url: string, header?: {{ [key: string]: string }}, error_handle_function?: (error: string) => void) {{
         if (service_url.endsWith("/")) {{
             service_url = service_url.slice(0, service_url.length-1);
+        }}
+        try {{
+            if (location.protocol === 'https:') {{
+                if (service_url.startsWith("http:")) {{
+                    service_url = service_url.replace("http:", "https:")
+                }}
+            }} else if (location.protocol === 'http:') {{
+                if (service_url.startsWith("https:")) {{
+                    service_url = service_url.replace("https:", "http:")
+                }}
+            }}
+        }} catch (e) {{
         }}
         this._service_url = service_url
         

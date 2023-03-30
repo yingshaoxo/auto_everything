@@ -15,6 +15,18 @@ export class Client_test_protobuff_code {
         if (service_url.endsWith("/")) {
             service_url = service_url.slice(0, service_url.length-1);
         }
+        try {
+            if (location.protocol === 'https:') {
+                if (service_url.startsWith("http:")) {
+                    service_url = service_url.replace("http:", "https:")
+                }
+            } else if (location.protocol === 'http:') {
+                if (service_url.startsWith("https:")) {
+                    service_url = service_url.replace("https:", "http:")
+                }
+            }
+        } catch (e) {
+        }
         this._service_url = service_url
         
         if (header != null) {

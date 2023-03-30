@@ -1,5 +1,8 @@
+from dataclasses import dataclass
 from typing import Any, Callable
 import re
+import asyncio
+
 from auto_everything.network import Network
 net_work = Network()
 
@@ -137,27 +140,129 @@ class SMTP_Service():
         return False
 
 
+@dataclass()
+class My_Telegram_Message():
+    from_chat_id: str | None = None
+    from_user_id: str | None = None
+    from_user_name: str | None = None
+    text: str | None = None
+
+
+class Telegram_Bot():
+    def __init__(self, token: str):
+        try:
+            import telegram
+            self.telegram = telegram
+            self.bot: telegram.Bot = telegram.Bot(token)
+            self.last_update_id = None
+        except Exception as e:
+            print(e)
+            print(f"""
+error: You should install python-telegram-bot by using:
+
+python -m pip install python-telegram-bot
+            """)
+    
+    def send_message(self, chat_id: str, text: str):
+        async def send_message_function():
+            async with self.bot:
+                await self.bot.send_message(text=text, chat_id=int(chat_id)) #type: ignore
+        loop = asyncio.get_event_loop()
+        task = loop.create_task(send_message_function())
+        loop.run_until_complete(task)
+        
+    async def get_new_message_updates(self):
+        messages: list[self.telegram.Update] = []
+        if self.last_update_id != None:
+            messages = list(await self.bot.get_updates(offset=self.last_update_id+1, timeout=30)) #type: ignore
+        else:
+            messages = list(await self.bot.get_updates(timeout=30)) #type: ignore
+        if len(messages) > 0:
+            self.last_update_id = messages[-1].update_id
+        return messages
+
+    async def get_messages(self) -> list[My_Telegram_Message]:
+        messages: list[My_Telegram_Message] = []
+        updates = await self.get_new_message_updates()
+        for update in updates:
+            if update.message != None and update.message.from_user != None and update.message.from_user.username != None and update.message.text != None:
+                """
+                Message(channel_chat_created=False, chat=Chat(first_name='yingshao', id=131513300, last_name='xo', type=<ChatType.PRIVATE>, username='yingshaoxo'), date=datetime.datetime(2023, 3, 30, 9, 4, 23, tzinfo=<UTC>), delete_chat_photo=False, from_user=User(first_name='yingshao', id=131513300, is_bot=False, language_code='en', last_name='xo', username='yingshaoxo'), group_chat_created=False, message_id=1363, supergroup_chat_created=False, text='hi')
+                """
+                messages.append(My_Telegram_Message(
+                    from_chat_id=str(update.message.chat.id),
+                    from_user_id=str(update.message.from_user.id),
+                    from_user_name=str(update.message.from_user.username),
+                    text=str(update.message.text)
+                ))
+        return messages
+
+    def get_message_loop(self, new_message_handler: Callable[[My_Telegram_Message], None], sleep_time_in_second: float = 1):
+        """
+        new_message_handler: (My_Telegram_Message) => None
+            it is a function that handles new message, it will receive an object like this:
+            ```
+            @dataclass()
+            class My_Telegram_Message():
+                from_chat_id: str | None = None
+                from_user_id: str | None = None
+                from_user_name: str | None = None
+                text: str | None = None
+            ```
+        """
+        async def loop_function():
+            while True:
+                messages = await self.get_messages()
+                for msg in messages:
+                    try:
+                        # print(msg)
+                        new_message_handler(msg)
+                    except Exception as e:
+                        print(f"error: {e}")
+                await asyncio.sleep(sleep_time_in_second)
+        loop = asyncio.get_event_loop()
+        task = loop.create_task(loop_function())
+        loop.run_until_complete(task)
+        # loop = asyncio.new_event_loop()
+        # asyncio.set_event_loop(loop)
+        # asyncio.ensure_future(loop_function())
+        # loop.run_forever()
+
+
 if __name__ == '__main__':
-    def handle_email(from_id: str, from_: str, to: list[str], message: str):
-        print(from_)
-        print(to)
-        print(message)
+    # def handle_email(from_id: str, from_: str, to: list[str], message: str):
+    #     print(from_)
+    #     print(to)
+    #     print(message)
 
-    smtp_service = SMTP_Service(
-        host="0.0.0.0",
-        port=25,
-        handler=handle_email
-    )
+    # smtp_service = SMTP_Service(
+    #     host="0.0.0.0",
+    #     port=25,
+    #     handler=handle_email
+    # )
 
-    # smtp_service.start()
+    # # smtp_service.start()
 
-    from_email = "ddsd@protonmail.com"
-    result = SMTP_Service.get_authorized_ip_list_from_an_email_domain(from_email)
-    if (len(result) > 0):
-        an_ip = result[0].split("/")[0]
-        ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip=an_ip)
-        print(ok)
-        ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip="127.0.0.1")
-        print(ok)
-        ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip=an_ip)
-        print(ok)
+    # from_email = "ddsd@protonmail.com"
+    # result = SMTP_Service.get_authorized_ip_list_from_an_email_domain(from_email)
+    # if (len(result) > 0):
+    #     an_ip = result[0].split("/")[0]
+    #     ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip=an_ip)
+    #     print(ok)
+    #     ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip="127.0.0.1")
+    #     print(ok)
+    #     ok = SMTP_Service.check_if_an_email_was_sent_from_a_domain(email_address=from_email, source_ip=an_ip)
+    #     print(ok)
+
+    # from auto_everything.my_email import Telegram_Bot
+    # telegram_bot = Telegram_Bot(token="")
+
+    # def message_handler(msg_object):
+    #     print(msg_object.text)
+
+    # if __name__ == '__main__':
+    #     telegram_bot.get_message_loop(
+    #         new_message_handler=message_handler
+    #     )
+
+    pass
