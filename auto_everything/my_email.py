@@ -170,9 +170,9 @@ python -m pip install python-telegram-bot
     async def get_new_message_updates(self):
         messages: list[self.telegram.Update] = []
         if self.last_update_id != None:
-            messages = list(await self.bot.get_updates(offset=self.last_update_id+1)) #type: ignore
+            messages = list(await self.bot.get_updates(offset=self.last_update_id+1, offset=30)) #type: ignore
         else:
-            messages = list(await self.bot.get_updates()) #type: ignore
+            messages = list(await self.bot.get_updates(offset=30)) #type: ignore
         if len(messages) > 0:
             self.last_update_id = messages[-1].update_id
         return messages
@@ -208,16 +208,18 @@ python -m pip install python-telegram-bot
         """
         async def loop_function():
             while True:
-                messages: list[My_Telegram_Message] = []
                 messages = await self.get_messages()
                 for msg in messages:
                     try:
-                        print(msg)
+                        # print(msg)
                         new_message_handler(msg)
                     except Exception as e:
                         print(f"error: {e}")
                 await asyncio.sleep(sleep_time_in_second)
-        asyncio.run(loop_function())
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        asyncio.ensure_future(loop_function())
+        loop.run_forever()
 
 
 if __name__ == '__main__':
