@@ -43,6 +43,11 @@ YRPC
 .. autoclass:: auto_everything.develop.YRPC
    :members:
 
+MongoDB
+===================
+.. autoclass:: auto_everything.database.MongoDB
+   :members:
+
 JWT_Tool
 ===================
 .. autoclass:: auto_everything.cryptography.JWT_Tool
