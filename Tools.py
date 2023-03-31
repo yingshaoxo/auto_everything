@@ -6,7 +6,7 @@ t = Terminal()
 
 
 class Tools():
-    def push(self, comment):
+    def push(self, comment: str):
         self.make_docs()
 
         t.run('git add .')
@@ -26,7 +26,7 @@ git reset --hard origin/master
         pytest
 """)
 
-    def check(self, py_file=None):
+    def check(self, py_file: str|None=None):
         if py_file is None:
             t.run("""
             prospector
@@ -36,7 +36,7 @@ git reset --hard origin/master
             prospector {py_file}
             """)
 
-    def install(self, method=0):
+    def install(self, method:int=0):
         print(method)
         if method == 0:
             t.run("""

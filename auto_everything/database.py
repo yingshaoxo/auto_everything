@@ -9,32 +9,33 @@ class MongoDB:
     #https://www.w3schools.com/python/python_mongodb_create_collection.asp
     """
     def __init__(self, url: str):
-        self.client = MongoClient(url)
+        self.client = MongoClient(url) #type: ignore
 
     @staticmethod
-    def _get_mongodb_client_by_giving_arguments(host: str, port: str, user: str, password: str) -> pymongo.MongoClient:
-        return MongoDB(f"mongodb://{user}:{password}@{host}:{port}")
+    def _get_mongodb_client_by_giving_arguments(host: str, port: str, user: str, password: str) -> pymongo.MongoClient: #type: ignore
+        return MongoDB(f"mongodb://{user}:{password}@{host}:{port}") #type: ignore
     
     def delete_a_database(self, database_name: str):
-        self.client.drop_database(database_name)
+        self.client.drop_database(database_name) #type: ignore
     
-    def list_database(self):
-        return self.client.database_names()
+    def list_database(self): #type: ignore
+        return self.client.database_names() #type: ignore
     
-    def get_database(self, database_name: str) -> Database:
-        return self.client[database_name]
+    def get_database(self, database_name: str) -> Database: #type: ignore
+        return self.client[database_name] #type: ignore
 
 if __name__ == "__main__":
-    mongoDB = MongoDB(host="127.0.0.1", port="27017", user="root", password="yingshaoxo666")
-    databases = mongoDB.list_database()
-    print(databases)
-    db = mongoDB.get_database("test")
-    my_table = db.get_collection("my_table")
-    my_table.delete_many({"num": {"$gt": -1}})
-    for i in range(10):
-        my_table.insert_one({"num": i})
-    for one in my_table.find({"num": {"$gt": -1}}):
-        print(one)
+    pass
+    # mongoDB = MongoDB(host="127.0.0.1", port="27017", user="root", password="yingshaoxo666")
+    # databases = mongoDB.list_database()
+    # print(databases)
+    # db = mongoDB.get_database("test")
+    # my_table = db.get_collection("my_table")
+    # my_table.delete_many({"num": {"$gt": -1}})
+    # for i in range(10):
+    #     my_table.insert_one({"num": i})
+    # for one in my_table.find({"num": {"$gt": -1}}):
+    #     print(one)
 
 """
 import sqlalchemy
