@@ -41,6 +41,7 @@ class _FileInfo:
     folder: str
     name: str
     level: int
+    # parent: _FileInfo | None = None # You could try to make a global dict[path, _FilelInfo], then iterate twice to set parent
     children: List[_FileInfo] | None = None
 
 
@@ -197,6 +198,7 @@ class Disk:
     def get_folder_and_files(
         self, 
         folder: str, 
+        recursive: bool = True, 
         type_limiter: List[str] | None = None,
         gitignore_text: str|None = None
     ) -> Iterable[_FileInfo]:
@@ -206,6 +208,7 @@ class Disk:
         Parameters
         ----------
         folder: string
+        recursive: bool
         type_limiter: List[str]
             a list used to do a type filter, like [".mp3", ".epub"]
         gitignore_text: str
@@ -275,6 +278,9 @@ class Disk:
                     folder=self.get_directory_name(abs_folder_path),
                     name=filename,
                 )
+
+            if recursive == False:
+                break
     
     def _super_sort_key_function(self, element: str) -> int:
         text = ""
@@ -575,8 +581,44 @@ class Disk:
 
     def create_a_folder(self, folder_path: str):
         folder_path = self._expand_user(folder_path)
-        if not os.path.exists(folder_path):
-            os.mkdir(folder_path)
+        Path(folder_path).mkdir(parents=True, exist_ok=True)
+        # if not os.path.exists(folder_path):
+        #     os.mkdir(folder_path)
+
+    def fake_folder_backup(self, backup_folder: str, backup_saving_file_path: str | None=None) -> list[Any]:
+        saving_path = None
+        if backup_saving_file_path != None:
+            saving_path = backup_saving_file_path
+        files = self.get_folder_and_files(folder=backup_folder)
+        data_list: list[Any] = []
+        for file_or_folder in files:
+            data_list.append({
+                "path": file_or_folder.path,
+                "type": 'folder' if os.path.isdir(file_or_folder.path) else 'file'
+            })
+        if (saving_path != None):
+            with open(saving_path, 'w', encoding="utf-8") as f:
+                f.write(json.dumps(data_list, indent=4))
+            print(f"fake backup is done, it is in: {saving_path}")
+        return data_list
+
+    def fake_folder_recover(self, backup_saving_file_path: str):
+        if not disk.exists(backup_saving_file_path):
+            raise Exception(f"file does not exists: {backup_saving_file_path}")
+        with open(backup_saving_file_path, 'r', encoding='utf-8') as f:
+            raw_json = f.read()
+            json_object = json.loads(raw_json)
+        for item in json_object:
+            path = item['path']
+            type = item['type']
+            if type == 'folder':
+                os.mkdir(path)
+                print(path)
+            else:
+                with open(path, 'w', encoding='utf-8') as f:
+                    f.write("")
+                print(path)
+        print("\nfake recover is done, sir.")
 
 
 class Store:

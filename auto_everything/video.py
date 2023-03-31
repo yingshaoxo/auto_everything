@@ -1,5 +1,5 @@
 import moviepy.video.fx.all as vfx
-from moviepy.editor import VideoFileClip, concatenate_videoclips, AudioFileClip
+from moviepy.editor import VideoFileClip, concatenate_videoclips, AudioFileClip #type: ignore
 import shutil
 import datetime
 import librosa
@@ -14,12 +14,12 @@ import json
 # import wave
 import subprocess
 
-import torchaudio
-import torch
+# import torchaudio
+# import torch
 # from speechbrain.dataio.dataio import read_audio
 from speechbrain.pretrained import SepformerSeparation as separator
 
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 from auto_everything.io import IO
 from auto_everything.terminal import Terminal
@@ -35,7 +35,7 @@ deep_audio = DeepAudio()
 
 
 
-def string_to_timedelta(text):
+def string_to_timedelta(text: str):
     """
     input: '0:00:16.648707'
     """
@@ -50,7 +50,7 @@ def string_to_timedelta(text):
 #     return str(datetime.timedelta(seconds=num))
 
 def print_split_line():
-    print("\n" + "-" * 20 + "\n")
+    print("\n" + "-" * 20 + "\n") #type: ignore
 
 
 def done():
@@ -59,15 +59,15 @@ def done():
     print_split_line()
 
 
-def get_directory_name(path):
+def get_directory_name(path: str):
     return os.path.dirname(path)
 
 
-def add_path(path1, path2):
+def add_path(path1: str, path2: str):
     return os.path.join(path1, path2)
 
 
-def try_to_get_absolutely_path(path):
+def try_to_get_absolutely_path(path: str):
     abs_path = os.path.abspath(path)
     if os.path.isabs(abs_path) or os.path.exists(abs_path):
         return abs_path
@@ -75,8 +75,8 @@ def try_to_get_absolutely_path(path):
         return path
 
 
-def make_sure_source_is_absolute_path(path):
-    path_list = []
+def make_sure_source_is_absolute_path(path: str | list[str]):
+    path_list: list[str] = []
     if isinstance(path, str):
         path_list.append(path)
     else:
@@ -90,8 +90,8 @@ def make_sure_source_is_absolute_path(path):
             exit()
 
 
-def make_sure_target_is_absolute_path(path):
-    path_list = []
+def make_sure_target_is_absolute_path(path: str | list[str]):
+    path_list: list[str] = []
     if isinstance(path, str):
         path_list.append(path)
     else:
@@ -106,8 +106,8 @@ def make_sure_target_is_absolute_path(path):
             exit()
 
 
-def make_sure_target_does_not_exist(path):
-    path_list = []
+def make_sure_target_does_not_exist(path: str | list[str]):
+    path_list: list[str] = []
     if isinstance(path, str):
         path_list.append(path)
     else:
@@ -126,7 +126,7 @@ def make_sure_target_does_not_exist(path):
                     exit()
 
 
-def convert_video_to_wav(source_video_path, target_wav_path, sample_rate=None):
+def convert_video_to_wav(source_video_path: str, target_wav_path: str, sample_rate:str|int|None=None):
     source_video_path = try_to_get_absolutely_path(source_video_path)
     make_sure_source_is_absolute_path(source_video_path)
     target_wav_path = try_to_get_absolutely_path(target_wav_path)
@@ -150,36 +150,36 @@ def convert_video_to_wav(source_video_path, target_wav_path, sample_rate=None):
     return target_wav_path
 
 
-def get_wav_infomation(wav_path):
+def get_wav_infomation(wav_path: str) -> tuple[np.ndarray[Any, Any], int]:
     wav_path = try_to_get_absolutely_path(wav_path)
     make_sure_source_is_absolute_path(wav_path)
 
-    y, sr = librosa.load(wav_path)
-    return y, sr
+    y, sr = librosa.load(wav_path) #type: ignore 
+    return y, sr #type: ignore
 
 
 class VideoUtils:
-    def convert_video_to_wav(self, source_video_path, target_wav_path):
+    def convert_video_to_wav(self, source_video_path: str, target_wav_path: str):
         return convert_video_to_wav(source_video_path, target_wav_path)
 
-    def get_mono_16khz_audio_array(self, sourceWavePath: str):
-        y, s = librosa.load(sourceWavePath, mono=True, sr=16000)
+    def get_mono_16khz_audio_array(self, sourceWavePath: str) -> tuple[np.ndarray[Any, Any], int]:
+        y, s = librosa.load(sourceWavePath, mono=True, sr=16000)  #type: ignore
         # s is audio sample rate
-        return y, s
+        return y, s  #type: ignore
 
-    def convert_array_to_batch_samples(self, y, durationInSecondsForEach=1.0):
-        samplesForEachOne = librosa.time_to_samples(durationInSecondsForEach, sr=16000)
-        num_sections = math.ceil(y.shape[0] / samplesForEachOne)
-        return np.array_split(y, num_sections, axis=0)
+    def convert_array_to_batch_samples(self, y: np.ndarray[Any, Any], durationInSecondsForEach:float=1.0) -> list[np.ndarray[Any, Any]]:
+        samplesForEachOne = librosa.time_to_samples(durationInSecondsForEach, sr=16000) #type: ignore
+        num_sections = math.ceil(y.shape[0] / samplesForEachOne) #type: ignore
+        return np.array_split(y, num_sections, axis=0) #type: ignore
 
-    def get_wav_infomation(self, wav_path):
+    def get_wav_infomation(self, wav_path: str) -> tuple[np.ndarray[Any, Any], int]:
         wav_path = try_to_get_absolutely_path(wav_path)
         make_sure_source_is_absolute_path(wav_path)
 
-        y, sr = librosa.load(wav_path)
-        return y, sr
+        y, sr = librosa.load(wav_path) #type: ignore
+        return y, sr #type: ignore
 
-    def merge_continues_intervals(self, intervals, thresholdInSeconds):
+    def merge_continues_intervals(self, intervals: list[Any], thresholdInSeconds: float | int):
         # merge continues videos
         # if time betewwn two intervals are less than thresholdInSeconds, we merge them
         i = 0
@@ -201,7 +201,7 @@ class VideoUtils:
                 i += 1
         return intervals
 
-    def drop_too_short_intervals(self, intervals, thresholdInSeconds):
+    def drop_too_short_intervals(self, intervals: list[Any], thresholdInSeconds: float | int):
         # remove too short videos
         # if the time delta in a interval is less than thresholdInSeconds, we drop it
         i = 0
@@ -223,9 +223,9 @@ class VideoUtils:
 
         return intervals
 
-    def get_intersection_of_two_intervals(self, A, B):
+    def get_intersection_of_two_intervals(self, A: list[Any], B: list[Any]):
         i = j = 0
-        ans = []
+        ans: list[Any] = []
         while i < len(A) and j < len(B):
             start_a, end_a = A[i]
             start_b, end_b = B[j]
@@ -247,7 +247,7 @@ class VideoUtils:
                 j += 1
         return ans
 
-    def fix_rotation(self, video):
+    def fix_rotation(self, video: Any):
         """
         Rotate the video based on orientation
         """
@@ -284,17 +284,16 @@ class AudioProcessor:
             raise e
 
     def getCompleteTimeRangeForNoSilenceAndSilenceAudioSlice(
-        self, soundObject, silence_threshold=-50
+        self, soundObject: Any, silence_threshold:int=-50
     ):
         originalSequenceLength = len(soundObject)
 
-        voiceNoSilenceTimeRangeList = self.pydub.silence.detect_nonsilent(
+        voiceNoSilenceTimeRangeList = self.pydub.silence.detect_nonsilent( #type: ignore
             soundObject, silence_thresh=silence_threshold
         )
 
-        new_list = []
-
-        for index, item in enumerate(voiceNoSilenceTimeRangeList):
+        new_list: list[Any] = []
+        for index, item in enumerate(voiceNoSilenceTimeRangeList): #type: ignore
             if index == 0:
                 new_list.append([item[0], item[1], 1])
             else:
@@ -333,19 +332,19 @@ class Video:
 
     def _get_voice_parts(
         self,
-        source_audio_path,
-        top_db,
-        minimum_interval_time_in_seconds=1.0,
-        skip_sharp_noise=False,
+        source_audio_path: str,
+        top_db: int,
+        minimum_interval_time_in_seconds: float | int=1.0,
+        skip_sharp_noise: bool=False,
     ):
         y, sr = get_wav_infomation(source_audio_path)
-        minimum_interval_samples = librosa.core.time_to_samples(
+        minimum_interval_samples: np.ndarray[Any, Any] = librosa.core.time_to_samples( #type: ignore
             minimum_interval_time_in_seconds, sr=sr
         )
 
-        def ignore_short_noise(parts):
+        def ignore_short_noise(parts: list[Any]) -> Any:
             # ignore short noise
-            new_parts = []
+            new_parts: list[Any] = []
             for index, part in enumerate(parts):
                 if index == 0:
                     new_parts.append(list(part))
@@ -368,7 +367,7 @@ class Video:
 
             the_missing_final = new_parts[-1][1]
             # combine continuous voice
-            final_parts = []
+            final_parts: list[Any] = []
             first = -1
             for index, part in enumerate(new_parts):
                 if index == 0:
@@ -388,9 +387,9 @@ class Video:
 
             final_parts.append([final_parts[-1][1], the_missing_final])
 
-            return np.array(final_parts)
+            return np.array(final_parts) #type: ignore
 
-        parts = librosa.effects.split(y, top_db=top_db)  # return samples
+        parts = librosa.effects.split(y, top_db=top_db) #type: ignore  # return samples
 
         # parts = ignore_short_noise(parts)
 
@@ -400,13 +399,13 @@ class Video:
         #    os.remove(target_file_path)
         # librosa.output.write_wav(target_file_path, new_y, self._sr)
 
-        def from_samples_to_seconds(parts):
-            parts = librosa.core.samples_to_time(parts, sr=sr)  # return seconds
-            new_parts = []
+        def from_samples_to_seconds(parts: Any):
+            parts = librosa.core.samples_to_time(parts, sr=sr)  # return seconds #type: ignore
 
-            def seconds_to_string_format(num):
+            def seconds_to_string_format(num: int | float):
                 return str(datetime.timedelta(seconds=num))
 
+            new_parts: list[Any] = []
             for part in parts:
                 part1 = seconds_to_string_format(part[0])
                 part2 = seconds_to_string_format(part[1])
@@ -416,18 +415,17 @@ class Video:
         # parts[0] = [0, parts[0][1]]
         parts = from_samples_to_seconds(parts)
 
-        newVersionOfParts = []
-
-        def to_seconds(s):
+        def to_seconds(s: str):
             hr, min, sec = [float(x) for x in s.split(":")]
             return hr * 3600 + min * 60 + sec
 
+        newVersionOfParts: list[Any] = []
         for part in parts:
-            A = part[0]
-            B = part[1]
-            A = to_seconds(A)
-            B = to_seconds(B)
-            newVersionOfParts.append([A, B])
+            a_ = part[0]
+            b_ = part[1]
+            a_ = to_seconds(a_)
+            b_ = to_seconds(b_)
+            newVersionOfParts.append([a_, b_])
 
         parts = newVersionOfParts
 
@@ -440,19 +438,19 @@ class Video:
         return parts
 
     def _get_voice_and_silence_parts(
-        self, source_audio_path, top_db, minimum_interval_time_in_seconds=1.7
+        self, source_audio_path: str, top_db: int, minimum_interval_time_in_seconds:float | int=1.7
     ):
         # let's assume 1=voice, 0=noise
         y, sr = get_wav_infomation(source_audio_path)
-        minimum_interval_samples = librosa.core.time_to_samples(
+        minimum_interval_samples = librosa.core.time_to_samples( #type: ignore
             minimum_interval_time_in_seconds, sr=sr
         )
 
-        parts = librosa.effects.split(y, top_db=top_db)  # return samples
+        parts = librosa.effects.split(y, top_db=top_db)  # return samples #type: ignore
 
-        def ignore_short_noise(parts):
+        def ignore_short_noise(parts: list[Any]):
             # ignore short noise
-            new_parts = []
+            new_parts: list[Any] = []
             for index, part in enumerate(parts):
                 if index == 0:
                     new_parts.append(list(part))
@@ -468,7 +466,7 @@ class Video:
 
             the_missing_final = new_parts[-1][1]
             # combine continuous voice
-            final_parts = []
+            final_parts: list[Any] = []
             first = -1
             for index, part in enumerate(new_parts):
                 if index == 0:
@@ -488,15 +486,15 @@ class Video:
 
             final_parts.append([final_parts[-1][1], the_missing_final])
 
-            return np.array(final_parts)
+            return np.array(final_parts) #type: ignore
 
         parts = ignore_short_noise(parts)
         parts = parts[1:]
 
-        def from_samples_to_seconds(part):
-            part = librosa.core.samples_to_time(part, sr=sr)  # return seconds
+        def from_samples_to_seconds(part: Any):
+            part = librosa.core.samples_to_time(part, sr=sr)  # return seconds #type: ignore
 
-            def seconds_to_string_format(num):
+            def seconds_to_string_format(num: int | float):
                 return str(datetime.timedelta(seconds=num))
 
             return [
@@ -504,7 +502,7 @@ class Video:
                 seconds_to_string_format(part[1]),
             ]
 
-        voice_and_silence_parts = []
+        voice_and_silence_parts: list[Any] = []
         for index, part in enumerate(parts):
             first = part[0]
             second = part[1]
@@ -524,7 +522,7 @@ class Video:
                     [1, from_samples_to_seconds([first, second])]
                 )
 
-        def remove_unwanted_parts(voice_and_silence_parts):
+        def remove_unwanted_parts(voice_and_silence_parts: list[Any]):
             return [
                 part for part in voice_and_silence_parts if part[1][0] != part[1][1]
             ]
@@ -533,7 +531,7 @@ class Video:
         return voice_and_silence_parts
 
     def _get_voice_and_silence_parts_2(
-        self, source_audio_path, top_db, the_maximum_silent_interval_time_in_seconds_you_wish_to_have=None
+        self, source_audio_path: str, top_db: int, the_maximum_silent_interval_time_in_seconds_you_wish_to_have:int|float|None=None
     ):
         """
             let's assume 1=voice, 0=silence
@@ -552,14 +550,14 @@ class Video:
         if the_maximum_silent_interval_time_in_seconds_you_wish_to_have == None or the_maximum_silent_interval_time_in_seconds_you_wish_to_have == 0:
             the_maximum_silent_interval_time_frames = None
         else:
-            the_maximum_silent_interval_time_frames = librosa.core.time_to_samples(
+            the_maximum_silent_interval_time_frames = librosa.core.time_to_samples( #type: ignore
                 the_maximum_silent_interval_time_in_seconds_you_wish_to_have, sr=sr
             )
 
-        parts = librosa.effects.split(y, top_db=top_db) # return non-silent parts
+        parts = librosa.effects.split(y, top_db=top_db) # return non-silent parts #type: ignore
         #intervals[i] == (start_i, end_i) are the start and end time (in samples) of non-silent interval.
 
-        def final_process(parts): # here the simples are actually frames, which is int numbers from 0 to n
+        def final_process(parts: Any): # here the simples are actually frames, which is int numbers from 0 to n
             if len(parts) == 0:
                 return parts.reshape((-1, 3))
 
@@ -576,7 +574,7 @@ class Video:
                 #print(parts)
 
                 new_parts = np.empty_like(parts)
-                new_parts = np.delete(new_parts, np.s_[:], 0)
+                new_parts = np.delete(new_parts, np.s_[:], 0) #type: ignore
                 real_index = 0
                 for index, part in enumerate(parts):
                     if index < real_index:
@@ -591,62 +589,62 @@ class Video:
                             if temp_part[0] == 1:
                                 temp_end = temp_part[2]
                             else:
-                                new_parts = np.append(new_parts, [[1, temp_start, temp_end]], axis=0)
+                                new_parts = np.append(new_parts, [[1, temp_start, temp_end]], axis=0) #type: ignore
                                 real_index = i 
                                 meet_end = False 
                                 break
                             i += 1
                         if meet_end == True:
-                            new_parts = np.append(new_parts, [[1, temp_start, temp_end]], axis=0)
+                            new_parts = np.append(new_parts, [[1, temp_start, temp_end]], axis=0) #type: ignore
                             break
                     else:
-                        new_parts = np.append(new_parts, [part], axis=0)
+                        new_parts = np.append(new_parts, [part], axis=0) #type: ignore
                 parts = new_parts
                 #print(parts)
 
             #from_samples_to_seconds_2
-            def seconds_to_string_format(num):
+            def seconds_to_string_format(num: int | float):
                 return str(datetime.timedelta(seconds=num))
 
             #print(parts[:, 1:])
-            interval_parts = librosa.core.samples_to_time(parts[:, 1:], sr=sr)  # return seconds
+            interval_parts = librosa.core.samples_to_time(parts[:, 1:], sr=sr)  # return seconds #type: ignore
             # print(interval_parts)
-            interval_parts = interval_parts.reshape((-1, 2))
+            interval_parts = interval_parts.reshape((-1, 2)) #type: ignore
             # print(interval_parts)
 
-            new_interval_parts = np.array([], dtype=object)
-            for interval_part in interval_parts:
-                interval_part_1 = seconds_to_string_format(interval_part[0])
-                interval_part_2 = seconds_to_string_format(interval_part[1])
-                new_interval_parts = np.append(new_interval_parts, [interval_part_1, interval_part_2])
+            new_interval_parts = np.array([], dtype=object) #type: ignore
+            for interval_part in interval_parts: #type: ignore
+                interval_part_1 = seconds_to_string_format(interval_part[0]) #type: ignore
+                interval_part_2 = seconds_to_string_format(interval_part[1]) #type: ignore
+                new_interval_parts = np.append(new_interval_parts, [interval_part_1, interval_part_2]) #type: ignore
             new_interval_parts = new_interval_parts.reshape((-1, 2))
 
-            return np.concatenate((parts[:, :1], new_interval_parts), axis=1).reshape((-1, 3))
+            return np.concatenate((parts[:, :1], new_interval_parts), axis=1).reshape((-1, 3)) #type: ignore
 
         global_start = 0
         global_end = len(y)
 
-        result = np.array([[1, 1, 2]]) 
-        result = np.delete(result, 0, axis=0)
+        result = np.array([[1, 1, 2]]) #type: ignore
+        result = np.delete(result, 0, axis=0) #type: ignore
         if len(parts) > 0:
             start, end = parts[0]
             if start > global_start:
-                result = np.append(result, [[0, global_start, start]], axis=0)
-            result = np.append(result, [[1, start, end]], axis=0)
+                result = np.append(result, [[0, global_start, start]], axis=0) #type: ignore
+            result = np.append(result, [[1, start, end]], axis=0) #type: ignore
             previous_start, previous_end = start, end
             for index, part in enumerate(parts[1:]):
                 start, end = part
                 if index != len(parts) - 2:
                     # not the end
-                    result = np.append(result, [[0, previous_end, start]], axis=0)
-                    result = np.append(result, [[1, start, end]], axis=0)
+                    result = np.append(result, [[0, previous_end, start]], axis=0) #type: ignore
+                    result = np.append(result, [[1, start, end]], axis=0) #type: ignore
                     previous_start, previous_end = start, end
                 else:
                     # the end
-                    result = np.append(result, [[0, previous_end, start]], axis=0)
-                    result = np.append(result, [[1, start, end]], axis=0)
+                    result = np.append(result, [[0, previous_end, start]], axis=0) #type: ignore
+                    result = np.append(result, [[1, start, end]], axis=0) #type: ignore
                     if end < global_end:
-                        result = np.append(result, [[0, end, global_end]], axis=0)
+                        result = np.append(result, [[0, end, global_end]], axis=0) #type: ignore
             return final_process(result)
         elif len(parts) == 0:
             if len(y) == 0:
@@ -657,10 +655,10 @@ class Video:
             # never possible unless librosa has bug
             return  final_process(result)
 
-    def _evaluate_voice_parts(self, parts):
+    def _evaluate_voice_parts(self, parts: list[Any]):
         from dateutil.parser import parse
 
-        new_parts = []
+        new_parts: list[Any] = []
         start_timestamp = 0
         for part in parts:
             part1 = parse(part[0]).timestamp()
@@ -678,7 +676,7 @@ class Video:
         ratio = all_silence / new_parts[-1][1]
         return ratio
 
-    def split_video_by_time_part(self, source_video_path, target_video_path, part):
+    def split_video_by_time_part(self, source_video_path: str, target_video_path: str, part: list[Any]):
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
@@ -701,7 +699,7 @@ class Video:
         done()
 
     def _split_video_to_parts_by_time_intervals(
-        self, source_video_path, target_folder, time_intervals
+        self, source_video_path: str, target_folder: str, time_intervals: list[Any]
     ):
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_folder)
@@ -720,7 +718,7 @@ class Video:
         done()
 
     def link_videos(
-        self, source_video_path_list, target_video_path, method=2, preset="ultrafast"
+        self, source_video_path_list: list[str], target_video_path: str, method:int=2, preset:str="ultrafast"
     ):
         """
         concatenate videos one by one
@@ -785,7 +783,7 @@ class Video:
         done()
 
     def combine_all_mp4_in_a_folder(
-        self, source_folder, target_video_path, sort_by_time=True, method=1
+        self, source_folder: str, target_video_path: str, sort_by_time:bool=True, method:int=1
     ):
         """
         concatenate all videos in a folder
@@ -823,15 +821,15 @@ class Video:
 
     def remove_noise_from_video(
         self,
-        source_video_path,
-        target_video_path,
-        degree=0.21,
-        noise_capture_length=None,
+        source_video_path:str,
+        target_video_path:str,
+        degree:float=0.21,
+        noise_capture_length:str|None=None,
     ):
         """
         Just as said, remove noise from video
         """
-        degree = str(degree)
+        degree = str(degree) # type: ignore
 
         source_video_path = try_to_get_absolutely_path(source_video_path)
         make_sure_source_is_absolute_path(source_video_path)
@@ -908,12 +906,12 @@ class Video:
 
     def remove_silence_parts_from_video(
         self,
-        source_video_path,
-        target_video_path,
-        db_for_split_silence_and_voice=40,
-        minimum_interval_time_in_seconds=None,
-        voice_only=False,
-        skip_sharp_noise=False,
+        source_video_path: str,
+        target_video_path: str,
+        db_for_split_silence_and_voice: int=40,
+        minimum_interval_time_in_seconds: float|None=None,
+        voice_only:bool=False,
+        skip_sharp_noise:bool=False,
     ):
         """
         Parameters
@@ -965,7 +963,7 @@ class Video:
         # """
         parent_clip = VideoFileClip(source_video_path)
         parent_clip = videoUtils.fix_rotation(parent_clip)
-        clip_list = []
+        clip_list: list[Any] = []
         length = len(parts)
         for index, part in enumerate(parts):
             try:
@@ -991,30 +989,31 @@ class Video:
             del concat_clip
             make_sure_target_does_not_exist(audio_path)
             make_sure_target_does_not_exist(temp_video_path)
+            done()
+            return target_video_path
         else:
             if len(target_video_path.split(".")) >= 2:
                 target_audio_path = ".".join(target_video_path.split(".")[:-1]) + ".mp3"
             else:
                 target_audio_path = target_video_path + ".mp3"
             make_sure_target_does_not_exist(target_audio_path)
-            if concat_clip.audio != None:
-                concat_clip.audio.write_audiofile(target_audio_path, fps=44100)
+            if concat_clip.audio != None: #type: ignore
+                concat_clip.audio.write_audiofile(target_audio_path, fps=44100) #type: ignore
             else:
                 raise Exception("Wrong, concat_clip.audio shouldn't be none")
             concat_clip.close()
             make_sure_target_does_not_exist(audio_path)
             make_sure_target_does_not_exist(temp_video_path)
+            done()
             return target_audio_path
-
-        done()
 
     def remove_silence_parts_from_video_2(
         self,
-        source_video_path,
-        target_video_path,
-        db_for_split_silence_and_voice=40,
-        the_maximum_silent_interval_time_in_seconds_you_wish_to_have=1.5,
-        voice_only=False,
+        source_video_path: str,
+        target_video_path: str,
+        db_for_split_silence_and_voice: int=40,
+        the_maximum_silent_interval_time_in_seconds_you_wish_to_have: float=1.5,
+        voice_only: bool=False,
     ):
         """
         Parameters
@@ -1054,7 +1053,7 @@ class Video:
         parts = self._get_voice_and_silence_parts_2(audio_path, top_db, the_maximum_silent_interval_time_in_seconds_you_wish_to_have)
         # print(parts)
         # print(parts.shape)
-        only_voice_filter = np.apply_along_axis(lambda element : element[0] == 1, 1, parts)
+        only_voice_filter = np.apply_along_axis(lambda element : element[0] == 1, 1, parts) #type: ignore
         # print(only_voice_filter)
         parts = parts[only_voice_filter]
         parts = parts[:, 1:].tolist() # type: ignore
@@ -1063,9 +1062,8 @@ class Video:
         # """
         parent_clip = VideoFileClip(source_video_path)
         parent_clip = videoUtils.fix_rotation(parent_clip)
-        clip_list = []
+        clip_list: list[str] = []
         length = len(parts)
-
         for index, part in enumerate(parts):
             # part: ['0:00:09.055782', '0:00:09.822041']
             try:
@@ -1099,8 +1097,8 @@ class Video:
             else:
                 target_audio_path = target_video_path + ".mp3"
             make_sure_target_does_not_exist(target_audio_path)
-            if concat_clip.audio != None:
-                concat_clip.audio.write_audiofile(target_audio_path, fps=44100)
+            if concat_clip.audio != None: #type: ignore
+                concat_clip.audio.write_audiofile(target_audio_path, fps=44100) #type: ignore
             else:
                 raise Exception("Wrong, concat_clip.audio shouldn't be none")
             concat_clip.close()
@@ -1112,10 +1110,10 @@ class Video:
 
     def humanly_remove_silence_parts_from_video(
         self,
-        source_video_path,
-        target_video_path,
-        db_for_split_silence_and_voice,
-        minimum_interval=1,
+        source_video_path: str,
+        target_video_path: str,
+        db_for_split_silence_and_voice: int,
+        minimum_interval:float | int=1,
     ):
         """
         No difference with the last one, but in this function, you can check how many silence you can get rid of.
@@ -1190,7 +1188,7 @@ class Video:
             print("you may want to change the db, and try again.")
             exit()
 
-    def speedup_video(self, source_video_path, target_video_path, speed=1.5):
+    def speedup_video(self, source_video_path: str, target_video_path: str, speed:float=1.5):
         """
         Parameters
         ----------
@@ -1223,12 +1221,12 @@ class Video:
 
             done()
         else:
-            self._speedup_video_with_moviepy(
+            self._speedup_video_with_moviepy( #type: ignore
                 source_video_path, target_video_path, speed=int(speed)
             )
 
     def _speedup_video_with_moviepy(
-        self, source_video_path, target_video_path, speed=4
+        self, source_video_path: str, target_video_path: str, speed: int=4
     ):
         source_video_path = try_to_get_absolutely_path(source_video_path)
         target_video_path = try_to_get_absolutely_path(target_video_path)
@@ -1250,10 +1248,10 @@ class Video:
 
     def speedup_silence_parts_in_video(
         self,
-        source_video_path,
-        target_video_path,
-        db_for_split_silence_and_voice,
-        speed=4,
+        source_video_path: str,
+        target_video_path: str,
+        db_for_split_silence_and_voice: int,
+        speed: int=4,
     ):
         """
         Instead remove silence, we can speed up the silence parts in a video
@@ -1289,7 +1287,7 @@ class Video:
         make_sure_target_does_not_exist(audio_path)
         parent_clip = VideoFileClip(source_video_path)
         parent_clip = videoUtils.fix_rotation(parent_clip)
-        clip_list = []
+        clip_list: list[Any] = []
         length = len(voice_and_silence_parts)
         for index, part in enumerate(voice_and_silence_parts):
             if len(part[1][0].split(".")) < 2:
@@ -1330,12 +1328,12 @@ class Video:
 
     def speedup_silence_parts_in_video_2(
         self,
-        source_video_path,
-        target_video_path,
-        db_for_split_silence_and_voice,
-        speed=4,
-        silent_speedup_part=True,
-        the_maximum_silent_interval_time_in_seconds_you_wish_to_have=1.7
+        source_video_path: str,
+        target_video_path: str,
+        db_for_split_silence_and_voice: int,
+        speed: int=4,
+        silent_speedup_part: bool=True,
+        the_maximum_silent_interval_time_in_seconds_you_wish_to_have: float=1.7
     ):
         """
         Instead remove silence, we can speed up the silence parts in a video
@@ -1371,7 +1369,7 @@ class Video:
         make_sure_target_does_not_exist(audio_path)
         parent_clip = VideoFileClip(source_video_path)
         parent_clip = videoUtils.fix_rotation(parent_clip)
-        clip_list = []
+        clip_list: list[Any] = []
         length = len(voice_and_silence_parts)
         for index, part in enumerate(voice_and_silence_parts):
             try:
@@ -1415,7 +1413,7 @@ class Video:
         done()
 
     def replace_video_with_a_picture(
-        self, source_video_path, target_video_path, picture
+        self, source_video_path: str, target_video_path: str, picture: str
     ):
         """
         Parameters
@@ -1495,14 +1493,14 @@ class Video:
 
         done()
 
-    def delay_audio_in_video(self, source_video_path, target_video_path, delay):
+    def delay_audio_in_video(self, source_video_path: str, target_video_path: str, delay: str|float):
         source_video_path = try_to_get_absolutely_path(source_video_path)
         target_video_path = try_to_get_absolutely_path(target_video_path)
         make_sure_source_is_absolute_path(source_video_path)
         make_sure_target_is_absolute_path(target_video_path)
         make_sure_target_does_not_exist(target_video_path)
 
-        delay = float(delay)
+        delay = float(delay) # type: ignore
         delay = str(delay)
 
         t.run(
@@ -1514,7 +1512,7 @@ class Video:
         done()
 
     def increase_audio_volume_in_video(
-        self, source_video_path, target_video_path, times
+        self, source_video_path: str, target_video_path: str, times: float | str
     ):
         """
         Parameters
@@ -1579,7 +1577,7 @@ class Video:
 
     def compress_videos_in_a_folder(
         self,
-        source_folder,
+        source_folder: str,
         fps: int = 29,
         resolution: Tuple[int, int] | None = None,
         preset: str = "veryslow",
@@ -1645,7 +1643,7 @@ class Video:
                     exit()
         done()
 
-    def format_videos_in_a_folder(self, source_folder):
+    def format_videos_in_a_folder(self, source_folder: str):
         source_folder = try_to_get_absolutely_path(source_folder)
         make_sure_source_is_absolute_path(source_folder)
 
@@ -1707,7 +1705,7 @@ class Video:
         length = clip.duration
         partLength = length / numOfParts
 
-        clips = []
+        clips: list[Any] = []
         for i in range(numOfParts):
             clips.append(clip.subclip(i * partLength, (i + 1) * partLength))
 
@@ -1748,27 +1746,27 @@ class Video:
             return
 
         # handle input voice
-        humanVoice = audioProcessor.pydub.AudioSegment.from_file(
+        humanVoice: Any = audioProcessor.pydub.AudioSegment.from_file( #type: ignore
             source_file_path, format="mp4"
         )
 
         # handle input music
-        musicSound = audioProcessor.pydub.AudioSegment.from_file(
+        musicSound: Any = audioProcessor.pydub.AudioSegment.from_file( #type: ignore
             musicFiles[0], format="mp3"
         )
         for musicFile in musicFiles[1:]:
-            musicSound += audioProcessor.pydub.AudioSegment.from_file(
+            musicSound += audioProcessor.pydub.AudioSegment.from_file( #type: ignore
                 musicFile, format="mp3"
             )
 
-        while len(musicSound) < len(humanVoice):
-            musicSound *= 2
+        while len(musicSound) < len(humanVoice): #type: ignore
+            musicSound *= 2 #type: ignore
 
-        musicSound = musicSound[: len(humanVoice)]
-        musicSound -= preDecreaseDBValueForTheMusic
+        musicSound = musicSound[: len(humanVoice)] #type: ignore
+        musicSound -= preDecreaseDBValueForTheMusic #type: ignore
 
         # handle the silence
-        musicSlices = []
+        musicSlices: list[Any] = []
 
         infoOfTheVoice = (
             audioProcessor.getCompleteTimeRangeForNoSilenceAndSilenceAudioSlice(
@@ -1854,7 +1852,7 @@ class DeepVideo:
         )
         if not os.path.exists(speech_model_data_saving_folder):
             t.run_command(f"mkdir -p {speech_model_data_saving_folder}")
-        self.speechbrain_sepformer_voice_enhancement_model = separator.from_hparams(
+        self.speechbrain_sepformer_voice_enhancement_model = separator.from_hparams( #type: ignore
             source="speechbrain/sepformer-whamr-enhancement",
             savedir=speech_model_data_saving_folder,
         )
@@ -1886,11 +1884,11 @@ class DeepVideo:
 
     def __time_interval_filter(
         self,
-        data,
+        data: Any,
         minimum_interval_time_in_seconds: float = 0.0,
         video_length: float | None = None,
     ):
-        temp_data = []
+        temp_data: list[Any] = []
         length = len(data)
         for index, item in enumerate(data):
             start = item["start"]
@@ -1904,7 +1902,7 @@ class DeepVideo:
             if index == length - 1:
                 end = item["end"]
             temp_data.append([start, end])
-        parts = []
+        parts: list[Any] = []
         index = 0
         length = len(temp_data)
         if length >= 2:
@@ -1936,14 +1934,14 @@ class DeepVideo:
             return parts
 
     def __get_raw_data_from_video(self, path: str):
-        from vosk import Model, KaldiRecognizer, SetLogLevel
+        from vosk import Model, KaldiRecognizer
 
         assert os.path.exists(path), f"source video file {path} does not exist!"
 
-        SetLogLevel(0)
+        # SetLogLevel(0)
         sample_rate = 48000
         model = Model(self.vosk_model_folder.as_posix())
-        rec = KaldiRecognizer(model, sample_rate)
+        rec: Any = KaldiRecognizer(model, sample_rate)
 
         process = subprocess.Popen(
             [
@@ -1963,14 +1961,14 @@ class DeepVideo:
             stdout=subprocess.PIPE,
         )
 
-        data_list = []
+        data_list: list[Any] = []
         while True:
             if process.stdout is None:
                 break
             data = process.stdout.read(4000)
             if len(data) == 0:
                 break
-            if rec.AcceptWaveform(data):
+            if rec.AcceptWaveform(data): #type: ignore
                 result = json.loads(rec.Result())
                 if len(result.keys()) >= 2:
                     """
@@ -1996,14 +1994,13 @@ class DeepVideo:
         minimum_interval_time_in_seconds: float = 0.0,
         video_length: float | None = None,
     ):
-        from vosk import Model, KaldiRecognizer, SetLogLevel
+        from vosk import Model, KaldiRecognizer
 
         assert os.path.exists(path), f"source video file {path} does not exist!"
 
-        SetLogLevel(0)
         sample_rate = 16000
         model = Model(self.vosk_model_folder.as_posix())
-        rec = KaldiRecognizer(model, sample_rate)
+        rec: Any = KaldiRecognizer(model, sample_rate)
 
         process = subprocess.Popen(
             [
@@ -2023,7 +2020,7 @@ class DeepVideo:
             stdout=subprocess.PIPE,
         )
 
-        data_list = []
+        data_list: list[Any] = []
         while True:
             if process.stdout is None:
                 break
@@ -2082,7 +2079,7 @@ class DeepVideo:
             for video in video_files
         ]
         length = len(video_files)
-        remain_clips = []
+        remain_clips: list[Any] = []
         for index, video_file in enumerate(video_files):
             print("Working on ", str(int(index / length * 100)) + " %...")
             parts = self.__get_data_from_video(
@@ -2149,7 +2146,7 @@ class DeepVideo:
             for video in video_files
         ]
         length = len(video_files)
-        remain_clips = []
+        remain_clips: list[Any] = []
         for index, video_file in enumerate(video_files):
             print("Working on ", str(int(index / length * 100)) + " %...")
             parts = self.__get_data_from_video(
@@ -2204,7 +2201,7 @@ class DeepVideo:
         parts = self.__get_data_from_video(
             source_video_path, minimum_interval_time_in_seconds, parent_clip.duration
         )
-        clip_list = []
+        clip_list: list[Any] = []
         length = len(parts)
         for index, part in enumerate(parts):
             if part[2] == "voice":
@@ -2263,7 +2260,7 @@ class DeepVideo:
         parts = self.__get_data_from_video(
             source_video_path, minimum_interval_time_in_seconds, parent_clip.duration
         )
-        clip_list = []
+        clip_list: list[Any] = []
         length = len(parts)
         for index, part in enumerate(parts):
             if part[2] == "voice":
@@ -2297,14 +2294,13 @@ class DeepVideo:
 
         done()
 
-    def _get_sounds_parts(self, source_audio_path, top_db):
+    def _get_sounds_parts(self, source_audio_path: str, top_db: int):
         y, sr = get_wav_infomation(source_audio_path)
-        parts = librosa.effects.split(y, top_db=top_db)  # return samples
+        parts = librosa.effects.split(y, top_db=top_db)  # return samples #type: ignore
 
-        def from_samples_to_seconds(parts):
-            parts = librosa.core.samples_to_time(parts, sr=sr)  # return seconds
-            new_parts = []
-
+        def from_samples_to_seconds(parts: Any):
+            parts = librosa.core.samples_to_time(parts, sr=sr)  # return seconds #type: ignore
+            new_parts: list[Any] = []
             for part in parts:
                 part1 = part[0]
                 part2 = part[1]
@@ -2321,7 +2317,7 @@ class DeepVideo:
         self, 
         source_video_path: str,
         target_video_path: str, 
-        sample_rate=48000
+        sample_rate: int=48000
         ):
         temp_audio_path = disk.get_a_temp_file_path("temp_audio.wav")
         target_audio_path = disk.get_a_temp_file_path("temp_audio2.wav") 
@@ -2335,13 +2331,13 @@ class DeepVideo:
         current_working_directory = t.run_command("pwd")
         os.chdir("/tmp")
         if sample_rate == 16000:
-            deep_audio.speech_enhancement_with_speechbrain(
+            deep_audio.speech_enhancement_with_speechbrain( #type: ignore
                 source_audio_path=temp_audio_path,
                 target_audio_path=target_audio_path,
                 sample_rate=16000
             )
         else:
-            deep_audio.speech_enhancement_with_deepFilterNet(
+            deep_audio.speech_enhancement_with_deepFilterNet( #type: ignore
                 source_audio_path=temp_audio_path,
                 target_audio_path=target_audio_path,
             )
@@ -2362,16 +2358,16 @@ class DeepVideo:
         # useless
         import pornstar  # type: ignore
 
-        def doit(frame):
-            if pornstar.store.nsfw_detector.isPorn(frame, 0.9):
-                classList, ScoreList, PositionList = pornstar.my_object_detector.detect(
+        def doit(frame: Any):
+            if pornstar.store.nsfw_detector.isPorn(frame, 0.9): #type: ignore
+                classList, ScoreList, PositionList = pornstar.my_object_detector.detect( #type: ignore
                     frame
                 )
                 if "person" in classList:
-                    frame = pornstar.effect_of_blur(frame, kernel=30)
+                    frame = pornstar.effect_of_blur(frame, kernel=30) #type: ignore
             return frame
 
-        pornstar.process_video(
+        pornstar.process_video( #type: ignore
             path_of_video=source_video_path,
             effect_function=doit,
             save_to=target_video_path,

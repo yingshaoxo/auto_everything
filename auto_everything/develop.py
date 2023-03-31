@@ -1547,7 +1547,7 @@ const _general_from_dict_function = (old_object: any, new_object: any): any => {
     async {function_name}(item: {identity_name}_objects.{input_variable}, ignore_error?: boolean): Promise<{identity_name}_objects.{output_variable} | null> {{
         let result = await this._get_reponse_or_error_by_url_path_and_input("{function_name}", item.to_dict())
         if (Object.keys(result).includes(this._special_error_key)) {{
-            if ((ignore_error != null) && (!ignore_error)) {{
+            if ((ignore_error == null) || ((ignore_error != null) && (!ignore_error))) {{
                 this._error_handle_function(result[this._special_error_key])
             }}
             return null
@@ -1614,7 +1614,7 @@ export class Client_{identity_name} {{
             }});
             return await response.json()
         }} catch (e) {{
-            return {{_special_error_key: String(e)}};
+            return {{[this._special_error_key]: String(e)}};
         }}
     }}
 
