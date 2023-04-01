@@ -102,7 +102,7 @@ class MongoDB:
         
         if use_time_as_folder_name == True:
             now = datetime.now()
-            today_string = now.strftime("%Y-%m-%m_%H-%M")
+            today_string = now.strftime(r"%Y-%m-%d_%H-%M")
             backup_folder_path = self._disk.join_paths(backup_folder_path, today_string)
         
         database_name_list: list[str] = self.list_database()
