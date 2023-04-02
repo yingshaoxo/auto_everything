@@ -794,15 +794,16 @@ class YRPC_OBJECT_BASE_CLASS:
                 output_variable = re.split(r"\s+", output_variable)[1]
 
             service_class_function_list.append(f"""
-    async def {function_name}(self, item: {input_variable}) -> {output_variable}:
+    async def {function_name}(self, headers: dict[str, str], item: {input_variable}) -> {output_variable}:
         return {output_variable}()
             """.rstrip().lstrip('\n'))
 
             service_api_function_list.append(f"""
     @router.post("/{function_name}/", tags=["{identity_name}"])
-    async def {function_name}(item: {input_variable}) -> {output_variable}:
+    async def {function_name}(request: Request, item: {input_variable}) -> {output_variable}:
         item = {input_variable}().from_dict(item.to_dict())
-        return (await service_instance.{function_name}(item)).to_dict()
+        headers = dict(request.headers.items())
+        return (await service_instance.{function_name}(headers, item)).to_dict()
             """.rstrip().lstrip('\n'))
 
         
@@ -813,7 +814,7 @@ class YRPC_OBJECT_BASE_CLASS:
 from .{identity_name}_objects import *
 
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse 
 from fastapi.middleware.cors import CORSMiddleware

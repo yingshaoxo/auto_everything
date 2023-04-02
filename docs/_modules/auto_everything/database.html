@@ -1,0 +1,462 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>auto_everything.database &#8212; auto_everything 3.6 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/flasky.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+     
+    
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head><body>
+    
+    
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">auto_everything 3.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">auto_everything.database</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for auto_everything.database</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+
+<div class="viewcode-block" id="MongoDB"><a class="viewcode-back" href="../../index.html#auto_everything.database.MongoDB">[docs]</a><span class="k">class</span> <span class="nc">MongoDB</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    MONGO_DB_URL is something like: &quot;mongodb://yingshaoxo:yingshaoxo@127.0.0.1:27017/&quot;</span>
+
+<span class="sd">    #https://www.w3schools.com/python/python_mongodb_create_collection.asp</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">pymongo</span> <span class="kn">import</span> <span class="n">MongoClient</span>
+        <span class="kn">from</span> <span class="nn">auto_everything.disk</span> <span class="kn">import</span> <span class="n">Disk</span>
+        <span class="kn">from</span> <span class="nn">auto_everything.io</span> <span class="kn">import</span> <span class="n">IO</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span> <span class="o">=</span> <span class="n">Disk</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_mongodb_client_by_giving_arguments</span><span class="p">(</span><span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span> <span class="c1">#type: ignore</span>
+        <span class="k">return</span> <span class="n">MongoDB</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mongodb://</span><span class="si">{</span><span class="n">user</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+    
+    <span class="k">def</span> <span class="nf">delete_a_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">drop_database</span><span class="p">(</span><span class="n">database_name</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+    
+    <span class="k">def</span> <span class="nf">list_database</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c1">#type: ignore</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">list_database_names</span><span class="p">()</span> <span class="c1">#type: ignore</span>
+    
+    <span class="k">def</span> <span class="nf">get_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span> <span class="c1">#type: ignore</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_database</span><span class="p">(</span><span class="n">database_name</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+
+    <span class="k">def</span> <span class="nf">insert_or_update_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">filter</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span> <span class="c1">#type: ignore</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">get_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">filter</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span> <span class="c1">#type: ignore</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">get_item_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">filter</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span> <span class="c1">#type: ignore</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">delete_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">filter</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span> <span class="c1">#type: ignore</span>
+        <span class="k">pass</span>
+    
+    <span class="k">def</span> <span class="nf">clear_mongodb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">database_name_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_database</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">a_database_name</span> <span class="ow">in</span> <span class="n">database_name_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">a_database_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;admin&quot;</span><span class="p">,</span> <span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">]:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">database_name</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">collection_name</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">drop_database</span><span class="p">(</span><span class="n">a_database_name</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">database_name</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">database_name</span> <span class="o">==</span> <span class="n">a_database_name</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">collection_name</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_database</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">a_database_name</span><span class="p">)</span><span class="o">.</span><span class="n">get_collection</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">)</span><span class="o">.</span><span class="n">delete_many</span><span class="p">({})</span> <span class="c1"># type: ignore</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">drop_database</span><span class="p">(</span><span class="n">name_or_database</span><span class="o">=</span><span class="n">a_database_name</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+    
+    <span class="k">def</span> <span class="nf">backup_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">json_file_saving_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="n">database_name_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_database</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">database_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">database_name_list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;database_name &#39;</span><span class="si">{</span><span class="n">database_name</span><span class="si">}</span><span class="s2">&#39; not exists&quot;</span><span class="p">)</span>
+        <span class="n">the_database</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database</span><span class="p">(</span><span class="n">database_name</span><span class="o">=</span><span class="n">database_name</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+        <span class="k">if</span> <span class="n">collection_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">the_database</span><span class="o">.</span><span class="n">list_collection_names</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;collection_name &#39;</span><span class="si">{</span><span class="n">collection_name</span><span class="si">}</span><span class="s2">&#39; not exists&quot;</span><span class="p">)</span>
+        <span class="n">the_collection</span> <span class="o">=</span> <span class="n">the_database</span><span class="o">.</span><span class="n">get_collection</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+
+        <span class="n">object_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">one_object</span> <span class="ow">in</span> <span class="n">the_collection</span><span class="o">.</span><span class="n">find</span><span class="p">():</span> <span class="c1">#type: ignore</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">one_object</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+            <span class="k">del</span> <span class="n">obj</span><span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">]</span>
+            <span class="n">object_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">json_file_saving_path</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">json_file_saving_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.json&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;the json_file_saving_path you give me should be ended with &#39;.json&#39; other than &#39;</span><span class="si">{</span><span class="n">json_file_saving_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="n">json_string_of_an_collection</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_file_saving_path</span><span class="p">,</span> <span class="n">json_string_of_an_collection</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">object_list</span>
+
+    <span class="k">def</span> <span class="nf">recover_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">object_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">json_file_saving_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">json_file_saving_path</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">json_file_saving_path</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The json_file_saving_path you gave me does not exists: </span><span class="si">{</span><span class="n">json_file_saving_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">json_text</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">json_file_saving_path</span><span class="p">)</span>
+            <span class="n">object_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_text</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_mongodb</span><span class="p">(</span><span class="n">database_name</span><span class="o">=</span><span class="n">database_name</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_database</span><span class="p">(</span><span class="n">database_name</span><span class="o">=</span><span class="n">database_name</span><span class="p">)</span><span class="o">.</span><span class="n">get_collection</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">)</span><span class="o">.</span><span class="n">insert_many</span><span class="p">(</span><span class="n">object_list</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+
+    <span class="c1"># def backup_mongodb_safely(self, backup_folder_path: str, use_time_as_folder_name: bool=True):</span>
+    <span class="c1">#     # save one object as a json_string per line in a txt file</span>
+    <span class="c1">#     pass</span>
+
+<div class="viewcode-block" id="MongoDB.backup_mongodb"><a class="viewcode-back" href="../../index.html#auto_everything.database.MongoDB.backup_mongodb">[docs]</a>    <span class="k">def</span> <span class="nf">backup_mongodb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backup_folder_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_time_as_folder_name</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        it saves files into this structure:</span>
+<span class="sd">            ── 2023-03-31_09-30</span>
+<span class="sd">            │   ├── __mongodb_info__.json      # can be used to save fake_folder_info inside</span>
+<span class="sd">            │   │   database_name_1</span>
+<span class="sd">            │   │   ├── collection_name_1.json</span>
+<span class="sd">            │   │   ├── collection_name_2.json</span>
+<span class="sd">            │   │   database_name_2</span>
+<span class="sd">            │   │   ├── collection_name_1.json</span>
+<span class="sd">            │   │   ├── collection_name_2.json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">backup_folder_path</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">create_a_folder</span><span class="p">(</span><span class="n">backup_folder_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">backup_folder_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;You should give me a valid backup_folder_path than &#39;</span><span class="si">{</span><span class="n">backup_folder_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">use_time_as_folder_name</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="n">today_string</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">_%H-%M&quot;</span><span class="p">)</span>
+            <span class="n">backup_folder_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">join_paths</span><span class="p">(</span><span class="n">backup_folder_path</span><span class="p">,</span> <span class="n">today_string</span><span class="p">)</span>
+        
+        <span class="n">database_name_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_database</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">database_name</span> <span class="ow">in</span> <span class="n">database_name_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">database_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;admin&quot;</span><span class="p">,</span> <span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">]:</span>
+                <span class="k">continue</span>
+
+            <span class="n">a_database</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database</span><span class="p">(</span><span class="n">database_name</span><span class="o">=</span><span class="n">database_name</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+
+            <span class="n">database_folder_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">join_paths</span><span class="p">(</span><span class="n">backup_folder_path</span><span class="p">,</span> <span class="n">database_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">create_a_folder</span><span class="p">(</span><span class="n">database_folder_path</span><span class="p">)</span>
+
+            <span class="n">collection_name_list</span> <span class="o">=</span> <span class="n">a_database</span><span class="o">.</span><span class="n">list_collection_names</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">collection_name</span> <span class="ow">in</span> <span class="n">collection_name_list</span><span class="p">:</span>
+                <span class="n">collection</span> <span class="o">=</span> <span class="n">a_database</span><span class="o">.</span><span class="n">get_collection</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+                <span class="n">object_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">one_object</span> <span class="ow">in</span> <span class="n">collection</span><span class="o">.</span><span class="n">find</span><span class="p">():</span> <span class="c1">#type: ignore</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">one_object</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+                    <span class="k">del</span> <span class="n">obj</span><span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">]</span>
+                    <span class="n">object_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+                <span class="n">json_string_of_an_collection</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+                <span class="n">collection_json_file_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">join_paths</span><span class="p">(</span><span class="n">database_folder_path</span><span class="p">,</span> <span class="n">collection_name</span> <span class="o">+</span> <span class="s2">&quot;.json&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">collection_json_file_path</span><span class="p">,</span> <span class="n">json_string_of_an_collection</span><span class="p">)</span>
+
+        <span class="n">special_file_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">join_paths</span><span class="p">(</span><span class="n">backup_folder_path</span><span class="p">,</span> <span class="s2">&quot;__mongodb_info__.json&quot;</span><span class="p">)</span>
+        <span class="n">file_name_tree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">fake_folder_backup</span><span class="p">(</span><span class="n">backup_folder</span><span class="o">=</span><span class="n">backup_folder_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">special_file_path</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span>
+            <span class="s2">&quot;db_type&quot;</span><span class="p">:</span> <span class="s2">&quot;mongodb&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;backup_tool&quot;</span><span class="p">:</span> <span class="s2">&quot;python, auto_everything&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;yingshaoxo@gmail.com&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;file_tree&quot;</span><span class="p">:</span> <span class="n">file_name_tree</span>
+        <span class="p">},</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="MongoDB.recover_mongodb"><a class="viewcode-back" href="../../index.html#auto_everything.database.MongoDB.recover_mongodb">[docs]</a>    <span class="k">def</span> <span class="nf">recover_mongodb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backup_folder_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_time_as_folder_name</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        it loads files from this structure:</span>
+<span class="sd">            ── 2023-03-31_09-30</span>
+<span class="sd">            │   ├── __mongodb_info__.json      </span>
+<span class="sd">            │   │   database_name_1</span>
+<span class="sd">            │   │   ├── collection_name_1.json</span>
+<span class="sd">            │   │   ├── collection_name_2.json</span>
+<span class="sd">            │   │   database_name_2</span>
+<span class="sd">            │   │   ├── collection_name_1.json</span>
+<span class="sd">            │   │   ├── collection_name_2.json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">use_time_as_folder_name</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="n">date_folders</span> <span class="o">=</span> <span class="p">[</span><span class="n">one</span> <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">get_folder_and_files</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">backup_folder_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">if</span> <span class="n">one</span><span class="o">.</span><span class="n">is_folder</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span>
+            <span class="n">date_folders</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">one</span><span class="p">:</span> <span class="n">one</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">date_folders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">backup_folder_path</span> <span class="o">=</span> <span class="n">date_folders</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">path</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;This folder does not contain any data: </span><span class="si">{</span><span class="n">backup_folder_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">backup_folder_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;You should give me a valid backup_folder_path than &#39;</span><span class="si">{</span><span class="n">backup_folder_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">join_paths</span><span class="p">(</span><span class="n">backup_folder_path</span><span class="p">,</span> <span class="s2">&quot;__mongodb_info__.json&quot;</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;You should give me a valid backup_folder_path than &#39;</span><span class="si">{</span><span class="n">backup_folder_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_mongodb</span><span class="p">()</span>
+        
+        <span class="n">database_folder_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">one</span> <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">get_folder_and_files</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">backup_folder_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">if</span> <span class="n">one</span><span class="o">.</span><span class="n">is_folder</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">database_folder</span> <span class="ow">in</span> <span class="n">database_folder_list</span><span class="p">:</span>
+            <span class="n">database_name</span> <span class="o">=</span> <span class="n">database_folder</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">a_database</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database</span><span class="p">(</span><span class="n">database_name</span><span class="o">=</span><span class="n">database_name</span><span class="p">)</span> <span class="c1">#type: ignore</span>
+
+            <span class="n">collection_json_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">get_folder_and_files</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">join_paths</span><span class="p">(</span><span class="n">backup_folder_path</span><span class="p">,</span> <span class="n">database_name</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">type_limiter</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;.json&quot;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">collection_json_file</span> <span class="ow">in</span> <span class="n">collection_json_list</span><span class="p">:</span>
+                <span class="n">collection_name</span> <span class="o">=</span> <span class="n">collection_json_file</span><span class="o">.</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;.json&quot;</span><span class="p">)]</span>
+                <span class="n">json_content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">collection_json_file</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+                <span class="n">data_</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_content</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">data_</span><span class="p">:</span>
+                    <span class="n">a_database</span><span class="o">.</span><span class="n">get_collection</span><span class="p">(</span><span class="n">collection_name</span><span class="p">)</span><span class="o">.</span><span class="n">insert_one</span><span class="p">(</span><span class="n">one</span><span class="p">)</span> <span class="c1">#type: ignore</span></div></div>
+
+
+<div class="viewcode-block" id="Redis"><a class="viewcode-back" href="../../index.html#auto_everything.database.Redis">[docs]</a><span class="k">class</span> <span class="nc">Redis</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Redis_DB_URL is something like: &quot;redis://username:password@127.0.0.1:6379&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">redis_URL</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">database_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">redis</span>
+        <span class="kn">from</span> <span class="nn">auto_everything.disk</span> <span class="kn">import</span> <span class="n">Disk</span>
+        <span class="kn">from</span> <span class="nn">auto_everything.io</span> <span class="kn">import</span> <span class="n">IO</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span> <span class="o">=</span> <span class="n">Disk</span><span class="p">()</span>
+
+        <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_redis_url</span><span class="p">(</span><span class="n">redis_URL</span><span class="o">=</span><span class="n">redis_URL</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">redis</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">port</span><span class="p">),</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">database_name</span> <span class="o">=</span> <span class="n">database_name</span>
+    
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_parse_redis_url</span><span class="p">(</span><span class="n">redis_URL</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">redis_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;redis://&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;the redis_URL is something like this: redis://127.0.0.1:6379&quot;</span><span class="p">)</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">host</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">redis_URL</span><span class="p">:</span>
+            <span class="n">splits</span> <span class="o">=</span> <span class="n">redis_URL</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)</span>
+            <span class="n">first_part</span> <span class="o">=</span> <span class="n">splits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;://&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">second_part</span> <span class="o">=</span> <span class="n">splits</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">splits</span> <span class="o">=</span> <span class="n">first_part</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">username</span> <span class="o">=</span> <span class="n">splits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">password</span> <span class="o">=</span> <span class="n">splits</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">splits</span> <span class="o">=</span> <span class="n">second_part</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">host</span> <span class="o">=</span> <span class="n">splits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="n">splits</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="s1">&#39;redis://127.0.0.1:6379/0&#39;</span>
+            <span class="n">ip_and_port</span> <span class="o">=</span> <span class="n">redis_URL</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;://&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">splits</span> <span class="o">=</span> <span class="n">ip_and_port</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">host</span> <span class="o">=</span> <span class="n">splits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="n">splits</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span>
+    
+    <span class="k">def</span> <span class="nf">_get_final_key_with_database_name_as_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">database_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_final_key_with_database_name_as_prefix</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expire_time_in_seconds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_final_key_with_database_name_as_prefix</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">),</span>
+            <span class="n">value</span><span class="p">,</span> 
+            <span class="n">ex</span><span class="o">=</span><span class="n">expire_time_in_seconds</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+    
+    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_final_key_with_database_name_as_prefix</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    
+    <span class="k">def</span> <span class="nf">delete_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_get_final_key_with_database_name_as_prefix</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+            <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="Redis.get_remaining_time_of_a_key"><a class="viewcode-back" href="../../index.html#auto_everything.database.Redis.get_remaining_time_of_a_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_remaining_time_of_a_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The command returns -2 if the key does not exist.</span>
+<span class="sd">        The command returns -1 if the key exists but has no associated expire.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">ttl</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_final_key_with_database_name_as_prefix</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+        <span class="p">)</span></div>
+    
+    <span class="k">def</span> <span class="nf">backup_redis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_file_saving_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">value_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_get_final_key_with_database_name_as_prefix</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+            <span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">object</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">key</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> 
+                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span>
+                <span class="p">}</span>
+                <span class="n">ttl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_remaining_time_of_a_key</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">ttl</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="nb">object</span><span class="p">[</span><span class="s2">&quot;ttl&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ttl</span><span class="p">)</span>
+                <span class="n">value_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">json_file_saving_path</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">json_file_saving_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.json&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;the json_file_saving_path you give me should be ended with &#39;.json&#39; other than &#39;</span><span class="si">{</span><span class="n">json_file_saving_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="n">json_string_of_an_collection</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value_list</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_file_saving_path</span><span class="p">,</span> <span class="n">json_string_of_an_collection</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">value_list</span>
+
+    <span class="k">def</span> <span class="nf">recover_redis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">json_file_saving_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">json_file_saving_path</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">json_file_saving_path</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The json_file_saving_path you gave me does not exists: </span><span class="si">{</span><span class="n">json_file_saving_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">json_text</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">json_file_saving_path</span><span class="p">)</span>
+            <span class="n">object_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_text</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_all</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">object_list</span><span class="p">:</span> <span class="c1">#type: ignore</span>
+            <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">ttl</span> <span class="o">=</span> <span class="n">one</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">),</span> <span class="n">one</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">),</span> <span class="n">one</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ttl&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ttl</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">expire_time_in_seconds</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">ttl</span><span class="p">))</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+    <span class="c1"># mongoDB = MongoDB(host=&quot;127.0.0.1&quot;, port=&quot;27017&quot;, user=&quot;root&quot;, password=&quot;yingshaoxo666&quot;)</span>
+    <span class="c1"># databases = mongoDB.list_database()</span>
+    <span class="c1"># print(databases)</span>
+    <span class="c1"># db = mongoDB.get_database(&quot;test&quot;)</span>
+    <span class="c1"># my_table = db.get_collection(&quot;my_table&quot;)</span>
+    <span class="c1"># my_table.delete_many({&quot;num&quot;: {&quot;$gt&quot;: -1}})</span>
+    <span class="c1"># for i in range(10):</span>
+    <span class="c1">#     my_table.insert_one({&quot;num&quot;: i})</span>
+    <span class="c1"># for one in my_table.find({&quot;num&quot;: {&quot;$gt&quot;: -1}}):</span>
+    <span class="c1">#     print(one)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">import sqlalchemy</span>
+
+<span class="sd"># Stupid MySQL can&#39;t be reasoned with</span>
+<span class="sd">class MySQL:</span>
+<span class="sd">    def __init__(self, host: str, port: str, user: str, password: str):</span>
+<span class="sd">        self.engine = sqlalchemy.create_engine(f&#39;mysql+pymysql://{user}:{password}@{host}:{port}&#39;)</span>
+<span class="sd">        self._block_list = [&#39;mysql&#39;, &#39;performance_schema&#39;, &#39;sys&#39;]</span>
+
+<span class="sd">    def create_a_database(self, database_name: str):</span>
+<span class="sd">        self.engine.execute(f&quot;CREATE DATABASE {database_name}&quot;)</span>
+<span class="sd">        #self.engine.execute(f&quot;USE {database_name}&quot;)</span>
+
+<span class="sd">    def delete_a_database(self, database_name: str):</span>
+<span class="sd">        if (database_name not in self._block_list):</span>
+<span class="sd">            self.engine.execute(f&quot;DROP DATABASE IF EXISTS {database_name};&quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    def list_database(self) -&gt; str:</span>
+<span class="sd">        existing_databases = self.engine.execute(&quot;SHOW DATABASES;&quot;)</span>
+<span class="sd">        return [d[0] for d in existing_databases if d[0] not in self._block_list]</span>
+
+<span class="sd">    def is_database_exists(self, database_name: str) -&gt; bool:</span>
+<span class="sd">        existing_databases = self.list_database()</span>
+<span class="sd">        return database_name in existing_databases</span>
+
+<span class="sd">if __name__ == &quot;__main__&quot;:</span>
+<span class="sd">    mySQL = MySQL(host=&quot;127.0.0.1&quot;, port=&quot;3306&quot;, user=&quot;root&quot;, password=&quot;yingshaoxo666&quot;)</span>
+
+<span class="sd">    for d in mySQL.list_database():</span>
+<span class="sd">        mySQL.delete_a_database(d)</span>
+<span class="sd">    print(mySQL.list_database())</span>
+
+<span class="sd">    mySQL.create_a_database(&quot;test&quot;)</span>
+<span class="sd">    print(mySQL.list_database())</span>
+
+<span class="sd">    for d in mySQL.list_database():</span>
+<span class="sd">        mySQL.delete_a_database(d)</span>
+<span class="sd">    print(mySQL.list_database())</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+<div class="github">
+    <a href="https://github.com/yingshaoxo/auto_everything">
+        <span>Fork me on GitHub</span>
+        <img src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub">
+    </a>
+</div>
+
+
+    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018-2020, yingshaoxo.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+    </div>
+    
+
+  </body>
+</html>

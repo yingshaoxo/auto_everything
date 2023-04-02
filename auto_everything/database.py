@@ -29,6 +29,18 @@ class MongoDB:
     
     def get_database(self, database_name: str): #type: ignore
         return self.client.get_database(database_name) #type: ignore
+
+    def insert_or_update_item(self, database_name: str | None, collection_name: str | None, filter: dict[str, Any] | None, data: dict[str, Any]): #type: ignore
+        pass
+
+    def get_item(self, database_name: str | None, collection_name: str | None, filter: dict[str, Any] | None) -> dict[str, Any]: #type: ignore
+        pass
+
+    def get_item_list(self, database_name: str | None, collection_name: str | None, filter: dict[str, Any] | None) -> list[dict[str, Any]]: #type: ignore
+        pass
+
+    def delete_item(self, database_name: str | None, collection_name: str | None, filter: dict[str, Any] | None) -> dict[str, Any]: #type: ignore
+        pass
     
     def clear_mongodb(self, database_name: str|None = None, collection_name: str|None = None):
         database_name_list: list[str] = self.list_database()

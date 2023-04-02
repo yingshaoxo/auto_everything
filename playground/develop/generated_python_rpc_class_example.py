@@ -1,7 +1,7 @@
 from build.test_protobuff_code_objects import *
 
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse 
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,15 +13,16 @@ router = APIRouter()
 
 
 class Service_test_protobuff_code:
-    async def create_hello_request(self, item: hello_request) -> hello_request:
+    async def create_hello_request(self, headers: dict[str, str], item: hello_request) -> hello_request:
         return hello_request()
 
 
 def init(service_instance: Any):
     @router.post("/create_hello_request/", tags=["test_protobuff_code"])
-    async def create_hello_request(item: hello_request) -> hello_request:
+    async def create_hello_request(request: Request, item: hello_request) -> hello_request:
         item = hello_request().from_dict(item.to_dict())
-        return (await service_instance.create_hello_request(item)).to_dict()
+        headers = dict(request.headers.items())
+        return (await service_instance.create_hello_request(headers, item)).to_dict()
 
 
 def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
@@ -63,7 +64,7 @@ def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_u
 
 if __name__ == "__main__":
     class NewService(Service_test_protobuff_code):
-        async def create_hello_request(self, item: hello_request) -> hello_request:
+        async def create_hello_request(self, headers: dict[str, str], item: hello_request) -> hello_request:
             if (item.name != None):
                 item.name += "---"
             return item
