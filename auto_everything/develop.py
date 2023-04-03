@@ -1568,13 +1568,15 @@ export class Client_{identity_name} {{
    * @param {{string}} _service_url is something like: "http://127.0.0.1:80" or "https://127.0.0.1"
    * @param {{{{ [key: string]: string }}}} _header  http headers, it's a dictionary, liek {{'content-type', 'application/json'}}
    * @param {{Function}} _error_handle_function will get called when http request got error, you need to give it a function like: (err: String) {{print(err)}}
+   * @param {{Function}} _interceptor_function will get called for every response, you need to give it a function like: (data: dict[Any, Any]) {{print(data)}}
    */
     _service_url: string
     _header: {{ [key: string]: string }} = {{}}
     _error_handle_function: (error: string) => void = (error: string) => {{console.log(error)}}
     _special_error_key: string = "__yingshaoxo's_error__"
+    _interceptor_function: (data: any) => void = (data: any) => {{console.log(data)}}
 
-    constructor(service_url: string, header?: {{ [key: string]: string }}, error_handle_function?: (error: string) => void) {{
+    constructor(service_url: string, header?: {{ [key: string]: string }}, error_handle_function?: (error: string) => void, interceptor_function?: (data: any) => void) {{
         if (service_url.endsWith("/")) {{
             service_url = service_url.slice(0, service_url.length-1);
         }}
@@ -1599,6 +1601,10 @@ export class Client_{identity_name} {{
         if (error_handle_function != null) {{
             this._error_handle_function = error_handle_function
         }}
+
+        if (interceptor_function != null) {{
+            this._interceptor_function = interceptor_function
+        }}
     }} 
 
     async _get_reponse_or_error_by_url_path_and_input(sub_url: string, input_dict: {{ [key: string]: any }}): Promise<any> {{
@@ -1613,7 +1619,9 @@ export class Client_{identity_name} {{
                     ...this._header
                 }}
             }});
-            return await response.json()
+            var json_response = await response.json()
+            this._interceptor_function(json_response)
+            return json_response
         }} catch (e) {{
             return {{[this._special_error_key]: String(e)}};
         }}
