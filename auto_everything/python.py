@@ -237,7 +237,7 @@ class Python():
     
     def generate_documentation_for_a_python_project(self, python_project_folder_path: str, markdown_file_output_folder_path: str, only_generate_those_functions_that_has_docstring: bool=True):
         # code_block_match_rule = r"""(?P<code_block>(?:[ \t]*)(?P<code_head>(?:(?:(?:@(?:.*)\s+)*)*(?:(?:class)|(?:(?:async\s+)*def)))[ \t]*(?:\w+)\s*\((?:.*?)\)(?:[ \t]*->[ \t]*(?:(.*)*))?:)(?P<code_body>(?:\n(?:)(?:[ \t]+[^\n]*)|\n)+))"""
-        head_information_regex_rule = r"""(?P<class_or_function_top_defination>(?: *@(?:.*?)\s+)* *(?:(?P<is_class>class)|(?P<is_function>def|async +def)) +(?:(?:\n|.)*?):\n+)(?P<documentation>(?:(?:\s+[\"\']{3}(?:(?:\s|.)*?)[\"|\']{3}\n+)?(?:[ \t]*?\#(?:.*?)\n+)*)*)?(?P<class_or_function_propertys>(?(is_class)((?![ \t]+def)(?:(?:.*?): *(?:.*?) *= *(?:.*?)\n)*)|(?:)))?"""
+        head_information_regex_rule = r"""(?P<class_or_function_top_defination>(?: *@(?:.*?)\n+)* *(?:\s+(?P<is_class>class)|(?P<is_function>def|async +def)) +(?:(?:\n|.)*?):\n+)(?P<documentation>(?:(?:\s+[\"\']{3}(?:(?:\s|.)*?)[\"|\']{3}\n+)?(?:[ \t]*?\#(?:.*?)\n+)*)*)?(?P<class_or_function_propertys>(?(is_class)((?![ \t]+(?:def|class) )(?:(?:.*?): *(?:.*?) *= *(?:.*?)\n)*)|(?:)))?"""
         for file in self._disk.get_files(folder=python_project_folder_path, recursive=True, type_limiter=[".py"]):
             file_name = self._disk.get_file_name(file)
             if file_name.startswith("_"):
@@ -260,9 +260,9 @@ class Python():
             for item in result_list:
                 class_or_function_top_defination = item["class_or_function_top_defination"]
 
-                function_name = class_or_function_top_defination.split(" ")[1]
-                if function_name.startswith("_"):
-                    continue
+                # function_name = class_or_function_top_defination.split(" ")[1]
+                # if function_name.startswith("_"):
+                #     continue
 
                 documentation = item['documentation']
                 # documentation = '\n'.join([one[4:] for one in documentation.split('\n')])
