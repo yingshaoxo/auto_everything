@@ -53,7 +53,7 @@ def test_selenium_6():
     if len(elements) > 0:
         element = elements[0]
         print()
-        print(element.get_attribute("aria-label"))
+        print(element.get_attribute("aria-label")) #type: ignore
 
 def test_selenium_7():
     selenium = Selenium()

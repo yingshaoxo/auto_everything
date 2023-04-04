@@ -168,3 +168,9 @@ class Selenium():
                 self.driver.execute_script("arguments[0].scrollTo(arguments[1],arguments[2]);", element, x, y) #type: ignore
             return
         raise Exception(f"You should give me the right aurguments to scroll.")
+    
+    def get_value_from_element(self, element: WebElement, attribute_key: str | None) -> str | None: 
+        if attribute_key != None:
+            return element.get_attribute(name=attribute_key) #type: ignore
+        else:
+            return element.text
