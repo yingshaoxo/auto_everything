@@ -126,3 +126,45 @@ class Selenium():
         click an element
         """
         self.driver.execute_script("arguments[0].click();", element) #type: ignore
+
+    def scroll(self, element: WebElement | str | None = None, relative_x:int|None=None, relative_y:int|None=None, x:int|None=None, y:int|None=None):
+        """
+        refer to javascript: Element.scrollBy(), Element.scrollTo(), Element.scrollIntoView()
+
+        if you only give `element` argument, it will call `scrollIntoView()`
+        if you only give `element and relative x,y` arguments, it will call `scrollBy()`
+        if you only give `element and x,y` arguments, it will call `scrollTo()`
+
+        element: 
+            the html element you found
+        relative_x: int
+            the relative x(horizontal) distance you move on top of the element if you use mouse
+        relative_y: int
+            the relative y(vertical) distance you move on top of the element if you use mouse
+        x: int
+            the absolute x(horizontal) offset you set for that scrollable element (the element is the parent container in this case)
+        y: int
+            the absolute y(vertical) offset you set for that scrollable element (the element is the parent container in this case)
+        """
+
+        if relative_x != None or relative_y != None:
+            if relative_x == None:
+                relative_x = 0
+            if relative_y == None:
+                relative_y = 0
+            if (element == None):
+                self.driver.execute_script("window.scrollBy(arguments[1],arguments[2]);", element, relative_x, relative_y) #type: ignore
+            else:
+                self.driver.execute_script("arguments[0].scrollBy(arguments[1],arguments[2]);", element, relative_x, relative_y) #type: ignore
+            return
+        if x != None or y != None:
+            if relative_x == None:
+                relative_x = 0
+            if relative_y == None:
+                relative_y = 0
+            if (element == None):
+                self.driver.execute_script("window.scrollTo(arguments[1],arguments[2]);", element, x, y) #type: ignore
+            else:
+                self.driver.execute_script("arguments[0].scrollTo(arguments[1],arguments[2]);", element, x, y) #type: ignore
+            return
+        raise Exception(f"You should give me the right aurguments to scroll.")

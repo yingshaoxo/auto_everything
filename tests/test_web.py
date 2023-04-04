@@ -1,3 +1,4 @@
+from time import sleep
 from auto_everything.web import Selenium 
 
 def test_selenium_1():
@@ -53,3 +54,37 @@ def test_selenium_6():
         element = elements[0]
         print()
         print(element.get_attribute("aria-label"))
+
+def test_selenium_7():
+    selenium = Selenium()
+    selenium.go_to(url="https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollBy")
+    elements = selenium.wait_until_elements_exists(xpath=r'//body', timeout_in_seconds=20)
+    for i in range(10):
+        selenium.scroll(relative_y=100)
+        sleep(0.5)
+    selenium.scroll(y=10000)
+    sleep(10)
+
+def test_selenium_8():
+    selenium = Selenium()
+    selenium.go_to(url="https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollBy")
+    elements = selenium.wait_until_elements_exists(xpath=r'//*[@id="sidebar-quicklinks"]', timeout_in_seconds=20)
+    if len(elements) > 0:
+        element = elements[0]
+        for i in range(10):
+            selenium.scroll(element=element, relative_y=100)
+            sleep(0.5)
+        selenium.scroll(element=element, y=10000)
+    sleep(10)
+
+def test_selenium_9():
+    selenium = Selenium()
+    selenium.go_to(url="https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollBy")
+    elements = selenium.wait_until_elements_exists(xpath=r'//html', timeout_in_seconds=20)
+    if len(elements) > 0:
+        element = elements[0]
+        for i in range(10):
+            selenium.scroll(element=element, relative_y=100)
+            sleep(0.5)
+        selenium.scroll(element=element, y=10000)
+    sleep(10)
