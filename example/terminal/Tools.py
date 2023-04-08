@@ -1,3 +1,4 @@
+#!/usr/bin/env /root/.cache/pypoetry/virtualenvs/auto-everything-ovpo7K6j-py3.10/bin/python
 #!/usr/bin/env /opt/homebrew/opt/python@3.10/bin/python3.10
 #!/usr/bin/env /Users/yingshaoxo/Library/Caches/pypoetry/virtualenvs/auto-everything-_Gc1gPdN-py3.10/bin/python
 

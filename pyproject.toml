@@ -37,6 +37,8 @@ python-telegram-bot = "^20.2"
 #speechbrain = "^0.5.13"
 #o365 = "^2.0.23"
 #paddlepaddle = "^2.4.1"
+web3 = "^6.1.0"
+tronpy = "^0.4.0"
 
 [tool.poetry.scripts]
 hi = "auto_everything._command_line_interface:_hi" # You can call 'hi' in everywhere from your terminal after you install this package

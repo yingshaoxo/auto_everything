@@ -114,6 +114,23 @@ class Ethereum_Ecosystem():
         return decode_function(#type:ignore
             TETHER_ABI, value,#type:ignore
         )#type:ignore
+    
+    def get_x_to_usdt_ratio(self, x: str) -> str | None:
+        """
+        x: string
+            a token name, something like ETH, BNB, TRX and so on
+        
+        For example, if you set x to BNB, you may get 300 as a result, it means '1BNB == 300USDT'
+        """
+        import json
+        import urllib.request
+        try:
+            raw_data_stream = urllib.request.urlopen(f"https://min-api.cryptocompare.com/data/price?fsym={x}&tsyms=USDT")
+            one_x_in_usdt = json.loads(raw_data_stream.read())["USDT"]
+            return one_x_in_usdt
+        except Exception as e:
+            print(f"error: {e}")
+            return None
 
 
 class Tron_Network():
@@ -194,6 +211,23 @@ class Tron_Network():
             print(f"error: {e}")
             return None
 
+    def get_x_to_usdt_ratio(self, x: str) -> str | None:
+        """
+        x: string
+            a token name, something like ETH, BNB, TRX and so on
+        
+        For example, if you set x to BNB, you may get 300 as a result, it means '1BNB == 300USDT'
+        """
+        import json
+        import urllib.request
+        try:
+            raw_data_stream = urllib.request.urlopen(f"https://min-api.cryptocompare.com/data/price?fsym={x}&tsyms=USDT")
+            one_x_in_usdt = json.loads(raw_data_stream.read())["USDT"]
+            return one_x_in_usdt
+        except Exception as e:
+            print(f"error: {e}")
+            return None
+
 
 if __name__ == '__main__':
     def test_bsc():
@@ -235,4 +269,5 @@ if __name__ == '__main__':
 
     # print(tron.get_deposit(from_address=account_a_address))
     # print(tron.get_transaction_detail(transaction_hash="98b1b43f664de25674ea49b8ed7a57e2949990973488e4b21ff5d152d1a6f89d", only_return_value=True))
-    print(tron.send_money(private_key_for_account_a, from_address=account_a_address, to_address=account_b_address, quantity="20", comments="yingshaoxo2"))
+    # print(tron.send_money(private_key_for_account_a, from_address=account_a_address, to_address=account_b_address, quantity="20", comments="yingshaoxo2"))
+    print(tron.get_x_to_usdt_ratio(x="trx"))
