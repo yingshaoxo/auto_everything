@@ -144,10 +144,17 @@ class Python():
         if os.path.exists(py_file_path):
             codes = self._io.read(py_file_path)
             expected_first_line = '#!/usr/bin/env {}'.format(self._t.py_executable)
-            if codes.split('\n')[0] != expected_first_line:
+            splits = codes.split('\n')
+            found = False
+            for line in splits:
+                if line == expected_first_line:
+                    found = True
+                    break
+            if found == False:
                 codes = expected_first_line + '\n' + codes
                 self._io.write(py_file_path, codes)
                 self._t.run_command('chmod +x {}'.format(py_file_path))
+
             if not self._disk.executable(py_file_path):
                 self._t.run_command('chmod +x {}'.format(py_file_path))
 
