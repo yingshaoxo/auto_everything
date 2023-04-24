@@ -14,6 +14,7 @@ import string
 from io import BytesIO
 from fnmatch import fnmatch
 import shutil
+import random
 
 from auto_everything.terminal import Terminal
 t = Terminal(debug=True)
@@ -579,6 +580,16 @@ class Disk:
 
     def get_the_temp_dir(self):
         return self.temp_dir
+
+    def get_a_temp_folder_path(self):
+        """
+        We'll add a random hash_string after the temp directory, so you can get a path like '/tmp/xxssddf'
+        """
+        m = hashlib.sha256()
+        m.update(str(datetime.datetime.now()).encode("utf-8"))
+        m.update(''.join(random.choices(string.ascii_uppercase, k=10)).encode("utf-8"))
+        temp_folder_path = os.path.join(self.temp_dir, m.hexdigest()[:27])
+        return temp_folder_path
 
     def get_a_temp_file_path(self, filename: str):
         """
