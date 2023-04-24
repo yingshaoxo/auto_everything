@@ -402,6 +402,9 @@ class Disk:
         return os.path.basename(path)
 
     def get_file_name(self, path: str):
+        """
+        /hi/you/abc.txt -> abc.txt
+        """
         return os.path.split(path)[-1]
 
     def get_hash_of_a_file(self, path: str) -> str:
