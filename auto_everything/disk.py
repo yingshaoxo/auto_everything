@@ -378,6 +378,9 @@ class Disk:
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)
         return files
+    
+    def get_absolute_path(self, path: str) -> str:
+        return os.path.abspath(path=path)
 
     def get_stem_and_suffix_of_a_file(self, path: str) -> Tuple[str, str]:
         p = Path(path)
