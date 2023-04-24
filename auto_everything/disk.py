@@ -383,6 +383,9 @@ class Disk:
         return os.path.abspath(path=path)
 
     def get_stem_and_suffix_of_a_file(self, path: str) -> Tuple[str, str]:
+        """
+        /hi/you/abc.txt -> ('abc', '.txt')
+        """
         p = Path(path)
         return p.stem, p.suffix
 
