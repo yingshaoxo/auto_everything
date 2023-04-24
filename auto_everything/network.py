@@ -7,7 +7,7 @@ import http.client as httplib
 
 from auto_everything.base import Terminal, OS
 
-t = Terminal(debug=True)
+t = Terminal(debug=False)
 os_ = OS()
 disk = Disk()
 
