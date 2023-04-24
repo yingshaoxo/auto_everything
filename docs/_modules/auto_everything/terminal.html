@@ -57,12 +57,12 @@
 
 
 <div class="viewcode-block" id="Terminal"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal">[docs]</a><span class="k">class</span> <span class="nc">Terminal</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Terminal simulator for execute bash commands</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 
 <span class="sd">        ----------</span>
@@ -141,7 +141,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fix_path</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Terminal.exists"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal.exists">[docs]</a>    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        cheack if a file or directory exists</span>
 <span class="sd">        return true is it exists</span>
 
@@ -170,7 +170,7 @@
             <span class="k">pass</span>
 
 <div class="viewcode-block" id="Terminal.run"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cwd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        run shell commands without value returning</span>
 
 <span class="sd">        Parameters</span>
@@ -310,7 +310,7 @@
     <span class="c1">#         return p</span>
 
 <div class="viewcode-block" id="Terminal.run_command"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal.run_command">[docs]</a>    <span class="k">def</span> <span class="nf">run_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> <span class="n">cwd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        run shell commands with return value</span>
 
 <span class="sd">        Parameters</span>
@@ -357,7 +357,7 @@
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Terminal.run_program"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal.run_program">[docs]</a>    <span class="k">def</span> <span class="nf">run_program</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cwd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        run shell commands, especially programs which can be started from terminal.</span>
 <span class="sd">        This function will not wait program to be finished.</span>
 
@@ -396,7 +396,7 @@
 <div class="viewcode-block" id="Terminal.run_py"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal.run_py">[docs]</a>    <span class="k">def</span> <span class="nf">run_py</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">file_path_with_command</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cwd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        run py_file</span>
 
 <span class="sd">        Parameters</span>
@@ -424,7 +424,7 @@
 <div class="viewcode-block" id="Terminal.run_sh"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal.run_sh">[docs]</a>    <span class="k">def</span> <span class="nf">run_sh</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">file_path_with_command</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cwd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        run sh_file</span>
 
 <span class="sd">        Parameters</span>
@@ -450,12 +450,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
     
     <span class="k">def</span> <span class="nf">_get_pids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        name: what&#39;s the name of that program ; string</span>
 
 <span class="sd">        get a list of pids, only available in Linux ; [string, ...]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        if self.machine_type == &quot;darwin&quot;:</span>
 <span class="sd">            # it is mac os</span>
 <span class="sd">            lines = self.run_command(f&quot;pgrep {name}&quot;).strip(&quot;\n &quot;).splits(&quot;\n&quot;)</span>
@@ -500,7 +500,7 @@
         <span class="k">return</span> <span class="n">pids</span>
 
 <div class="viewcode-block" id="Terminal.is_running"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal.is_running">[docs]</a>    <span class="k">def</span> <span class="nf">is_running</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        cheack if a program is running</span>
 
 <span class="sd">        Parameters</span>
@@ -515,7 +515,7 @@
             <span class="k">return</span> <span class="kc">False</span></div>
     
 <div class="viewcode-block" id="Terminal.is_running_by_pid"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal.is_running_by_pid">[docs]</a>    <span class="k">def</span> <span class="nf">is_running_by_pid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        cheack if a program is running by pid</span>
 
 <span class="sd">        Parameters</span>
@@ -530,7 +530,7 @@
             <span class="k">return</span> <span class="kc">False</span></div>
     
 <div class="viewcode-block" id="Terminal.kill_a_process_by_pid"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal.kill_a_process_by_pid">[docs]</a>    <span class="k">def</span> <span class="nf">kill_a_process_by_pid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">wait</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        kill a program by its pid(process id)</span>
 
 <span class="sd">        Parameters</span>
@@ -570,7 +570,7 @@
 <div class="viewcode-block" id="Terminal.kill"><a class="viewcode-back" href="../../index.html#auto_everything.terminal.Terminal.kill">[docs]</a>    <span class="k">def</span> <span class="nf">kill</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">wait</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        kill a program by its name, depends on `kill pid`</span>
 
 <span class="sd">        Parameters</span>

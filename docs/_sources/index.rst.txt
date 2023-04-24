@@ -48,6 +48,11 @@ MongoDB
 .. autoclass:: auto_everything.database.MongoDB
    :members:
 
+Redis
+===================
+.. autoclass:: auto_everything.database.Redis
+   :members:
+
 JWT_Tool
 ===================
 .. autoclass:: auto_everything.cryptography.JWT_Tool

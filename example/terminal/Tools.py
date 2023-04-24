@@ -1,5 +1,5 @@
-#!/usr/bin/env /opt/homebrew/opt/python@3.10/bin/python3.10
-#!/usr/bin/env /Users/yingshaoxo/Library/Caches/pypoetry/virtualenvs/auto-everything-_Gc1gPdN-py3.10/bin/python
+#!/usr/bin/env /usr/bin/python3
+#!/usr/bin/env /home/yingshaoxo/anaconda3/bin/python3
 
 # Run this to generate bash auto complete script: Tools -- --completion
 
@@ -21,7 +21,7 @@ def itIsWindows():
     return False
 
 class Tools():
-    def push(self, comment):
+    def push(self, comment: str):
         if "/Work/" in t.run_command("pwd"):
             t.run(f"""
             git config --global user.name "leo.wooyj"
@@ -43,7 +43,7 @@ class Tools():
             """)
             return
 
-    def parse(self, url):
+    def parse(self, url: str):
         #export accessToken=""
         if ("https://" in url):
             url = url[len("https://"):]
@@ -52,7 +52,7 @@ class Tools():
             print(result)
             t.run(f'echo "{result}" | pbcopy')
 
-    def commit(self, comment):
+    def commit(self, comment: str):
         if "/CS/" in t.run_command("pwd"):
             t.run(f"""
             git config --global user.name "yingshaoxo"
@@ -89,12 +89,12 @@ git fetch --all
 git reset --hard origin/{branch}
 """)
 
-    def merge_by_hand(self, branch_name):
+    def merge_by_hand(self, branch_name: str):
         t.run(f"""
 git merge --no-ff --no-commit origin/{branch_name}
 """)
 
-    def delete_branch(self, branch_name):
+    def delete_branch(self, branch_name: str):
         t.run(f"""
 git push origin --delete {branch_name}
 """)
@@ -109,24 +109,24 @@ git reset --mixed HEAD~1
 git reset --hard HEAD^
 """)
 
-    def delete_git_file(self, filename):
+    def delete_git_file(self, filename: str):
         t.run(f"""
 bfg --delete-files {filename}
 """)
 
-    def abort(self, comment):
+    def abort(self):
         t.run(f"""
         git merge --abort
         """)
 
-    def reset_permission(self, path):
+    def reset_permission(self, path: str):
         if path != "/":
             t.run(f"""
             sudo chown -R $(whoami):$(whoami) {path}
             sudo chmod g+rw {path}
             """)
 
-    def check(self, port=None):
+    def check(self, port:str | None=None):
         if port == None:
             t.run(f"sudo ss -antpl")
         else:
@@ -140,7 +140,7 @@ bfg --delete-files {filename}
             """)  # -gaussian-blur 0.05
     '''
 
-    def repair_disk(self, disk_name=""):
+    def repair_disk(self, disk_name: str=""):
         if disk_name != "":
             t.run(f"sudo umount {disk_name}")
             t.run(f"sudo fsck -p {disk_name}")
@@ -149,35 +149,35 @@ bfg --delete-files {filename}
             t.run(f"lsblk -p")
             t.run(f"df -hl")
 
-    def pkill(self, name):
+    def pkill(self, name: str):
         t.kill(name)
     
-    def find_port(self, port):
+    def find_port(self, port: str):
         t.run(f"""
             lsof -i:{port}
         """)
 
-    def find(self, regex_expression):
+    def find(self, regex_expression: str):
         pwd = t.run_command('pwd') #print working directory
         t.run(f"find '{pwd}' -type f | grep '{regex_expression}'")
 
-    def find_string(self, regex_expression):
+    def find_string(self, regex_expression: str):
         pwd = t.run_command('pwd')
         t.run(f"grep -r -e '{regex_expression}' '{pwd}'")
 
     def get_non_app_launch_items(self):
         items = t.run_command("launchctl list").split("\n")
-        new_items = []
+        new_items: list[str] = []
         for item in items:
             if "\tcom.apple." not in item:
                 new_items.append(item.strip().replace("\t", "    "))
         pprint(new_items)
 
-    def remove_the_stupid_macos_launch_item(self, service_name):
+    def remove_the_stupid_macos_launch_item(self, service_name: str):
         print("yeah, macos is stupid!")
         t.run(f"launchctl bootout gui/501/{service_name}")
 
-    def show_space_usage(self, path):
+    def show_space_usage(self, path: str | None):
         if path == None:
             path = t.run_command('pwd')
         #path = os.path.abspath(path)
@@ -200,12 +200,12 @@ bfg --delete-files {filename}
         go mod tidy
         """)
     
-    def my_shell(self, type=None):
+    def my_shell(self, type: str | None=None):
         if type == "x":
-            def command_line_transforming(command):
+            def command_line_transforming(command: str) -> str:
                 return "proxychains4 " + command
         else:
-            def command_line_transforming(command):
+            def command_line_transforming(command: str) -> str:
                 return command
 
         t.debug = False
@@ -243,6 +243,32 @@ bfg --delete-files {filename}
         """)
         # files = disk.get_folder_and_files(folder=".")
         # pprint(list(files))
+    
+    def stop_unnecessary_ubuntu_service(self):
+        """
+        sudo systemctl list-unit-files --type=service
+        """
+        service_name_list: list[str] = [
+            "bluetooth",
+            "com.system76.SystemUpdater",
+            "apt-daily-upgrade",
+            "apt-daily",
+            "apt-news",
+            "configure-printer",
+            "ModemManager",
+            "openvpn",
+            "openvpn@",
+            "openvpn-server@",
+            "openvpn-client@",
+            "packagekit-offline-update",
+            "packagekit-offline-update",
+        ]
+        script = ""
+        for service_name in service_name_list:
+            script += f"""
+            systemctl stop {service_name}
+            """
+        t.run(script)
 
     def hi(self):
         self.help()

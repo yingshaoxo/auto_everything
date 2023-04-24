@@ -51,7 +51,7 @@
 
 
 <div class="viewcode-block" id="IO"><a class="viewcode-back" href="../../index.html#auto_everything.io.IO">[docs]</a><span class="k">class</span> <span class="nc">IO</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is for normal IO processing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -60,7 +60,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__log_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_dir</span><span class="p">,</span> <span class="s1">&#39;.log&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="IO.make_sure_sudo_permission"><a class="viewcode-back" href="../../index.html#auto_everything.io.IO.make_sure_sudo_permission">[docs]</a>    <span class="k">def</span> <span class="nf">make_sure_sudo_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        exit if you don&#39;t have sudo permission</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getuid</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -68,7 +68,7 @@
             <span class="n">exit</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="IO.read"><a class="viewcode-back" href="../../index.html#auto_everything.io.IO.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        read text from txt file</span>
 
 <span class="sd">        Parameters</span>
@@ -81,7 +81,7 @@
         <span class="k">return</span> <span class="n">result</span></div>
 
 <div class="viewcode-block" id="IO.write"><a class="viewcode-back" href="../../index.html#auto_everything.io.IO.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        write text into txt file</span>
 
 <span class="sd">        Parameters</span>
@@ -95,7 +95,7 @@
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="IO.append"><a class="viewcode-back" href="../../index.html#auto_everything.io.IO.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        append text at the end of a txt file</span>
 
 <span class="sd">        Parameters</span>

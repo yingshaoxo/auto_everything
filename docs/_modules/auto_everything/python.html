@@ -43,6 +43,7 @@
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 
@@ -50,7 +51,7 @@
 
 
 <div class="viewcode-block" id="Python"><a class="viewcode-back" href="../../index.html#auto_everything.python.Python">[docs]</a><span class="k">class</span> <span class="nc">Python</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Python model was intended to simplify python development</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -68,13 +69,13 @@
         <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">Callable</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Python.list_python_packages"><a class="viewcode-back" href="../../index.html#auto_everything.python.Python.list_python_packages">[docs]</a>    <span class="k">def</span> <span class="nf">list_python_packages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of python packages which installed in your computer</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_os</span><span class="o">.</span><span class="n">list_python_packages</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Python.install_package"><a class="viewcode-back" href="../../index.html#auto_everything.python.Python.install_package">[docs]</a>    <span class="k">def</span> <span class="nf">install_package</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        package_name: string</span>
@@ -83,7 +84,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_os</span><span class="o">.</span><span class="n">install_python_package</span><span class="p">(</span><span class="n">package_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Python.uninstall_package"><a class="viewcode-back" href="../../index.html#auto_everything.python.Python.uninstall_package">[docs]</a>    <span class="k">def</span> <span class="nf">uninstall_package</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        package_name: string</span>
@@ -93,7 +94,7 @@
 
     <span class="k">class</span> <span class="nc">loop</span><span class="p">():</span>
         <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">thread</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+            <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            interval: inverval in seconds</span>
 <span class="sd">            new_thread: do you want to open a new thread? True/False</span>
 <span class="sd">            &quot;&quot;&quot;</span>
@@ -101,7 +102,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span>
 
         <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+            <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            func: a function which you want to run forever</span>
 <span class="sd">            &quot;&quot;&quot;</span>
 
@@ -122,7 +123,7 @@
             <span class="k">return</span> <span class="n">new_function</span>
 
 <div class="viewcode-block" id="Python.help"><a class="viewcode-back" href="../../index.html#auto_everything.python.Python.help">[docs]</a>    <span class="k">def</span> <span class="nf">help</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get help information about class or function</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">signature</span>
@@ -144,7 +145,7 @@
                     <span class="n">public_methods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">private_methods</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="n">pprint</span><span class="p">(</span><span class="n">public_methods</span><span class="p">)</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+            <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            callable_list = inspect.getmembers(object_, predicate=inspect.ismethod) + inspect.getmembers(object_,</span>
 <span class="sd">                                                                                                         predicate=inspect.isclass)</span>
 <span class="sd">            callable_list = [(one, one[1].__name__ + str(signature(one[1]))) for one in callable_list]</span>
@@ -166,14 +167,14 @@
 <span class="sd">            &quot;&quot;&quot;</span></div>
 
 <div class="viewcode-block" id="Python.fire"><a class="viewcode-back" href="../../index.html#auto_everything.python.Python.fire">[docs]</a>    <span class="k">def</span> <span class="nf">fire</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_name</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        fire is a function that will turn any Python class into a command line interface</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">fire</span> <span class="kn">import</span> <span class="n">Fire</span> <span class="c1">#type: ignore</span>
         <span class="n">Fire</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Python.make_it_runnable"><a class="viewcode-back" href="../../index.html#auto_everything.python.Python.make_it_runnable">[docs]</a>    <span class="k">def</span> <span class="nf">make_it_runnable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">py_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        make python file runnable</span>
 
 <span class="sd">        after use this function, you can run the py_file by: ./your_py_script_name.py</span>
@@ -192,7 +193,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_t</span><span class="o">.</span><span class="n">run_command</span><span class="p">(</span><span class="s1">&#39;chmod +x </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">py_file_path</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Python.make_it_global_runnable"><a class="viewcode-back" href="../../index.html#auto_everything.python.Python.make_it_global_runnable">[docs]</a>    <span class="k">def</span> <span class="nf">make_it_global_runnable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">py_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">executable_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        make python file global runnable</span>
 
 <span class="sd">        after use this function, you can run the py_file at anywhere by: your_py_script_name.py</span>
@@ -241,7 +242,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">------------------</span><span class="se">\n\n</span><span class="s2">You could run </span><span class="se">\n\n</span><span class="si">{</span><span class="n">runnable_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> -- --completion</span><span class="se">\n\n</span><span class="s2">to get bash completion scripts&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Python.print"><a class="viewcode-back" href="../../index.html#auto_everything.python.Python.print">[docs]</a>    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        print `function help info` or print `dict` with length limit (So you could see the structure easily)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
@@ -263,8 +264,96 @@
                     <span class="k">return</span> <span class="n">the_data</span>
 
             <span class="n">data</span> <span class="o">=</span> <span class="n">infinite_loop</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-            <span class="n">pprint</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
+            <span class="n">pprint</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+    
+    <span class="k">def</span> <span class="nf">_python_code_preprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">python_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        { \n } =&gt; {}</span>
+<span class="sd">        ( \n ) =&gt; ()</span>
+<span class="sd">        \&quot;\&quot;\&quot; \n \&quot;\&quot;\&quot; =&gt; add 4 space before every line</span>
+<span class="sd">        \&#39;\&#39;\&#39; \n \&#39;\&#39;\&#39; =&gt; add 4 space before every line</span>
+<span class="sd">        &gt; a remind not to touch the comments followed by a function top defination</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+    
+    <span class="k">def</span> <span class="nf">generate_documentation_for_a_python_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">python_project_folder_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">markdown_file_output_folder_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">only_generate_those_functions_that_has_docstring</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># code_block_match_rule = r&quot;&quot;&quot;(?P&lt;code_block&gt;(?:[ \t]*)(?P&lt;code_head&gt;(?:(?:(?:@(?:.*)\s+)*)*(?:(?:class)|(?:(?:async\s+)*def)))[ \t]*(?:\w+)\s*\((?:.*?)\)(?:[ \t]*-&gt;[ \t]*(?:(.*)*))?:)(?P&lt;code_body&gt;(?:\n(?:)(?:[ \t]+[^\n]*)|\n)+))&quot;&quot;&quot;</span>
+        <span class="n">head_information_regex_rule</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;(?P&lt;class_or_function_top_defination&gt;(?: *@(?:.*?)\s+)* *(?:(?P&lt;is_class&gt;class)|(?P&lt;is_function&gt;def|async +def)) +(?:(?:\n|.)*?):\n+)(?P&lt;documentation&gt;(?:(?:\s+[\&quot;\&#39;]</span><span class="si">{3}</span><span class="s2">(?:(?:\s|.)*?)[\&quot;|\&#39;]</span><span class="si">{3}</span><span class="s2">\n+)?(?:[ \t]*?\#(?:.*?)\n+)*)*)?(?P&lt;class_or_function_propertys&gt;(?(is_class)((?![ \t]+def)(?:(?:.*?): *(?:.*?) *= *(?:.*?)\n)*)|(?:)))?&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">get_files</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">python_project_folder_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">type_limiter</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;.py&quot;</span><span class="p">]):</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">get_file_name</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">file_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                <span class="k">continue</span>
 
+            <span class="n">raw_content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="n">result_list</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="n">head_information_regex_rule</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="n">raw_content</span><span class="p">)</span>
+            <span class="n">result_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;class_or_function_top_defination&#39;</span><span class="p">:</span> <span class="n">one</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s1">&#39;is_class&#39;</span><span class="p">:</span> <span class="n">one</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;class&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;is_function&#39;</span><span class="p">:</span> <span class="n">one</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;def&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;documentation&#39;</span><span class="p">:</span> <span class="n">one</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">one</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">one</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                    <span class="s1">&#39;class_or_function_propertys&#39;</span><span class="p">:</span> <span class="n">one</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+                <span class="p">}</span> 
+                <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">result_list</span>
+            <span class="p">]</span>
+
+            <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+                <span class="n">class_or_function_top_defination</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;class_or_function_top_defination&quot;</span><span class="p">]</span>
+
+                <span class="n">function_name</span> <span class="o">=</span> <span class="n">class_or_function_top_defination</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">function_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                    <span class="k">continue</span>
+
+                <span class="n">documentation</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;documentation&#39;</span><span class="p">]</span>
+                <span class="c1"># documentation = &#39;\n&#39;.join([one[4:] for one in documentation.split(&#39;\n&#39;)])</span>
+                <span class="n">is_class</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;is_class&quot;</span><span class="p">]</span>
+                <span class="n">class_or_function_propertys</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;class_or_function_propertys&quot;</span><span class="p">]</span>
+
+                <span class="n">heading_space_counting</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">class_or_function_top_defination</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s2">&quot; &quot;</span><span class="p">:</span>
+                        <span class="n">heading_space_counting</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">break</span>
+
+                <span class="n">documentation</span> <span class="o">=</span> <span class="n">documentation</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+                <span class="n">class_or_function_propertys</span> <span class="o">=</span> <span class="n">class_or_function_propertys</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="k">if</span> <span class="n">is_class</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">documentation</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_or_function_propertys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="si">{</span><span class="n">class_or_function_top_defination</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">documentation</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">class_or_function_propertys</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="n">heading_space_counting</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">4</span><span class="si">}</span><span class="s2">pass</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">documentation</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_or_function_propertys</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="si">{</span><span class="n">class_or_function_top_defination</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">documentation</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="n">heading_space_counting</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">4</span><span class="si">}</span><span class="s2">pass</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">documentation</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_or_function_propertys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="si">{</span><span class="n">class_or_function_top_defination</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">class_or_function_propertys</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="n">heading_space_counting</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">4</span><span class="si">}</span><span class="s2">pass</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">documentation</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_or_function_propertys</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="si">{</span><span class="n">class_or_function_top_defination</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="n">heading_space_counting</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">4</span><span class="si">}</span><span class="s2">pass</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+            
+            <span class="n">markdown_template</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2"># </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2"></span>
+
+<span class="s2">```python</span>
+<span class="si">{</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">```</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+            
+            <span class="n">output_file_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="o">.</span><span class="n">join_paths</span><span class="p">(</span><span class="n">markdown_file_output_folder_path</span><span class="p">,</span> <span class="n">file_name</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">)]</span> <span class="o">+</span> <span class="s2">&quot;.md&quot;</span><span class="p">)</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">_io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">output_file_path</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">markdown_template</span><span class="p">)</span></div>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">py</span> <span class="o">=</span> <span class="n">Python</span><span class="p">()</span>

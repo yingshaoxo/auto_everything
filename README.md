@@ -348,25 +348,26 @@ print(original_dict)
 
 ```python
 from auto_everything.web import Selenium
-from time import sleep
 
 my_selenium = Selenium("https://www.google.com", headless=False)
 d = my_selenium.driver
 
 # get input box
 xpath = '//*[@id="lst-ib"]'
-elements = my_selenium.wait_until_exists(xpath)
+elements = my_selenium.wait_until_elements_exists(xpath)
+if len(elements) == 0:
+    exit()
 
 # text inputing
 elements[0].send_keys('\b' * 20, "yingshaoxo")
 
 # click search button
-elements = my_selenium.wait_until_exists('//input[@value="Google Search"]')
+elements = my_selenium.wait_until_elements_exists('//input[@value="Google Search"]')
 if len(elements):
-    elements[0].click() # d.execute_script("arguments[0].click();", elements[0])
+    elements[0].click()
 
 # exit
-sleep(30)
+my_selenium.sleep(30)
 d.quit()
 ```
 

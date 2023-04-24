@@ -2,6 +2,7 @@ import time
 import threading
 import os
 import sys
+import re
 from pprint import pprint
 import copy
 
@@ -143,10 +144,17 @@ class Python():
         if os.path.exists(py_file_path):
             codes = self._io.read(py_file_path)
             expected_first_line = '#!/usr/bin/env {}'.format(self._t.py_executable)
-            if codes.split('\n')[0] != expected_first_line:
+            splits = codes.split('\n')
+            found = False
+            for line in splits:
+                if line == expected_first_line:
+                    found = True
+                    break
+            if found == False:
                 codes = expected_first_line + '\n' + codes
                 self._io.write(py_file_path, codes)
                 self._t.run_command('chmod +x {}'.format(py_file_path))
+
             if not self._disk.executable(py_file_path):
                 self._t.run_command('chmod +x {}'.format(py_file_path))
 
@@ -223,7 +231,99 @@ class Python():
 
             data = infinite_loop(data)
             pprint(data)
+    
+    # def _python_code_preprocess(self, python_code: str):
+    #     """
+    #     { \n } => {}
+    #     ( \n ) => ()
+    #     \"\"\" \n \"\"\" => add 4 space before every line
+    #     \'\'\' \n \'\'\' => add 4 space before every line
+    #     > a remind not to touch the comments followed by a function top defination
+    #     """
+    #     pass
+    
+    def generate_documentation_for_a_python_project(self, python_project_folder_path: str, markdown_file_output_folder_path: str, only_generate_those_functions_that_has_docstring: bool=True):
+        # code_block_match_rule = r"""(?P<code_block>(?:[ \t]*)(?P<code_head>(?:(?:(?:@(?:.*)\s+)*)*(?:(?:class)|(?:(?:async\s+)*def)))[ \t]*(?:\w+)\s*\((?:.*?)\)(?:[ \t]*->[ \t]*(?:(.*)*))?:)(?P<code_body>(?:\n(?:)(?:[ \t]+[^\n]*)|\n)+))"""
+        head_information_regex_rule = r"""(?P<class_or_function_top_defination>(?: *@(?:.*?)\n+)* *(?:\s+(?P<is_class>class)|(?P<is_function>def|async +def)) +(?:(?:\n|.)*?):\n+)(?P<documentation>(?:(?:\s+[\"\']{3}(?:(?:\s|.)*?)[\"|\']{3}\n+)?(?:[ \t]*?\#(?:.*?)\n+)*)*)?(?P<class_or_function_propertys>(?(is_class)((?![ \t]+(?:def|class) )(?:(?:.*?): *(?:.*?) *= *(?:.*?)\n)*)|(?:)))?"""
+        for file in self._disk.get_files(folder=python_project_folder_path, recursive=True, type_limiter=[".py"]):
+            file_name = self._disk.get_file_name(file)
+            if file_name.startswith("_"):
+                continue
 
+            raw_content = self._io.read(file)
+            result_list = re.findall(pattern=head_information_regex_rule, string=raw_content)
+            result_list = [
+                {
+                    'class_or_function_top_defination': one[0],
+                    'is_class': one[1] == 'class',
+                    'is_function': one[2] == 'def',
+                    'documentation': one[3][0] if len(one[3]) == 1 else one[3],
+                    'class_or_function_propertys': one[4]
+                } 
+                for one in result_list
+            ]
+
+            text = ""
+            for item in result_list:
+                class_or_function_top_defination = item["class_or_function_top_defination"]
+
+                # function_name = class_or_function_top_defination.split(" ")[1]
+                # if function_name.startswith("_"):
+                #     continue
+
+                documentation = item['documentation']
+                # documentation = '\n'.join([one[4:] for one in documentation.split('\n')])
+                is_class = item["is_class"]
+                class_or_function_propertys = item["class_or_function_propertys"]
+
+                heading_space_counting = 0
+                for char in class_or_function_top_defination:
+                    if char == " ":
+                        heading_space_counting += 1
+                    else:
+                        break
+
+                documentation = documentation.rstrip()
+                if only_generate_those_functions_that_has_docstring == True:
+                    if len(documentation.strip()) == 0:
+                        continue
+                class_or_function_propertys = class_or_function_propertys.rstrip() if is_class else ''
+
+                if len(documentation.strip()) != 0 and len(class_or_function_propertys) != 0:
+                    text += f"""
+{class_or_function_top_defination.rstrip()}
+{documentation.rstrip()}
+{class_or_function_propertys}
+{' ' * heading_space_counting + ' ' * 4}pass
+                    """
+                elif len(documentation.strip()) != 0 and len(class_or_function_propertys) == 0:
+                    text += f"""
+{class_or_function_top_defination.rstrip()}
+{documentation.rstrip()}
+{' ' * heading_space_counting + ' ' * 4}pass
+                    """
+                elif len(documentation.strip()) == 0 and len(class_or_function_propertys) != 0:
+                    text += f"""
+{class_or_function_top_defination.rstrip()}
+{class_or_function_propertys}
+{' ' * heading_space_counting + ' ' * 4}pass
+                    """
+                elif len(documentation.strip()) == 0 and len(class_or_function_propertys) == 0:
+                    text += f"""
+{class_or_function_top_defination.rstrip()}
+{' ' * heading_space_counting + ' ' * 4}pass
+                    """
+            
+            markdown_template = f"""
+# {file_name}
+
+```python
+{text.strip()}
+```
+            """
+            
+            output_file_path = self._disk.join_paths(markdown_file_output_folder_path, file_name[:-len(".py")] + ".md") 
+            self._io.write(file_path=output_file_path, content=markdown_template)
 
 if __name__ == "__main__":
     py = Python()

@@ -75,7 +75,7 @@
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">_FileInfo</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Data Class for a single file returned by get_files().&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Data Class for a single file returned by get_files().&quot;&quot;&quot;</span>
     <span class="n">path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">is_folder</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="n">is_file</span><span class="p">:</span> <span class="nb">bool</span>
@@ -87,7 +87,7 @@
 
 
 <div class="viewcode-block" id="Disk"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Disk">[docs]</a><span class="k">class</span> <span class="nc">Disk</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Some useful functions to handle your disk</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -107,7 +107,7 @@
         <span class="k">return</span> <span class="n">new_path</span>
 
 <div class="viewcode-block" id="Disk.exists"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Disk.exists">[docs]</a>    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if a file or folder exist.</span>
 
 <span class="sd">        Parameters</span>
@@ -119,7 +119,7 @@
         <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span></div>
     
 <div class="viewcode-block" id="Disk.is_directory"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Disk.is_directory">[docs]</a>    <span class="k">def</span> <span class="nf">is_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if it is a folder.</span>
 
 <span class="sd">        Parameters</span>
@@ -177,7 +177,7 @@
         <span class="n">type_limiter</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
         <span class="n">gitignore_text</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get files recursively under a folder.</span>
 
 <span class="sd">        Parameters</span>
@@ -243,7 +243,7 @@
         <span class="n">type_limiter</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">gitignore_text</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">_FileInfo</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get files recursively under a folder.</span>
 
 <span class="sd">        Parameters</span>
@@ -341,7 +341,7 @@
         <span class="n">type_limiter</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">gitignore_text</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_FileInfo</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get files recursively under a folder.</span>
 
 <span class="sd">        Parameters</span>
@@ -430,7 +430,7 @@
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Disk.get_hash_of_a_file"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Disk.get_hash_of_a_file">[docs]</a>    <span class="k">def</span> <span class="nf">get_hash_of_a_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        calculate the blake2s hash string based on the bytes of a file.</span>
 
 <span class="sd">        Parameters</span>
@@ -449,7 +449,7 @@
         <span class="k">return</span> <span class="n">file_hash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Disk.get_hash_of_a_path"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Disk.get_hash_of_a_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_hash_of_a_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        calculate the blake2s hash string based on path name.</span>
 
 <span class="sd">        Parameters</span>
@@ -462,7 +462,7 @@
         <span class="k">return</span> <span class="n">file_hash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Disk.get_safe_name"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Disk.get_safe_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_safe_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">replace_chars</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get a valid file name by doing a replacement. (English only)</span>
 
 <span class="sd">        Parameters</span>
@@ -498,7 +498,7 @@
 <div class="viewcode-block" id="Disk.get_file_size"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Disk.get_file_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_file_size</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="n">bytes_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get file size in the unit of  B, KB, MB.</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -522,7 +522,7 @@
             <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:.0f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bytes_size</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">)))</span></div>
 
 <div class="viewcode-block" id="Disk.uncompress"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Disk.uncompress">[docs]</a>    <span class="k">def</span> <span class="nf">uncompress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        uncompress a file.</span>
 
 <span class="sd">        Parameters</span>
@@ -557,7 +557,7 @@
             <span class="k">raise</span> <span class="n">e</span></div>
 
 <div class="viewcode-block" id="Disk.compress"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Disk.compress">[docs]</a>    <span class="k">def</span> <span class="nf">compress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        compress a files to a target.</span>
 
 <span class="sd">        Parameters</span>
@@ -579,7 +579,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_dir</span>
 
 <div class="viewcode-block" id="Disk.get_a_temp_file_path"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Disk.get_a_temp_file_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_a_temp_file_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        We&#39;ll add a hash_string before the filename, so you can use this file path without any worry</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">m</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
@@ -663,7 +663,7 @@
 
 
 <div class="viewcode-block" id="Store"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Store">[docs]</a><span class="k">class</span> <span class="nc">Store</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A key-value store.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -696,7 +696,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_sql_cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sql_conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sql_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_store_name</span><span class="si">}</span>
+            <span class="sa">f</span><span class="s2">&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_store_name</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">                    (key TEXT, value TEXT)&quot;&quot;&quot;</span>
         <span class="p">)</span>
 
@@ -723,7 +723,7 @@
         <span class="k">return</span> <span class="n">value</span>
 
 <div class="viewcode-block" id="Store.get_items"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Store.get_items">[docs]</a>    <span class="k">def</span> <span class="nf">get_items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get all key and value tuple in the store</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">rows</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -734,7 +734,7 @@
         <span class="k">return</span> <span class="n">rows</span></div>
 
 <div class="viewcode-block" id="Store.has_key"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Store.has_key">[docs]</a>    <span class="k">def</span> <span class="nf">has_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        check if a key exist in the store</span>
 
 <span class="sd">        Parameters</span>
@@ -752,7 +752,7 @@
             <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Store.get"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Store.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default_value</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get a value by using a key</span>
 
 <span class="sd">        Parameters</span>
@@ -772,7 +772,7 @@
             <span class="k">return</span> <span class="n">default_value</span></div>
 
 <div class="viewcode-block" id="Store.set"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Store.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        set a value by using a key</span>
 
 <span class="sd">        Parameters</span>
@@ -793,7 +793,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_sql_conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Store.delete"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Store.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        delete a value by using a key</span>
 
 <span class="sd">        Parameters</span>
@@ -810,7 +810,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_sql_conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Store.reset"><a class="viewcode-back" href="../../index.html#auto_everything.disk.Store.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        empty the store</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sql_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DELETE FROM </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_store_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -818,14 +818,14 @@
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    from pprint import pprint</span>
 <span class="sd">    disk = Disk()</span>
 <span class="sd">    files = disk.get_files(os.path.abspath(&quot;..&quot;))</span>
 <span class="sd">    files = disk.sort_files_by_time(files)</span>
 <span class="sd">    pprint(files)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    store = Store(&quot;test&quot;)</span>
 <span class="sd">    store.set(&quot;o&quot;, &quot;2&quot;)</span>
 <span class="sd">    print(store.get_items())</span>

@@ -13,6 +13,8 @@ import unicodedata
 import string
 from io import BytesIO
 from fnmatch import fnmatch
+import shutil
+import random
 
 from auto_everything.terminal import Terminal
 t = Terminal(debug=True)
@@ -376,16 +378,36 @@ class Disk:
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)
         return files
+    
+    def get_absolute_path(self, path: str) -> str:
+        return os.path.abspath(path=path)
 
     def get_stem_and_suffix_of_a_file(self, path: str) -> Tuple[str, str]:
+        """
+        /hi/you/abc.txt -> ('abc', '.txt')
+        """
         p = Path(path)
         return p.stem, p.suffix
 
-    def get_directory_name(self, path: str):
+    def get_directory_path(self, path: str):
+        """
+        /hi/you/abc.txt -> /hi/you
+        """
         path = self._expand_user(path)
         return os.path.dirname(path)
+    
+    def get_directory_name(self, path: str):
+        """
+        /hi/you/abc.txt -> you
+        """
+        path = self._expand_user(path)
+        path = os.path.dirname(path)
+        return os.path.basename(path)
 
     def get_file_name(self, path: str):
+        """
+        /hi/you/abc.txt -> abc.txt
+        """
         return os.path.split(path)[-1]
 
     def get_hash_of_a_file(self, path: str) -> str:
@@ -480,62 +502,103 @@ class Disk:
         elif level == "MB":
             return int("{:.0f}".format(bytes_size / float(1 << 20)))
 
-    def uncompress(self, path: str, folder: str) -> bool:
+    def compress(self, input_folder_path: str, output_zip_path: str, file_format: str = "zip"):
+        """
+        compress files to a target.
+
+        Parameters
+        ----------
+        input_folder_path: string
+            the input folder for compressing
+        output_zip_path: string
+            the compressed output file path, like *.zip
+        file_format: string
+            “zip”, “tar”, “gztar”, “bztar”, or “xztar”
+        """
+        input_folder_path = self._expand_user(input_folder_path)
+        output_zip_path = self._expand_user(output_zip_path)
+
+        if not self.exists(input_folder_path):
+            raise Exception(f"The input_folder_path '{input_folder_path}' should exists.")
+        if not self.is_directory(input_folder_path):
+            raise Exception(f"The input_folder_path '{input_folder_path}' should be an folder.")
+        
+        output_folder = self.get_directory_path(output_zip_path)
+        self.create_a_folder(folder_path=output_folder)
+
+        pure_output_zip_base_name, suffix = self.get_stem_and_suffix_of_a_file(output_zip_path)
+        shutil.make_archive(
+            root_dir=input_folder_path,
+            base_dir='./',
+            base_name=self.join_paths(output_folder, pure_output_zip_base_name),
+            format=file_format
+        )
+        # t.run(f"zip -r -D {target} {' '.join(paths)}")
+
+    def uncompress(self, compressed_file_path: str, extract_folder_path: str, file_format: str = "zip") -> bool:
         """
         uncompress a file.
 
         Parameters
         ----------
-        path: string
+        compressed_file_path: string
             the compressed file path
-        folder: string
-            where you want to put the uncompressed files into
+        extract_folder_path: string
+            a folder where you want to put the uncompressed files into
+        file_format: string
+            “zip”, “tar”, “gztar”, “bztar”, or “xztar”
         """
-        path = self._expand_user(path)
-        folder = self._expand_user(folder)
-        assert self.exists(path), f"{path} was not exist"
-
-        t.run(f"rm {folder} -fr")
-        t.run(f"mkdir -p {folder}")
-        assert self.exists(folder), f"{folder} was not exit"
         try:
-            suffix = Path(path).suffix
-            if suffix == ".zip":
-                t.run(f"unzip '{path}' -d '{folder}'")
-                if len(os.listdir(folder)) == 1:
-                    t.run(f"cd '{folder}' && cd * && mv * .. -f")
-            elif suffix == ".gz":
-                t.run(f"tar zxfv '{path}' --directory '{folder}' --strip-components=1")
-                if len(os.listdir(folder)) == 0:
-                    t.run(f"tar zxfv '{path}' --directory '{folder}'")
-            if len(os.listdir(folder)):
-                return True
-            else:
-                return False
+            compressed_file_path = self._expand_user(compressed_file_path)
+            extract_folder_path = self._expand_user(extract_folder_path)
+
+            if not self.exists(compressed_file_path):
+                raise Exception(f"The compressed_file_path '{compressed_file_path}' should exists.")
+            if not self.exists(extract_folder_path):
+                self.create_a_folder(folder_path=extract_folder_path)
+
+            shutil.unpack_archive(filename=compressed_file_path, extract_dir=extract_folder_path, format=file_format)
+
+            return True
         except Exception as e:
-            raise e
+            print(f"error: {e}")
+            return False
+        # path = self._expand_user(path)
+        # folder = self._expand_user(folder)
+        # assert self.exists(path), f"{path} was not exist"
 
-    def compress(self, paths: List[str], target: str):
-        """
-        compress a files to a target.
-
-        Parameters
-        ----------
-        paths: string of list
-        target: string
-            the compressed output file path
-        """
-        paths = [self._expand_user(path) for path in paths]
-        target = self._expand_user(target)
-        t.run(f"rm {target}")
-        for i, path in enumerate(paths):
-            if not self.exists(path):
-                raise Exception(f"{path} is not exist")
-            paths[i] = f'"{path}"'
-        t.run(f"zip -r -D {target} {' '.join(paths)}")
+        # t.run(f"rm {folder} -fr")
+        # t.run(f"mkdir -p {folder}")
+        # assert self.exists(folder), f"{folder} was not exit"
+        # try:
+        #     suffix = Path(path).suffix
+        #     if suffix == ".zip":
+        #         t.run(f"unzip '{path}' -d '{folder}'")
+        #         if len(os.listdir(folder)) == 1:
+        #             t.run(f"cd '{folder}' && cd * && mv * .. -f")
+        #     elif suffix == ".gz":
+        #         t.run(f"tar zxfv '{path}' --directory '{folder}' --strip-components=1")
+        #         if len(os.listdir(folder)) == 0:
+        #             t.run(f"tar zxfv '{path}' --directory '{folder}'")
+        #     if len(os.listdir(folder)):
+        #         return True
+        #     else:
+        #         return False
+        # except Exception as e:
+        #     raise e
 
     def get_the_temp_dir(self):
         return self.temp_dir
+
+    def get_a_temp_folder_path(self):
+        """
+        We'll add a random hash_string after the temp directory, so you can get a path like '/tmp/xxssddf'
+        """
+        m = hashlib.sha256()
+        m.update(str(datetime.datetime.now()).encode("utf-8"))
+        m.update(''.join(random.choices(string.ascii_uppercase, k=10)).encode("utf-8"))
+        temp_folder_path = os.path.join(self.temp_dir, m.hexdigest()[:27])
+        return temp_folder_path
 
     def get_a_temp_file_path(self, filename: str):
         """

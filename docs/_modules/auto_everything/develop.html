@@ -58,7 +58,7 @@
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">generate_python_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">python</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">input_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">input_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">output_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;generated_grpc&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        python: like python3, python3.10 and so on...</span>
 
 <span class="sd">        input_folder: where protobuff files was located</span>
@@ -109,13 +109,13 @@
 
         <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        mkdir -p </span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span>
+<span class="s2">        mkdir -p </span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">        </span><span class="si">{</span><span class="n">python</span><span class="si">}</span><span class="s2"> -m grpc_tools.protoc --proto_path &#39;</span><span class="si">{</span><span class="n">input_folder</span><span class="si">}</span><span class="s2">&#39; --python_betterproto_out=&#39;</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2">&#39; &#39;</span><span class="si">{</span><span class="n">input_command</span><span class="si">}</span><span class="s2">&#39;</span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
         <span class="c1">#--experimental_allow_proto3_optional</span>
 
     <span class="k">def</span> <span class="nf">generate_golang_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">input_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">output_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;generated_grpc&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        input_folder: where protobuff files was located</span>
 
 <span class="sd">        input_files: it is a list, like [&quot;english.proto&quot;, &quot;pornhub.proto&quot;]</span>
@@ -145,13 +145,13 @@
         
         <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        mkdir -p </span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span>
-<span class="s2">        protoc --proto_path &#39;</span><span class="si">{</span><span class="n">input_folder</span><span class="si">}</span><span class="s2">&#39; --go_out=&#39;</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2">&#39; --go-grpc_out=&#39;</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2">&#39; </span><span class="si">{</span><span class="n">input_command</span><span class="si">}</span>
+<span class="s2">        mkdir -p </span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        protoc --proto_path &#39;</span><span class="si">{</span><span class="n">input_folder</span><span class="si">}</span><span class="s2">&#39; --go_out=&#39;</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2">&#39; --go-grpc_out=&#39;</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2">&#39; </span><span class="si">{</span><span class="n">input_command</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">        &quot;&quot;&quot;</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">generate_dart_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">input_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">output_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;lib/generated_grpc&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        input_folder: where protobuff files was located</span>
 
 <span class="sd">        input_files: it is a list, like [&quot;english.proto&quot;, &quot;pornhub.proto&quot;]</span>
@@ -182,14 +182,14 @@
         <span class="c1"># dart pub global activate protoc_plugin</span>
         <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        mkdir -p </span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span>
+<span class="s2">        mkdir -p </span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">        export PATH=&quot;$PATH&quot;:&quot;$HOME/.pub-cache/bin&quot;</span>
-<span class="s2">        protoc --proto_path &#39;</span><span class="si">{</span><span class="n">input_folder</span><span class="si">}</span><span class="s2">&#39; --dart_out=grpc:</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">input_command</span><span class="si">}</span>
+<span class="s2">        protoc --proto_path &#39;</span><span class="si">{</span><span class="n">input_folder</span><span class="si">}</span><span class="s2">&#39; --dart_out=grpc:</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">input_command</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">        &quot;&quot;&quot;</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">generate_typescript_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">input_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">project_root_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;src/generated_grpc&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        input_folder: where protobuff files was located</span>
 
 <span class="sd">        input_files: it is a list, like [&quot;english.proto&quot;, &quot;pornhub.proto&quot;]</span>
@@ -221,7 +221,7 @@
         <span class="n">input_folder</span> <span class="o">=</span> <span class="n">input_folder</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
 
         <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">cd </span><span class="si">{</span><span class="n">project_root_folder</span><span class="si">}</span>
+<span class="s2">cd </span><span class="si">{</span><span class="n">project_root_folder</span><span class="si">}</span><span class="s2"></span>
 
 <span class="s2">yarn add grpc-tools --ignore-scripts -D</span>
 <span class="s2">yarn add ts-protoc-gen@next -D</span>
@@ -246,7 +246,7 @@
         
         <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">mkdir -p </span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span>
+<span class="s2">mkdir -p </span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2"></span>
 
 <span class="s2"># --js_out=&quot;import_style=commonjs,binary:</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2">&quot; </span><span class="se">\</span>
 
@@ -256,7 +256,7 @@
 <span class="s2">    --plugin=&quot;protoc-gen-grpc=</span><span class="si">{</span><span class="n">project_root_folder</span><span class="si">}</span><span class="s2">/node_modules/.bin/grpc_tools_node_protoc_plugin&quot; </span><span class="se">\</span>
 <span class="s2">    --ts_out=&quot;service=grpc-web,mode=grpc-js:</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2">&quot; </span><span class="se">\</span>
 <span class="s2">    --grpc_out=&quot;grpc_js:</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s2">&quot; </span><span class="se">\</span>
-<span class="s2">    </span><span class="si">{</span><span class="n">input_command</span><span class="si">}</span>
+<span class="s2">    </span><span class="si">{</span><span class="n">input_command</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_raw_data_from_proto_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proto_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -287,7 +287,7 @@
     
     <span class="k">def</span> <span class="nf">generate_key_string_map_from_protocols</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">for_which_language</span><span class="p">:</span><span class="nb">str</span> <span class="p">,</span> <span class="n">input_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">input_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">output_folder</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;grpc_key_string_maps&quot;</span><span class="p">):</span>
         <span class="c1">#your name</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        for_which_language: &#39;rust&#39;, &#39;python&#39;, &#39;kotlin&#39;, &#39;go&#39;...</span>
 
 <span class="sd">        input_folder: where protobuff files was located</span>
@@ -333,22 +333,22 @@
                     
                     <span class="n">sub_class_container_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">class </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">:</span>
-<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span>
-<span class="s2">    __property_list__: List[str] = [</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="n">one</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">one</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">value</span><span class="p">])</span><span class="si">}</span><span class="s2">]</span>
+<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">    __property_list__: List[str] = [</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="n">one</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span> <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">value</span><span class="p">])</span><span class="si">}</span><span class="s2">]</span>
 <span class="s2">                    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
 
                 <span class="n">sub_class_container_list_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sub_class_container_list</span><span class="p">)</span>
                 <span class="n">python_code</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">from typing import List</span>
 
-<span class="si">{</span><span class="n">sub_class_container_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">sub_class_container_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
 
                 <span class="n">io_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">target_file_path</span><span class="p">,</span> <span class="n">python_code</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">for_which_language</span> <span class="o">==</span> <span class="s2">&quot;rust&quot;</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
                 <span class="n">data_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data_from_proto_file</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+                <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                    (VoiceRequest, [&#39;uuid&#39;, &#39;timestamp&#39;, &#39;voice&#39;])</span>
 <span class="sd">                    (VoiceReply, [&#39;uuid&#39;, &#39;timestamp&#39;, &#39;voice&#39;])</span>
 <span class="sd">                &quot;&quot;&quot;</span>
@@ -358,17 +358,17 @@
                 <span class="n">kotlin_code</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">kotlin_code</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="se">\n</span>
-<span class="s2">pub struct </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
-<span class="se">}}</span>
+<span class="se">\n</span><span class="s2"></span>
+<span class="s2">pub struct </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 <span class="s2">                    &quot;&quot;&quot;</span>
 
                     <span class="n">property_text</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;    pub const </span><span class="si">{</span><span class="n">one</span><span class="si">}</span><span class="s1">: &amp;str = &quot;</span><span class="si">{</span><span class="n">one</span><span class="si">}</span><span class="s1">&quot;;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">value</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
                     <span class="n">kotlin_code</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">impl </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
-<span class="s2">    </span><span class="si">{</span><span class="n">property_text</span><span class="si">}</span>
-<span class="se">}}</span>
+<span class="s2">impl </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{</span><span class="n">property_text</span><span class="si">}</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 <span class="s2">                    &quot;&quot;&quot;</span>
                 <span class="n">kotlin_code</span> <span class="o">=</span> <span class="n">kotlin_code</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
                 <span class="n">io_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">target_file_path</span><span class="p">,</span> <span class="n">kotlin_code</span><span class="p">)</span>
@@ -395,24 +395,24 @@
                     <span class="n">variable_list_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">variable_list</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
                     
                     <span class="n">sub_class_container_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            class </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
-<span class="s2">                companion object </span><span class="se">{{</span>
+<span class="s2">            class </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">                companion object </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                    @JvmField </span>
-<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span>
-<span class="s2">                    val __property_list__: List&lt;String&gt; = listOf(</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="n">one</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">one</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">value</span><span class="p">])</span><span class="si">}</span><span class="s2">)</span>
-<span class="s2">                </span><span class="se">}}</span>
-<span class="s2">            </span><span class="se">}}</span>
+<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">                    val __property_list__: List&lt;String&gt; = listOf(</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="n">one</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span> <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">value</span><span class="p">])</span><span class="si">}</span><span class="s2">)</span>
+<span class="s2">                </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">                    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
 
                 <span class="n">sub_class_container_list_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sub_class_container_list</span><span class="p">)</span>
                 <span class="n">kotlin_code</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">package grpc_key_string_maps</span>
 
-<span class="s2">class </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">_key_string_maps </span><span class="se">{{</span>
-<span class="s2">    companion object </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">sub_class_container_list_text</span><span class="si">}</span>
-<span class="s2">    </span><span class="se">}}</span>
-<span class="se">}}</span>
+<span class="s2">class </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">_key_string_maps </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">    companion object </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">sub_class_container_list_text</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 <span class="s2">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
 
                 <span class="c1"># var __column_key_list: List&lt;String&gt; = listOf&lt;String&gt;()</span>
@@ -431,14 +431,14 @@
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">struct_property_declaration_list</span> <span class="o">=</span> <span class="p">[</span>
                         <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    </span><span class="si">{</span><span class="n">one</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">one</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">    string</span>
+<span class="s2">    </span><span class="si">{</span><span class="n">one</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="n">one</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">    string</span>
 <span class="s2">                        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">value</span>
                     <span class="p">]</span>
                     <span class="n">struct_property_declaration_list_text</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">struct_property_declaration_list</span><span class="p">)</span>
 
                     <span class="n">struct_property_real_value_list</span> <span class="o">=</span> <span class="p">[</span>
                         <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    </span><span class="si">{</span><span class="n">one</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">one</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">:    &quot;</span><span class="si">{</span><span class="n">one</span><span class="si">}</span><span class="s2">&quot;,</span>
+<span class="s2">    </span><span class="si">{</span><span class="n">one</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="n">one</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">:    &quot;</span><span class="si">{</span><span class="n">one</span><span class="si">}</span><span class="s2">&quot;,</span>
 <span class="s2">                        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">value</span>
                     <span class="p">]</span>
                     <span class="n">struct_property_real_value_list_text</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">struct_property_real_value_list</span><span class="p">)</span>
@@ -447,14 +447,14 @@
 <span class="s1">        &quot;</span><span class="si">{</span><span class="n">one</span><span class="si">}</span><span class="s1">&quot;,</span>
 <span class="s1">                    &#39;&#39;&#39;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">value</span><span class="p">])</span>
                     <span class="n">one_part</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">var </span><span class="si">{</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2"> = struct </span><span class="se">{{</span><span class="si">{</span><span class="n">struct_property_declaration_list_text</span><span class="si">}</span>
+<span class="s2">var </span><span class="si">{</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2"> = struct </span><span class="se">{{</span><span class="si">{</span><span class="n">struct_property_declaration_list_text</span><span class="si">}</span><span class="s2"></span>
 
 <span class="s2">    Column_key_list__    []string</span>
-<span class="se">}}</span><span class="s2"> </span><span class="se">{{</span><span class="si">{</span><span class="n">struct_property_real_value_list_text</span><span class="si">}</span>
+<span class="se">}}</span><span class="s2"> </span><span class="se">{{</span><span class="si">{</span><span class="n">struct_property_real_value_list_text</span><span class="si">}</span><span class="s2"></span>
 
-<span class="s2">    Column_key_list__:    []string</span><span class="se">{{</span><span class="si">{</span><span class="n">column_key_list_text</span><span class="si">}</span>
+<span class="s2">    Column_key_list__:    []string</span><span class="se">{{</span><span class="si">{</span><span class="n">column_key_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">    </span><span class="se">}}</span><span class="s2">,</span>
-<span class="se">}}</span>
+<span class="se">}}</span><span class="s2"></span>
 <span class="s2">                    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
                     <span class="n">sub_class_container_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">one_part</span><span class="p">)</span>
                 <span class="n">sub_class_container_list_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sub_class_container_list</span><span class="p">)</span>
@@ -462,7 +462,7 @@
                 <span class="n">template</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">package </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">_grpc_key_string_maps</span>
 
-<span class="si">{</span><span class="n">sub_class_container_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">sub_class_container_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
                 <span class="c1"># var Column_key_list__: List&lt;String&gt; = listOf&lt;String&gt;()</span>
@@ -654,7 +654,7 @@
 
                 <span class="n">enum_class_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">class </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">(Enum):</span>
-<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
                 <span class="n">enum_code_block_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">enum_class_text</span><span class="p">)</span>
@@ -700,15 +700,15 @@
                 <span class="n">dataclass_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">@dataclass()</span>
 <span class="s2">class </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">(YRPC_OBJECT_BASE_CLASS):</span>
-<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span><span class="s2"></span>
 
-<span class="s2">    _property_name_to_its_type_dict = </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">property_name_to_its_type_dict_variable_list_text</span><span class="si">}</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    _property_name_to_its_type_dict = </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">property_name_to_its_type_dict_variable_list_text</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 
 <span class="s2">    @dataclass()</span>
 <span class="s2">    class _key_string_dict:</span>
-<span class="si">{</span><span class="n">key_string_dict_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">key_string_dict_list_text</span><span class="si">}</span><span class="s2"></span>
 
 <span class="s2">    def from_dict(self, dict: dict[str, Any]):</span>
 <span class="s2">        new_variable: </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> = super().from_dict(dict)</span>
@@ -737,7 +737,7 @@
 <span class="s2">            new_list.append(convert_dict_that_has_enum_object_into_pure_dict(value=one)) </span>
 <span class="s2">        return new_list</span>
 <span class="s2">    elif type(value) is dict:</span>
-<span class="s2">        new_dict: dict[str, Any] = </span><span class="se">{{}}</span>
+<span class="s2">        new_dict: dict[str, Any] = </span><span class="se">{{}}</span><span class="s2"></span>
 <span class="s2">        for key_, value_ in value.items(): #type: ignore</span>
 <span class="s2">            new_dict[key_] = convert_dict_that_has_enum_object_into_pure_dict(value=value_) #type: ignore</span>
 <span class="s2">        return new_dict</span>
@@ -793,7 +793,7 @@
 
 <span class="s2">class YRPC_OBJECT_BASE_CLASS:</span>
 <span class="s2">    def to_dict(self, ignore_null: bool=False) -&gt; dict[str, Any]:</span>
-<span class="s2">        old_dict = </span><span class="se">{{}}</span>
+<span class="s2">        old_dict = </span><span class="se">{{}}</span><span class="s2"></span>
 <span class="s2">        for key in self._property_name_to_its_type_dict.keys(): #type: ignore</span>
 <span class="s2">            old_dict[key] = self.__dict__[key] #type: ignore</span>
 <span class="s2">        new_dict = convert_dict_that_has_enum_object_into_pure_dict(value=old_dict.copy())</span>
@@ -813,10 +813,10 @@
 <span class="s2">        return copy.deepcopy(self)</span>
 
 
-<span class="si">{</span><span class="n">enum_code_block_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">enum_code_block_list_text</span><span class="si">}</span><span class="s2"></span>
 
 <span class="s2">        </span>
-<span class="si">{</span><span class="n">dataclass_code_block_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">dataclass_code_block_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">template_text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
@@ -835,15 +835,16 @@
                 <span class="n">output_variable</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s+&quot;</span><span class="p">,</span> <span class="n">output_variable</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
 
             <span class="n">service_class_function_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    async def </span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">(self, item: </span><span class="si">{</span><span class="n">input_variable</span><span class="si">}</span><span class="s2">) -&gt; </span><span class="si">{</span><span class="n">output_variable</span><span class="si">}</span><span class="s2">:</span>
+<span class="s2">    async def </span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">(self, headers: dict[str, str], item: </span><span class="si">{</span><span class="n">input_variable</span><span class="si">}</span><span class="s2">) -&gt; </span><span class="si">{</span><span class="n">output_variable</span><span class="si">}</span><span class="s2">:</span>
 <span class="s2">        return </span><span class="si">{</span><span class="n">output_variable</span><span class="si">}</span><span class="s2">()</span>
 <span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
 
             <span class="n">service_api_function_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">    @router.post(&quot;/</span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">/&quot;, tags=[&quot;</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">&quot;])</span>
-<span class="s2">    async def </span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">(item: </span><span class="si">{</span><span class="n">input_variable</span><span class="si">}</span><span class="s2">) -&gt; </span><span class="si">{</span><span class="n">output_variable</span><span class="si">}</span><span class="s2">:</span>
+<span class="s2">    async def </span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">(request: Request, item: </span><span class="si">{</span><span class="n">input_variable</span><span class="si">}</span><span class="s2">) -&gt; </span><span class="si">{</span><span class="n">output_variable</span><span class="si">}</span><span class="s2">:</span>
 <span class="s2">        item = </span><span class="si">{</span><span class="n">input_variable</span><span class="si">}</span><span class="s2">().from_dict(item.to_dict())</span>
-<span class="s2">        return (await service_instance.</span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">(item)).to_dict()</span>
+<span class="s2">        headers = dict(request.headers.items())</span>
+<span class="s2">        return (await service_instance.</span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">(headers, item)).to_dict()</span>
 <span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
 
         
@@ -854,7 +855,7 @@
 <span class="s2">from .</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">_objects import *</span>
 
 
-<span class="s2">from fastapi import APIRouter, FastAPI</span>
+<span class="s2">from fastapi import APIRouter, FastAPI, Request</span>
 <span class="s2">from fastapi.staticfiles import StaticFiles</span>
 <span class="s2">from starlette.responses import FileResponse </span>
 <span class="s2">from fastapi.middleware.cors import CORSMiddleware</span>
@@ -866,11 +867,11 @@
 
 
 <span class="s2">class Service_</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">:</span>
-<span class="si">{</span><span class="n">service_class_function_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">service_class_function_list_text</span><span class="si">}</span><span class="s2"></span>
 
 
 <span class="s2">def init(service_instance: Any):</span>
-<span class="si">{</span><span class="n">service_api_function_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">service_api_function_list_text</span><span class="si">}</span><span class="s2"></span>
 
 
 <span class="s2">def run(service_instance: Any, port: str, html_folder_path: str=&quot;&quot;, serve_html_under_which_url: str=&quot;/&quot;):</span>
@@ -936,9 +937,9 @@
                 <span class="n">variable_list_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">variable_list</span><span class="p">)</span>
 
                 <span class="n">enum_class_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">enum </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span>
-<span class="se">}}</span>
+<span class="s2">enum </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 <span class="s2">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
                 <span class="n">enum_code_block_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">enum_class_text</span><span class="p">)</span>
@@ -975,7 +976,7 @@
 <span class="s2">                        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
                     
                     <span class="n">constructor_variable_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                    this.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span>
+<span class="s2">                    this.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">                    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
 
                     <span class="n">property_name_to_its_type_dict_variable_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
@@ -1012,7 +1013,7 @@
                     <span class="k">if</span> <span class="n">is_enum</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">is_list</span><span class="p">:</span>
                             <span class="n">from_dict_function_variable_list_1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    this.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> = json[&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;]?.map((e1) </span><span class="se">{{</span>
+<span class="s2">    this.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> = json[&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;]?.map((e1) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">      return </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2">.values</span>
 <span class="s2">                  .map((e2) =&gt; e2.name)</span>
 <span class="s2">                  .toList()</span>
@@ -1053,7 +1054,7 @@
                     <span class="k">if</span> <span class="n">is_enum</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">is_list</span><span class="p">:</span>
                             <span class="n">from_dict_function_variable_list_2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">      </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: json[&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;]?.map((e1) </span><span class="se">{{</span>
+<span class="s2">      </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: json[&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;]?.map((e1) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        return </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2">.values</span>
 <span class="s2">                    .map((e2) =&gt; e2.name)</span>
 <span class="s2">                    .toList()</span>
@@ -1104,40 +1105,40 @@
                 <span class="n">from_dict_function_variable_list_2_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">from_dict_function_variable_list_2</span><span class="p">)</span>
 
                 <span class="n">dataclass_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">class _Key_string_dict_for_</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">key_string_dict_list_text</span><span class="si">}</span>
-<span class="se">}}</span>
+<span class="s2">class _Key_string_dict_for_</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">key_string_dict_list_text</span><span class="si">}</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">class </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span>
+<span class="s2">class </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span><span class="s2"></span>
 
 <span class="s2">  </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">constructor_variable_list_text</span><span class="si">}</span><span class="s2">);</span>
 
-<span class="s2">  final Map&lt;String, dynamic&gt; _property_name_to_its_type_dict = </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">property_name_to_its_type_dict_variable_list_text</span><span class="si">}</span>
+<span class="s2">  final Map&lt;String, dynamic&gt; _property_name_to_its_type_dict = </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">property_name_to_its_type_dict_variable_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">  </span><span class="se">}}</span><span class="s2">;</span>
 
 <span class="s2">  final _key_string_dict_for_</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> =</span>
 <span class="s2">      _Key_string_dict_for_</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">();</span>
 
-<span class="s2">  Map&lt;String, dynamic&gt; to_dict() </span><span class="se">{{</span>
-<span class="s2">    return </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">to_dict_function_variable_list_text</span><span class="si">}</span>
+<span class="s2">  Map&lt;String, dynamic&gt; to_dict() </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">    return </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">to_dict_function_variable_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">    </span><span class="se">}}</span><span class="s2">;</span>
-<span class="s2">  </span><span class="se">}}</span>
+<span class="s2">  </span><span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">  </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> from_dict(Map&lt;String, dynamic&gt;? json) </span><span class="se">{{</span>
-<span class="s2">    if (json == null) </span><span class="se">{{</span>
+<span class="s2">  </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> from_dict(Map&lt;String, dynamic&gt;? json) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">    if (json == null) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">      return </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">();</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 
-<span class="si">{</span><span class="n">from_dict_function_variable_list_1_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">from_dict_function_variable_list_1_text</span><span class="si">}</span><span class="s2"></span>
 
 <span class="s2">    return </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">(</span>
-<span class="si">{</span><span class="n">from_dict_function_variable_list_2_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">from_dict_function_variable_list_2_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">    );</span>
-<span class="s2">  </span><span class="se">}}</span>
-<span class="se">}}</span>
+<span class="s2">  </span><span class="se">}}</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 <span class="s2">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
                 <span class="n">dataclass_code_block_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataclass_text</span><span class="p">)</span>
@@ -1148,9 +1149,9 @@
         <span class="n">template_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">// ignore_for_file: unused_field</span>
 
-<span class="si">{</span><span class="n">enum_code_block_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">enum_code_block_list_text</span><span class="si">}</span><span class="s2"></span>
 
-<span class="si">{</span><span class="n">dataclass_code_block_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">dataclass_code_block_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">template_text</span>
@@ -1170,19 +1171,19 @@
 
             <span class="n">client_function_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">  Future&lt;</span><span class="si">{</span><span class="n">output_variable</span><span class="si">}</span><span class="s2">?&gt; </span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">(</span>
-<span class="s2">      </span><span class="se">{{</span><span class="s2">required </span><span class="si">{</span><span class="n">input_variable</span><span class="si">}</span><span class="s2"> item, bool ignore_error = false</span><span class="se">}}</span><span class="s2">) async </span><span class="se">{{</span>
+<span class="s2">      </span><span class="se">{{</span><span class="s2">required </span><span class="si">{</span><span class="n">input_variable</span><span class="si">}</span><span class="s2"> item, bool ignore_error = false</span><span class="se">}}</span><span class="s2">) async </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">    Map&lt;String, dynamic&gt; response_dict = await this</span>
 <span class="s2">        ._get_reponse_or_error_by_url_path_and_input(</span>
 <span class="s2">            &quot;</span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">&quot;, item.to_dict());</span>
-<span class="s2">    if (response_dict.containsKey(this._special_error_key)) </span><span class="se">{{</span>
-<span class="s2">      if (!ignore_error) </span><span class="se">{{</span>
+<span class="s2">    if (response_dict.containsKey(this._special_error_key)) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">      if (!ignore_error) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        this._error_handle_function!(response_dict[this._special_error_key]);</span>
-<span class="s2">      </span><span class="se">}}</span>
+<span class="s2">      </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">      return null;</span>
-<span class="s2">    </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">      return </span><span class="si">{</span><span class="n">output_variable</span><span class="si">}</span><span class="s2">().from_dict(response_dict);</span>
-<span class="s2">    </span><span class="se">}}</span>
-<span class="s2">  </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">  </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
 
         <span class="n">client_function_list_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">client_function_list</span><span class="p">)</span>
@@ -1193,10 +1194,10 @@
 <span class="s2">import &#39;dart:convert&#39;;</span>
 <span class="s2">import &#39;dart:io&#39;;</span>
 
-<span class="s2">class Client_</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
+<span class="s2">class Client_</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">  /// [_service_url] is something like: &quot;http://127.0.0.1:80&quot; or &quot;https://127.0.0.1&quot;</span>
-<span class="s2">  /// [_header] http headers, it&#39;s a dictionary, liek </span><span class="si">{</span><span class="s1">&#39;content-type&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;application/json&#39;</span><span class="si">}</span>
-<span class="s2">  /// [_error_handle_function] will get called when http request got error, you need to give it a function like: (err: String) </span><span class="se">{{</span><span class="s2">print(err)</span><span class="se">}}</span>
+<span class="s2">  /// [_header] http headers, it&#39;s a dictionary, liek </span><span class="si">{</span><span class="s1">&#39;content-type&#39;</span><span class="p">,</span> <span class="s1">&#39;application/json&#39;</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">  /// [_error_handle_function] will get called when http request got error, you need to give it a function like: (err: String) </span><span class="se">{{</span><span class="s2">print(err)</span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">  String _service_url = &quot;&quot;;</span>
 <span class="s2">  Map&lt;String, String&gt; _header = Map&lt;String, String&gt;();</span>
 <span class="s2">  String _special_error_key = &quot;__yingshaoxo&#39;s_error__&quot;;</span>
@@ -1205,38 +1206,38 @@
 <span class="s2">  Client_</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">(</span>
 <span class="s2">      </span><span class="se">{{</span><span class="s2">required String service_url,</span>
 <span class="s2">      Map&lt;String, String&gt;? header,</span>
-<span class="s2">      Function(String error_message)? error_handle_function</span><span class="se">}}</span><span class="s2">) </span><span class="se">{{</span>
-<span class="s2">    if (service_url.endsWith(&quot;/&quot;)) </span><span class="se">{{</span>
+<span class="s2">      Function(String error_message)? error_handle_function</span><span class="se">}}</span><span class="s2">) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">    if (service_url.endsWith(&quot;/&quot;)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">      service_url =</span>
 <span class="s2">          service_url.splitMapJoin(RegExp(r&#39;/$&#39;), onMatch: (p0) =&gt; &quot;&quot;);</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">    this._service_url = service_url;</span>
 
-<span class="s2">    if (header != null) </span><span class="se">{{</span>
+<span class="s2">    if (header != null) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">      this._header = header;</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">    if (error_handle_function == null) </span><span class="se">{{</span>
-<span class="s2">      error_handle_function = (error_message) </span><span class="se">{{</span>
+<span class="s2">    if (error_handle_function == null) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">      error_handle_function = (error_message) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        print(error_message);</span>
 <span class="s2">      </span><span class="se">}}</span><span class="s2">;</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">    this._error_handle_function = error_handle_function;</span>
-<span class="s2">  </span><span class="se">}}</span>
+<span class="s2">  </span><span class="se">}}</span><span class="s2"></span>
 
 <span class="s2">  Future&lt;Map&lt;String, dynamic&gt;&gt; _get_reponse_or_error_by_url_path_and_input(</span>
-<span class="s2">      String sub_url, Map&lt;String, dynamic&gt; input_dict) async </span><span class="se">{{</span>
+<span class="s2">      String sub_url, Map&lt;String, dynamic&gt; input_dict) async </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">    String the_url = &quot;$</span><span class="se">{{</span><span class="s2">this._service_url</span><span class="se">}}</span><span class="s2">/</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">/$</span><span class="se">{{</span><span class="s2">sub_url</span><span class="se">}}</span><span class="s2">/&quot;;</span>
 
 <span class="s2">    var client = HttpClient();</span>
 <span class="s2">    client.badCertificateCallback =</span>
 <span class="s2">        ((X509Certificate cert, String host, int port) =&gt; true);</span>
-<span class="s2">    try </span><span class="se">{{</span>
+<span class="s2">    try </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">      var the_url_data = Uri.parse(the_url);</span>
 
 <span class="s2">      HttpClientRequest request = await client.postUrl(the_url_data);</span>
 <span class="s2">      request.headers.set(&#39;content-type&#39;, &#39;application/json&#39;);</span>
-<span class="s2">      _header.forEach((key, value) </span><span class="se">{{</span>
+<span class="s2">      _header.forEach((key, value) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        request.headers.set(key, value);</span>
 <span class="s2">      </span><span class="se">}}</span><span class="s2">);</span>
 
@@ -1246,15 +1247,15 @@
 <span class="s2">      final stringData = await response.transform(utf8.decoder).join();</span>
 <span class="s2">      final output_dict = json.decode(stringData);</span>
 <span class="s2">      return output_dict;</span>
-<span class="s2">    </span><span class="se">}}</span><span class="s2"> catch (e) </span><span class="se">{{</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"> catch (e) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">      return </span><span class="se">{{</span><span class="s2">_special_error_key: e.toString()</span><span class="se">}}</span><span class="s2">;</span>
-<span class="s2">    </span><span class="se">}}</span><span class="s2"> finally </span><span class="se">{{</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"> finally </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">      client.close();</span>
-<span class="s2">    </span><span class="se">}}</span>
-<span class="s2">  </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">  </span><span class="se">}}</span><span class="s2"></span>
 
-<span class="si">{</span><span class="n">client_function_list_text</span><span class="si">}</span>
-<span class="se">}}</span>
+<span class="si">{</span><span class="n">client_function_list_text</span><span class="si">}</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">template_text</span>
@@ -1278,9 +1279,9 @@
                 <span class="n">variable_list_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">variable_list</span><span class="p">)</span>
 
                 <span class="n">enum_class_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">enum </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span>
-<span class="se">}}</span>
+<span class="s2">enum </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 <span class="s2">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
                 <span class="n">enum_code_block_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">enum_class_text</span><span class="p">)</span>
@@ -1303,11 +1304,11 @@
                     <span class="n">is_custom_message_type</span> <span class="o">=</span> <span class="n">one</span><span class="p">[</span><span class="s1">&#39;is_custom_message_type&#39;</span><span class="p">]</span>
 
                     <span class="n">interface_variable_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">type</span><span class="si">}{</span><span class="s2">&quot;[]&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">is_list</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2"> | null;</span>
+<span class="s2">    </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">type</span><span class="si">}{</span><span class="s2">&quot;[]&quot;</span> <span class="k">if</span> <span class="n">is_list</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2"> | null;</span>
 <span class="s2">                    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
 
                     <span class="n">variable_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">type</span><span class="si">}{</span><span class="s2">&quot;[]&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">is_list</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2"> | null = null;</span>
+<span class="s2">    </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">type</span><span class="si">}{</span><span class="s2">&quot;[]&quot;</span> <span class="k">if</span> <span class="n">is_list</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2"> | null = null;</span>
 <span class="s2">                    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
 
                     <span class="k">if</span> <span class="n">is_enum</span> <span class="ow">or</span> <span class="n">is_custom_message_type</span><span class="p">:</span>
@@ -1329,45 +1330,45 @@
                 <span class="n">key_string_dict_list_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">key_string_dict_list</span><span class="p">)</span>
 
                 <span class="n">dataclass_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">export interface _</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">interface_variable_list_text</span><span class="si">}</span>
-<span class="se">}}</span>
+<span class="s2">export interface _</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">interface_variable_list_text</span><span class="si">}</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">export class </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span>
+<span class="s2">export class </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">variable_list_text</span><span class="si">}</span><span class="s2"></span>
 
-<span class="s2">    _property_name_to_its_type_dict = </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">property_name_to_its_type_dict_variable_list_text</span><span class="si">}</span>
+<span class="s2">    _property_name_to_its_type_dict = </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">property_name_to_its_type_dict_variable_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">    </span><span class="se">}}</span><span class="s2">;</span>
 
-<span class="s2">    _key_string_dict = </span><span class="se">{{</span>
-<span class="si">{</span><span class="n">key_string_dict_list_text</span><span class="si">}</span>
+<span class="s2">    _key_string_dict = </span><span class="se">{{</span><span class="s2"></span>
+<span class="si">{</span><span class="n">key_string_dict_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">    </span><span class="se">}}</span><span class="s2">;</span>
 
-<span class="s2">    to_dict(): _</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
+<span class="s2">    to_dict(): _</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        return _general_to_dict_function(this);</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">    _clone(): </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
+<span class="s2">    _clone(): </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        let clone = Object.assign(Object.create(Object.getPrototypeOf(this)), this)</span>
 <span class="s2">        return clone</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">    from_dict(item: _</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
+<span class="s2">    from_dict(item: _</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        let an_item = new </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">()</span>
 <span class="s2">        let new_dict = _general_from_dict_function(an_item, item)</span>
 
-<span class="s2">        for (const key of Object.keys(new_dict)) </span><span class="se">{{</span>
+<span class="s2">        for (const key of Object.keys(new_dict)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            let value = new_dict[key]</span>
 <span class="s2">            //@ts-ignore</span>
 <span class="s2">            this[key] = value</span>
 <span class="s2">            //@ts-ignore</span>
 <span class="s2">            an_item[key] = value</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 
 <span class="s2">        return an_item</span>
-<span class="s2">    </span><span class="se">}}</span>
-<span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 <span class="s2">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="n">dataclass_code_block_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataclass_text</span><span class="p">)</span>
 
@@ -1379,194 +1380,194 @@
 
 <span class="s2">export const clone_object_ = (obj: any) =&gt;  JSON.parse(JSON.stringify(obj));</span>
 
-<span class="s2">export const get_secret_alphabet_dict_ = (a_secret_string: string) =&gt;  </span><span class="se">{{</span>
+<span class="s2">export const get_secret_alphabet_dict_ = (a_secret_string: string) =&gt;  </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">    const ascii_lowercase = &quot;abcdefghijklmnopqrstuvwxyz&quot;.split(&quot;&quot;)</span>
 <span class="s2">    const number_0_to_9 = &quot;0123456789&quot;.split(&quot;&quot;)</span>
 
 <span class="s2">    var new_key = a_secret_string.replace(&quot; &quot;, &quot;&quot;).toLowerCase().split(&quot;&quot;)</span>
 <span class="s2">    var character_list: string[] = []</span>
-<span class="s2">    for (var char of new_key) </span><span class="se">{{</span>
-<span class="s2">        if ((/[a-zA-Z]/).test(char)) </span><span class="se">{{</span>
-<span class="s2">            if (!character_list.includes(char)) </span><span class="se">{{</span>
+<span class="s2">    for (var char of new_key) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">        if ((/[a-zA-Z]/).test(char)) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">            if (!character_list.includes(char)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                character_list.push(char)</span>
-<span class="s2">            </span><span class="se">}}</span>
-<span class="s2">        </span><span class="se">}}</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">    if (character_list.length &gt;= 26) </span><span class="se">{{</span>
+<span class="s2">    if (character_list.length &gt;= 26) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        character_list = character_list.slice(0, 26)</span>
-<span class="s2">    </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        var characters_that_the_key_didnt_cover: string[] = []</span>
-<span class="s2">        for (var char of ascii_lowercase) </span><span class="se">{{</span>
-<span class="s2">            if (!character_list.includes(char)) </span><span class="se">{{</span>
+<span class="s2">        for (var char of ascii_lowercase) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">            if (!character_list.includes(char)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                characters_that_the_key_didnt_cover.push(char)</span>
-<span class="s2">            </span><span class="se">}}</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">        character_list = character_list.concat(characters_that_the_key_didnt_cover) </span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 
 <span class="s2">    var final_dict = </span><span class="se">{{}}</span><span class="s2"> as Record&lt;string, string&gt;</span>
 
 <span class="s2">    // for alphabet</span>
-<span class="s2">    for (let [index, char] of ascii_lowercase.entries()) </span><span class="se">{{</span>
+<span class="s2">    for (let [index, char] of ascii_lowercase.entries()) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        final_dict[char] = character_list[index]</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 
 <span class="s2">    // for numbers</span>
 <span class="s2">    var original_numbers_in_alphabet_format = ascii_lowercase.slice(0, 10) // 0-9 representations in alphabet format</span>
 <span class="s2">    var secret_numbers_in_alphabet_format = Object.values(final_dict).slice(0, 10)</span>
 <span class="s2">    var final_number_list = [] as string[]</span>
-<span class="s2">    for (var index in number_0_to_9) </span><span class="se">{{</span>
+<span class="s2">    for (var index in number_0_to_9) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        var secret_char = secret_numbers_in_alphabet_format[index]</span>
-<span class="s2">        if (original_numbers_in_alphabet_format.includes(secret_char)) </span><span class="se">{{</span>
+<span class="s2">        if (original_numbers_in_alphabet_format.includes(secret_char)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            final_number_list.push(String(original_numbers_in_alphabet_format.findIndex((x) =&gt; x===secret_char)))</span>
-<span class="s2">        </span><span class="se">}}</span>
-<span class="s2">    </span><span class="se">}}</span>
-<span class="s2">    if (final_number_list.length &gt;= 10) </span><span class="se">{{</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">    if (final_number_list.length &gt;= 10) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        final_number_list = final_number_list.slice(0, 10)</span>
-<span class="s2">    </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        var numbers_that_didnt_get_cover = [] as string[]</span>
-<span class="s2">        for (var char of number_0_to_9) </span><span class="se">{{</span>
-<span class="s2">            if (!final_number_list.includes(char)) </span><span class="se">{{</span>
+<span class="s2">        for (var char of number_0_to_9) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">            if (!final_number_list.includes(char)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                numbers_that_didnt_get_cover.push(char)</span>
-<span class="s2">            </span><span class="se">}}</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">        final_number_list = final_number_list.concat(numbers_that_didnt_get_cover)</span>
-<span class="s2">    </span><span class="se">}}</span>
-<span class="s2">    for (let [index, char] of final_number_list.entries()) </span><span class="se">{{</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">    for (let [index, char] of final_number_list.entries()) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        final_dict[String(index)] = char</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 
 <span class="s2">    return final_dict</span>
 <span class="se">}}</span><span class="s2">;</span>
 
-<span class="s2">export const encode_message_ = (a_secret_dict: Record&lt;string, string&gt;, message: string):string =&gt; </span><span class="se">{{</span>
+<span class="s2">export const encode_message_ = (a_secret_dict: Record&lt;string, string&gt;, message: string):string =&gt; </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">    var new_message = &quot;&quot;</span>
-<span class="s2">    for (const char of message) </span><span class="se">{{</span>
-<span class="s2">        if ((!(/[a-zA-Z]/).test(char)) &amp;&amp; (!(/^\d$/).test(char))) </span><span class="se">{{</span>
+<span class="s2">    for (const char of message) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">        if ((!(/[a-zA-Z]/).test(char)) &amp;&amp; (!(/^\d$/).test(char))) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            new_message += char</span>
 <span class="s2">            continue</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">        var new_char = a_secret_dict[char.toLowerCase()]</span>
-<span class="s2">        if ((/[A-Z]/).test(char)) </span><span class="se">{{</span>
+<span class="s2">        if ((/[A-Z]/).test(char)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            new_char = new_char.toUpperCase()</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">        new_message += new_char</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">    return new_message</span>
-<span class="se">}}</span>
+<span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">export const decode_message_ = (a_secret_dict: Record&lt;string, string&gt;, message: string):string =&gt; </span><span class="se">{{</span>
+<span class="s2">export const decode_message_ = (a_secret_dict: Record&lt;string, string&gt;, message: string):string =&gt; </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">    var new_secret_dict = </span><span class="se">{{}}</span><span class="s2"> as Record&lt;string, string&gt;</span>
-<span class="s2">    for (var key of Object.keys(a_secret_dict)) </span><span class="se">{{</span>
+<span class="s2">    for (var key of Object.keys(a_secret_dict)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        new_secret_dict[a_secret_dict[key]] = key</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">    a_secret_dict = new_secret_dict</span>
 
 <span class="s2">    var new_message = &quot;&quot;</span>
-<span class="s2">    for (const char of message) </span><span class="se">{{</span>
-<span class="s2">        if ((!(/[a-zA-Z]/).test(char)) &amp;&amp; (!(/^\d$/).test(char))) </span><span class="se">{{</span>
+<span class="s2">    for (const char of message) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">        if ((!(/[a-zA-Z]/).test(char)) &amp;&amp; (!(/^\d$/).test(char))) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            new_message += char</span>
 <span class="s2">            continue</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">        var new_char = a_secret_dict[char.toLowerCase()]</span>
-<span class="s2">        if ((/[A-Z]/).test(char)) </span><span class="se">{{</span>
+<span class="s2">        if ((/[A-Z]/).test(char)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            new_char = new_char.toUpperCase()</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">        new_message += new_char</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">    return new_message</span>
-<span class="se">}}</span>
+<span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">const _general_to_dict_function = (object: any): any =&gt; </span><span class="se">{{</span>
+<span class="s2">const _general_to_dict_function = (object: any): any =&gt; </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">    let the_type = typeof object</span>
-<span class="s2">    if (the_type == &quot;object&quot;) </span><span class="se">{{</span>
-<span class="s2">        if (object == null) </span><span class="se">{{</span>
+<span class="s2">    if (the_type == &quot;object&quot;) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">        if (object == null) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            return null</span>
-<span class="s2">        </span><span class="se">}}</span><span class="s2"> else if (Array.isArray(object)) </span><span class="se">{{</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"> else if (Array.isArray(object)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            let new_list: any[] = []</span>
-<span class="s2">            for (const one of object) </span><span class="se">{{</span>
+<span class="s2">            for (const one of object) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                new_list.push(_general_to_dict_function(one))</span>
-<span class="s2">            </span><span class="se">}}</span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">            return new_list</span>
-<span class="s2">        </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            let keys = Object.keys(object);</span>
-<span class="s2">            if (keys.includes(&quot;_key_string_dict&quot;)) </span><span class="se">{{</span>
+<span class="s2">            if (keys.includes(&quot;_key_string_dict&quot;)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                // custom message type</span>
-<span class="s2">                let new_dict: any = </span><span class="se">{{}}</span>
+<span class="s2">                let new_dict: any = </span><span class="se">{{}}</span><span class="s2"></span>
 <span class="s2">                keys = keys.filter((e) =&gt; ![&quot;_property_name_to_its_type_dict&quot;, &quot;_key_string_dict&quot;].includes(e));</span>
-<span class="s2">                for (const key of keys) </span><span class="se">{{</span>
+<span class="s2">                for (const key of keys) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                    new_dict[key] = _general_to_dict_function(object[key])</span>
 <span class="s2">                    // the enum will become a string in the end, so ignore it</span>
-<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">                </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">                return new_dict</span>
-<span class="s2">            </span><span class="se">}}</span>
-<span class="s2">        </span><span class="se">}}</span>
-<span class="s2">    </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
-<span class="s2">        if (_ygrpc_official_types.includes(typeof object)) </span><span class="se">{{</span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">        if (_ygrpc_official_types.includes(typeof object)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            return object</span>
-<span class="s2">        </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            return null</span>
-<span class="s2">        </span><span class="se">}}</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">    return null</span>
 <span class="se">}}</span><span class="s2">;</span>
 
-<span class="s2">const _general_from_dict_function = (old_object: any, new_object: any): any =&gt; </span><span class="se">{{</span>
+<span class="s2">const _general_from_dict_function = (old_object: any, new_object: any): any =&gt; </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">    let the_type = typeof new_object</span>
-<span class="s2">    if (the_type == &quot;object&quot;) </span><span class="se">{{</span>
-<span class="s2">        if (Array.isArray(new_object)) </span><span class="se">{{</span>
+<span class="s2">    if (the_type == &quot;object&quot;) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">        if (Array.isArray(new_object)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            //list</span>
 <span class="s2">            let new_list: any[] = []</span>
-<span class="s2">            for (const one of new_object) </span><span class="se">{{</span>
+<span class="s2">            for (const one of new_object) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                new_list.push(structuredClone(_general_from_dict_function(old_object, one)))</span>
-<span class="s2">            </span><span class="se">}}</span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">            return new_list</span>
-<span class="s2">        </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            // dict or null</span>
-<span class="s2">            if (new_object == null) </span><span class="se">{{</span>
+<span class="s2">            if (new_object == null) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                return null</span>
-<span class="s2">            </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                let keys = Object.keys(old_object);</span>
-<span class="s2">                if (keys.includes(&quot;_key_string_dict&quot;)) </span><span class="se">{{</span>
+<span class="s2">                if (keys.includes(&quot;_key_string_dict&quot;)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                    keys = Object.keys(old_object._property_name_to_its_type_dict)</span>
-<span class="s2">                    for (const key of keys) </span><span class="se">{{</span>
-<span class="s2">                        if (Object.keys(new_object).includes(key)) </span><span class="se">{{</span>
-<span class="s2">                            if ((typeof old_object._property_name_to_its_type_dict[key]) == &quot;string&quot;) </span><span class="se">{{</span>
+<span class="s2">                    for (const key of keys) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">                        if (Object.keys(new_object).includes(key)) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">                            if ((typeof old_object._property_name_to_its_type_dict[key]) == &quot;string&quot;) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                                // default value type</span>
 <span class="s2">                                old_object[key] = new_object[key]</span>
-<span class="s2">                            </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">                            </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                                // custom message type || enum</span>
 <span class="s2">                                if (</span>
 <span class="s2">                                    (typeof old_object._property_name_to_its_type_dict[key]).includes(&quot;class&quot;) || </span>
 <span class="s2">                                    (typeof old_object._property_name_to_its_type_dict[key]).includes(&quot;function&quot;)</span>
-<span class="s2">                                ) </span><span class="se">{{</span>
+<span class="s2">                                ) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                                    // custom message type || a list of custom type</span>
 <span class="s2">                                    var reference_object = new (old_object._property_name_to_its_type_dict[key])()</span>
 <span class="s2">                                    old_object[key] = structuredClone(_general_from_dict_function(reference_object, new_object[key]))</span>
-<span class="s2">                                </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">                                </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                                    // enum</span>
-<span class="s2">                                    if (Object.keys(new_object).includes(key)) </span><span class="se">{{</span>
+<span class="s2">                                    if (Object.keys(new_object).includes(key)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                                        old_object[key] = new_object[key]</span>
-<span class="s2">                                    </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">                                    </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                                        old_object[key] = null</span>
-<span class="s2">                                    </span><span class="se">}}</span>
-<span class="s2">                                </span><span class="se">}}</span>
-<span class="s2">                            </span><span class="se">}}</span>
+<span class="s2">                                    </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">                                </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">                            </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">                        </span><span class="se">}}</span><span class="s2"> </span>
-<span class="s2">                    </span><span class="se">}}</span>
-<span class="s2">                </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">                    </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">                </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                    return null</span>
-<span class="s2">                </span><span class="se">}}</span>
-<span class="s2">            </span><span class="se">}}</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">                </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">    </span><span class="se">}}</span><span class="s2"> </span>
 <span class="s2">    return old_object</span>
-<span class="se">}}</span>
+<span class="se">}}</span><span class="s2"></span>
 
-<span class="si">{</span><span class="n">enum_code_block_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">enum_code_block_list_text</span><span class="si">}</span><span class="s2"></span>
 
-<span class="si">{</span><span class="n">dataclass_code_block_list_text</span><span class="si">}</span>
+<span class="si">{</span><span class="n">dataclass_code_block_list_text</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">template_text</span>
@@ -1585,17 +1586,17 @@
                 <span class="n">output_variable</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s+&quot;</span><span class="p">,</span> <span class="n">output_variable</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
 
             <span class="n">client_function_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    async </span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">(item: </span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">_objects.</span><span class="si">{</span><span class="n">input_variable</span><span class="si">}</span><span class="s2">, ignore_error?: boolean): Promise&lt;</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">_objects.</span><span class="si">{</span><span class="n">output_variable</span><span class="si">}</span><span class="s2"> | null&gt; </span><span class="se">{{</span>
+<span class="s2">    async </span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">(item: </span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">_objects.</span><span class="si">{</span><span class="n">input_variable</span><span class="si">}</span><span class="s2">, ignore_error?: boolean): Promise&lt;</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">_objects.</span><span class="si">{</span><span class="n">output_variable</span><span class="si">}</span><span class="s2"> | null&gt; </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        let result = await this._get_reponse_or_error_by_url_path_and_input(&quot;</span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">&quot;, item.to_dict())</span>
-<span class="s2">        if (Object.keys(result).includes(this._special_error_key)) </span><span class="se">{{</span>
-<span class="s2">            if ((ignore_error != null) &amp;&amp; (!ignore_error)) </span><span class="se">{{</span>
+<span class="s2">        if (Object.keys(result).includes(this._special_error_key)) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">            if ((ignore_error == null) || ((ignore_error != null) &amp;&amp; (!ignore_error))) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                this._error_handle_function(result[this._special_error_key])</span>
-<span class="s2">            </span><span class="se">}}</span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">            return null</span>
-<span class="s2">        </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"> else </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            return new </span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">_objects.</span><span class="si">{</span><span class="n">output_variable</span><span class="si">}</span><span class="s2">().from_dict(result)</span>
-<span class="s2">        </span><span class="se">}}</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
 
         <span class="n">client_function_list_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">client_function_list</span><span class="p">)</span>
@@ -1603,72 +1604,72 @@
         <span class="n">template_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">import * as </span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">_objects from &#39;./</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">_objects&#39;</span>
 
-<span class="s2">export class Client_</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
+<span class="s2">export class Client_</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">  /**</span>
 <span class="s2">   * @param </span><span class="se">{{</span><span class="s2">string</span><span class="se">}}</span><span class="s2"> _service_url is something like: &quot;http://127.0.0.1:80&quot; or &quot;https://127.0.0.1&quot;</span>
-<span class="s2">   * @param </span><span class="se">{{{{</span><span class="s2"> [key: string]: string </span><span class="se">}}}}</span><span class="s2"> _header  http headers, it&#39;s a dictionary, liek </span><span class="se">{{</span><span class="s2">&#39;content-type&#39;, &#39;application/json&#39;</span><span class="se">}}</span>
-<span class="s2">   * @param </span><span class="se">{{</span><span class="s2">Function</span><span class="se">}}</span><span class="s2"> _error_handle_function will get called when http request got error, you need to give it a function like: (err: String) </span><span class="se">{{</span><span class="s2">print(err)</span><span class="se">}}</span>
+<span class="s2">   * @param </span><span class="se">{{{{</span><span class="s2"> [key: string]: string </span><span class="se">}}}}</span><span class="s2"> _header  http headers, it&#39;s a dictionary, liek </span><span class="se">{{</span><span class="s2">&#39;content-type&#39;, &#39;application/json&#39;</span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">   * @param </span><span class="se">{{</span><span class="s2">Function</span><span class="se">}}</span><span class="s2"> _error_handle_function will get called when http request got error, you need to give it a function like: (err: String) </span><span class="se">{{</span><span class="s2">print(err)</span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">   */</span>
 <span class="s2">    _service_url: string</span>
-<span class="s2">    _header: </span><span class="se">{{</span><span class="s2"> [key: string]: string </span><span class="se">}}</span><span class="s2"> = </span><span class="se">{{}}</span>
-<span class="s2">    _error_handle_function: (error: string) =&gt; void = (error: string) =&gt; </span><span class="se">{{</span><span class="s2">console.log(error)</span><span class="se">}}</span>
+<span class="s2">    _header: </span><span class="se">{{</span><span class="s2"> [key: string]: string </span><span class="se">}}</span><span class="s2"> = </span><span class="se">{{}}</span><span class="s2"></span>
+<span class="s2">    _error_handle_function: (error: string) =&gt; void = (error: string) =&gt; </span><span class="se">{{</span><span class="s2">console.log(error)</span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">    _special_error_key: string = &quot;__yingshaoxo&#39;s_error__&quot;</span>
 
-<span class="s2">    constructor(service_url: string, header?: </span><span class="se">{{</span><span class="s2"> [key: string]: string </span><span class="se">}}</span><span class="s2">, error_handle_function?: (error: string) =&gt; void) </span><span class="se">{{</span>
-<span class="s2">        if (service_url.endsWith(&quot;/&quot;)) </span><span class="se">{{</span>
+<span class="s2">    constructor(service_url: string, header?: </span><span class="se">{{</span><span class="s2"> [key: string]: string </span><span class="se">}}</span><span class="s2">, error_handle_function?: (error: string) =&gt; void) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">        if (service_url.endsWith(&quot;/&quot;)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            service_url = service_url.slice(0, service_url.length-1);</span>
-<span class="s2">        </span><span class="se">}}</span>
-<span class="s2">        try </span><span class="se">{{</span>
-<span class="s2">            if (location.protocol === &#39;https:&#39;) </span><span class="se">{{</span>
-<span class="s2">                if (service_url.startsWith(&quot;http:&quot;)) </span><span class="se">{{</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">        try </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">            if (location.protocol === &#39;https:&#39;) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">                if (service_url.startsWith(&quot;http:&quot;)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                    service_url = service_url.replace(&quot;http:&quot;, &quot;https:&quot;)</span>
-<span class="s2">                </span><span class="se">}}</span>
-<span class="s2">            </span><span class="se">}}</span><span class="s2"> else if (location.protocol === &#39;http:&#39;) </span><span class="se">{{</span>
-<span class="s2">                if (service_url.startsWith(&quot;https:&quot;)) </span><span class="se">{{</span>
+<span class="s2">                </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"> else if (location.protocol === &#39;http:&#39;) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">                if (service_url.startsWith(&quot;https:&quot;)) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                    service_url = service_url.replace(&quot;https:&quot;, &quot;http:&quot;)</span>
-<span class="s2">                </span><span class="se">}}</span>
-<span class="s2">            </span><span class="se">}}</span>
-<span class="s2">        </span><span class="se">}}</span><span class="s2"> catch (e) </span><span class="se">{{</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">                </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">            </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"> catch (e) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">        this._service_url = service_url</span>
 <span class="s2">        </span>
-<span class="s2">        if (header != null) </span><span class="se">{{</span>
+<span class="s2">        if (header != null) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            this._header = header</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">        if (error_handle_function != null) </span><span class="se">{{</span>
+<span class="s2">        if (error_handle_function != null) </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            this._error_handle_function = error_handle_function</span>
-<span class="s2">        </span><span class="se">}}</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">    </span><span class="se">}}</span><span class="s2"> </span>
 
-<span class="s2">    async _get_reponse_or_error_by_url_path_and_input(sub_url: string, input_dict: </span><span class="se">{{</span><span class="s2"> [key: string]: any </span><span class="se">}}</span><span class="s2">): Promise&lt;any&gt; </span><span class="se">{{</span>
+<span class="s2">    async _get_reponse_or_error_by_url_path_and_input(sub_url: string, input_dict: </span><span class="se">{{</span><span class="s2"> [key: string]: any </span><span class="se">}}</span><span class="s2">): Promise&lt;any&gt; </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">        let the_url = `$</span><span class="se">{{</span><span class="s2">this._service_url</span><span class="se">}}</span><span class="s2">/</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2">/$</span><span class="se">{{</span><span class="s2">sub_url</span><span class="se">}}</span><span class="s2">/`</span>
-<span class="s2">        try </span><span class="se">{{</span>
+<span class="s2">        try </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">            const response = await fetch(the_url, </span>
-<span class="s2">            </span><span class="se">{{</span>
+<span class="s2">            </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                method: &quot;POST&quot;,</span>
 <span class="s2">                body: JSON.stringify(input_dict),</span>
-<span class="s2">                headers: </span><span class="se">{{</span>
+<span class="s2">                headers: </span><span class="se">{{</span><span class="s2"></span>
 <span class="s2">                    &quot;Content-type&quot;: &quot;application/json; charset=UTF-8&quot;,</span>
 <span class="s2">                    ...this._header</span>
-<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">                </span><span class="se">}}</span><span class="s2"></span>
 <span class="s2">            </span><span class="se">}}</span><span class="s2">);</span>
 <span class="s2">            return await response.json()</span>
-<span class="s2">        </span><span class="se">}}</span><span class="s2"> catch (e) </span><span class="se">{{</span>
-<span class="s2">            return </span><span class="se">{{</span><span class="s2">_special_error_key: String(e)</span><span class="se">}}</span><span class="s2">;</span>
-<span class="s2">        </span><span class="se">}}</span>
-<span class="s2">    </span><span class="se">}}</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"> catch (e) </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">            return </span><span class="se">{{</span><span class="s2">[this._special_error_key]: String(e)</span><span class="se">}}</span><span class="s2">;</span>
+<span class="s2">        </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">    </span><span class="se">}}</span><span class="s2"></span>
 
-<span class="si">{</span><span class="n">client_function_list_text</span><span class="si">}</span>
-<span class="se">}}</span>
+<span class="si">{</span><span class="n">client_function_list_text</span><span class="si">}</span><span class="s2"></span>
+<span class="se">}}</span><span class="s2"></span>
 
-<span class="s2">export default Client_</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span>
+<span class="s2">export default Client_</span><span class="si">{</span><span class="n">identity_name</span><span class="si">}</span><span class="s2"></span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">template_text</span>
 
 <div class="viewcode-block" id="YRPC.generate_code"><a class="viewcode-back" href="../../index.html#auto_everything.develop.YRPC.generate_code">[docs]</a>    <span class="k">def</span> <span class="nf">generate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which_language</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">input_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">input_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">output_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;src/generated_yrpc&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        which_language: python, dart, typescript, go, kotlin, rust and so on</span>
 
 <span class="sd">        input_folder: where protobuff files was located</span>
