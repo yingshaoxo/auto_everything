@@ -98,6 +98,19 @@ class Disk:
  
     def join_paths(self, *path: str) -> str:
         return self.concatenate_paths(*path)
+    
+    def join_relative_paths(self, path1: str, path2: str) -> str:
+        """
+        Join path like: /aa/bb/cc + .././../d.txt
+        This function will only care the second relative path
+        """
+        if path2.startswith("."):
+            if path2.startswith("../"):
+                return self.join_relative_paths('/'.join(path1.split('/')[:-1]) + "/", path2.replace("../", "", 1))
+            elif path2.startswith("./"):
+                return self.join_relative_paths(path1, path2.replace("./", "", 1))
+        else:
+            return self.join_paths(path1, path2)
 
     def _parse_gitignore_text_to_list(self, gitignore_text: str) -> list[str]:
         ignore_pattern_list = [line for line in gitignore_text.strip().split("\n") if line.strip() != ""]
