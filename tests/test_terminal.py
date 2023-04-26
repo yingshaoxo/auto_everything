@@ -32,3 +32,23 @@ def test_pid_functions():
 
     t.kill(a_command)
     assert t.is_running(a_command) == False
+
+# def test_terminal_selection():
+#     from auto_everything.terminal import Terminal_User_Interface
+#     terminal_user_interface = Terminal_User_Interface()
+#     terminal_user_interface.selection_box(
+#         "Please do a choice:", 
+#         [
+#             ("the_a", lambda: print("You choose a")),
+#             ("the_b", lambda: print("You choose b"))
+#         ]
+#     )
+
+# def test_terminal_confirm():
+#     from auto_everything.terminal import Terminal_User_Interface
+#     terminal_user_interface = Terminal_User_Interface()
+#     terminal_user_interface.confirm_box(
+#         "Are you sure to delete it?",
+#         lambda: print("yes"),
+#         lambda: print("no"),
+#     )

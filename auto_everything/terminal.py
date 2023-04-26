@@ -1,5 +1,5 @@
 import signal
-from typing import Tuple, List
+from typing import Tuple, List, Callable
 
 import sys
 import os
@@ -563,3 +563,68 @@ class Terminal:
                 self.run_command("kill -s SIGQUIT {num}".format(num=pid))
                 # os.killpg(os.getpgid(int(pid)), signal.SIGQUIT)  # Send the signal to all the process groups
 
+
+class Terminal_User_Interface:
+    """
+    A class that you can use to make simple terminal/shell based user interface.
+    For example, confirm box, multi-selection, input box
+    """
+    def clear_screen(self):
+        # for mac and linux(here, os.name is 'posix')
+        if os.name == 'posix':
+            os.system('clear')
+        else:
+            # for windows platfrom
+            os.system('cls')
+
+    def confirm_box(self, text: str, yes_callback_function: Callable[[], None], no_callback_function: Callable[[], None]):
+        """
+        terminal_user_interface.confirm_box(
+            "Are you sure to delete it?", 
+            lambda: print("yes"),
+            lambda: print("no"),
+        )
+        """
+        while True:
+            self.clear_screen()
+            user_response = input(f"{text}(y/n) _").strip()
+
+            if user_response.lower() == "n":
+                no_callback_function()
+                break
+            elif user_response.lower() == "y":
+                yes_callback_function()
+                break
+
+    def selection_box(self, text: str, selections: list[Tuple[str, Callable[[],None]]]):
+        """
+        terminal_user_interface = Terminal_User_Interface()
+        terminal_user_interface.selection_box(
+            "Please do a choice:", 
+            [
+                ("the_a", lambda: print("You choose a")),
+                ("the_b", lambda: print("You choose b"))
+            ]
+        )
+        """
+        from string import ascii_letters
+        while True:
+            self.clear_screen()
+            print(text)
+            print("\n".join([f"{ascii_letters[index]}.{one[0]}" for index, one in enumerate(selections)]))
+            max_index = len(selections)-1
+            max_alphabet = ascii_letters[max_index]
+            user_response = input(f"What do you choose? (a-{max_alphabet}) _").strip()
+            if len(user_response) != 1:
+                continue
+            else:
+                if user_response in ascii_letters[0: max_index + 1]:
+                    selections[ascii_letters.find(user_response)][1]()
+                    break
+    
+    def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None]):
+        user_response = input(text+" _").strip()
+        if (user_response == ""):
+            handle_function(default_value)
+        else:
+            handle_function(user_response)
