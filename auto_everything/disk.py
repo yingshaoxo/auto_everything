@@ -111,6 +111,12 @@ class Disk:
                 return self.join_relative_paths(path1, path2.replace("./", "", 1))
         else:
             return self.join_paths(path1, path2)
+    
+    def get_current_working_directory(self) -> str:
+        """
+        Similar to bash script: `cwd`
+        """
+        return os.getcwd()
 
     def _parse_gitignore_text_to_list(self, gitignore_text: str) -> list[str]:
         ignore_pattern_list = [line for line in gitignore_text.strip().split("\n") if line.strip() != ""]
