@@ -1,10 +1,11 @@
 // have to make sure enum key is in enum defination
 
+// due to the stpid golang feature, we do not support enum and nested structure
+
 // package test_protovuff_code
 package main
 
 import (
-	"encoding/json"
 	"reflect"
 	"strings"
 
@@ -16,55 +17,56 @@ import (
 
 // force all dict key and function name to be lowercase
 
-type User_Status struct {
-	Enum_value_ variable_tool.Type_Nullable[string]
-	Online      variable_tool.Type_Nullable[string]
-	Offline     variable_tool.Type_Nullable[string]
-}
+// type User_Status struct {
+// 	Enum_value_ variable_tool.Type_Nullable[string]
+// 	Online      variable_tool.Type_Nullable[string]
+// 	Offline     variable_tool.Type_Nullable[string]
+// }
 
-func (self User_Status) New(value variable_tool.Type_Nullable[string]) User_Status {
-	var item = User_Status{}
-	item.Online = variable_tool.Nullable("Online")
-	item.Offline = variable_tool.Nullable("Offline")
-	item.Enum_value_ = value
-	return item
-}
+// func (self User_Status) New(value variable_tool.Type_Nullable[string]) User_Status {
+// 	var item = User_Status{}
+// 	item.Online = variable_tool.Nullable("Online")
+// 	item.Offline = variable_tool.Nullable("Offline")
+// 	item.Enum_value_ = value
+// 	return item
+// }
 
-func (self User_Status) To_dict() string {
-	return self.Enum_value_.Value
-}
+// func (self User_Status) To_dict() string {
+// 	return self.Enum_value_.Value
+// }
 
-func (self User_Status) From_dict(value string) User_Status {
-	var item = User_Status{}.New(variable_tool.Nullable(value))
-	return item
-}
+// func (self User_Status) From_dict(value string) User_Status {
+// 	var item = User_Status{}.New(variable_tool.Nullable(value))
+// 	return item
+// }
+
+var Null_value_identify_symbol string = "It's fucking null. The stupid golang doesn't support null value in map structure, which sucks!!! \nAnd golang don't support lower-case exported function name, bad. \nAnd golang don't support disableing the unused variable warning, which is super bad!"
 
 type Is_It_OK_To_Be_Fool struct {
-	option variable_tool.Type_Nullable[bool]
+	Option variable_tool.Type_Nullable[bool]
 }
 
 type Get_Users_Request struct {
-	Page_size           variable_tool.Type_Nullable[string]
-	Page_number         variable_tool.Type_Nullable[string]
-	User_status         variable_tool.Type_Nullable[User_Status]
-	Is_It_OK_To_Be_Fool variable_tool.Type_Nullable[Is_It_OK_To_Be_Fool]
+	Page_size   variable_tool.Type_Nullable[string]
+	Page_number variable_tool.Type_Nullable[string]
+	Okok        variable_tool.Type_Nullable[Is_It_OK_To_Be_Fool]
 }
 
 var Key_to_key_string_dict_for_Get_Users_Request = struct {
 	Page_size   string
 	Page_number string
-	User_status string
+	Okok        string
 }{
 	Page_size:   "page_size",
 	Page_number: "page_number",
-	User_status: "User_status",
+	Okok:        "Is_It_OK_To_Be_Fool",
 }
 
 func _get_key_to_value_type_dict_for_Get_Users_Request() map[string]any {
 	return map[string]any{
 		"page_size":   "string",
 		"page_number": "string",
-		"user_status": User_Status{},
+		"Okok":        Is_It_OK_To_Be_Fool{},
 	}
 }
 
@@ -78,7 +80,7 @@ func (self Get_Users_Request) To_dict() map[string]any {
 
 func (self Get_Users_Request) From_dict(a_dict map[string]any) Get_Users_Request {
 	var item Get_Users_Request
-	json.Unmarshal([]byte(string(json_tool.Convert_map_to_json_string(a_dict))), &item)
+	json_tool.Convert_map_to_struct_object(a_dict, &item)
 	return item
 }
 
@@ -117,9 +119,127 @@ func is_the_variable_an_enum_class(a_variable any) bool {
 	return yes
 }
 
+// func Convert_nullable_struct_into_dict(an_object_instance any, lowercase_the_key bool) any {
+// 	if an_object_instance == nil {
+// 		return nil
+// 	}
+
+// 	if variable_tool.Is_the_variable_a_list_object(an_object_instance) {
+// 		var new_list = make([]any, 0)
+// 		switch t := an_object_instance.(type) {
+// 		case []any:
+// 			for _, value := range t {
+// 				new_list = append(new_list, Convert_nullable_struct_into_dict(value, lowercase_the_key))
+// 			}
+// 		}
+// 		return new_list
+// 	}
+
+// 	if !variable_tool.Is_the_variable_a_struct_object(an_object_instance) {
+// 		return an_object_instance
+// 	}
+
+// 	if is_the_variable_an_enum_class(an_object_instance) {
+// 		var new_object = variable_tool.Get_value_from_struct_object_by_name(an_object_instance, "Enum_value_")
+
+// 		if variable_tool.Is_it_null(new_object) {
+// 			return nil
+// 		} else {
+// 			var new_value = variable_tool.Get_value_from_nullable_variable(new_object).(string)
+// 			if Check_if_key_in_struct_object(an_object_instance, new_value, true) {
+// 				if lowercase_the_key == true {
+// 					return strings.ToLower(new_value)
+// 				} else {
+// 					return new_value
+// 				}
+// 			} else {
+// 				return nil
+// 			}
+// 		}
+
+// 		return new_object
+// 	}
+
+// 	var new_dict = make(map[string]any)
+
+// 	object_key_representation := reflect.TypeOf(an_object_instance)
+// 	object_value_representation := reflect.ValueOf(an_object_instance)
+
+// 	types := make([]any, object_key_representation.NumField())
+// 	values := make([]interface{}, object_value_representation.NumField())
+// 	for i := 0; i < object_value_representation.NumField(); i++ {
+// 		var the_key = object_key_representation.Field(i).Name
+// 		var the_type = object_key_representation.Field(i).Type.Name()
+// 		var the_value = object_value_representation.Field(i).Interface()
+// 		types[i] = the_type
+// 		values[i] = the_value
+
+// 		var is_nullable bool = false
+// 		if strings.Contains(the_type, "Type_Nullable[") {
+// 			is_nullable = true
+// 		}
+
+// 		var new_object any = nil
+// 		if is_nullable {
+// 			if variable_tool.Is_it_null(the_value) {
+// 				new_object = nil
+// 			} else {
+// 				var new_value = variable_tool.Get_value_from_nullable_variable(the_value)
+// 				new_object = Convert_nullable_struct_into_dict(new_value, lowercase_the_key)
+// 			}
+// 		} else {
+// 			new_object = Convert_nullable_struct_into_dict(the_value, lowercase_the_key)
+// 		}
+
+// 		if lowercase_the_key == true {
+// 			new_dict[strings.ToLower(the_key)] = new_object
+// 		} else {
+// 			new_dict[the_key] = new_object
+// 		}
+// 	}
+
+// 	return new_dict
+// }
+
+// func Convert_struct_object_to_map(an_object any) (map[string]interface{}, error) {
+// 	val := an_object
+
+// 	var data map[string]interface{} = make(map[string]interface{})
+// 	varType := reflect.TypeOf(val)
+
+// 	if varType.Kind() != reflect.Struct {
+// 		// Provided value is not an interface, do what you will with that here
+// 		fmt.Println("Not a struct")
+// 		return nil, nil
+// 	}
+
+// 	value := reflect.ValueOf(val)
+// 	for i := 0; i < varType.NumField(); i++ {
+// 		if !value.Field(i).CanInterface() {
+// 			//Skip unexported fields
+// 			continue
+// 		}
+// 		var fieldName string
+// 		fieldName = varType.Field(i).Name
+// 		if varType.Field(i).Type.Kind() != reflect.Struct {
+// 			data[fieldName] = value.Field(i).Interface()
+// 		} else {
+// 			data[fieldName], _ = Convert_struct_object_to_map(value.Field(i).Interface())
+// 		}
+
+// 	}
+
+// 	return data, nil
+// }
+
 func Convert_nullable_struct_into_dict(an_object_instance any, lowercase_the_key bool) any {
 	if an_object_instance == nil {
 		return nil
+	}
+
+	if variable_tool.Is_the_variable_a_struct_object(an_object_instance) {
+		a_map, _ := json_tool.Convert_struct_object_to_map(an_object_instance)
+		return Convert_nullable_struct_into_dict(a_map, lowercase_the_key)
 	}
 
 	if variable_tool.Is_the_variable_a_list_object(an_object_instance) {
@@ -127,86 +247,63 @@ func Convert_nullable_struct_into_dict(an_object_instance any, lowercase_the_key
 		switch t := an_object_instance.(type) {
 		case []any:
 			for _, value := range t {
+				if variable_tool.Is_the_variable_a_dict_object(value) {
+					if dict_tool.Check_if_a_key_is_in_the_dict(value.(map[string]any), "Is_null") {
+						if dict_tool.Get_dict_value_by_giving_a_key(value.(map[string]any), "Is_null") == true {
+							new_list = append(new_list, Null_value_identify_symbol)
+						} else {
+							new_list = append(new_list, dict_tool.Get_dict_value_by_giving_a_key(value.(map[string]any), "Value"))
+						}
+						continue
+					}
+				}
 				new_list = append(new_list, Convert_nullable_struct_into_dict(value, lowercase_the_key))
 			}
 		}
 		return new_list
 	}
 
-	if !variable_tool.Is_the_variable_a_struct_object(an_object_instance) {
-		return an_object_instance
-	}
+	if variable_tool.Is_the_variable_a_dict_object(an_object_instance) {
+		var new_dict = make(map[string]any)
+		for key, value := range an_object_instance.(map[string]any) {
+			new_key := key
+			if lowercase_the_key == true {
+				new_key = strings.ToLower(key)
+			}
 
-	if is_the_variable_an_enum_class(an_object_instance) {
-		var new_object = variable_tool.Get_value_from_struct_object_by_name(an_object_instance, "Enum_value_")
-
-		if variable_tool.Is_it_null(new_object) {
-			return nil
-		} else {
-			var new_value = variable_tool.Get_value_from_nullable_variable(new_object).(string)
-			if Check_if_key_in_struct_object(an_object_instance, new_value, true) {
-				if lowercase_the_key == true {
-					return strings.ToLower(new_value)
-				} else {
-					return new_value
+			if variable_tool.Is_the_variable_a_dict_object(value) {
+				if dict_tool.Check_if_a_key_is_in_the_dict(value.(map[string]any), "Is_null") {
+					if dict_tool.Get_dict_value_by_giving_a_key(value.(map[string]any), "Is_null") == true {
+						new_dict[new_key] = Convert_nullable_struct_into_dict(Null_value_identify_symbol, lowercase_the_key)
+					} else {
+						new_dict[new_key] = Convert_nullable_struct_into_dict(
+							dict_tool.Get_dict_value_by_giving_a_key(value.(map[string]any), "Value"), lowercase_the_key,
+						)
+					}
+					continue
 				}
-			} else {
-				return nil
 			}
+
+			new_dict[new_key] = Convert_nullable_struct_into_dict(value, lowercase_the_key)
 		}
 
-		return new_object
+		return new_dict
 	}
 
-	var new_dict = make(map[string]any)
-
-	object_key_representation := reflect.TypeOf(an_object_instance)
-	object_value_representation := reflect.ValueOf(an_object_instance)
-
-	types := make([]any, object_key_representation.NumField())
-	values := make([]interface{}, object_value_representation.NumField())
-	for i := 0; i < object_value_representation.NumField(); i++ {
-		var the_key = object_key_representation.Field(i).Name
-		var the_type = object_key_representation.Field(i).Type.Name()
-		var the_value = object_value_representation.Field(i).Interface()
-		types[i] = the_type
-		values[i] = the_value
-
-		var is_nullable bool = false
-		if strings.Contains(the_type, "Type_Nullable[") {
-			is_nullable = true
-		}
-
-		var new_object any = nil
-		if is_nullable {
-			if variable_tool.Is_it_null(the_value) {
-				new_object = nil
-			} else {
-				var new_value = variable_tool.Get_value_from_nullable_variable(the_value)
-				new_object = Convert_nullable_struct_into_dict(new_value, lowercase_the_key)
-			}
-		} else {
-			new_object = Convert_nullable_struct_into_dict(the_value, lowercase_the_key)
-		}
-
-		if lowercase_the_key == true {
-			new_dict[strings.ToLower(the_key)] = new_object
-		} else {
-			new_dict[the_key] = new_object
-		}
-	}
-
-	return new_dict
+	return an_object_instance
 }
 
-func Is_the_variable_a_dict_object(a_variable any) bool {
-	object_type_representation := reflect.TypeOf(a_variable).Kind()
-	if object_type_representation != reflect.Map {
-		return false
-	} else {
-		return true
-	}
-}
+// func Convert_nullable_dict_into_json_string(an_dict any) string {
+// 	if value == nil {
+// 		return {
+// 			key: null
+// 		}
+// 	} else {
+// 		return {
+// 			key: value
+// 		}
+// 	}
+// }
 
 func Convert_dict_into_nullable_struct(a_dict any, a_refrence_object_instance any) any {
 	if a_dict == nil {
@@ -232,7 +329,7 @@ func Convert_dict_into_nullable_struct(a_dict any, a_refrence_object_instance an
 
 	if !variable_tool.Is_the_variable_a_struct_object(a_refrence_object_instance) {
 		// return nil if the basic element inside the tree is a dict than string, int, bool...
-		if Is_the_variable_a_dict_object(a_dict) {
+		if variable_tool.Is_the_variable_a_dict_object(a_dict) {
 			return a_refrence_object_instance
 		} else {
 			return a_dict
@@ -342,18 +439,37 @@ func main() {
 		map[string]any{
 			"Page_size":   variable_tool.Nullable("2").Set_to_null(),
 			"Page_number": variable_tool.Nullable("3"),
-			"User_status": variable_tool.Nullable(
-				User_Status{}.New(variable_tool.Nullable("hh")),
-			),
-			"Is_It_OK_To_Be_Fool": variable_tool.Nullable(
+			"Okok": variable_tool.Nullable(
 				Is_It_OK_To_Be_Fool{
-					option: variable_tool.Nullable(false),
+					Option: variable_tool.Nullable(true),
 				},
-			),
+			).Set_to_null(),
 		},
 	)
 
-	built_in_functions.Print(Convert_nullable_struct_into_dict(item, true))
+	// built_in_functions.Print(item.Page_number)
+	// built_in_functions.Print(item.To_dict())
+	// built_in_functions.Print(Get_Users_Request{}.From_dict(item.To_dict()))
+
+	abc := Convert_nullable_struct_into_dict(item, true)
+	built_in_functions.Print(abc)
+	built_in_functions.Print(
+		json_tool.Convert_map_to_json_string(
+			abc,
+		),
+	)
+
+	built_in_functions.Print("\n-----------\n")
+
+	cde := Convert_dict_into_nullable_struct(abc, Get_Users_Request{})
+	built_in_functions.Print(cde)
+	etf := Convert_nullable_struct_into_dict(item, false)
+	built_in_functions.Print(etf)
+	built_in_functions.Print(
+		json_tool.Convert_map_to_json_string(
+			etf,
+		),
+	)
 
 	// var old_request, _ = json_tool.Convert_struct_object_to_map(item)
 	// built_in_functions.Print(old_request)
