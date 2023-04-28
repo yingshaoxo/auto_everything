@@ -12,3 +12,5 @@ github.com/yingshaoxo/gopython v0.0.0-20230316120035-65618294e88b h1:kK3rtbe5h4t
 github.com/yingshaoxo/gopython v0.0.0-20230316120035-65618294e88b/go.mod h1:agbEfceuSLUP4Nc6VeJ1P5R7bELYrWy9PzAFdfahzoM=
 github.com/yingshaoxo/gopython v0.0.0-20230317030747-117ed64b2476 h1:7SJnuV7sIdrbRdi0C8v96hyuiT81V7xexe8gweWw3HA=
 github.com/yingshaoxo/gopython v0.0.0-20230317030747-117ed64b2476/go.mod h1:agbEfceuSLUP4Nc6VeJ1P5R7bELYrWy9PzAFdfahzoM=
+github.com/yingshaoxo/gopython v0.0.0-20230428070706-d87c99c5046a h1:aEi3+MiSHKRP7chfwFSjRpjQOtEQlP8VlxLdf40mUaA=
+github.com/yingshaoxo/gopython v0.0.0-20230428070706-d87c99c5046a/go.mod h1:agbEfceuSLUP4Nc6VeJ1P5R7bELYrWy9PzAFdfahzoM=
