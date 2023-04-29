@@ -272,7 +272,7 @@ bfg --delete-files {filename}
     
     def find_big_file(self, path: str = "."):
         t.run(f"""
-        du -h --max-depth=1 {path}
+        du -h --max-depth=1 {path} | sort -h
         """)
 
     def hi(self):
