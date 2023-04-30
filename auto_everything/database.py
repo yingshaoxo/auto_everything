@@ -95,24 +95,37 @@ class MongoDB:
     #     # save one object as a json_string per line in a txt file
     #     pass
 
-    def backup_mongodb(self, backup_folder_path: str, use_time_as_folder_name: bool=True):
+    def backup_mongodb(self, backup_folder_path: str, use_time_as_sub_folder_name: bool=True):
         """
-        it saves files into this structure:
-            ── 2023-03-31_09-30
-            │   ├── __mongodb_info__.json      # can be used to save fake_folder_info inside
-            │   │   database_name_1
-            │   │   ├── collection_name_1.json
-            │   │   ├── collection_name_2.json
-            │   │   database_name_2
-            │   │   ├── collection_name_1.json
-            │   │   ├── collection_name_2.json
+        backup_folder_path: str 
+            the backup folder
+        use_time_as_sub_folder_name: bool
+            if it is true:
+                it saves files into this structure:
+                    ── 2023-03-31_09-30
+                    │   ├── __mongodb_info__.json      
+                    │   │   database_name_1
+                    │   │   ├── collection_name_1.json
+                    │   │   ├── collection_name_2.json
+                    │   │   database_name_2
+                    │   │   ├── collection_name_1.json
+                    │   │   ├── collection_name_2.json
+            else:
+                it saves files into this structure:
+                    ├── __mongodb_info__.json      
+                    │   database_name_1
+                    │   ├── collection_name_1.json
+                    │   ├── collection_name_2.json
+                    │   database_name_2
+                    │   ├── collection_name_1.json
+                    │   ├── collection_name_2.json
         """
         if not self._disk.exists(backup_folder_path):
             self._disk.create_a_folder(backup_folder_path)
         if not self._disk.exists(backup_folder_path):
             raise Exception(f"You should give me a valid backup_folder_path than '{backup_folder_path}'")
         
-        if use_time_as_folder_name == True:
+        if use_time_as_sub_folder_name == True:
             now = datetime.now()
             today_string = now.strftime(r"%Y-%m-%d_%H-%M")
             backup_folder_path = self._disk.join_paths(backup_folder_path, today_string)
@@ -149,17 +162,30 @@ class MongoDB:
             "file_tree": file_name_tree
         }, indent=4))
 
-    def recover_mongodb(self, backup_folder_path: str, use_time_as_folder_name: bool=True):
+    def recover_mongodb(self, backup_folder_path: str, use_time_as_sub_folder_name: bool=True):
         """
-        it loads files from this structure:
-            ── 2023-03-31_09-30
-            │   ├── __mongodb_info__.json      
-            │   │   database_name_1
-            │   │   ├── collection_name_1.json
-            │   │   ├── collection_name_2.json
-            │   │   database_name_2
-            │   │   ├── collection_name_1.json
-            │   │   ├── collection_name_2.json
+        backup_folder_path: str 
+            the backup folder
+        use_time_as_sub_folder_name: bool
+            if it is true:
+                it loads files from this structure:
+                    ── 2023-03-31_09-30
+                    │   ├── __mongodb_info__.json      
+                    │   │   database_name_1
+                    │   │   ├── collection_name_1.json
+                    │   │   ├── collection_name_2.json
+                    │   │   database_name_2
+                    │   │   ├── collection_name_1.json
+                    │   │   ├── collection_name_2.json
+            else:
+                it loads files from this structure:
+                    ├── __mongodb_info__.json      
+                    │   database_name_1
+                    │   ├── collection_name_1.json
+                    │   ├── collection_name_2.json
+                    │   database_name_2
+                    │   ├── collection_name_1.json
+                    │   ├── collection_name_2.json
         """
         if (use_time_as_folder_name == True):
             date_folders = [one for one in self._disk.get_folder_and_files(folder=backup_folder_path, recursive=False) if one.is_folder == True]
