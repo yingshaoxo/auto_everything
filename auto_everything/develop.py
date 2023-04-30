@@ -574,7 +574,7 @@ class YRPC:
             if code_block_type != "service":
                 continue
 
-            variable_list: list[Any] = re.findall(r"rpc\s+(?P<function_name>\w+)\s+\((?P<input_variable>[\w\s]+)\)\s+returns\s+\((?P<output_variable>[\w\s]+)\);", content)
+            variable_list: list[Any] = re.findall(r"rpc\s+(?P<function_name>\w+)\s*\((?P<input_variable>[\w\s]+)\)\s+returns\s+\((?P<output_variable>[\w\s]+)\);", content)
 
             name_list = [one[0].strip() for one in variable_list]
             for one in name_list:
