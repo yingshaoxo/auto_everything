@@ -269,6 +269,11 @@ bfg --delete-files {filename}
             systemctl stop {service_name}
             """
         t.run(script)
+    
+    def find_big_file(self, path: str = "."):
+        t.run(f"""
+        du -a -h --max-depth=1 {path} | sort -h
+        """)
 
     def hi(self):
         self.help()

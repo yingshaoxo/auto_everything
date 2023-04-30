@@ -98,6 +98,27 @@ class Disk:
  
     def join_paths(self, *path: str) -> str:
         return self.concatenate_paths(*path)
+    
+    def join_relative_paths(self, path1: str, path2: str) -> str:
+        """
+        Join path like: /aa/bb/cc + .././../d.txt
+        This function will only care the second relative path
+        """
+        if path2.startswith("."):
+            if path2.startswith("../"):
+                return self.join_relative_paths('/'.join(path1.split('/')[:-1]) + "/", path2.replace("../", "", 1))
+            elif path2.startswith("./"):
+                return self.join_relative_paths(path1, path2.replace("./", "", 1))
+            else:
+                return self.join_paths(path1, path2)
+        else:
+            return self.join_paths(path1, path2)
+    
+    def get_current_working_directory(self) -> str:
+        """
+        Similar to bash script: `cwd`
+        """
+        return os.getcwd()
 
     def _parse_gitignore_text_to_list(self, gitignore_text: str) -> list[str]:
         ignore_pattern_list = [line for line in gitignore_text.strip().split("\n") if line.strip() != ""]
@@ -635,6 +656,13 @@ class Disk:
 
     def delete_a_file(self, file_path: str):
         self.remove_a_file(file_path=file_path)
+
+    def move_a_file(self, source_file_path: str, target_file_path: str):
+        source_file_path = self._expand_user(source_file_path)
+        target_file_path = self._expand_user(target_file_path)
+        if self.exists(target_file_path):
+            os.remove(target_file_path)
+        os.rename(source_file_path, target_file_path)
 
     def convert_bytes_to_bytes_io(self, bytes_data: bytes) -> BytesIO:
         bytes_io = BytesIO()
