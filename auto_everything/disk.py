@@ -678,7 +678,7 @@ class Disk:
             os.remove(target_file_path)
         os.rename(source_file_path, target_file_path)
 
-    def convert_bytes_to_bytes_io(self, bytes_data: bytes) -> BytesIO:
+    def convert_bytes_to_bytesio(self, bytes_data: bytes) -> BytesIO:
         bytes_io = BytesIO()
         bytes_io.write(bytes_data)
         bytes_io.seek(0)
