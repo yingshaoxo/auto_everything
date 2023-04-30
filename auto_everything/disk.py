@@ -608,7 +608,10 @@ class Disk:
         # except Exception as e:
         #     raise e
 
-    def get_the_temp_dir(self):
+    def get_the_temp_dir(self) -> str:
+        """
+        Get system level temporary folder. It's normally `/tmp/`
+        """
         return self.temp_dir
 
     def get_a_temp_folder_path(self):
