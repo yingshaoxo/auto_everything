@@ -4,6 +4,7 @@ from auto_everything.disk import Disk
 from pathlib import Path
 import os
 import http.client as httplib
+from urllib import request
 
 from auto_everything.base import Terminal, OS
 
@@ -18,11 +19,7 @@ class Network:
     """
 
     def __init__(self):
-        assert "not found" not in t.run_command(
-            "wget"
-        ), """
-'wget' is required for this module to work
-You can install it with `sudo apt install wget`"""  
+        pass
 
     def ip_port_forward(self, from_ip_port: str, to_ip_port: str):
         """
@@ -183,11 +180,11 @@ You can install it with `sudo apt install wget`"""
         """
         target_path_object = Path(target).expanduser().absolute()
 
-        directory = target_path_object.parent
         target = str(target_path_object)
-        assert os.path.exists(
-            directory), f"target directory '{directory}' is not exits"
-        t.run(f"wget {url} -O {target}")
+        downloaded_file_path, headers = request.urlretrieve(url, disk.get_file_name(target))
+        disk.delete_a_file(target)
+        os.rename(disk.join_paths(downloaded_file_path), target)
+        # t.run(f"wget {url} -O {target}")
 
         number = int("".join([i for i in list(size) if i.isdigit()]))
         unit = size.replace(str(number), "")

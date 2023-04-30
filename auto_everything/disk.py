@@ -109,6 +109,8 @@ class Disk:
                 return self.join_relative_paths('/'.join(path1.split('/')[:-1]) + "/", path2.replace("../", "", 1))
             elif path2.startswith("./"):
                 return self.join_relative_paths(path1, path2.replace("./", "", 1))
+            else:
+                return self.join_paths(path1, path2)
         else:
             return self.join_paths(path1, path2)
     
@@ -654,6 +656,13 @@ class Disk:
 
     def delete_a_file(self, file_path: str):
         self.remove_a_file(file_path=file_path)
+
+    def move_a_file(self, source_file_path: str, target_file_path: str):
+        source_file_path = self._expand_user(source_file_path)
+        target_file_path = self._expand_user(target_file_path)
+        if self.exists(target_file_path):
+            os.remove(target_file_path)
+        os.rename(source_file_path, target_file_path)
 
     def convert_bytes_to_bytes_io(self, bytes_data: bytes) -> BytesIO:
         bytes_io = BytesIO()
