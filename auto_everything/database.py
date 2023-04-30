@@ -187,7 +187,7 @@ class MongoDB:
                     │   ├── collection_name_1.json
                     │   ├── collection_name_2.json
         """
-        if (use_time_as_folder_name == True):
+        if (use_time_as_sub_folder_name == True):
             date_folders = [one for one in self._disk.get_folder_and_files(folder=backup_folder_path, recursive=False) if one.is_folder == True]
             date_folders.sort(key=lambda one: one.name)
             if len(date_folders) > 0:
