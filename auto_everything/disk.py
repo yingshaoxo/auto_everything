@@ -1,4 +1,5 @@
 from __future__ import annotations
+import base64
 from dataclasses import dataclass
 import datetime
 import pathlib
@@ -523,7 +524,7 @@ class Disk:
         elif level == "MB":
             return int("{:.0f}".format(bytes_size / float(1 << 20)))
 
-    def compress(self, input_folder_path: str, output_zip_path: str, file_format: str = "zip"):
+    def compress(self, input_folder_path: str, output_zip_path: str, file_format: str = "zip") -> str:
         """
         compress files to a target.
 
@@ -555,6 +556,8 @@ class Disk:
             format=file_format
         )
         # t.run(f"zip -r -D {target} {' '.join(paths)}")
+
+        return output_zip_path
 
     def uncompress(self, compressed_file_path: str, extract_folder_path: str, file_format: str = "zip") -> bool:
         """
@@ -651,6 +654,14 @@ class Disk:
         bytes_io.seek(0)
         with open(file_path, "wb") as f:
             f.write(bytes_io.read())
+
+    def base64_to_bytesio(self, base64_string: str):
+        img_data = base64.b64decode(base64_string)
+        return BytesIO(img_data)
+
+    def bytesio_to_base64(self, bytes_io: BytesIO):
+        bytes_io.seek(0)
+        return base64.b64encode(bytes_io.getvalue()).decode()
 
     def remove_a_file(self, file_path: str):
         file_path = self._expand_user(file_path)
