@@ -723,6 +723,32 @@ class Disk:
                 print(path)
         print("\nfake recover is done, sir.")
 
+    def read_bytes_from_file(self, file_path: str) -> bytes:
+        """
+        read bytes from a file
+
+        Parameters
+        ----------
+        file_path: str
+            like `/home/yingshaoxo/file.sql`
+        """
+        with open(file_path, 'rb') as f:
+            result = f.read()
+        return result
+
+    def write_bytes_into_file(self, file_path: str, content: bytes):
+        """
+        write bytes into a file
+
+        Parameters
+        ----------
+        file_path: str
+            target file path
+        content: bytes
+        """
+        with open(file_path, 'wb') as f:
+            f.write(content)
+
 
 class Store:
     """
