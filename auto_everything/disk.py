@@ -656,6 +656,9 @@ class Disk:
             f.write(bytes_io.read())
 
     def base64_to_bytesio(self, base64_string: str):
+        splits = base64_string.split(",")
+        if len(splits) == 2:
+            base64_string = splits[1]
         img_data = base64.b64decode(base64_string)
         return BytesIO(img_data)
 
