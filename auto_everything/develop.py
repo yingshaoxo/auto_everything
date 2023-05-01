@@ -1705,13 +1705,17 @@ export default Client_{identity_name}
                             type = one['type']
                         else:
                             raise Exception(f"We don't support type of '{one['type']}'")
-                    nullable_type = f"variable_tool.Type_Nullable[{type}]"
                     is_list = one['is_list']
                     is_enum = one['is_enum']
                     is_custom_message_type = one['is_custom_message_type']
 
+                    if is_list:
+                        nullable_type = f"variable_tool.Type_Nullable[[]variable_tool.Type_Nullable[{type}]]"
+                    else:
+                        nullable_type = f"variable_tool.Type_Nullable[{type}]"
+
                     variable_list.append(f"""
-    {capitalized_name}    {"[]" if is_list else ""}{nullable_type}
+    {capitalized_name}    {nullable_type}
                     """.rstrip().lstrip('\n'))
 
                     key_to_key_string_dict_variable_list_1.append(f"""
