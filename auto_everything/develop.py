@@ -497,6 +497,33 @@ class YRPC:
         "double": "number"
     }
 
+    _yrpc_type_to_golang_type_dict = {
+        "string": "string",
+        "bytes": "string",
+
+        "bool": "bool",
+
+        "uint32": "int64",
+        "uint64": "int64",
+        "sint32": "int64",
+        "sint64": "int64",
+        "fixed32": "int64",
+        "fixed64": "int64",
+        "sfixed32": "int64",
+        "sfixed64": "int64",
+        "int32": "int64",
+        "int64": "int64",
+        "uint64": "int64",
+
+        "float": "float64",
+        "double": "float64"
+    }
+
+    def _capitalize_the_first_char_of_a_string(self, text: str) -> str:
+        if len(text) == 0:
+            return text
+        return text[0].capitalize() + text[1:]
+
     def get_information_from_yrpc_protocol_code(self, source_code: str) -> Tuple[dict[str, Any], dict[str, Any]]:
         code_block_list = re.findall(r"(?P<type>\w+)\s+(?P<object_name>\w+)\s+\{(?P<properties>(\s*.*?\s*)+)\}", source_code, re.DOTALL)
         code_block_list = [
@@ -1635,6 +1662,125 @@ export default Client_{identity_name}
 
         return template_text
 
+    def _convert_yrpc_code_into_golang_objects_code(self, identity_name: str, source_code: str) -> str:
+        arguments_dict, _ = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        # enum_code_block_list: list[str] = []
+        dataclass_code_block_list: list[str] = []
+        for class_name, variable_info in arguments_dict.items():
+            capitalized_class_name = self._capitalize_the_first_char_of_a_string(class_name)
+            code_block_type = variable_info["**type**"]
+            del variable_info["**type**"]
+
+            if code_block_type == "enum":
+#                 variable_list: list[str] = []
+#                 for index, one in enumerate(variable_info.values()):
+#                     name = one['name']
+#                     variable_list.append(f"""
+#     {name} = "{name}",
+#                     """.rstrip().lstrip('\n'))
+#                 variable_list_text = "\n".join(variable_list)
+
+#                 enum_class_text = f"""
+# enum {class_name} {{
+# {variable_list_text}
+# }}
+#                 """.rstrip().lstrip('\n')
+
+#                 enum_code_block_list.append(enum_class_text)
+                print(f"Sorry, because of the stupid syntax of golang, we do not support enum type here: {class_name}")
+                exit()
+            else:
+                variable_list: list[str] = []
+                key_to_key_string_dict_variable_list_1: list[str] = []
+                key_to_key_string_dict_variable_list_2: list[str] = []
+                property_name_to_its_type_dict_variable_list: list[str] = []
+
+                for index, one in enumerate(variable_info.values()):
+                    name: str = one['name']
+                    capitalized_name = self._capitalize_the_first_char_of_a_string(name)
+                    type = self._yrpc_type_to_golang_type_dict.get(one['type']) 
+                    if type == None:
+                        if one['type'] in arguments_dict.keys():
+                            type = one['type']
+                        else:
+                            raise Exception(f"We don't support type of '{one['type']}'")
+                    nullable_type = f"variable_tool.Type_Nullable[{type}]"
+                    is_list = one['is_list']
+                    is_enum = one['is_enum']
+                    is_custom_message_type = one['is_custom_message_type']
+
+                    variable_list.append(f"""
+    {capitalized_name}    {"[]" if is_list else ""}{nullable_type}
+                    """.rstrip().lstrip('\n'))
+
+                    key_to_key_string_dict_variable_list_1.append(f"""
+    {capitalized_name}    string
+                    """.rstrip().lstrip('\n'))
+
+                    key_to_key_string_dict_variable_list_2.append(f"""
+    {capitalized_name}:    "{name}",
+                    """.rstrip().lstrip('\n'))
+
+                    property_name_to_its_type_dict_variable_list.append(f"""
+        "{name}":    "{type}",
+                    """.rstrip().lstrip('\n'))
+
+                variable_list_text = "\n".join(variable_list)
+                key_to_key_string_dict_variable_list_1_text = "\n".join(key_to_key_string_dict_variable_list_1)
+                key_to_key_string_dict_variable_list_2_text = "\n".join(key_to_key_string_dict_variable_list_2)
+                property_name_to_its_type_dict_variable_list_text = "\n".join(property_name_to_its_type_dict_variable_list)
+
+                dataclass_text = f"""
+type {capitalized_class_name} struct {{
+{variable_list_text}
+}}
+
+var Key_to_key_string_dict_for_{capitalized_class_name}_ = struct {{
+{key_to_key_string_dict_variable_list_1_text}
+}}{{
+{key_to_key_string_dict_variable_list_2_text}
+}}
+
+func Get_key_to_value_type_dict_for_{capitalized_class_name}_() map[string]any {{
+	return map[string]any{{
+{property_name_to_its_type_dict_variable_list_text}
+	}}
+}}
+
+func (self {capitalized_class_name}) To_dict() map[string]any {{
+	return variable_tool.Convert_nullable_struct_into_dict(self, true).(map[string]any)
+}}
+
+func (self {capitalized_class_name}) From_dict(a_dict map[string]any) {capitalized_class_name} {{
+	variable_tool.Convert_dict_into_nullable_struct(a_dict, &self)
+	return self
+}}
+                """.rstrip().lstrip('\n')
+                dataclass_code_block_list.append(dataclass_text)
+
+        # enum_code_block_list_text = "\n\n\n".join(enum_code_block_list)
+        dataclass_code_block_list_text = "\n\n\n\n".join(dataclass_code_block_list)
+
+        template_text = f"""
+package {identity_name}
+
+import (
+	"github.com/yingshaoxo/gopython/variable_tool"
+)
+
+
+
+{dataclass_code_block_list_text}
+        """.strip()
+
+        return template_text
+
+    def _convert_yrpc_code_into_golang_rpc_code(self, identity_name: str, source_code: str) -> str:
+        return f"""
+package {identity_name}
+        """.strip()
+
     def generate_code(self, which_language: str, input_folder: str, input_files: list[str], output_folder: str = "src/generated_yrpc"):
         """
         which_language: python, dart, typescript, go, kotlin, rust and so on
@@ -1668,6 +1814,7 @@ export default Client_{identity_name}
             "python": ".py",
             "dart": ".dart",
             "typescript": ".ts",
+            "golang": ".go"
         }
 
         if which_language not in language_to_file_suffix_dict.keys():
@@ -1680,26 +1827,41 @@ export default Client_{identity_name}
 
         for file in files:
             filename,_ = disk.get_stem_and_suffix_of_a_file(file)
+            identity_name = filename
+            if " " in identity_name:
+                print(f"Sorry, protocol filename shoudn't have space inside: '{identity_name}'")
+                exit()
 
             target_objects_file_path = disk.join_paths(output_folder, filename + "_objects" + language_to_file_suffix_dict[which_language])
             target_rpc_file_path = disk.join_paths(output_folder, filename + "_rpc" + language_to_file_suffix_dict[which_language])
+
+            target_basic_folder = disk.join_paths(output_folder, identity_name)
+            disk.create_a_folder(target_basic_folder)
+            target_objects_file_path_for_package_based_language = disk.join_paths(target_basic_folder, filename + "_objects" + language_to_file_suffix_dict[which_language])
+            target_rpc_file_path_for_package_based_language = disk.join_paths(target_basic_folder, filename + "_rpc" + language_to_file_suffix_dict[which_language])
 
             source_code = io_.read(file_path=file)
 
             objects_code = ""
             rpc_code = ""
-            if which_language == "python":
-                objects_code = self._convert_yrpc_code_into_python_objects_code(source_code=source_code)
-                rpc_code = self._convert_yrpc_code_into_python_rpc_code(identity_name=filename, source_code=source_code)
-            elif which_language == "dart":
-                objects_code = self._convert_yrpc_code_into_dart_objects_code(source_code=source_code)
-                rpc_code = self._convert_yrpc_code_into_dart_rpc_code(identity_name=filename, source_code=source_code)
-            elif which_language == "typescript":
-                objects_code = self._convert_yrpc_code_into_typescript_objects_code(source_code=source_code)
-                rpc_code = self._convert_yrpc_code_into_typescript_rpc_code(identity_name=filename, source_code=source_code)
-
-            io_.write(file_path=target_objects_file_path, content=objects_code)
-            io_.write(file_path=target_rpc_file_path, content=rpc_code)
+            if which_language in ["python", "dart", "typescript"]:
+                if which_language == "python":
+                    objects_code = self._convert_yrpc_code_into_python_objects_code(source_code=source_code)
+                    rpc_code = self._convert_yrpc_code_into_python_rpc_code(identity_name=identity_name, source_code=source_code)
+                elif which_language == "dart":
+                    objects_code = self._convert_yrpc_code_into_dart_objects_code(source_code=source_code)
+                    rpc_code = self._convert_yrpc_code_into_dart_rpc_code(identity_name=identity_name, source_code=source_code)
+                elif which_language == "typescript":
+                    objects_code = self._convert_yrpc_code_into_typescript_objects_code(source_code=source_code)
+                    rpc_code = self._convert_yrpc_code_into_typescript_rpc_code(identity_name=identity_name, source_code=source_code)
+                io_.write(file_path=target_objects_file_path, content=objects_code)
+                io_.write(file_path=target_rpc_file_path, content=rpc_code)
+            elif which_language in ["golang"]:
+                if which_language == "golang":
+                    objects_code = self._convert_yrpc_code_into_golang_objects_code(identity_name=identity_name, source_code=source_code)
+                    rpc_code = self._convert_yrpc_code_into_golang_rpc_code(identity_name=filename, source_code=source_code)
+                io_.write(file_path=target_objects_file_path_for_package_based_language, content=objects_code)
+                io_.write(file_path=target_rpc_file_path_for_package_based_language, content=rpc_code)
 
 
 if __name__ == "__main__":
@@ -1708,33 +1870,14 @@ if __name__ == "__main__":
     # result1, result2 = yrpc.get_information_from_yrpc_protocol_code(io_.read("/Users/yingshaoxo/CS/auto_everything/playground/develop/test_protobuff_code.proto"))
     # pprint(result1)
 
-    for language in ["python", "dart", "typescript"]:
+    output_folder = "/home/yingshaoxo/CS/auto_everything/playground/develop/build"
+
+    disk.delete_a_folder(output_folder)
+
+    for language in ["python", "dart", "typescript", "golang"]:
         yrpc.generate_code(
             which_language=language,
-            input_folder="/Users/yingshaoxo/CS/auto_everything/playground/develop",
-            input_files=["test_protobuff_code.proto"],
-            output_folder="/Users/yingshaoxo/CS/auto_everything/playground/develop/build"
+            input_folder="/home/yingshaoxo/CS/auto_everything/playground/develop",
+            input_files=["simple_protobuff_code.proto"],
+            output_folder=output_folder
         )
-
-    # grpc = GRPC()
-    # grpc.generate_python_code(
-    #     input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/py_grpc"
-    # )
-    # grpc.generate_golang_code(
-    #     input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/go_grpc"
-    # )
-    # grpc.generate_dart_code(
-    #     input_folder="/tmp/hi/protos/", output_folder="/tmp/hi/dart_grpc"
-    # )
-    # grpc.generate_key_string_map_from_protocols(
-    #     for_which_language="golang",
-    #     input_folder="/Users/yingshaoxo/CS/we_love_party/party_protocols/protocols",
-    #     input_files=["management_service.proto"],
-    #     output_folder="/Users/yingshaoxo/CS/we_love_party/management_system/golang_backend_service/grpc_key_string_maps",
-    # )
-    # grpc.generate_typescript_code(
-    #     input_folder="/Users/yingshaoxo/CS/we_love_party/party_protocols/protocols",
-    #     input_files=["management_service.proto"],
-    #     project_root_folder="/Users/yingshaoxo/CS/we_love_party/management_system/react_web_client",
-    #     output_folder="/Users/yingshaoxo/CS/we_love_party/management_system/react_web_client/src/generated_grpc",
-    # )
