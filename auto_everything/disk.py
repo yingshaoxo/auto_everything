@@ -421,6 +421,20 @@ class Disk:
     def get_directory_name(self, path: str):
         """
         /hi/you/abc.txt -> you
+        /hi/you -> you
+        """
+        path = self._expand_user(path)
+        if self.exists(path):
+            if os.path.isfile(path):
+                path = os.path.dirname(path)
+        else:
+            raise Exception(f"Sorry, I don't know if '{path}' is a folder or file, because folder can also has '.' inside.")
+        return os.path.basename(path)
+
+    def get_parent_directory_name(self, path: str):
+        """
+        /hi/you/abc.txt -> you
+        /hi/you -> hi
         """
         path = self._expand_user(path)
         path = os.path.dirname(path)
