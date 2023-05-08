@@ -15,11 +15,11 @@ I lost my job for almost a year. If you wish to see me alive, please buy me some
 
 ```bash
 curl -sSL https://install.python-poetry.org | python3
-poetry add auto_everything
+poetry add "git+https://github.com/yingshaoxo/auto_everything.git@dev"
 
 or
 
-sudo pip3 install auto_everything
+sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev"
 ```
 
 > Full Installation: `poetry add auto_everything --extras all`
