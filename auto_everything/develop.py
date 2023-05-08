@@ -889,7 +889,7 @@ def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_u
         else:
             print(f"Error: You should give me an absolute html_folder_path than {{html_folder_path}}")
 
-    print(f"You can see the docs here: http://127.0.0.1:{{{{port}}}}/docs")
+    print(f"You can see the docs here: http://127.0.0.1:{{port}}/docs")
     uvicorn.run( #type: ignore
         app=app,
         host="0.0.0.0",
