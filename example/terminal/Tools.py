@@ -275,6 +275,13 @@ bfg --delete-files {filename}
         du -a -h --max-depth=1 {path} | sort -h
         """)
 
+    def clean_docker_garbage(self):
+        t.run(f"""
+        sudo docker container prune
+        sudo docker image prune
+        sudo docker system prune -a 
+        """)
+
     def hi(self):
         self.help()
 
