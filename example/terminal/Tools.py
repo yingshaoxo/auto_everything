@@ -87,6 +87,7 @@ git push origin {branch} --force
         t.run(f"""
 git fetch --all
 git reset --hard origin/{branch}
+git submodule update --init --recursive
 """)
 
     def merge_by_hand(self, branch_name: str):
