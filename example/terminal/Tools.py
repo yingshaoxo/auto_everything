@@ -114,6 +114,22 @@ git reset --hard HEAD^
 bfg --delete-files {filename}
 """)
 
+    def sync_with_remote_git_repo(self, repo_url: str):
+        t.run(f"""
+# Add a new remote upstream repository
+git remote add upstream {repo_url}
+git remote set-url upstream {repo_url}
+
+# Get upstream code
+git fetch upstream
+
+# Sync 1
+git checkout master && git merge upstream/master
+
+# Sync 2
+git checkout main && git merge upstream/main
+        """)
+
     def abort(self):
         t.run(f"""
         git merge --abort
