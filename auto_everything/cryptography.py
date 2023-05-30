@@ -204,9 +204,12 @@ class EncryptionAndDecryption():
             if (not char.isalpha()) and (not char.isnumeric()):
                 new_message += char
                 continue
-            new_char = a_secret_dict[char.lower()]
-            if char.isupper():
-                new_char = new_char.upper()
+            if char in a_secret_dict.keys():
+                new_char = a_secret_dict[char.lower()]
+                if char.isupper():
+                    new_char = new_char.upper()
+            else:
+                new_char = char
             new_message += new_char
         return new_message
     
@@ -221,9 +224,12 @@ class EncryptionAndDecryption():
             if (not char.isalpha()) and (not char.isnumeric()):
                 new_message += char
                 continue
-            new_char = a_secret_dict[char.lower()]
-            if char.isupper():
-                new_char = new_char.upper()
+            if char in a_secret_dict.keys():
+                new_char = a_secret_dict[char.lower()]
+                if char.isupper():
+                    new_char = new_char.upper()
+            else:
+                new_char = char
             new_message += new_char
         return new_message
 
