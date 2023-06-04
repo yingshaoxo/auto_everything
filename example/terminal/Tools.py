@@ -292,6 +292,25 @@ git checkout main && git merge upstream/main
         du -a -h --max-depth=1 {path} | sort -h
         """)
 
+    def delete_sub_git_folder(self, path: str = "."):
+        files = disk.get_folder_and_files(folder=path, recursive=True)
+        files = [file.path for file in files if file.path.endswith("/.git")]
+        files.sort(key=len)
+        if len(files) > 0:
+            files = files[1:]
+        for file in files:
+            file = disk.get_absolute_path(file)
+            try:
+                disk.delete_a_folder(file)
+            except Exception as e:
+                print(f"{file}: ", e)
+                try:
+                    disk.delete_a_file(file)
+                except Exception as e2:
+                    print(f"{file}: ", e2)
+            print(f"Folder got deleted: {file}")
+        print("done")
+
     def clean_docker_garbage(self):
         t.run(f"""
         sudo docker container prune
