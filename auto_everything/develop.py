@@ -1836,19 +1836,14 @@ package {identity_name}
                 print(f"Sorry, protocol filename shoudn't have space inside: '{identity_name}'")
                 exit()
 
-            target_objects_file_path = disk.join_paths(output_folder, filename + "_objects" + language_to_file_suffix_dict[which_language])
-            target_rpc_file_path = disk.join_paths(output_folder, filename + "_rpc" + language_to_file_suffix_dict[which_language])
-
-            target_basic_folder = disk.join_paths(output_folder, identity_name)
-            disk.create_a_folder(target_basic_folder)
-            target_objects_file_path_for_package_based_language = disk.join_paths(target_basic_folder, filename + "_objects" + language_to_file_suffix_dict[which_language])
-            target_rpc_file_path_for_package_based_language = disk.join_paths(target_basic_folder, filename + "_rpc" + language_to_file_suffix_dict[which_language])
-
             source_code = io_.read(file_path=file)
 
             objects_code = ""
             rpc_code = ""
             if which_language in ["python", "dart", "typescript"]:
+                target_objects_file_path = disk.join_paths(output_folder, filename + "_objects" + language_to_file_suffix_dict[which_language])
+                target_rpc_file_path = disk.join_paths(output_folder, filename + "_rpc" + language_to_file_suffix_dict[which_language])
+
                 if which_language == "python":
                     objects_code = self._convert_yrpc_code_into_python_objects_code(source_code=source_code)
                     rpc_code = self._convert_yrpc_code_into_python_rpc_code(identity_name=identity_name, source_code=source_code)
@@ -1861,6 +1856,11 @@ package {identity_name}
                 io_.write(file_path=target_objects_file_path, content=objects_code)
                 io_.write(file_path=target_rpc_file_path, content=rpc_code)
             elif which_language in ["golang"]:
+                target_basic_folder = disk.join_paths(output_folder, identity_name)
+                disk.create_a_folder(target_basic_folder)
+                target_objects_file_path_for_package_based_language = disk.join_paths(target_basic_folder, filename + "_objects" + language_to_file_suffix_dict[which_language])
+                target_rpc_file_path_for_package_based_language = disk.join_paths(target_basic_folder, filename + "_rpc" + language_to_file_suffix_dict[which_language])
+
                 if which_language == "golang":
                     objects_code = self._convert_yrpc_code_into_golang_objects_code(identity_name=identity_name, source_code=source_code)
                     rpc_code = self._convert_yrpc_code_into_golang_rpc_code(identity_name=filename, source_code=source_code)
