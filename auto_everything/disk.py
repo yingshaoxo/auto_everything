@@ -1021,12 +1021,16 @@ Future<void> _write_file_object_to_disk(
   String target_path = path_.join(parent_folder, a_file.relative_path!);
 
   if (a_file.is_folder == true) {
-    await Directory(target_path).create(recursive: true);
+    if (!Directory(target_path).existsSync()) {
+      await Directory(target_path).create(recursive: true);
+    }
   } else {
-    await _write_base64_string_to_file(
-      a_file.base64_content!,
-      target_path,
-    );
+    if (!File(target_path).existsSync()) {
+      await _write_base64_string_to_file(
+        a_file.base64_content!,
+        target_path,
+      );
+    }
   }
 }
 
