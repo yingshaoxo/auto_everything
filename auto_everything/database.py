@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Callable, Iterator
 from datetime import datetime
 import json
 
@@ -347,18 +347,221 @@ class Redis:
                 self.set(key=key, value=value, expire_time_in_seconds=int(ttl))
 
 
+class Database_Of_Yingshaoxo:
+    """
+                        r   r+   w   w+   a   a+
+    ------------------|--------------------------
+    read              | +   +        +        +
+    write             |     +    +   +    +   +
+    write after seek  |     +    +   +
+    create            |          +   +    +   +
+    truncate          |          +   +
+    position at start | +   +    +   +
+    position at end   |                   +   +
+    """
+    def __init__(self, database_name: str, database_base_folder: str = "./yingshaoxo_database") -> None:
+        from auto_everything.disk import Disk
+        from auto_everything.io import IO
+        import json
+        import subprocess
+        import os
+        self._disk = Disk()
+        self._io = IO()
+        self._json = json
+        self._subprocess = subprocess
+        self._os = os
+
+        self.database_base_folder = database_base_folder
+        if (not self._disk.exists(self.database_base_folder)):
+            self._disk.create_a_folder(self.database_base_folder)
+
+        self.database_txt_file_path = self._disk.join_paths(self.database_base_folder, f"{database_name}.txt")
+        if (not self._disk.exists(self.database_txt_file_path)):
+            self._io.write(self.database_txt_file_path, "")
+    
+    def add(self, data: dict[str, Any]):
+        json_string = self._json.dumps(data).strip()
+        with open(self.database_txt_file_path, "a+", encoding="utf-8", errors="ignore") as file_stream:
+            file_stream.seek(0, self._os.SEEK_END) 
+            file_stream.write(json_string + "\n")
+
+    def raw_search(self, one_row_dict_handler: Callable[[str], dict[str, Any] | None]) -> Iterator[dict[str, Any]]:
+        """
+        one_row_dict_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
+        """
+        with open(self.database_txt_file_path, "r") as file_stream:
+            previous_position = None
+            while True:
+                current_position = file_stream.tell()
+                line = file_stream.readline()
+                if previous_position == current_position:
+                    # reach the end
+                    break
+                previous_position = current_position
+                if (line.strip() == ""):
+                    # ignore empty line
+                    continue
+
+                if (line.startswith('#')):
+                    # ignore deleted line
+                    continue
+
+                result = one_row_dict_handler(line)
+                if (result != None):
+                    yield result
+    
+    def search(self, one_row_dict_handler: Callable[[dict[str, Any]], dict[str, Any] | None]) -> list[dict[str, Any]]:
+        """
+        one_row_dict_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
+        """
+        result_list = []
+        with open(self.database_txt_file_path, "r") as file_stream:
+            previous_position = None
+            while True:
+                current_position = file_stream.tell()
+                line = file_stream.readline()
+                if previous_position == current_position:
+                    # reach the end
+                    break
+                previous_position = current_position
+                if (line.strip() == ""):
+                    # ignore empty line
+                    continue
+
+                if (line.startswith('#')):
+                    # ignore deleted line
+                    continue
+
+                json_dict = self._json.loads(line)
+
+                result = one_row_dict_handler(json_dict)
+                if (result != None):
+                    result_list.append(result)
+        return result_list
+    
+    # def reverse_search(self):
+    #     #https://stackoverflow.com/a/23646049/8667243
+    #     #reverse search will speed up the search process in most of the cases
+    #     pass
+
+    def raw_delete(self, one_row_dict_filter: Callable[[str], bool]):
+        """
+        one_row_dict_filter: a_function to handle deletion process. If it returns False, we'll ignore it, otherwise, if it is True, we'll delete that row of data.
+        """
+        with open(self.database_txt_file_path, "r+") as file_stream:
+            end_detection_counting = 1
+            old_position_pair = None
+            while True:
+                previous_position = file_stream.tell()
+                line = file_stream.readline()
+                current_position = file_stream.tell()
+
+                new_position_pair = (previous_position, current_position)
+                if old_position_pair == new_position_pair:
+                    end_detection_counting += 1 
+                else:
+                    old_position_pair = new_position_pair
+                if end_detection_counting >= 3:
+                    # We could make sure it is the end of the file
+                    old_position_pair = None
+                    break
+
+                if (line.strip() == ""):
+                    # ignore empty line
+                    continue
+
+                if (line.startswith('#')):
+                    # ignore deleted line
+                    continue
+
+                result = one_row_dict_filter(line)
+                if (result == True):
+                    # replace the first character of the line with '#' symbol
+                    file_stream.seek(previous_position)
+                    file_stream.write("#"+line[1:])
+
+    def delete(self, one_row_dict_filter: Callable[[dict[str, Any]], bool]):
+        """
+        one_row_dict_filter: a_function to handle deletion process. If it returns False, we'll ignore it, otherwise, if it is True, we'll delete that row of data.
+        """
+        with open(self.database_txt_file_path, "r+") as file_stream:
+            end_detection_counting = 1
+            old_position_pair = None
+            while True:
+                previous_position = file_stream.tell()
+                line = file_stream.readline()
+                current_position = file_stream.tell()
+
+                new_position_pair = (previous_position, current_position)
+                #print(new_position_pair)
+                if old_position_pair == new_position_pair:
+                    end_detection_counting += 1 
+                else:
+                    old_position_pair = new_position_pair
+                if end_detection_counting >= 3:
+                    # We could make sure it is the end of the file
+                    old_position_pair = None
+                    break
+
+                if (line.strip() == ""):
+                    # ignore empty line
+                    continue
+
+                if (line.startswith('#')):
+                    # ignore deleted line
+                    continue
+
+                json_dict = self._json.loads(line)
+
+                result = one_row_dict_filter(json_dict)
+                #print(result)
+                if (result == True):
+                    # replace the first character of the line with '#' symbol
+                    file_stream.seek(previous_position)
+                    file_stream.write("#"+line[1:])
+
+    def raw_update(self, one_row_dict_handler: Callable[[str], dict[str, Any] | None]):
+        """
+        one_row_dict_handler: a_function to handle update process. If it returns None, we'll ignore it, otherwise, we'll update the old value with the new value the handler function returns.
+        """
+        new_record_list = []
+
+        def one_row_dict_filter(old_value: str) -> bool:
+            result = one_row_dict_handler(old_value)
+            if result == None:
+                return False
+            else:
+                new_record_list.append(result)
+                return True
+        self.raw_delete(one_row_dict_filter=one_row_dict_filter)
+
+        for one in new_record_list:
+            self.add(one)
+
+    def update(self, one_row_dict_handler: Callable[[dict[str, Any]], dict[str, Any] | None]):
+        """
+        one_row_dict_handler: a_function to handle update process. If it returns None, we'll ignore it, otherwise, we'll update the old value with the new value the handler function returns.
+        """
+        new_record_list = []
+
+        def one_row_dict_filter(old_value: dict[str, Any]) -> bool:
+            result = one_row_dict_handler(old_value)
+            if result == None:
+                return False
+            else:
+                new_record_list.append(result)
+                return True
+        self.delete(one_row_dict_filter=one_row_dict_filter)
+
+        for one in new_record_list:
+            self.add(one)
+
+    def clear_database(self):
+        self._io.write(self.database_txt_file_path, "")
+    
+
 if __name__ == "__main__":
     pass
-    # mongoDB = MongoDB(host="127.0.0.1", port="27017", user="root", password="yingshaoxo666")
-    # databases = mongoDB.list_database()
-    # print(databases)
-    # db = mongoDB.get_database("test")
-    # my_table = db.get_collection("my_table")
-    # my_table.delete_many({"num": {"$gt": -1}})
-    # for i in range(10):
-    #     my_table.insert_one({"num": i})
-    # for one in my_table.find({"num": {"$gt": -1}}):
-    #     print(one)
 
 """
 import sqlalchemy

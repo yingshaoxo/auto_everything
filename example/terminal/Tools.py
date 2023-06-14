@@ -110,7 +110,7 @@ git reset --mixed HEAD~1
 git reset --hard HEAD^
 """)
 
-    def delete_git_file(self, filename: str):
+    def delete_big_git_file(self, filename: str):
         t.run(f"""
 bfg --delete-files {filename}
 """)
@@ -181,6 +181,9 @@ git checkout main && git merge upstream/main
     def find_string(self, regex_expression: str):
         pwd = t.run_command('pwd')
         t.run(f"grep -r -e '{regex_expression}' '{pwd}'")
+    
+    def sync(self, source: str, target: str):
+        t.run(f"rsync -v --info=progress2 --partial '{source}' '{target}'")
 
     def get_non_app_launch_items(self):
         items = t.run_command("launchctl list").split("\n")
