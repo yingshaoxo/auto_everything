@@ -926,6 +926,133 @@ class Store:
         self._sql_conn.commit()
 
 
+class Dart_File_Hard_Encoder_And_Decoder:
+    """
+    Put a folder into your code as a dart file (yingshaoxo)
+    """
+    def __init__(self, generated_file_name="built_in_files.dart"):
+        from auto_everything.io import IO
+        from auto_everything.disk import Disk
+        import json
+        self._disk = Disk()
+        self._io = IO()
+        self._json = json
+
+    def _get_content_json_string(self, source_folder: str) -> str: 
+        files = self._disk.get_folder_and_files(folder=source_folder, recursive=True)
+        object_list = []
+        for file in files:
+            """
+            'is_folder': this.is_folder,
+            'relative_path': this.relative_path,
+            'base64_content': this.base64_content,
+            """
+            an_object = {}
+            if file.is_folder:
+                an_object['is_folder'] = True
+            an_object['relative_path'] = file.path
+            an_object['base64_content'] = self._disk.bytesio_to_base64(self._disk.get_bytesio_from_a_file(file.path)) 
+            object_list.append(an_object)
+        return json.dumps(object_list)
+
+    def generate(self, source_folder: str, generated_file_path="lib/built_in_files.dart"):
+        template1 = """
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:path/path.dart' as path_;
+        """.strip()
+
+        template2 = """
+class File_Model {
+  bool? is_folder;
+  String? relative_path;
+  String? base64_content;
+
+  File_Model({this.is_folder, this.relative_path, this.base64_content});
+
+  Map<String, dynamic> to_dict() {
+    return {
+      'is_folder': this.is_folder,
+      'relative_path': this.relative_path,
+      'base64_content': this.base64_content,
+    };
+  }
+
+  File_Model from_dict(Map<String, dynamic>? json) {
+    if (json == null) {
+      return File_Model();
+    }
+
+    this.is_folder = json['is_folder'];
+    this.relative_path = json['relative_path'];
+    this.base64_content = json['base64_content'];
+
+    return File_Model(
+      is_folder: json['is_folder'],
+      relative_path: json['relative_path'],
+      base64_content: json['base64_content'],
+    );
+  }
+}
+
+Future<Uint8List> decode_base64_string(String content) async {
+  return base64Decode(content.replaceAll(RegExp(r'\s'), ''));
+}
+
+Future<void> _write_base64_string_to_file(
+    String content, String file_path) async {
+  Uint8List bytes_data = await decode_base64_string(content);
+  await File(file_path).parent.create(recursive: true);
+  await File(file_path).writeAsBytes(bytes_data);
+}
+
+Future<void> _write_file_object_to_disk(
+    File_Model a_file, String parent_folder) async {
+  if (a_file.is_folder == null ||
+      a_file.relative_path == null ||
+      a_file.base64_content == null) {
+    return;
+  }
+
+  String target_path = path_.join(parent_folder, a_file.relative_path!);
+
+  if (a_file.is_folder == true) {
+    await Directory(target_path).create(recursive: true);
+  } else {
+    await _write_base64_string_to_file(
+      a_file.base64_content!,
+      target_path,
+    );
+  }
+}
+
+Future<List<File_Model>> read_json_string_as_object_list() async {
+  final data = await json.decode(the_json_data_that_honors_yingshaoxo);
+  List<File_Model> files = [];
+  for (final one in data) {
+    files.add(File_Model().from_dict(one));
+  }
+  return files;
+}
+
+Future<void> release_all_built_in_files(String parent_folder_path) async {
+  List<File_Model> files = await read_json_string_as_object_list();
+  for (final one in files) {
+    await _write_file_object_to_disk(one, parent_folder_path);
+  }
+}
+        """.strip()
+
+        content_string = self._get_content_json_string(source_folder=source_folder)
+
+        middle_content = f'''
+        String the_json_data_that_honors_yingshaoxo = "{content_string}";
+        '''.strip()
+
+        self._io.write(file_path=generated_file_path, content=template1 + "\n\n" + middle_content + "\n\n" + template2)
+
+
 if __name__ == "__main__":
     """
     from pprint import pprint
