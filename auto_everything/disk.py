@@ -948,10 +948,13 @@ class Dart_File_Hard_Encoder_And_Decoder:
             'base64_content': this.base64_content,
             """
             an_object = {}
+            an_object['relative_path'] = file.path
             if file.is_folder:
                 an_object['is_folder'] = True
-            an_object['relative_path'] = file.path
-            an_object['base64_content'] = self._disk.bytesio_to_base64(self._disk.get_bytesio_from_a_file(file.path)) 
+                an_object['base64_content'] = ""
+            else:
+                an_object['is_folder'] = False
+                an_object['base64_content'] = self._disk.bytesio_to_base64(self._disk.get_bytesio_from_a_file(file.path)) 
             object_list.append(an_object)
         return json.dumps(object_list)
 
@@ -1047,7 +1050,7 @@ Future<void> release_all_built_in_files(String parent_folder_path) async {
         content_string = self._get_content_json_string(source_folder=source_folder)
 
         middle_content = f'''
-        String the_json_data_that_honors_yingshaoxo = "{content_string}";
+        String the_json_data_that_honors_yingshaoxo = """{content_string}""";
         '''.strip()
 
         self._io.write(file_path=generated_file_path, content=template1 + "\n\n" + middle_content + "\n\n" + template2)
