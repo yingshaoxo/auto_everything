@@ -26,7 +26,7 @@ class IO():
             print("\n I only got my super power if you run me with sudo!")
             exit()
 
-    def read(self, file_path: str) -> str:
+    def read(self, file_path: str, auto_detect_encoding=False) -> str:
         """
         read text from txt file
 
@@ -35,7 +35,14 @@ class IO():
         file_path
             txt file path
         """
-        with open(file_path, 'r', encoding="utf-8", errors="ignore") as f:
+        encoding = 'utf-8'
+
+        if (auto_detect_encoding == True):
+            import chardet
+            rawdata = open(file_path, "rb").read()
+            encoding = chardet.detect(rawdata)['encoding']
+            
+        with open(file_path, 'r', encoding=encoding, errors="ignore") as f:
             result = f.read()
         return result
 
