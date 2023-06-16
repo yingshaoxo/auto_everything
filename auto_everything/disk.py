@@ -772,6 +772,18 @@ class Disk:
         with open(file_path, 'wb') as f:
             f.write(content)
 
+    def convert_file_suffix_end_to_lowercase(self, source_folder: str):
+        files = list(disk.get_files(source_folder, recursive=True))
+        for file in files:
+            file = disk.get_absolute_path(file)
+            if ("/" in file):
+                last_part = file.split("/")[-1]
+                if ("." in last_part):
+                    end = last_part.split(".")[-1]
+                    if file.endswith("." + end):
+                        new_file = file[:-len(end)] + end.lower()
+                        disk.move_a_file(source_file_path=file, target_file_path=new_file)
+
 
 class Store:
     """
