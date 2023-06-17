@@ -5,6 +5,7 @@ import sys
 import re
 from pprint import pprint
 import copy
+from inspect import signature
 
 from typing import Any, Callable
 
@@ -85,7 +86,6 @@ class Python():
         """
         get help information about class or function
         """
-        from inspect import signature
         if callable(object_):
             arguments = str(signature(object_))
             print(object_.__name__ + arguments)
@@ -131,6 +131,80 @@ class Python():
         """
         from fire import Fire #type: ignore
         Fire(class_name)
+
+    def fire2(self, class_instance: Any):
+        """
+        fire2 is a function that come from yingshaoxo's wild thinking which turn any Python class into a user friendly command line interface
+        """
+        type_dict = {
+            'int': int,
+            'str': str,
+            'bool': bool,
+            'float': float
+        }
+
+        if not callable(class_instance):
+            return
+
+        class_instance2 = class_instance()
+
+        command_line_arguments = sys.argv[1:]
+        my_method_and_propertys: dict[str, Any] = {}
+        function_string_list = []
+
+        methods_and_propertys = dir(class_instance)
+        for each_string in methods_and_propertys:
+            if (not each_string.startswith("_")):
+                one = class_instance.__dict__[each_string]
+                if callable(one):
+                    # it is a sub_function
+                    arguments = str(signature(one))
+                    #print(one.__name__, arguments)
+
+                    function_string_list.append(each_string)
+                    my_method_and_propertys[each_string] = {
+                        'function_name': each_string,
+                        'function_instance': getattr(class_instance2, each_string),
+                        'arguments': {
+                            one2.split(':')[0].strip():
+                                {
+                                    'type_string': one2.split(':')[1].strip().split('=')[0].strip(), 
+                                    'type_function': type_dict[one2.split(':')[1].strip().split('=')[0].strip()],
+                                }
+                            for one2 in 
+                            arguments[1:-1].split(', ')[1:]
+                        },
+                        'arguments_string': arguments
+                    }
+        # print(command_line_arguments)
+        # print(my_method_and_propertys)
+
+        if len(command_line_arguments) == 0:
+            print("APIs:\n")
+            for function_name, data in my_method_and_propertys.items():
+                argument_part = ', '.join(data['arguments_string'].split(', ')[1:])
+                if (argument_part.strip() == ""):
+                    print((function_name + "\n    " + "()").strip())
+                else:
+                    print((function_name + "\n    " + "(" + argument_part).strip())
+            return
+
+        method_name = command_line_arguments[0]
+        named_arguments = [one for one in command_line_arguments[1:] if one.startswith('--')]
+        if (method_name in function_string_list):
+            one_method = my_method_and_propertys[method_name]
+            method_instance = one_method['function_instance']
+            right_arguments = one_method['arguments']
+
+            custom_arguments = {}
+            for one in named_arguments:
+                argument_name = one[2:].split("=")[0]
+                argument_value = one[2:].split("=")[1]
+                argument_type = right_arguments[argument_name]['type_function']
+                custom_arguments[argument_name] = argument_type(argument_value)
+
+            method_instance(**custom_arguments)
+            return
 
     def make_it_runnable(self, py_file_path: str|None=None):
         """
