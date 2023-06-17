@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "auto-everything"
-version = "3.20"
+version = "3.21"
 description = "do automate things on Linux"
 authors = ["yingshaoxo <yingshaoxo@gmail.com>"]
-license = "GPLv3"
+license = "MIT"
 readme = "README.md"
 packages = [{include = "auto_everything"}]
 
