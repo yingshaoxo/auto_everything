@@ -20,4 +20,7 @@ class Tools():
     def add(self, a: int, b :int = 100):
         print(a + b)
 
+    def fuck(self, a1: str = "yingshaoxo", b2: str="yingshaoxo2"):
+        print(a1 + b2)
+
 py.fire2(Tools)
