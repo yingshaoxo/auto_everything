@@ -1,4 +1,5 @@
 from __future__ import annotations
+import base64
 from dataclasses import dataclass
 import datetime
 import pathlib
@@ -420,6 +421,20 @@ class Disk:
     def get_directory_name(self, path: str):
         """
         /hi/you/abc.txt -> you
+        /hi/you -> you
+        """
+        path = self._expand_user(path)
+        if self.exists(path):
+            if os.path.isfile(path):
+                path = os.path.dirname(path)
+        else:
+            raise Exception(f"Sorry, I don't know if '{path}' is a folder or file, because folder can also has '.' inside.")
+        return os.path.basename(path)
+
+    def get_parent_directory_name(self, path: str):
+        """
+        /hi/you/abc.txt -> you
+        /hi/you -> hi
         """
         path = self._expand_user(path)
         path = os.path.dirname(path)
@@ -523,7 +538,7 @@ class Disk:
         elif level == "MB":
             return int("{:.0f}".format(bytes_size / float(1 << 20)))
 
-    def compress(self, input_folder_path: str, output_zip_path: str, file_format: str = "zip"):
+    def compress(self, input_folder_path: str, output_zip_path: str, file_format: str = "zip") -> str:
         """
         compress files to a target.
 
@@ -555,6 +570,8 @@ class Disk:
             format=file_format
         )
         # t.run(f"zip -r -D {target} {' '.join(paths)}")
+
+        return output_zip_path
 
     def uncompress(self, compressed_file_path: str, extract_folder_path: str, file_format: str = "zip") -> bool:
         """
@@ -608,7 +625,10 @@ class Disk:
         # except Exception as e:
         #     raise e
 
-    def get_the_temp_dir(self):
+    def get_the_temp_dir(self) -> str:
+        """
+        Get system level temporary folder. It's normally `/tmp/`
+        """
         return self.temp_dir
 
     def get_a_temp_folder_path(self):
@@ -649,6 +669,17 @@ class Disk:
         with open(file_path, "wb") as f:
             f.write(bytes_io.read())
 
+    def base64_to_bytesio(self, base64_string: str):
+        splits = base64_string.split(",")
+        if len(splits) == 2:
+            base64_string = splits[1]
+        img_data = base64.b64decode(base64_string)
+        return BytesIO(img_data)
+
+    def bytesio_to_base64(self, bytes_io: BytesIO):
+        bytes_io.seek(0)
+        return base64.b64encode(bytes_io.getvalue()).decode()
+
     def remove_a_file(self, file_path: str):
         file_path = self._expand_user(file_path)
         if self.exists(file_path):
@@ -660,11 +691,13 @@ class Disk:
     def move_a_file(self, source_file_path: str, target_file_path: str):
         source_file_path = self._expand_user(source_file_path)
         target_file_path = self._expand_user(target_file_path)
+        if source_file_path == target_file_path:
+            return
         if self.exists(target_file_path):
             os.remove(target_file_path)
         os.rename(source_file_path, target_file_path)
 
-    def convert_bytes_to_bytes_io(self, bytes_data: bytes) -> BytesIO:
+    def convert_bytes_to_bytesio(self, bytes_data: bytes) -> BytesIO:
         bytes_io = BytesIO()
         bytes_io.write(bytes_data)
         bytes_io.seek(0)
@@ -673,8 +706,10 @@ class Disk:
     def create_a_folder(self, folder_path: str):
         folder_path = self._expand_user(folder_path)
         Path(folder_path).mkdir(parents=True, exist_ok=True)
-        # if not os.path.exists(folder_path):
-        #     os.mkdir(folder_path)
+
+    def delete_a_folder(self, folder_path: str):
+        folder_path = self._expand_user(folder_path)
+        shutil.rmtree(path=folder_path)
 
     def fake_folder_backup(self, backup_folder: str, backup_saving_file_path: str | None=None) -> list[Any]:
         saving_path = None
@@ -710,6 +745,44 @@ class Disk:
                     f.write("")
                 print(path)
         print("\nfake recover is done, sir.")
+
+    def read_bytes_from_file(self, file_path: str) -> bytes:
+        """
+        read bytes from a file
+
+        Parameters
+        ----------
+        file_path: str
+            like `/home/yingshaoxo/file.sql`
+        """
+        with open(file_path, 'rb') as f:
+            result = f.read()
+        return result
+
+    def write_bytes_into_file(self, file_path: str, content: bytes):
+        """
+        write bytes into a file
+
+        Parameters
+        ----------
+        file_path: str
+            target file path
+        content: bytes
+        """
+        with open(file_path, 'wb') as f:
+            f.write(content)
+
+    def convert_file_suffix_end_to_lowercase(self, source_folder: str):
+        files = list(disk.get_files(source_folder, recursive=True))
+        for file in files:
+            file = disk.get_absolute_path(file)
+            if ("/" in file):
+                last_part = file.split("/")[-1]
+                if ("." in last_part):
+                    end = last_part.split(".")[-1]
+                    if file.endswith("." + end):
+                        new_file = file[:-len(end)] + end.lower()
+                        disk.move_a_file(source_file_path=file, target_file_path=new_file)
 
 
 class Store:
@@ -865,6 +938,140 @@ class Store:
         """
         self._sql_cursor.execute(f"DELETE FROM {self._store_name}")
         self._sql_conn.commit()
+
+
+class Dart_File_Hard_Encoder_And_Decoder:
+    """
+    Put a folder into your code as a dart file (yingshaoxo)
+    """
+    def __init__(self, generated_file_name="built_in_files.dart"):
+        from auto_everything.io import IO
+        from auto_everything.disk import Disk
+        import json
+        self._disk = Disk()
+        self._io = IO()
+        self._json = json
+
+    def _get_content_json_string(self, source_folder: str) -> str: 
+        files = self._disk.get_folder_and_files(folder=source_folder, recursive=True)
+        object_list = []
+        for file in files:
+            """
+            'is_folder': this.is_folder,
+            'relative_path': this.relative_path,
+            'base64_content': this.base64_content,
+            """
+            an_object = {}
+            an_object['relative_path'] = file.path
+            if file.is_folder:
+                an_object['is_folder'] = True
+                an_object['base64_content'] = ""
+            else:
+                an_object['is_folder'] = False
+                an_object['base64_content'] = self._disk.bytesio_to_base64(self._disk.get_bytesio_from_a_file(file.path)) 
+            object_list.append(an_object)
+        return json.dumps(object_list)
+
+    def generate(self, source_folder: str, generated_file_path="lib/built_in_files.dart"):
+        template1 = """
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:path/path.dart' as path_;
+        """.strip()
+
+        template2 = """
+class File_Model {
+  bool? is_folder;
+  String? relative_path;
+  String? base64_content;
+
+  File_Model({this.is_folder, this.relative_path, this.base64_content});
+
+  Map<String, dynamic> to_dict() {
+    return {
+      'is_folder': this.is_folder,
+      'relative_path': this.relative_path,
+      'base64_content': this.base64_content,
+    };
+  }
+
+  File_Model from_dict(Map<String, dynamic>? json) {
+    if (json == null) {
+      return File_Model();
+    }
+
+    this.is_folder = json['is_folder'];
+    this.relative_path = json['relative_path'];
+    this.base64_content = json['base64_content'];
+
+    return File_Model(
+      is_folder: json['is_folder'],
+      relative_path: json['relative_path'],
+      base64_content: json['base64_content'],
+    );
+  }
+}
+
+Future<Uint8List> decode_base64_string(String content) async {
+  return base64Decode(content.replaceAll(RegExp(r'\s'), ''));
+}
+
+Future<void> _write_base64_string_to_file(
+    String content, String file_path) async {
+  Uint8List bytes_data = await decode_base64_string(content);
+  await File(file_path).parent.create(recursive: true);
+  await File(file_path).writeAsBytes(bytes_data);
+}
+
+Future<void> _write_file_object_to_disk(
+    File_Model a_file, String parent_folder) async {
+  if (a_file.is_folder == null ||
+      a_file.relative_path == null ||
+      a_file.base64_content == null) {
+    return;
+  }
+
+  String target_path = path_.join(parent_folder, a_file.relative_path!);
+
+  if (a_file.is_folder == true) {
+    if (!Directory(target_path).existsSync()) {
+      await Directory(target_path).create(recursive: true);
+    }
+  } else {
+    if (!File(target_path).existsSync()) {
+      await _write_base64_string_to_file(
+        a_file.base64_content!,
+        target_path,
+      );
+    }
+  }
+}
+
+Future<List<File_Model>> read_json_string_as_object_list() async {
+  final data = await json.decode(the_json_data_that_honors_yingshaoxo);
+  List<File_Model> files = [];
+  for (final one in data) {
+    files.add(File_Model().from_dict(one));
+  }
+  return files;
+}
+
+Future<void> release_all_built_in_files(String parent_folder_path) async {
+  List<File_Model> files = await read_json_string_as_object_list();
+  for (final one in files) {
+    await _write_file_object_to_disk(one, parent_folder_path);
+  }
+}
+        """.strip()
+
+        content_string = self._get_content_json_string(source_folder=source_folder)
+
+        middle_content = f'''
+        String the_json_data_that_honors_yingshaoxo = """{content_string}""";
+        '''.strip()
+
+        self._io.write(file_path=generated_file_path, content=template1 + "\n\n" + middle_content + "\n\n" + template2)
 
 
 if __name__ == "__main__":

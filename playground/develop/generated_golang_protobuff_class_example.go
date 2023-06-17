@@ -6,8 +6,6 @@
 package main
 
 import (
-	"reflect"
-
 	"github.com/yingshaoxo/gopython/built_in_functions"
 	"github.com/yingshaoxo/gopython/json_tool"
 	"github.com/yingshaoxo/gopython/variable_tool"
@@ -34,7 +32,7 @@ type Get_Users_Request struct {
 	Okok        variable_tool.Type_Nullable[Is_It_OK_To_Be_Fool]
 }
 
-var Key_to_key_string_dict_for_Get_Users_Request = struct {
+var Key_to_key_string_dict_for_Get_Users_Request_ = struct {
 	Page_size   string
 	Page_number string
 	Okok        string
@@ -44,7 +42,7 @@ var Key_to_key_string_dict_for_Get_Users_Request = struct {
 	Okok:        "Is_It_OK_To_Be_Fool",
 }
 
-func _get_key_to_value_type_dict_for_Get_Users_Request() map[string]any {
+func Get_key_to_value_type_dict_for_Get_Users_Request_() map[string]any {
 	return map[string]any{
 		"page_size":   "string",
 		"page_number": "int64",
@@ -53,36 +51,33 @@ func _get_key_to_value_type_dict_for_Get_Users_Request() map[string]any {
 }
 
 func (self Get_Users_Request) To_dict() map[string]any {
-	a_map, err := json_tool.Convert_struct_object_to_map(self)
-	if err != nil {
-		return map[string]any{}
-	}
-	return a_map
+	return variable_tool.Convert_nullable_struct_into_dict(self, true).(map[string]any)
 }
 
 func (self Get_Users_Request) From_dict(a_dict map[string]any) Get_Users_Request {
-	var item Get_Users_Request
-	json_tool.Convert_map_to_struct_object(a_dict, &item)
-	return item
+	// var item Get_Users_Request
+	variable_tool.Convert_dict_into_nullable_struct(a_dict, &self)
+	// return item
+	return self
 }
 
-func is_the_variable_an_enum_class(a_variable any) bool {
-	var yes = false
+// func is_the_variable_an_enum_class(a_variable any) bool {
+// 	var yes = false
 
-	object_key_representation := reflect.TypeOf(a_variable)
-	object_value_representation := reflect.ValueOf(a_variable)
+// 	object_key_representation := reflect.TypeOf(a_variable)
+// 	object_value_representation := reflect.ValueOf(a_variable)
 
-	for i := 0; i < object_value_representation.NumField(); i++ {
-		var the_key = object_key_representation.Field(i).Name
+// 	for i := 0; i < object_value_representation.NumField(); i++ {
+// 		var the_key = object_key_representation.Field(i).Name
 
-		if the_key == "Enum_value_" {
-			yes = true
-			break
-		}
-	}
+// 		if the_key == "Enum_value_" {
+// 			yes = true
+// 			break
+// 		}
+// 	}
 
-	return yes
-}
+// 	return yes
+// }
 
 func main() {
 	var option_list = [...]variable_tool.Type_Nullable[bool]{

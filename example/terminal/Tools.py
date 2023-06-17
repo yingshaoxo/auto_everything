@@ -87,6 +87,7 @@ git push origin {branch} --force
         t.run(f"""
 git fetch --all
 git reset --hard origin/{branch}
+git submodule update --init --recursive
 """)
 
     def merge_by_hand(self, branch_name: str):
@@ -109,10 +110,26 @@ git reset --mixed HEAD~1
 git reset --hard HEAD^
 """)
 
-    def delete_git_file(self, filename: str):
+    def delete_big_git_file(self, filename: str):
         t.run(f"""
 bfg --delete-files {filename}
 """)
+
+    def sync_with_remote_git_repo(self, repo_url: str):
+        t.run(f"""
+# Add a new remote upstream repository
+git remote add upstream {repo_url}
+git remote set-url upstream {repo_url}
+
+# Get upstream code
+git fetch upstream
+
+# Sync 1
+git checkout master && git merge upstream/master
+
+# Sync 2
+git checkout main && git merge upstream/main
+        """)
 
     def abort(self):
         t.run(f"""
@@ -164,6 +181,9 @@ bfg --delete-files {filename}
     def find_string(self, regex_expression: str):
         pwd = t.run_command('pwd')
         t.run(f"grep -r -e '{regex_expression}' '{pwd}'")
+    
+    def sync(self, source: str, target: str):
+        t.run(f"rsync -v --info=progress2 --partial '{source}' '{target}'")
 
     def get_non_app_launch_items(self):
         items = t.run_command("launchctl list").split("\n")
@@ -273,6 +293,32 @@ bfg --delete-files {filename}
     def find_big_file(self, path: str = "."):
         t.run(f"""
         du -a -h --max-depth=1 {path} | sort -h
+        """)
+
+    def delete_sub_git_folder(self, path: str = "."):
+        files = disk.get_folder_and_files(folder=path, recursive=True)
+        files = [file.path for file in files if file.path.endswith("/.git")]
+        files.sort(key=len)
+        if len(files) > 0:
+            files = files[1:]
+        for file in files:
+            file = disk.get_absolute_path(file)
+            try:
+                disk.delete_a_folder(file)
+            except Exception as e:
+                print(f"{file}: ", e)
+                try:
+                    disk.delete_a_file(file)
+                except Exception as e2:
+                    print(f"{file}: ", e2)
+            print(f"Folder got deleted: {file}")
+        print("done")
+
+    def clean_docker_garbage(self):
+        t.run(f"""
+        sudo docker container prune
+        sudo docker image prune
+        sudo docker system prune -a 
         """)
 
     def hi(self):

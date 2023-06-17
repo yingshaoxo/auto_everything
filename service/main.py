@@ -140,7 +140,7 @@ async def upload_file(projectID: int, file: UploadFile = File(...)):
     filePath = getFilePathByProjectID(projectID)
 
     contents = await file.read()
-    contents_bytes_io = disk.convert_bytes_to_bytes_io(contents)  # type: ignore
+    contents_bytes_io = disk.convert_bytes_to_bytesio(contents)  # type: ignore
     disk.save_bytesio_to_file(contents_bytes_io, filePath)
 
     query = (
