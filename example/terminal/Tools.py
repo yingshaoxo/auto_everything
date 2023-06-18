@@ -329,4 +329,4 @@ git checkout main && git merge upstream/main
 
 
 py.make_it_global_runnable(executable_name="Tools")
-py.fire(Tools)
+py.fire2(Tools)

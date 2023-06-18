@@ -1,12 +1,10 @@
 import time
 import threading
-import os
-import sys
 import re
 from pprint import pprint
 import copy
 from inspect import signature
-
+import os, tty, termios, sys
 from typing import Any, Callable
 
 
@@ -132,9 +130,10 @@ class Python():
         from fire import Fire #type: ignore
         Fire(class_name)
 
-    def fire2(self, class_instance: Any):
+    def fire2(self, class_instance: Any, new_arguments: list[Any] = []):
         """
-        fire2 is a function that come from yingshaoxo's wild thinking which turn any Python class into a user friendly command line interface
+        fire2 is a function that come from ying_shao_xo's wild thinking which turn any Python class into a user friendly command line interface
+        @yingshaoxo, baby
         """
         type_dict = {
             'int': int,
@@ -142,18 +141,36 @@ class Python():
             'bool': bool,
             'float': float
         }
+        def get_type_string(text: str):
+            text = text.split(':')[1].strip().split('=')[0].strip()
+            splits = [one.strip() for one in text.split("|") if one.strip() != ""]
+            for one in splits:
+                if one in type_dict.keys():
+                    return one
+            return "str"
+        def get_type_function(text: str):
+            text = text.split(':')[1].strip().split('=')[0].strip()
+            splits = [one.strip() for one in text.split("|") if one.strip() != ""]
+            for one in splits:
+                if one in type_dict.keys():
+                    type_dict[one]
+            return str
 
         if not callable(class_instance):
             return
 
         class_instance2 = class_instance()
 
-        command_line_arguments = sys.argv[1:]
+        if len(new_arguments) == 0:
+            original_command_line_arguments = sys.argv
+        else:
+            new_arguments = [one.strip(''' '" ''') for one in new_arguments]
+            original_command_line_arguments = new_arguments
+        command_line_arguments = original_command_line_arguments[1:]
         my_method_and_propertys: dict[str, Any] = {}
         function_string_list = []
 
-        methods_and_propertys = dir(class_instance)
-        for each_string in methods_and_propertys:
+        for each_string in vars(class_instance).keys():
             if (not each_string.startswith("_")):
                 one = class_instance.__dict__[each_string]
                 if callable(one):
@@ -168,8 +185,8 @@ class Python():
                         'arguments': {
                             one2.split(':')[0].strip():
                                 {
-                                    'type_string': one2.split(':')[1].strip().split('=')[0].strip(), 
-                                    'type_function': type_dict[one2.split(':')[1].strip().split('=')[0].strip()],
+                                    'type_string': get_type_string(one2), 
+                                    'type_function': get_type_function(one2),
                                 }
                             for one2 in 
                             arguments[1:-1].split(', ')[1:]
@@ -180,13 +197,116 @@ class Python():
         # print(my_method_and_propertys)
 
         if len(command_line_arguments) == 0:
-            print("APIs:\n")
-            for function_name, data in my_method_and_propertys.items():
-                argument_part = ', '.join(data['arguments_string'].split(', ')[1:])
-                if (argument_part.strip() == ""):
-                    print((function_name + "\n    " + "()").strip())
-                else:
-                    print((function_name + "\n    " + "(" + argument_part).strip())
+            if len(my_method_and_propertys) == 0:
+                print("APIs:\n")
+                for function_name in function_string_list:
+                    argument_part = ', '.join(my_method_and_propertys[function_name]['arguments_string'].split(', ')[1:])
+                    if (argument_part.strip() == ""):
+                        print((function_name + "\n    " + "()").strip())
+                    else:
+                        print((function_name + "\n    " + "(" + argument_part).strip())
+            else:
+                # the user do not know how to use this program, so make a shell for them
+                def print_seperate_line():
+                    print("\n" + '-'*9 + "\n")
+                def print_functions_info():
+                    for function_name in function_string_list:
+                        print(function_name)
+                def print_argument_info(function_name: str):
+                    argument_part = ', '.join(my_method_and_propertys[function_name]['arguments_string'].split(', ')[1:])[:-1]
+                    print(argument_part)
+                def print_chars(text: str):
+                    print(text, end="", flush=True)
+                def clear_screen():
+                    os.system("clear")
+                def get_char_input() -> tuple[str, int]:
+                    #https://www.physics.udel.edu/~watson/scen103/ascii.html
+                    fd = sys.stdin.fileno()
+                    old_settings = termios.tcgetattr(fd)
+                    try:
+                        tty.setraw(sys.stdin.fileno())
+                        char = sys.stdin.read(1)
+                    finally:
+                        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+                    return char, ord(char)
+                def get_last_word_of_string(text:str) -> tuple[str, int]:
+                    splits = text.split(" ")
+                    splits = [one for one in splits if one.strip() != ""]
+                    if (text[-1].strip() == ""):
+                        return "", len(splits)
+                    if " " not in text:
+                        return "", len(splits)
+                    return splits[-1], len(splits)
+                final_command_line = f"{original_command_line_arguments[0]} "
+                while True:
+                    clear_screen()
+                    last_word, how_many_words = get_last_word_of_string(final_command_line)
+
+                    if how_many_words == 2 and final_command_line.endswith(" "):
+                        current_function_name = final_command_line.split(" ")[1].strip()
+                        print_argument_info(current_function_name)
+                    elif how_many_words > 2:
+                        current_function_name = final_command_line.split(" ")[1].strip()
+                        print_argument_info(current_function_name)
+                    else:
+                        print_functions_info()
+
+                    print_seperate_line()
+                    print_chars(final_command_line)
+                    char, char_id = get_char_input()
+                    if (char_id == 27):
+                        # esc key
+                        break
+                    elif char_id in [3]:
+                        # ctrl + c key
+                        break
+                    elif char_id == 127:
+                        # delete key
+                        final_command_line = final_command_line[:-1]
+                    elif char_id == 9:
+                        # tab key
+                        # do complete
+                        if last_word == "":
+                            continue
+                        new_word = ""
+                        if (how_many_words == 0):
+                            final_command_line = f"{original_command_line_arguments[0]} "
+                            continue
+                        elif (how_many_words == 1):
+                            final_command_line = f"{original_command_line_arguments[0]} "
+                            continue
+                        elif (how_many_words == 2):
+                            # complete function name
+                            for function_string in function_string_list:
+                                if function_string.startswith(last_word):
+                                    new_word = function_string
+                                    break
+                            if new_word != "":
+                                final_command_line = final_command_line[:-len(last_word)]
+                                final_command_line += new_word
+                        else:
+                            # complete arguments name
+                            current_function_name = final_command_line.split(" ")[1].strip()
+                            correct_arguments = my_method_and_propertys[current_function_name]["arguments"]
+                            for argument_string, value_dict in correct_arguments.items():
+                                if argument_string.startswith(last_word):
+                                    new_word = argument_string
+                                    break
+                            if new_word != "":
+                                final_command_line = final_command_line[:-len(last_word)]
+                                final_command_line += f"--{new_word}="
+                    elif char_id == 10 or char_id == 13:
+                        # enter key
+                        clear_screen()
+                        print(final_command_line)
+                        print()
+                        self.fire2(class_instance=class_instance, new_arguments=final_command_line.strip().split(" "))
+                        exit()
+                    else:
+                        if (final_command_line[-1].strip() == "") and (char.strip() == ""):
+                            continue
+                        final_command_line += char
+
             return
 
         method_name = command_line_arguments[0]
