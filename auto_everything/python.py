@@ -256,9 +256,11 @@ class Python():
                     char, char_id = get_char_input()
                     if (char_id == 27):
                         # esc key
+                        clear_screen()
                         break
                     elif char_id in [3]:
                         # ctrl + c key
+                        clear_screen()
                         break
                     elif char_id == 127:
                         # delete key
