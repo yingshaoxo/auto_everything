@@ -115,6 +115,16 @@ git reset --hard HEAD^
 bfg --delete-files {filename}
 """)
 
+    def delete_ds_store(self):
+        files = disk.get_files(".", recursive=True)
+        for file in files:
+            if ".DS_Store" in file:
+                try:
+                    disk.delete_a_file(file)
+                    print(f"file deleted: {file}")
+                except Exception as e:
+                    print(e)
+
     def sync_with_remote_git_repo(self, repo_url: str):
         t.run(f"""
 # Add a new remote upstream repository
