@@ -4,7 +4,7 @@ import re
 from pprint import pprint
 import copy
 from inspect import signature
-import os, tty, termios, sys
+import os, tty, termios, sys, shlex
 from typing import Any, Callable
 
 
@@ -164,7 +164,7 @@ class Python():
         if len(new_arguments) == 0:
             original_command_line_arguments = sys.argv
         else:
-            new_arguments = [one.strip(''' '" ''') for one in new_arguments]
+            #new_arguments = [one.strip(''' '" ''') for one in new_arguments]
             original_command_line_arguments = new_arguments
         command_line_arguments = original_command_line_arguments[1:]
         my_method_and_propertys: dict[str, Any] = {}
@@ -302,7 +302,7 @@ class Python():
                         clear_screen()
                         print(final_command_line)
                         print()
-                        self.fire2(class_instance=class_instance, new_arguments=final_command_line.strip().split(" "))
+                        self.fire2(class_instance=class_instance, new_arguments=shlex.split(final_command_line.strip()))
                         exit()
                     else:
                         if (final_command_line[-1].strip() == "") and (char.strip() == ""):

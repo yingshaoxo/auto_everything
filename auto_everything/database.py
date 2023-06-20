@@ -380,14 +380,14 @@ class Database_Of_Yingshaoxo:
             self._io.write(self.database_txt_file_path, "")
     
     def add(self, data: dict[str, Any]):
-        json_string = self._json.dumps(data).strip()
+        json_string = self._json.dumps(data, sort_keys=True).strip()
         with open(self.database_txt_file_path, "a+", encoding="utf-8", errors="ignore") as file_stream:
             file_stream.seek(0, self._os.SEEK_END) 
             file_stream.write(json_string + "\n")
 
-    def raw_search(self, one_row_dict_handler: Callable[[str], dict[str, Any] | None]) -> Iterator[dict[str, Any]]:
+    def raw_search(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None]) -> Iterator[dict[str, Any]]:
         """
-        one_row_dict_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
+        one_row_json_string_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
         """
         with open(self.database_txt_file_path, "r") as file_stream:
             previous_position = None
@@ -406,7 +406,7 @@ class Database_Of_Yingshaoxo:
                     # ignore deleted line
                     continue
 
-                result = one_row_dict_handler(line)
+                result = one_row_json_string_handler(line)
                 if (result != None):
                     yield result
     
@@ -444,9 +444,9 @@ class Database_Of_Yingshaoxo:
     #     #reverse search will speed up the search process in most of the cases
     #     pass
 
-    def raw_delete(self, one_row_dict_filter: Callable[[str], bool]):
+    def raw_delete(self, one_row_json_string_filter: Callable[[str], bool]):
         """
-        one_row_dict_filter: a_function to handle deletion process. If it returns False, we'll ignore it, otherwise, if it is True, we'll delete that row of data.
+        one_row_json_string_filter: a_function to handle deletion process. If it returns False, we'll ignore it, otherwise, if it is True, we'll delete that row of data.
         """
         with open(self.database_txt_file_path, "r+") as file_stream:
             end_detection_counting = 1
@@ -474,7 +474,7 @@ class Database_Of_Yingshaoxo:
                     # ignore deleted line
                     continue
 
-                result = one_row_dict_filter(line)
+                result = one_row_json_string_filter(line)
                 if (result == True):
                     # replace the first character of the line with '#' symbol
                     file_stream.seek(previous_position)
@@ -520,20 +520,20 @@ class Database_Of_Yingshaoxo:
                     file_stream.seek(previous_position)
                     file_stream.write("#"+line[1:])
 
-    def raw_update(self, one_row_dict_handler: Callable[[str], dict[str, Any] | None]):
+    def raw_update(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None]):
         """
-        one_row_dict_handler: a_function to handle update process. If it returns None, we'll ignore it, otherwise, we'll update the old value with the new value the handler function returns.
+        one_row_json_string_handler: a_function to handle update process. If it returns None, we'll ignore it, otherwise, we'll update the old value with the new value the handler function returns.
         """
         new_record_list = []
 
         def one_row_dict_filter(old_value: str) -> bool:
-            result = one_row_dict_handler(old_value)
+            result = one_row_json_string_handler(old_value)
             if result == None:
                 return False
             else:
                 new_record_list.append(result)
                 return True
-        self.raw_delete(one_row_dict_filter=one_row_dict_filter)
+        self.raw_delete(one_row_json_string_filter=one_row_dict_filter)
 
         for one in new_record_list:
             self.add(one)
@@ -556,8 +556,242 @@ class Database_Of_Yingshaoxo:
         for one in new_record_list:
             self.add(one)
 
+    def refactor_database(self):
+        text = self._io.read(self.database_txt_file_path)
+        lines = []
+        for line in [line.strip() for line in text.split("\n") if line.strip() != ""]:
+            if not line.startswith('#'):
+                lines.append(line)
+        self._io.write(self.database_txt_file_path, "\n".join(lines))
+
     def clear_database(self):
         self._io.write(self.database_txt_file_path, "")
+    
+    @staticmethod
+    def generate_code_from_yrpc_protocol(which_language: str, input_folder: str, input_files: list[str], output_folder: str = "src/generated_yrpc"):
+        """
+        which_language: python. #dart, typescript, go, kotlin, rust and so on
+
+        input_folder: where protobuff files was located
+
+        input_files: it is a list, like ["english.proto", "pornhub.proto"]
+
+        output_folder: where those generated code file was located
+        """
+        from auto_everything.disk import Disk
+        from auto_everything.io import IO
+        from auto_everything.develop import YRPC
+        import re
+        disk_ = Disk()
+        io_ = IO()
+        yrpc_ = YRPC()
+
+        def _convert_yrpc_code_into_yingshaoxo_database_python_rpc_code(identity_name: str, source_code: str) -> str:
+            _, rpc_dict = yrpc_.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+            database_class_list: list[str] = []
+            database_excutor_class_property_list: list[str] = []
+            for function_name, parameter_info in rpc_dict.items():
+                input_variable: str = parameter_info["input_variable"]
+                output_variable: str = parameter_info["output_variable"]
+
+                if " " in input_variable:
+                    input_variable = re.split(r"\s+", input_variable)[1]
+                if " " in output_variable:
+                    output_variable = re.split(r"\s+", output_variable)[1]
+
+                variable_list = list(set([input_variable, output_variable]))
+                for variable_type in variable_list:
+                    database_class_list.append(f"""
+class Yingshaoxo_Database_{variable_type}:
+    def __init__(self, database_base_folder: str) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="{variable_type}", database_base_folder=database_base_folder)
+
+    def add(self, item: {variable_type}):
+        self.database_of_yingshaoxo.add(data=item.to_dict())
+
+    def search(self, item_filter: {variable_type}, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False):
+        self._raw_search_counting = 0
+        self._search_counting = 0
+        if (page_number!=None and page_size != None and start_from != None):
+            self._real_start = page_number * page_size
+            self._real_end = self._real_start + page_size
+
+        item_dict = item_filter.to_dict()
+
+        def one_row_dict_filter(a_dict_: dict[str, Any]):
+            self._raw_search_counting += 1
+
+            if (page_number!=None and page_size != None and start_from != None):
+                if self._raw_search_counting < start_from:
+                    return None
+                if self._search_counting < self._real_start:
+                    return None
+                if self._search_counting > self._real_end:
+                    return None
+
+            result = True
+            for key, value in item_dict.items():
+                if value == None:
+                    # ignore None value because it is not defined
+                    continue
+                if key not in a_dict_.keys():
+                    result = False
+                    break
+                else:
+                    value2 = a_dict_.get(key)
+                    if value == value2:
+                        continue
+                    else:
+                        result = False
+                        break
+
+            if result == True:
+                self._search_counting += 1
+                return a_dict_
+            else:
+                return None
+        return self.database_of_yingshaoxo.search(one_row_dict_handler=one_row_dict_filter)
+
+    def delete(self, item_filter: {variable_type}):
+        item_dict = item_filter.to_dict()
+        def one_row_dict_filter(a_dict_: dict[str, Any]):
+            result = True
+            for key, value in item_dict.items():
+                if value == None:
+                    # ignore None value because it is not defined
+                    continue
+                if key not in a_dict_.keys():
+                    result = False
+                    break
+                else:
+                    value2 = a_dict_.get(key)
+                    if value == value2:
+                        continue
+                    else:
+                        result = False
+                        break
+            return result
+        self.database_of_yingshaoxo.delete(one_row_dict_filter=one_row_dict_filter)
+    
+    def update(self, old_item_filter: {variable_type}, new_item: {variable_type}):
+        item_dict = old_item_filter.to_dict()
+        def one_row_dict_handler(a_dict_: dict[str, Any]):
+            result = True
+            for key, value in item_dict.items():
+                if value == None:
+                    # ignore None value because it is not defined
+                    continue
+                if key not in a_dict_.keys():
+                    result = False
+                    break
+                else:
+                    value2 = a_dict_.get(key)
+                    if value == value2:
+                        continue
+                    else:
+                        result = False
+                        break
+            if result == True:
+                new_object = {{
+                    key:value for key, value
+                    in new_item.to_dict().items()
+                    if value != None
+                }}
+                a_dict_.update(new_object)
+                return a_dict_
+            else:
+                return None
+        self.database_of_yingshaoxo.update(one_row_dict_handler=one_row_dict_handler)
+                    """.rstrip().lstrip('\n'))
+
+                variable_list = list(set([input_variable, output_variable]))
+                for variable_type in variable_list:
+                    database_excutor_class_property_list.append(f"""
+        self.{variable_type} = Yingshaoxo_Database_{variable_type}(database_base_folder=self._database_base_folder)
+                    """.rstrip().lstrip('\n'))
+
+            
+            database_class_list_text = "\n\n\n".join(database_class_list)
+            database_excutor_class_property_list_text = "\n".join(database_excutor_class_property_list)
+
+            template_text = f"""
+from .{identity_name}_objects import *
+from auto_everything.database import Database_Of_Yingshaoxo
+
+
+{database_class_list_text}
+
+
+class Yingshaoxo_Database_Excutor_{identity_name}:
+    def __init__(self, database_base_folder: str):
+        self._database_base_folder = database_base_folder
+{database_excutor_class_property_list_text}
+
+
+if __name__ == "__main__":
+    database_excutor = Yingshaoxo_Database_Excutor_{identity_name}(database_base_folder="/home/yingshaoxo/CS/auto_everything/example/database/yingshaoxo_database")
+            """.strip()
+
+            return template_text
+
+        input_folder = input_folder.rstrip("/")
+
+        if not disk_.exists(input_folder):
+            raise Exception(f"The input_forder '{input_folder}' does not exist!")
+
+        if not disk_.is_directory(input_folder):
+            raise Exception(f"The input_folder '{input_folder}' must be an directory.")
+
+        if not disk_.is_directory(output_folder):
+            disk_.create_a_folder(output_folder)
+
+        files = disk_.get_files(input_folder, recursive=False, type_limiter=[".proto"])
+
+        new_files:list[str] = []
+        for file in files:
+            if any([one for one in input_files if file.endswith("/"+one)]):
+                new_files.append(file)
+        files = new_files.copy()
+
+        language_to_file_suffix_dict = {
+            "python": ".py",
+            # "dart": ".dart",
+            # "typescript": ".ts",
+            # "golang": ".go"
+        }
+
+        if which_language not in language_to_file_suffix_dict.keys():
+            raise Exception(f"Sorry, we don't support '{which_language}' language.")
+        
+        if which_language == "python":
+            init_file_for_python = disk_.join_paths(output_folder, "__init__.py")
+            if not disk_.exists(init_file_for_python):
+                io_.write(init_file_for_python, "")
+
+        for file in files:
+            filename,_ = disk_.get_stem_and_suffix_of_a_file(file)
+            identity_name = filename
+            if " " in identity_name:
+                print(f"Sorry, protocol filename shoudn't have space inside: '{identity_name}'")
+                exit()
+
+            source_code = io_.read(file_path=file)
+
+            objects_code = ""
+            database_rpc_code = ""
+            if which_language in ["python"]:
+                target_objects_file_path = disk_.join_paths(output_folder, filename + "_objects" + language_to_file_suffix_dict[which_language])
+                target_rpc_file_path = disk_.join_paths(output_folder, filename + "_yingshaoxo_database_rpc" + language_to_file_suffix_dict[which_language])
+
+                if which_language == "python":
+                    objects_code = yrpc_._convert_yrpc_code_into_python_objects_code(source_code=source_code)
+                    database_rpc_code = _convert_yrpc_code_into_yingshaoxo_database_python_rpc_code(identity_name=identity_name, source_code=source_code)
+                io_.write(file_path=target_objects_file_path, content=objects_code)
+                io_.write(file_path=target_rpc_file_path, content=database_rpc_code)
+            else:
+                print(f"Sorry, we do not support this programming language: {which_language}")
+                exit()
     
 
 if __name__ == "__main__":
