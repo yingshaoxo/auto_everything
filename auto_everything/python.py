@@ -164,7 +164,6 @@ class Python():
         if len(new_arguments) == 0:
             original_command_line_arguments = sys.argv
         else:
-            #new_arguments = [one.strip(''' '" ''') for one in new_arguments]
             original_command_line_arguments = new_arguments
         command_line_arguments = original_command_line_arguments[1:]
         my_method_and_propertys: dict[str, Any] = {}

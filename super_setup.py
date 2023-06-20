@@ -5,7 +5,7 @@ from setuptools.command.build_ext import build_ext
 from setuptools import setup, find_packages
 from os.path import dirname, join, abspath
 
-version = "3.21"
+version = "3.22"
 
 # main
 file_path = join(abspath(dirname(__file__)), "README.md")
