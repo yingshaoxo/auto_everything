@@ -188,7 +188,12 @@ class Python():
                                     'type_function': get_type_function(one2),
                                 }
                             for one2 in 
-                            arguments[1:-1].split(', ')[1:]
+                            re.sub(
+                                r"'(.*?)'", "''", 
+                                re.sub(r'"(.*?)"', '""', 
+                                       arguments[1:-1])
+                            )
+                            .split(', ')[1:]
                         },
                         'arguments_string': arguments
                     }
@@ -324,6 +329,7 @@ class Python():
                 argument_type = right_arguments[argument_name]['type_function']
                 custom_arguments[argument_name] = argument_type(argument_value)
 
+            #print(f"{method_name} {' '.join(custom_arguments)}")
             method_instance(**custom_arguments)
             return
 
