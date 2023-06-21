@@ -707,6 +707,24 @@ class Disk:
         folder_path = self._expand_user(folder_path)
         Path(folder_path).mkdir(parents=True, exist_ok=True)
 
+    def copy_a_folder(self, source_folder_path: str, target_folder_path: str):
+        source_folder_path = self._expand_user(source_folder_path)
+        target_folder_path = self._expand_user(target_folder_path)
+
+        if (not self.exists(target_folder_path)):
+            self.create_a_folder(target_folder_path)
+        else:
+            if not self.is_directory(target_folder_path):
+                self.delete_a_file(target_folder_path)
+
+        try:
+            shutil.copytree(source_folder_path, target_folder_path, dirs_exist_ok=True)
+        except OSError as exc: # python >2.5
+            try:
+                shutil.copy(source_folder_path, target_folder_path)
+            except Exception as e:
+                print(e)
+
     def delete_a_folder(self, folder_path: str):
         folder_path = self._expand_user(folder_path)
         shutil.rmtree(path=folder_path)
