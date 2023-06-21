@@ -1,4 +1,4 @@
-from auto_everything.cryptography import EncryptionAndDecryption, Password_Generator, JWT_Tool
+from auto_everything.cryptography import Encryption_And_Decryption, Password_Generator, JWT_Tool
 
 
 def test_password():
@@ -13,7 +13,7 @@ def test_strong_password():
     
 
 def test_cryptography():
-    encryption_and_decryption = EncryptionAndDecryption()
+    encryption_and_decryption = Encryption_And_Decryption()
 
     a_dict = encryption_and_decryption.get_secret_alphabet_dict("yingshaoxo is the best")
     print(a_dict)
@@ -29,7 +29,7 @@ def test_cryptography():
 
 
 def test_encryption():
-    encryption_and_decryption = EncryptionAndDecryption()
+    encryption_and_decryption = Encryption_And_Decryption()
 
     a_dict = encryption_and_decryption.get_secret_alphabet_dict("Asking is not a bad thing if the person you ask are comfortable with it.")
     print(a_dict)

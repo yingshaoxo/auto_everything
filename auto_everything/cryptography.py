@@ -152,7 +152,7 @@ class Password_Generator():
         return additional_string_at_head + result
 
 
-class EncryptionAndDecryption():
+class Encryption_And_Decryption():
     def get_secret_alphabet_dict(self, a_secret_string: str) -> dict[str, str]:
         a_secret_string = a_secret_string.replace(" ", "").lower()
         character_list: list[str] = []

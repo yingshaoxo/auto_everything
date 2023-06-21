@@ -3,7 +3,7 @@ from auto_everything.terminal import Terminal, Terminal_User_Interface
 from auto_everything.disk import Disk
 from auto_everything.python import Python
 from auto_everything.network import Network
-from auto_everything.cryptography import EncryptionAndDecryption
+from auto_everything.cryptography import Encryption_And_Decryption
 from auto_everything.develop import YRPC
 
 __all__ = [
@@ -13,6 +13,6 @@ __all__ = [
     'Disk',
     'Python',
     'Network',
-    'EncryptionAndDecryption',
+    'Encryption_And_Decryption',
     'YRPC'
 ]
