@@ -24,10 +24,6 @@ class Yingshaoxo_Database_Yingshaoxo_info:
             if (page_number!=None and page_size != None and start_from != None):
                 if self._raw_search_counting < start_from:
                     return None
-                if self._search_counting < self._real_start:
-                    return None
-                if self._search_counting > self._real_end:
-                    return None
 
             result = True
             for key, value in item_dict.items():
@@ -45,11 +41,20 @@ class Yingshaoxo_Database_Yingshaoxo_info:
                         result = False
                         break
 
+            final_result = None
             if result == True:
                 self._search_counting += 1
-                return a_dict_
+                final_result = a_dict_
             else:
-                return None
+                final_result = None
+
+            if (page_number!=None and page_size != None and start_from != None):
+                if self._search_counting <= self._real_start:
+                    return None
+                if self._search_counting > self._real_end:
+                    return None
+            
+            return final_result
         return self.database_of_yingshaoxo.search(one_row_dict_handler=one_row_dict_filter)
 
     def delete(self, item_filter: Yingshaoxo_info):
@@ -132,3 +137,6 @@ if __name__ == "__main__":
     #database_excutor.Yingshaoxo_info.delete(Yingshaoxo_info(name="yingshaoxo"))
 
     #database_excutor.Yingshaoxo_info.database_of_yingshaoxo.refactor_database()
+
+    result = database_excutor.Yingshaoxo_info.search(Yingshaoxo_info(name="google"), page_number=4, page_size=1)
+    print(result)
