@@ -727,7 +727,8 @@ class Disk:
 
     def delete_a_folder(self, folder_path: str):
         folder_path = self._expand_user(folder_path)
-        shutil.rmtree(path=folder_path)
+        if (self.exists(folder_path)):
+            shutil.rmtree(path=folder_path)
 
     def fake_folder_backup(self, backup_folder: str, backup_saving_file_path: str | None=None) -> list[Any]:
         saving_path = None
