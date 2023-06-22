@@ -135,10 +135,10 @@ git remote set-url upstream {repo_url}
 git fetch --all
 
 # Sync 1
-git checkout master && git merge upstream/master
+git checkout master && git merge upstream/master  --allow-unrelated-histories
 
 # Sync 2
-git checkout main && git merge upstream/main
+git checkout main && git merge upstream/main  --allow-unrelated-histories
         """)
 
     def abort(self):
