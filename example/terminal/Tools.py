@@ -132,7 +132,7 @@ git remote add upstream {repo_url}
 git remote set-url upstream {repo_url}
 
 # Get upstream code
-git fetch upstream
+git fetch --all
 
 # Sync 1
 git checkout master && git merge upstream/master
