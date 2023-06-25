@@ -133,7 +133,6 @@ setup(
     setup_requires=["pybind11>=2.5.0"],
     install_requires=[
         "setuptools",
-        "fire",
         "psutil",
     ],
     extras_require={

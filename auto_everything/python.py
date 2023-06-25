@@ -127,8 +127,9 @@ class Python():
         """
         fire is a function that will turn any Python class into a command line interface
         """
-        from fire import Fire #type: ignore
-        Fire(class_name)
+        self.fire2(class_instance=class_name)
+        # from fire import Fire #type: ignore
+        # Fire(class_name)
 
     def fire2(self, class_instance: Any, new_arguments: list[Any] = []):
         """

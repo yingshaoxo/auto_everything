@@ -32,7 +32,6 @@ setup(
     license="MIT",
     install_requires=[
         "setuptools",
-        "fire",
         "psutil",
     ],
     extras_require={
