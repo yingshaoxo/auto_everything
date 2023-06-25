@@ -222,9 +222,14 @@ class Python():
                 # the user do not know how to use this program, so make a shell for them
                 def print_seperate_line():
                     print("\n" + '-'*9 + "\n")
-                def print_functions_info():
+                def print_functions_info(start_with: str = ""):
+                    start_with = start_with.strip()
                     for function_name in function_string_list:
-                        print(function_name)
+                        if start_with != "":
+                            if (function_name.startswith(start_with)):
+                                print(function_name)
+                        else:
+                            print(function_name)
                 def print_argument_info(function_name: str):
                     argument_part = ', '.join(my_method_and_propertys[function_name]['arguments_string'].split(', ')[1:])[:-1]
                     print(argument_part)
@@ -262,7 +267,7 @@ class Python():
                         current_function_name = final_command_line.split(" ")[1].strip()
                         print_argument_info(current_function_name)
                     else:
-                        print_functions_info()
+                        print_functions_info(start_with=last_word)
 
                     print_seperate_line()
                     print_chars(final_command_line)
