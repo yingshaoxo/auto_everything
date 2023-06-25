@@ -162,7 +162,7 @@ class Python():
             splits = [one.strip() for one in text.split("|") if one.strip() != ""]
             for one in splits:
                 if one in type_dict.keys():
-                    type_dict[one]
+                    return type_dict[one]
             return str
 
         if not callable(class_instance):
