@@ -152,7 +152,7 @@ class Password_Generator():
         return additional_string_at_head + result
 
 
-class EncryptionAndDecryption():
+class Encryption_And_Decryption():
     def get_secret_alphabet_dict(self, a_secret_string: str) -> dict[str, str]:
         a_secret_string = a_secret_string.replace(" ", "").lower()
         character_list: list[str] = []
@@ -232,8 +232,86 @@ class EncryptionAndDecryption():
                 new_char = char
             new_message += new_char
         return new_message
+    
+    def encrypt_a_code_folder(self, source_folder: str, target_folder: str, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], password: str = "yingshaoxo is the best, no one can deny that!!!", text_handle_function: Any = None):
+        from auto_everything.io import IO   
+        from auto_everything.disk import Disk
+        io_ = IO()
+        disk = Disk()
 
+        real_code_folder = source_folder
+        fake_code_folder = target_folder
 
+        disk.delete_a_folder(fake_code_folder)
+        disk.copy_a_folder(real_code_folder, fake_code_folder)
+
+        password_dict = self.get_secret_alphabet_dict(password)
+
+        files = disk.get_files(fake_code_folder, recursive=True, type_limiter=type_limiter)
+        for file in files:
+            text = io_.read(file)
+
+            if (text_handle_function == None):
+                new_text = self.encode_message(password_dict, text)
+            else:
+                new_text = text_handle_function(text)
+
+            io_.write(file, new_text)
+
+    def decrypt_a_code_folder(self, source_folder: str, target_folder: str, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], password: str = "yingshaoxo is the best, no one can deny that!!!", text_handle_function: Any = None):
+        from auto_everything.io import IO   
+        from auto_everything.disk import Disk
+        io_ = IO()
+        disk = Disk()
+
+        fake_code_folder = source_folder
+        predict_code_folder = target_folder
+
+        disk.delete_a_folder(predict_code_folder)
+        disk.copy_a_folder(fake_code_folder, predict_code_folder)
+
+        password_dict = self.get_secret_alphabet_dict(password)
+
+        files = disk.get_files(predict_code_folder, recursive=True, type_limiter=type_limiter)
+        for file in files:
+            text = io_.read(file)
+
+            if (text_handle_function == None):
+                new_text = self.decode_message(password_dict, text)
+            else:
+                new_text = text_handle_function(text)
+
+            io_.write(file, new_text)
+
+    def check_if_two_folder_equals(self, source_folder: str, target_folder, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp']):
+        from auto_everything.io import IO   
+        from auto_everything.disk import Disk
+        io_ = IO()
+        disk = Disk()
+
+        files1 = disk.get_files(source_folder, recursive=True, type_limiter=type_limiter)
+        files1.sort()
+        files2 = disk.get_files(target_folder, recursive=True, type_limiter=type_limiter)
+        files2.sort()
+
+        equal = True
+        for index, file1 in enumerate(files2):
+            file2 = files2[index]
+            text1 = io_.read(file1)
+            text2 = io_.read(file2)
+            if (text1 != text2):
+                equal = False
+                print(f"Text do not eaual between files:")
+                print(f"        * {file1}")
+                print(f"        * {file2}")
+                print()
+                inputs = input(f"Ignore it and go to the next one? (y/n)").strip()
+                if inputs.lower() != 'n':
+                    continue
+                else:
+                    exit()
+        
+        
 if __name__ == "__main__":
     # encryption_and_decryption = EncryptionAndDecryption()
 

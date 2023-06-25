@@ -115,6 +115,16 @@ git reset --hard HEAD^
 bfg --delete-files {filename}
 """)
 
+    def delete_ds_store(self):
+        files = disk.get_files(".", recursive=True)
+        for file in files:
+            if ".DS_Store" in file:
+                try:
+                    disk.delete_a_file(file)
+                    print(f"file deleted: {file}")
+                except Exception as e:
+                    print(e)
+
     def sync_with_remote_git_repo(self, repo_url: str):
         t.run(f"""
 # Add a new remote upstream repository
@@ -122,13 +132,13 @@ git remote add upstream {repo_url}
 git remote set-url upstream {repo_url}
 
 # Get upstream code
-git fetch upstream
+git fetch --all
 
 # Sync 1
-git checkout master && git merge upstream/master
+git checkout master && git merge upstream/master  --allow-unrelated-histories
 
 # Sync 2
-git checkout main && git merge upstream/main
+git checkout main && git merge upstream/main  --allow-unrelated-histories
         """)
 
     def abort(self):
@@ -313,6 +323,14 @@ git checkout main && git merge upstream/main
                     print(f"{file}: ", e2)
             print(f"Folder got deleted: {file}")
         print("done")
+    
+    def start_vnc_service(self, password: str="aaaaaaAAAAAA123456!!!!!!"):
+        t.run(f"""
+        sudo apt-get install x11vnc net-tools
+        /usr/bin/x11vnc -passwd "{password}" -forever -rfbport 5900
+        #sudo snap install novnc
+        #novnc
+        """)
 
     def clean_docker_garbage(self):
         t.run(f"""
@@ -329,4 +347,4 @@ git checkout main && git merge upstream/main
 
 
 py.make_it_global_runnable(executable_name="Tools")
-py.fire(Tools)
+py.fire2(Tools)
