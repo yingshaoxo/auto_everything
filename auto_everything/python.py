@@ -311,10 +311,14 @@ class Python():
                             continue
                         elif (how_many_words == 2):
                             # complete function name
+                            possible_new_words = []
                             for function_string in function_string_list:
                                 if function_string.startswith(last_word):
-                                    new_word = function_string
-                                    break
+                                    possible_new_words.append(function_string)
+                            if len(possible_new_words) == 1:
+                                new_word = possible_new_words[0]
+                            else:
+                                new_word = ""
                             if new_word != "":
                                 final_command_line = final_command_line[:-len(last_word)]
                                 final_command_line += new_word
