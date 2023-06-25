@@ -324,7 +324,7 @@ git checkout main && git merge upstream/main  --allow-unrelated-histories
             print(f"Folder got deleted: {file}")
         print("done")
     
-    def start_vnc_service(self, password:str="aaaaaaAAAAAA123456!!!!!!"):
+    def start_vnc_service(self, password: str="aaaaaaAAAAAA123456!!!!!!"):
         t.run(f"""
         sudo apt-get install x11vnc net-tools
         /usr/bin/x11vnc -passwd "{password}" -forever -rfbport 5900

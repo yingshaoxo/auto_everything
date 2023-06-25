@@ -141,7 +141,14 @@ class Python():
             'bool': bool,
             'float': float
         }
+        def get_argument_name(text: str):
+            if ":" not in text:
+                return text.split('=')[0].strip()
+            else:
+                return text.split(':')[0].strip()
         def get_type_string(text: str):
+            if ":" not in text:
+                return None
             text = text.split(':')[1].strip().split('=')[0].strip()
             splits = [one.strip() for one in text.split("|") if one.strip() != ""]
             for one in splits:
@@ -149,6 +156,8 @@ class Python():
                     return one
             return "str"
         def get_type_function(text: str):
+            if ":" not in text:
+                return None
             text = text.split(':')[1].strip().split('=')[0].strip()
             splits = [one.strip() for one in text.split("|") if one.strip() != ""]
             for one in splits:
@@ -182,7 +191,7 @@ class Python():
                         'function_name': each_string,
                         'function_instance': getattr(class_instance2, each_string),
                         'arguments': {
-                            one2.split(':')[0].strip():
+                            get_argument_name(one2):
                                 {
                                     'type_string': get_type_string(one2), 
                                     'type_function': get_type_function(one2),
@@ -327,7 +336,14 @@ class Python():
                 argument_name = one[2:].split("=")[0]
                 argument_value = one[2:].split("=")[1]
                 argument_type = right_arguments[argument_name]['type_function']
-                custom_arguments[argument_name] = argument_type(argument_value)
+                if (argument_type != None):
+                    custom_arguments[argument_name] = argument_type(argument_value)
+                else:
+                    # no type info
+                    if str(argument_value).replace('.','',1).isdigit():
+                        custom_arguments[argument_name] = float(str(argument_value))
+                    else:
+                        custom_arguments[argument_name] = str(argument_value)
 
             #print(f"{method_name} {' '.join(custom_arguments)}")
             method_instance(**custom_arguments)
