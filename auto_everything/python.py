@@ -204,6 +204,20 @@ class Python():
                             )
                             .split(', ')[1:]
                         },
+                        'arguments_list': [
+                            {
+                                'argument_name': get_argument_name(one2),
+                                'type_string': get_type_string(one2), 
+                                'type_function': get_type_function(one2),
+                            }
+                            for one2 in 
+                            re.sub(
+                                r"'(.*?)'", "''", 
+                                re.sub(r'"(.*?)"', '""', 
+                                       arguments[1:-1])
+                            )
+                            .split(', ')[1:]
+                        ],
                         'arguments_string': arguments
                     }
         # print(command_line_arguments)
@@ -330,13 +344,33 @@ class Python():
             return
 
         method_name = command_line_arguments[0]
+        un_named_arguments = [one for one in command_line_arguments[1:] if not one.startswith('--')]
         named_arguments = [one for one in command_line_arguments[1:] if one.startswith('--')]
         if (method_name in function_string_list):
             one_method = my_method_and_propertys[method_name]
             method_instance = one_method['function_instance']
             right_arguments = one_method['arguments']
+            right_arguments_list = one_method['arguments_list']
 
             custom_arguments = {}
+
+            # for argument that does not have '--name=value', for example "Tools push 'message'""
+            for index, one in enumerate(un_named_arguments):
+                if index < len(right_arguments_list):
+                    argument_name = right_arguments_list[index]['argument_name']
+                    argument_value = one.strip()
+                    argument_type = right_arguments_list[index]['type_function']
+
+                    if (argument_type != None):
+                        custom_arguments[argument_name] = argument_type(argument_value)
+                    else:
+                        # no type info
+                        if str(argument_value).replace('.','',1).isdigit():
+                            custom_arguments[argument_name] = float(str(argument_value))
+                        else:
+                            custom_arguments[argument_name] = str(argument_value)
+
+            # for argument that does have '--name=value'
             for one in named_arguments:
                 argument_name = one[2:].split("=")[0]
                 argument_value = one[2:].split("=")[1]
