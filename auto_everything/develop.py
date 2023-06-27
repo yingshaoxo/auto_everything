@@ -525,6 +525,9 @@ class YRPC:
         return text[0].capitalize() + text[1:]
 
     def get_information_from_yrpc_protocol_code(self, source_code: str) -> Tuple[dict[str, Any], dict[str, Any]]:
+        source_code = "\n".join(line for line in source_code.split("\n") if (not line.strip().startswith("//")))
+        source_code = re.sub(r"/\*([\s\S]*?)\*/", "", source_code, flags=re.MULTILINE) 
+
         code_block_list = re.findall(r"(?P<type>\w+)\s+(?P<object_name>\w+)\s+\{(?P<properties>(\s*.*?\s*)+)\}", source_code, re.DOTALL)
         code_block_list = [
                     [string for string in one][:3]

@@ -163,7 +163,7 @@ class Terminal:
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
                 cwd=cwd,
-                preexec_fn=os.setsid
+                preexec_fn= None if self.system_type == "win" else os.setsid
             )
         except Exception as e:
             print(e)
@@ -175,7 +175,7 @@ class Terminal:
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
                 cwd=cwd,
-                preexec_fn=os.setsid
+                preexec_fn= None if self.system_type == "win" else os.setsid
             )
 
         if wait is True:
