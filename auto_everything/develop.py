@@ -1279,6 +1279,8 @@ enum {class_name} {{
                 variable_list: list[str] = []
                 property_name_to_its_type_dict_variable_list: list[str] = []
                 key_string_dict_list: list[str] = []
+                # constructor_arguments_list: list[str] = []
+                # constructor_arguments_inside_code_block_list: list[str] = []
 
                 for index, one in enumerate(variable_info.values()):
                     name = one['name']
@@ -1313,10 +1315,18 @@ enum {class_name} {{
         {name}: "{name}",
                     """.rstrip().lstrip('\n'))
 
+            #         constructor_arguments_list.append(f"""{name}: {type}{"[]" if is_list else ""} | null = null""".rstrip().lstrip('\n'))
+
+            #         constructor_arguments_inside_code_block_list.append(f"""
+            # this.{name} = {name}
+            #         """.rstrip().lstrip('\n'))
+
                 interface_variable_list_text = "\n".join(interface_variable_list)
                 variable_list_text = "\n".join(variable_list)
                 property_name_to_its_type_dict_variable_list_text = "\n".join(property_name_to_its_type_dict_variable_list)
                 key_string_dict_list_text = "\n".join(key_string_dict_list)
+                # constructor_arguments_list_text = ", ".join(constructor_arguments_list)
+                # constructor_arguments_inside_code_block_list_text = "\n".join(constructor_arguments_inside_code_block_list)
 
                 dataclass_text = f"""
 export interface _{class_name} {{
@@ -1333,6 +1343,12 @@ export class {class_name} {{
     _key_string_dict = {{
 {key_string_dict_list_text}
     }};
+
+    /*
+    constructor({constructor_arguments_list_text}) {{
+{constructor_arguments_inside_code_block_list_text}
+    }}
+    */
 
     to_dict(): _{class_name} {{
         return _general_to_dict_function(this);
