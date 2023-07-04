@@ -587,10 +587,11 @@ class Database_Of_Yingshaoxo:
         yrpc_ = YRPC()
 
         def _convert_yrpc_code_into_yingshaoxo_database_python_rpc_code(identity_name: str, source_code: str) -> str:
-            _, rpc_dict = yrpc_.get_information_from_yrpc_protocol_code(source_code=source_code)
+            arguments_defination_tree, rpc_dict = yrpc_.get_information_from_yrpc_protocol_code(source_code=source_code)
 
-            database_class_list: list[str] = []
-            database_excutor_class_property_list: list[str] = []
+            arguments_name_list = [one for one in arguments_defination_tree.keys() if arguments_defination_tree[one]['**type**'] == 'message']
+            rpc_arguments_name_list: list[str] = []
+
             for function_name, parameter_info in rpc_dict.items():
                 input_variable: str = parameter_info["input_variable"]
                 output_variable: str = parameter_info["output_variable"]
@@ -602,7 +603,18 @@ class Database_Of_Yingshaoxo:
 
                 variable_list = list(set([input_variable, output_variable]))
                 for variable_type in variable_list:
-                    database_class_list.append(f"""
+                    if variable_type not in rpc_arguments_name_list:
+                        rpc_arguments_name_list.append(variable_type)
+            
+            data_model_name_list = []
+            for each_one in arguments_name_list:
+                if each_one not in rpc_arguments_name_list:
+                    data_model_name_list.append(each_one)
+            
+            database_class_list: list[str] = []
+            database_excutor_class_property_list: list[str] = []
+            for variable_type in data_model_name_list:
+                database_class_list.append(f"""
 class Yingshaoxo_Database_{variable_type}:
     def __init__(self, database_base_folder: str) -> None:
         self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="{variable_type}", database_base_folder=database_base_folder)
@@ -618,13 +630,12 @@ class Yingshaoxo_Database_{variable_type}:
     
     def update(self, old_item_filter: {variable_type}, new_item: {variable_type}):
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
-                    """.rstrip().lstrip('\n'))
+                """.rstrip().lstrip('\n'))
 
-                variable_list = list(set([input_variable, output_variable]))
-                for variable_type in variable_list:
-                    database_excutor_class_property_list.append(f"""
+            for variable_type in data_model_name_list:
+                database_excutor_class_property_list.append(f"""
         self.{variable_type} = Yingshaoxo_Database_{variable_type}(database_base_folder=self._database_base_folder)
-                    """.rstrip().lstrip('\n'))
+                """.rstrip().lstrip('\n'))
 
             
             database_class_list_text = "\n\n\n".join(database_class_list)
