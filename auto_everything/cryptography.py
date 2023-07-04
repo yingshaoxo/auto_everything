@@ -80,6 +80,59 @@ class JWT_Tool():
             print(f"error: {e}")
             return None
 
+    def yingshaoxo_json_web_token_encode(self, data: dict[str, Any], a_secret_string_for_integrity_verifying: str) -> str:
+        """
+        return the yingshaoxo's jwt string. it can has sensitive information.
+
+        Parameters
+        ----------
+        data: 
+            a_dict, which contains the real information
+
+        a_secret_string_for_integrity_verifying: string
+            a secret string
+        """
+        from auto_everything.disk import Disk
+        encryption_and_decryption = Encryption_And_Decryption()
+        disk = Disk()
+
+        secret_dict = encryption_and_decryption.get_secret_alphabet_dict(a_secret_string=a_secret_string_for_integrity_verifying)
+
+        json_string = json.dumps(data)
+        bytes_json = json_string.encode(encoding='utf-8', errors="ignore")
+        base64_json_string = disk.bytes_to_base64(bytes_data=bytes_json)
+        encrypted_base64_string = encryption_and_decryption.encode_message(a_secret_dict=secret_dict, message=base64_json_string)
+        
+        return encrypted_base64_string
+
+    def yingshaoxo_json_web_token_decode(self, jwt_string: str, a_secret_string_for_integrity_verifying: str) -> dict[str, Any] | None:
+        """
+        return `None` if verifying didn't pass
+
+        Parameters
+        ----------
+        jwt_string: 
+            any string
+
+        a_secret_string_for_integrity_verifying: string
+            a secret string
+        """
+        from auto_everything.disk import Disk
+        encryption_and_decryption = Encryption_And_Decryption()
+        disk = Disk()
+
+        secret_dict = encryption_and_decryption.get_secret_alphabet_dict(a_secret_string=a_secret_string_for_integrity_verifying)
+
+        try:
+            decrypted_base64_string = encryption_and_decryption.decode_message(a_secret_dict=secret_dict, message=jwt_string)
+            bytes_json = disk.base64_to_bytes(base64_string=decrypted_base64_string)
+            json_string = bytes_json.decode(encoding="utf-8", errors="ignore")
+            json_object = json.loads(json_string)
+            return json_object
+        except Exception as e:
+            print(e)
+            return None
+
 
 class Password_Generator():
     """

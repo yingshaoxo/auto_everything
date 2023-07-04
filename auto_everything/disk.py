@@ -680,6 +680,16 @@ class Disk:
         bytes_io.seek(0)
         return base64.b64encode(bytes_io.getvalue()).decode()
 
+    def bytes_to_base64(self, bytes_data: bytes):
+        return base64.b64encode(bytes_data).decode()
+
+    def base64_to_bytes(self, base64_string: str):
+        splits = base64_string.split(",")
+        if len(splits) == 2:
+            base64_string = splits[1]
+        img_data = base64.b64decode(base64_string)
+        return img_data
+
     def remove_a_file(self, file_path: str):
         file_path = self._expand_user(file_path)
         if self.exists(file_path):
