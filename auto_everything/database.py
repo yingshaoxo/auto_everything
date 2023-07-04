@@ -620,7 +620,7 @@ class Yingshaoxo_Database_{variable_type}:
         self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="{variable_type}", database_base_folder=database_base_folder)
 
     def add(self, item: {variable_type}):
-        self.database_of_yingshaoxo.add(data=item.to_dict())
+        return self.database_of_yingshaoxo.add(data=item.to_dict())
 
     def search(self, item_filter: {variable_type}, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False):
         return _search_function(self=self, item_filter=item_filter, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)
@@ -646,7 +646,7 @@ from .{identity_name}_objects import *
 from auto_everything.database import Database_Of_Yingshaoxo
 
 
-def _search_function(self: Any, item_filter: Any, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False):
+def _search_function(self: Any, item_filter: Any, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[dict[str, Any]]:
     search_temp_dict = {{}}
     search_temp_dict["_raw_search_counting"] = 0
     search_temp_dict["_search_counting"] = 0
@@ -697,7 +697,7 @@ def _search_function(self: Any, item_filter: Any, page_number:int|None=None, pag
     return self.database_of_yingshaoxo.search(one_row_dict_handler=one_row_dict_filter)
 
 
-def _delete(self, item_filter: Any):
+def _delete(self, item_filter: Any) -> None:
     item_dict = item_filter.to_dict()
     def one_row_dict_filter(a_dict_: dict[str, Any]):
         result = True
