@@ -634,8 +634,10 @@ class YRPC:
 
             if code_block_type == "enum":
                 variable_list: list[str] = []
+                a_temp_name = ""
                 for index, one in enumerate(class_info.values()):
                     name = one['name']
+                    a_temp_name = name
                     variable_list.append(f"""
     {name} = "{name}"
                     """.rstrip().lstrip('\n'))
@@ -643,6 +645,8 @@ class YRPC:
 
                 enum_class_text = f"""
 class {class_name}(Enum):
+    # yingshaoxo: I strongly recommend you use enum as a string type in other message data_model
+    # for example, `{class_name}.{a_temp_name}.value`
 {variable_list_text}
                 """.rstrip().lstrip('\n')
 
@@ -927,6 +931,7 @@ if __name__ == "__main__":
 
                 enum_class_text = f"""
 enum {class_name} {{
+    // yingshaoxo: I strongly recommend you use enum as a string type in other message data_model
 {variable_list_text}
 }}
                 """.rstrip().lstrip('\n')
@@ -1268,7 +1273,8 @@ class Client_{identity_name} {{
                 variable_list_text = "\n".join(variable_list)
 
                 enum_class_text = f"""
-enum {class_name} {{
+export enum {class_name} {{
+    // yingshaoxo: I strongly recommend you use enum as a string type in other message data_model
 {variable_list_text}
 }}
                 """.rstrip().lstrip('\n')
