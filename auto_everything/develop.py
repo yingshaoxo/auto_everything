@@ -1,5 +1,6 @@
 import re
 from typing import Any, Dict, Tuple
+from pprint import pprint
 
 from auto_everything.terminal import Terminal
 from auto_everything.io import IO
@@ -427,7 +428,7 @@ package {filename}_grpc_key_string_maps
                 # var Column_key_list__: List<String> = listOf<String>()
                 io_.write(target_file_path, template)
         else:
-            raise Exception(f"We don't support '{for_which_language}' language.")
+            raise Exception(f"We don't support '{for_which_language}' language. You can @yingshaoxo in social media or send him an email for support.")
 
 
 class YRPC:
@@ -560,7 +561,7 @@ class YRPC:
         class_name_list = [one[1].strip() for one in new_parsed_object_list]
         for one in class_name_list:
             if class_name_list.count(one) > 1:
-                raise Exception("You must make sure there has no duplicated class/message name.")
+                raise Exception(f"You must make sure there has no duplicated class/message name. (the duplicated one: '{one}')")
 
         enum_class_name_list = [one[1].strip() for one in new_parsed_object_list if one[0].strip() == "enum"]
 
@@ -576,7 +577,7 @@ class YRPC:
             name_list = [one[2] for one in variable_list]
             for one in name_list:
                 if name_list.count(one) > 1:
-                    raise Exception("You must make sure there has no duplicated variable name.")
+                    raise Exception(f"You must make sure there has no duplicated variable name. (the duplicated one: '{one}')")
 
             arguments_defination_tree[class_name] = {
                 "**type**": code_block_type
@@ -662,7 +663,7 @@ class {class_name}(Enum):
                         if one['type'] in arguments_dict.keys():
                             type = one['type']
                         else:
-                            raise Exception(f"We don't support type of '{one['type']}'")
+                            raise Exception(f"We don't support type of '{one['type']}', have you defined this type in your protocol code?")
                     is_list = one['is_list']
 
                     if is_list == False:
@@ -955,7 +956,7 @@ enum {class_name} {{
                         if one['type'] in arguments_dict.keys():
                             type = one['type']
                         else:
-                            raise Exception(f"We don't support type of '{one['type']}'")
+                            raise Exception(f"We don't support type of '{one['type']}', have you defined this type in your protocol code?")
                     is_list = one['is_list']
                     is_enum = one['is_enum']
                     is_custom_message_type = one['is_custom_message_type']
@@ -1295,7 +1296,7 @@ export enum {class_name} {{
                         if one['type'] in arguments_dict.keys():
                             type = one['type']
                         else:
-                            raise Exception(f"We don't support type of '{one['type']}'")
+                            raise Exception(f"We don't support type of '{one['type']}', have you defined this type in your protocol code?")
                     is_list = one['is_list']
                     is_enum = one['is_enum']
                     is_custom_message_type = one['is_custom_message_type']
@@ -1729,7 +1730,7 @@ export default Client_{identity_name}
                         if one['type'] in arguments_dict.keys():
                             type = one['type']
                         else:
-                            raise Exception(f"We don't support type of '{one['type']}'")
+                            raise Exception(f"We don't support type of '{one['type']}', have you defined this type in your protocol code?")
                     is_list = one['is_list']
                     is_enum = one['is_enum']
                     is_custom_message_type = one['is_custom_message_type']
@@ -1847,7 +1848,7 @@ package {identity_name}
         }
 
         if which_language not in language_to_file_suffix_dict.keys():
-            raise Exception(f"Sorry, we don't support '{which_language}' language.")
+            raise Exception(f"Sorry, we don't support '{which_language}' language. You can @yingshaoxo in social media or send him an email for support.")
         
         if which_language == "python":
             init_file_for_python = disk.join_paths(output_folder, "__init__.py")
