@@ -122,14 +122,13 @@ class Terminal:
         self._io.write(temp_sh, text)
         return "bash {path} &".format(path=temp_sh), temp_sh
 
-    def __text_to_py(self, text: str, cwd: str) -> Tuple[str, str]:
+    def __text_to_py(self, text: str) -> Tuple[str, str]:
         m = hashlib.sha256()
         m.update(str(datetime.now()).encode("utf-8"))
         m.update(text.encode("utf-8"))
         temp_py = os.path.join(self.temp_dir, m.hexdigest()[:10] + ".py")
         self._io.write(temp_py, text)
-        
-        return f"cd {cwd}; {self.py_executable} {temp_py} &", temp_py
+        return f"{self.py_executable} {temp_py} &", temp_py
 
     def __remove_temp_sh(self, path: str):
         try:
@@ -348,7 +347,7 @@ class Terminal:
             print("\n" + "-" * 20 + "\n")
             print(c)
             print("\n" + "-" * 20 + "\n")
-        c, temp_sh = self.__text_to_py(c, cwd=cwd)
+        c, temp_sh = self.__text_to_py(c)
 
         args_list = shlex.split(c)
         try:
