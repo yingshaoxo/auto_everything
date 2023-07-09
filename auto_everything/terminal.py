@@ -122,6 +122,15 @@ class Terminal:
         self._io.write(temp_sh, text)
         return "bash {path} &".format(path=temp_sh), temp_sh
 
+    def __text_to_py(self, text: str, cwd: str) -> Tuple[str, str]:
+        m = hashlib.sha256()
+        m.update(str(datetime.now()).encode("utf-8"))
+        m.update(text.encode("utf-8"))
+        temp_py = os.path.join(self.temp_dir, m.hexdigest()[:10] + ".py")
+        self._io.write(temp_py, text)
+        
+        return f"cd {cwd}; {self.py_executable} {temp_py} &", temp_py
+
     def __remove_temp_sh(self, path: str):
         try:
             os.remove(path)
@@ -293,6 +302,53 @@ class Terminal:
             print(c)
             print("\n" + "-" * 20 + "\n")
         c, temp_sh = self.__text_to_sh(c)
+
+        args_list = shlex.split(c)
+        try:
+            try:
+                result = subprocess.run(
+                    args_list,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    cwd=cwd,
+                    universal_newlines=True,
+                    timeout=timeout,
+                )
+                result = str(result.stdout).strip(" \n")
+            except KeyboardInterrupt:
+                self.__remove_temp_sh(temp_sh)
+                raise KeyboardInterrupt
+            self.__remove_temp_sh(temp_sh)
+            return result
+        except Exception as e:
+            self.__remove_temp_sh(temp_sh)
+            return str(e)
+
+    def run_python_code(self, code: str, timeout: int = 15, cwd: str | None = None) -> str:
+        """
+        run python code with return value
+
+        Parameters
+        ----------
+        code: string
+            python_code
+        timeout: int, seconds
+            how long this command will take, beyound it, an exception will raise
+        cwd: string
+            current working directory
+        """
+        c = code 
+
+        if cwd is None:
+            cwd = self.current_dir
+        else:
+            cwd = self.fix_path(cwd)
+
+        if self.debug:
+            print("\n" + "-" * 20 + "\n")
+            print(c)
+            print("\n" + "-" * 20 + "\n")
+        c, temp_sh = self.__text_to_py(c, cwd=cwd)
 
         args_list = shlex.split(c)
         try:
