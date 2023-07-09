@@ -513,7 +513,7 @@ class Disk:
         return cleaned_filename[:char_limit]
 
     def get_file_size(
-        self, path: str, level: str = "B", bytes_size: int | None = None
+        self, path: str | None, level: str = "B", bytes_size: int | None = None
     ) -> int | None:
         """
         Get file size in the unit of  B, KB, MB.
@@ -527,10 +527,13 @@ class Disk:
             a number represent the file size in bytes level
         """
         if bytes_size is None:
-            path = self._expand_user(path)
-            file = Path(path)
-            assert file.exists(), f"{path} is not exist!"
-            bytes_size = file.stat().st_size
+            if path != None:
+                path = self._expand_user(path)
+                file = Path(path)
+                assert file.exists(), f"{path} is not exist!"
+                bytes_size = file.stat().st_size
+            else:
+                raise Exception("You should give me a file_path or bytes_size")
         if level == "B":
             return int("{:.0f}".format(bytes_size))
         elif level == "KB":
@@ -689,6 +692,12 @@ class Disk:
             base64_string = splits[1]
         img_data = base64.b64decode(base64_string)
         return img_data
+
+    def hex_to_bytes(self, hex_string: str):
+        return bytes.fromhex(hex_string)
+
+    def bytes_to_hex(self, bytes_data: bytes):
+        return bytes_data.hex()
 
     def remove_a_file(self, file_path: str):
         file_path = self._expand_user(file_path)
