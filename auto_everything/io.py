@@ -76,8 +76,8 @@ class IO():
         with open(file_path, 'a', encoding="utf-8", errors="ignore") as f:
             f.write(content)
 
-    def string_to_hex(self, bytes_data: str) -> str:
-        return bytes_data.encode("utf-8", errors="ignore").hex()
+    def string_to_hex(self, utf_8_string: str) -> str:
+        return utf_8_string.encode("utf-8", errors="ignore").hex()
 
     def hex_to_string(self, hex_string: str) -> str:
         return bytes.fromhex(hex_string).decode("utf-8", errors="ignore")
