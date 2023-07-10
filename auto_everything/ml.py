@@ -1,15 +1,10 @@
-import tensorflow as tf
-import tensorflow_hub as hub
-import numpy as np
-import csv
-
-import io
-import tempfile
-import os
-import hashlib
-import datetime
-
-from pornstar import AudioClassifier
+import random
+from auto_everything.disk import Disk
+from auto_everything.io import IO
+from auto_everything.language import Language
+disk = Disk()
+io_ = IO()
+language = Language()
 
 
 class DataProcessor():
@@ -54,11 +49,127 @@ class SpeechToText():
     # https://tfhub.dev/silero/silero-stt/en/1
 
 
-if __name__ == "__main__":
-    from pprint import pprint
+class Yingshaoxo_Text_Generator():
+    """
+    1. First you have to have a folder where has multiple txt files
+    2. This class will parse those text, convert it into 30000, 3000, 300, 30, 3, 1 char length sub_context_window, we slide that window by one char each search time
+    3. If we found previous x_chars matchs the input_text user asks in our database, we return the following chars from database to the user
+    4. Normally, we'll add a formater to the end of pipeline to format the final result to make it looks better.
 
+    Second method is to do it with full-match, we only return full-match following text, if it can't get the following text, we do the search again with input_text[1:]
+    And we could also use a transformer to get 1000 different ways format of the input_text, then do the full_match again.
+
+    Third method:
+        利用类似于谷歌search一样的东西
+        加上问答系统，你也可以制作一个ChatGPT，并且准确率特别高
+        举个例子，把input_text放进谷歌搜索，将第一页所有网页的内容作为问答系统的context
+        准确率将高得惊人
+        https://huggingface.co/distilbert-base-cased-distilled-squad?context=My+name+is+%E8%83%A1%E8%8B%B1%E6%9D%B0&question=What+is+my+name%3F
     """
-    data_processor = DataProcessor()
-    the_list = list(range(1000))
-    features, labels = data_processor.get_time_series_data_from_a_list(the_list, 10)
-    """
+    def __init__(self, input_txt_folder_path: str):
+        self.input_txt_folder_path = input_txt_folder_path
+
+        self.text_source_data = ""
+        files = disk.get_files(self.input_txt_folder_path, recursive=True, type_limiter=[".txt"])
+        for file in files:
+            self.text_source_data += io_.read(file)
+    
+    def _count_how_many_sub_string_in_previous_context(self, start_index: int, input_text: str, how_long_the_text_you_want_to_get: int = 1024):
+        all_substring_list = []
+        for index, _ in enumerate(input_text):
+            for index2, _ in enumerate(input_text[index:]):
+                index2 = index + index2 + 1
+                sub_string = input_text[index: index2]
+                all_substring_list.append(sub_string)
+        all_substring_list.sort(key=len, reverse=True)
+        all_substring_list = all_substring_list[:len(all_substring_list)//2]
+
+        new_source_text = self.text_source_data[start_index-how_long_the_text_you_want_to_get: start_index]
+        counting = 0
+        for sub_string in all_substring_list:
+            if sub_string in new_source_text:
+                counting += 1
+        return counting
+
+    def search_and_get_following_text(self, input_text: str, quick_mode: bool = False, use_fuzz_search: bool = True, how_long_the_text_you_want_to_get: int = 1024):
+        if (input_text.strip() == ""):
+            return ""
+
+        found_dict = {}
+        search_start_index = 0
+        while True:
+            found = self.text_source_data.find(input_text, search_start_index)
+            if found == -1:
+                # didn't found
+                break
+            else:
+                start = found
+                end = found + len(input_text)
+                found_dict[found] = {
+                    "start": start,
+                    "end": end,
+                    "following": self.text_source_data[end: end + how_long_the_text_you_want_to_get]
+                }
+                search_start_index = start + 1
+
+                if quick_mode == True:
+                    break
+
+        if len(found_dict.keys()) > 0:
+            random_key = random.choice(list(found_dict.keys())) 
+            return found_dict[random_key]["following"]
+        else:
+            if use_fuzz_search == False:
+                return ""
+            else:
+                #print("Using fuzz searching...")
+                all_substring_list = []
+                for index, _ in enumerate(input_text):
+                    for index2, _ in enumerate(input_text[index:]):
+                        index2 = index + index2 + 1
+                        sub_string = input_text[index: index2]
+                        all_substring_list.append(sub_string)
+                all_substring_list.sort(key=len, reverse=True)
+                all_substring_list = all_substring_list[:len(all_substring_list)//2]
+
+                # what I did here is simply try to search keywords(sub_strings) in previous text, the more matchs, that part of text if more likely the one we are looking for.
+                # It can get improved by using some word_spliting library
+                possibility_list = []
+                for sub_string in all_substring_list:
+                    search_start_index = 0
+                    highest_counting = 0
+                    highest_counting_info_dict = None
+                    while True:
+                        found = self.text_source_data.find(sub_string, search_start_index)
+                        if found == -1:
+                            # didn't found
+                            break
+                        else:
+                            start = found
+                            end = found + len(input_text)
+                            info_dict = {
+                                "start": start,
+                                "end": end,
+                                "following": self.text_source_data[end: end + how_long_the_text_you_want_to_get],
+                                "relative_counting": 0
+                            }
+                            search_start_index = start + 1
+
+                            relative_counting = self._count_how_many_sub_string_in_previous_context(start_index=end, input_text=sub_string, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
+                            if relative_counting > highest_counting:
+                                highest_counting = relative_counting
+                                info_dict["relative_counting"] = relative_counting
+                                highest_counting_info_dict = info_dict.copy()
+                    if highest_counting_info_dict != None:
+                        possibility_list.append(highest_counting_info_dict.copy())
+
+                if len(possibility_list) > 0:
+                    possibility_list.sort(key=lambda item: item["relative_counting"], reverse=True)
+                    return possibility_list[0]["following"]
+                else:
+                    return ""
+
+
+
+if __name__ == "__main__":
+    pass

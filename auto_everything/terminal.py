@@ -355,7 +355,7 @@ class Terminal:
                 result = subprocess.run(
                     args_list,
                     stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE, #.STDOUT,
+                    stderr=subprocess.DEVNULL, #.STDOUT,
                     cwd=cwd,
                     universal_newlines=True,
                     timeout=timeout,
