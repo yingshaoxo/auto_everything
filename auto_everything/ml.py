@@ -133,7 +133,7 @@ class Yingshaoxo_Text_Generator():
                 all_substring_list = all_substring_list[:len(all_substring_list)//2]
 
                 # what I did here is simply try to search keywords(sub_strings) in previous text, the more matchs, that part of text if more likely the one we are looking for.
-                # It can get improved by using some word_spliting library
+                # It can get improved by using some word_spliting library, and even more, you can add same_meaning_words library to it to make sure it always finds out the right data.
                 possibility_list = []
                 for sub_string in all_substring_list:
                     search_start_index = 0
