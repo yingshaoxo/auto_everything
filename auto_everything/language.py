@@ -1,5 +1,5 @@
 class Language():
-    def compare_two_sentences(self, sentence1, sentence2):
+    def compare_two_sentences(self, sentence1: str, sentence2: str) -> float:
         """
         return similarity, from `0.0` to `1.0`
 
@@ -12,7 +12,7 @@ class Language():
         from difflib import SequenceMatcher
         ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
         return ratio
-
+    
 
 class English(Language):
     """
@@ -53,9 +53,10 @@ class English(Language):
         ----------
         text: string
         """
-        return self.get_key_sentences_from_text(text, reduce_ratio=0.0)
+        from nltk import tokenize
+        return tokenize.sent_tokenize(text)
 
-    def get_key_sentences_from_text(self, text: str, reduce_ratio: float = 0.5) -> list[str]:
+    def get_key_sentences_from_text(self, text: str, reduce_ratio: float = 0.5, return_list: bool = True) -> list[str] | str:
         """
         return a list of key sentence
 
@@ -65,7 +66,10 @@ class English(Language):
         reduce_ratio: float
 
         """
-        return self._summarize(text, split=True, ratio=reduce_ratio) #type: ignore
+        if return_list:
+            return self._summarize(text, split=True, ratio=reduce_ratio) #type: ignore
+        else:
+            return self._summarize(text, split=False, ratio=reduce_ratio) #type: ignore
 
 
 class Chinese(Language):
@@ -125,7 +129,7 @@ class Chinese(Language):
         sentences = [s['sentence'] for s in self.sentence_handler.get_key_sentences()]
         return sentences
 
-    def sentence_contracting(self, text):
+    def sentence_contracting(self, text: str) -> str:
         """
         return a contracted sentence
 
