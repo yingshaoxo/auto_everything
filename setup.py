@@ -40,7 +40,7 @@ setup(
         "gui": ["numpy", "opencv-python", "pyscreenshot", "pytesseract", "pyautogui"],
         "fakecamera": ["pyfakewebcam", "opencv-python"],
         "image": ["pillow"],
-        "all": ["o365"],
+        "all": ["o365", "textrank4zh", "summa"],
     },
     include_package_data=False,
     packages=["auto_everything"],

@@ -20,10 +20,10 @@ class English(Language):
     """
 
     def __init__(self):
-        import pyttsx3 as _pyttsx3
-        self._speak_engine = _pyttsx3.init()
-        self._speak_engine.setProperty('rate', 180)  # 180 words per minute
-        self._speak_engine.setProperty('volume', 0.8)
+        from summa.summarizer import summarize
+        from summa.keywords import keywords
+        self._keywords = keywords
+        self._summarize = summarize
 
     def text_to_speech(self, text):
         """
@@ -33,9 +33,39 @@ class English(Language):
         ----------
         text: string
         """
+        import pyttsx3 as _pyttsx3
+        self._speak_engine = _pyttsx3.init()
+        self._speak_engine.setProperty('rate', 180)  # 180 words per minute
+        self._speak_engine.setProperty('volume', 0.8)
+
         text = text.strip()
         self._speak_engine.say(text)
         self._speak_engine.runAndWait()
+    
+    def get_key_words(self, input_text: str) -> list[str]:
+        return self._keywords(input_text) #type: ignore
+
+    def get_sentences_from_text(self, text) -> list[str]:
+        """
+        return a list of sentences
+
+        Parameters
+        ----------
+        text: string
+        """
+        return self.get_key_sentences_from_text(text, reduce_ratio=0.0)
+
+    def get_key_sentences_from_text(self, text: str, reduce_ratio: float = 0.5) -> list[str]:
+        """
+        return a list of key sentence
+
+        Parameters
+        ----------
+        text: string
+        reduce_ratio: float
+
+        """
+        return self._summarize(text, split=True, ratio=reduce_ratio) #type: ignore
 
 
 class Chinese(Language):
@@ -45,7 +75,9 @@ class Chinese(Language):
 
     def __init__(self):
         from textrank4zh import TextRank4Keyword, TextRank4Sentence
-        self.handler = TextRank4Sentence()
+        self.sentence_handler = TextRank4Sentence()
+        self.keywords_handler = TextRank4Keyword()
+
         import jieba as jieba
         self.jieba = jieba
 
@@ -64,7 +96,13 @@ class Chinese(Language):
             text_list.append(paragraph.text)
         return '\n'.join(text_list)
 
-    def get_sentences_from_text(self, text):
+    def get_key_words(self, input_text: str) -> list[str]:
+        words = []
+        for item in self.keywords_handler.get_keywords(20, word_min_len=1):
+            words.append(item.word)
+        return words
+
+    def get_sentences_from_text(self, text) -> list[str]:
         """
         return a list of sentences
 
@@ -72,10 +110,10 @@ class Chinese(Language):
         ----------
         text: string
         """
-        self.handler.analyze(text)
-        return self.handler.sentences
+        self.sentence_handler.analyze(text)
+        return self.sentence_handler.sentences #type: ignore
 
-    def get_key_sentences_from_text(self, text):
+    def get_key_sentences_from_text(self, text) -> list[str]:
         """
         return a list of key sentence
 
@@ -83,8 +121,8 @@ class Chinese(Language):
         ----------
         text: string
         """
-        self.handler.analyze(text)
-        sentences = [s['sentence'] for s in self.handler.get_key_sentences()]
+        self.sentence_handler.analyze(text)
+        sentences = [s['sentence'] for s in self.sentence_handler.get_key_sentences()]
         return sentences
 
     def sentence_contracting(self, text):
