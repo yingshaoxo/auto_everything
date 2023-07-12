@@ -73,6 +73,7 @@ class Yingshaoxo_Text_Generator():
         files = disk.get_files(self.input_txt_folder_path, recursive=True, type_limiter=[".txt"])
         for file in files:
             self.text_source_data += io_.read(file)
+            self.local_case_text_source_data = self.text_source_data.lower()
     
     @staticmethod
     def get_random_text_deriation_from_source_text(source_text: str) -> str:
@@ -89,6 +90,8 @@ class Yingshaoxo_Text_Generator():
         return final_random_text
     
     def _count_how_many_sub_string_in_previous_context(self, start_index: int, input_text: str, how_long_the_text_you_want_to_get: int = 1024):
+        input_text = input_text.lower()
+
         all_substring_list = []
         for index, _ in enumerate(input_text):
             for index2, _ in enumerate(input_text[index:]):
@@ -98,21 +101,26 @@ class Yingshaoxo_Text_Generator():
         all_substring_list.sort(key=len, reverse=True)
         all_substring_list = all_substring_list[:len(all_substring_list)//2]
 
-        new_source_text = self.text_source_data[start_index-how_long_the_text_you_want_to_get: start_index]
+        new_source_text = self.local_case_text_source_data[start_index-how_long_the_text_you_want_to_get: start_index]
         counting = 0
-        for sub_string in all_substring_list:
+        for index, sub_string in enumerate(all_substring_list):
             if sub_string in new_source_text:
-                counting += 1
+                counting += len(sub_string)
         return counting
 
-    def search_and_get_following_text(self, input_text: str, quick_mode: bool = False, use_fuzz_search: bool = True, how_long_the_text_you_want_to_get: int = 1024):
+    def search_and_get_following_text(self, input_text: str, quick_mode: bool = True, use_fuzz_search: bool = True, how_long_the_text_you_want_to_get: int = 1024) -> tuple[str, str]:
+        """
+        It will return you the context and following text as a format of tuple[context, following_text]
+        """
         if (input_text.strip() == ""):
-            return ""
+            return "", ""
+
+        input_text = input_text.lower()
 
         found_dict = {}
         search_start_index = 0
         while True:
-            found = self.text_source_data.find(input_text, search_start_index)
+            found = self.local_case_text_source_data.find(input_text, search_start_index)
             if found == -1:
                 # didn't found
                 break
@@ -126,15 +134,15 @@ class Yingshaoxo_Text_Generator():
                 }
                 search_start_index = start + 1
 
-                if quick_mode == True:
-                    break
+                #if quick_mode == True:
+                #    break
 
         if len(found_dict.keys()) > 0:
             random_key = random.choice(list(found_dict.keys())) 
-            return found_dict[random_key]["following"]
+            return self.text_source_data[found_dict[random_key]["end"]-how_long_the_text_you_want_to_get:found_dict[random_key]["end"]+how_long_the_text_you_want_to_get], found_dict[random_key]["following"]
         else:
             if use_fuzz_search == False:
-                return ""
+                return self.search_and_get_following_text(input_text = input_text[len(input_text)//2+1:], quick_mode = True, use_fuzz_search = True, how_long_the_text_you_want_to_get = how_long_the_text_you_want_to_get)
             else:
                 #print("Using fuzz searching...")
                 all_substring_list = []
@@ -154,7 +162,7 @@ class Yingshaoxo_Text_Generator():
                     highest_counting = 0
                     highest_counting_info_dict = None
                     while True:
-                        found = self.text_source_data.find(sub_string, search_start_index)
+                        found = self.local_case_text_source_data.find(sub_string, search_start_index)
                         if found == -1:
                             # didn't found
                             break
@@ -174,15 +182,56 @@ class Yingshaoxo_Text_Generator():
                                 highest_counting = relative_counting
                                 info_dict["relative_counting"] = relative_counting
                                 highest_counting_info_dict = info_dict.copy()
+
+                                if quick_mode == True:
+                                    break
+
                     if highest_counting_info_dict != None:
                         possibility_list.append(highest_counting_info_dict.copy())
 
                 if len(possibility_list) > 0:
                     possibility_list.sort(key=lambda item: item["relative_counting"], reverse=True)
-                    return possibility_list[0]["following"]
+                    return self.text_source_data[possibility_list[0]['end']-how_long_the_text_you_want_to_get:possibility_list[0]['end']+how_long_the_text_you_want_to_get], possibility_list[0]["following"]
                 else:
-                    return ""
+                    return self.search_and_get_following_text(input_text = input_text[len(input_text)//2+1:], quick_mode = quick_mode, use_fuzz_search = use_fuzz_search, how_long_the_text_you_want_to_get = how_long_the_text_you_want_to_get)
 
+    def search_and_get_following_text_in_a_exact_way(self, input_text: str, quick_mode: bool = False, how_long_the_text_you_want_to_get: int = 1024) -> str:
+        context, following_text = self.search_and_get_following_text(input_text=input_text, quick_mode=quick_mode, use_fuzz_search=True, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
+        if (context.strip() == ""):
+            return "..."
+
+        context_splits = language.seperate_text_to_segments(context)
+        input_text_splits = language.seperate_text_to_segments(input_text)
+        # context_splits = context.split("\n") 
+        # input_text_splits = [one for one in input_text.split("\n") if one.strip() != ""]
+
+        last_input_sentence = ""
+        for one_input in reversed(input_text_splits):
+            if one_input["is_punctuation_or_space"] == False:
+                last_input_sentence = one_input["text"]
+                print(f"last_input_sentence: {last_input_sentence}")
+                break
+        
+        similarity_list = []
+        for index, one_target in enumerate(context_splits):
+            if one_target ["is_punctuation_or_space"] == False:
+                one_sentence = one_target["text"]
+                similarity = language.compare_two_sentences(one_sentence, last_input_sentence)
+                similarity_list.append({
+                    "similarity": similarity,
+                    "start_index": index
+                })
+        
+        similarity_list.sort(key=lambda item: item["similarity"], reverse=True)
+
+        the_seperator_index = similarity_list[0]["start_index"]
+
+        for index, one in enumerate(context_splits[the_seperator_index:]):
+            if one["is_punctuation_or_space"] == False:
+                the_seperator_index += index
+                break
+
+        return "".join([one["text"] for one in context_splits[the_seperator_index:]])
 
 
 if __name__ == "__main__":
