@@ -1,3 +1,7 @@
+from typing import Any
+import re
+
+
 class Language():
     def compare_two_sentences(self, sentence1: str, sentence2: str) -> float:
         """
@@ -12,6 +16,43 @@ class Language():
         from difflib import SequenceMatcher
         ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
         return ratio
+
+    def seperate_text_to_segments(self, text: str, ignore_space: bool = True) -> list[dict[str, Any]]:
+        """
+        It returns a list of dict.
+        For example:
+            [
+                {
+                    "is_punctuation_or_space": true,
+                    "text": "?",
+                },
+                {
+                    "is_punctuation_or_space": false,
+                    "text": "Yes",
+                },
+            ]
+        """
+        if ignore_space == True:
+            all_result = re.findall(r"((?:\w* *)*)(\W*)", text, flags=re.MULTILINE)
+        else:
+            all_result = re.findall(r"(\w*)(\W*)", text, flags=re.MULTILINE)
+        final_result = []
+        for one in all_result:
+            words = one[0]
+            puctuation = one[1]
+            if len(words) > 0:
+                item = {
+                    "is_punctuation_or_space": False,
+                    "text": words
+                }
+                final_result.append(item)
+            if len(puctuation) > 0:
+                item = {
+                    "is_punctuation_or_space": True,
+                    "text": puctuation
+                }
+                final_result.append(item)
+        return final_result
     
 
 class English(Language):

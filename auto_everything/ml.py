@@ -74,6 +74,20 @@ class Yingshaoxo_Text_Generator():
         for file in files:
             self.text_source_data += io_.read(file)
     
+    @staticmethod
+    def get_random_text_deriation_from_source_text(source_text: str) -> str:
+        source_text_lines = source_text.split("\n")
+        random.shuffle(source_text_lines)
+        new_lines = []
+        for line in source_text_lines:
+            segments_list = language.seperate_text_to_segments(text=line, ignore_space=False)
+            segments_list = [one["text"] for one in segments_list]
+            random.shuffle(segments_list)
+            new_line = "".join(segments_list)
+            new_lines.append(new_line)
+        final_random_text = "\n".join(new_lines)
+        return final_random_text
+    
     def _count_how_many_sub_string_in_previous_context(self, start_index: int, input_text: str, how_long_the_text_you_want_to_get: int = 1024):
         all_substring_list = []
         for index, _ in enumerate(input_text):
