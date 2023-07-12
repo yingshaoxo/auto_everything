@@ -182,6 +182,7 @@ git checkout main && git merge upstream/main  --allow-unrelated-histories
     def find_port(self, port: str):
         t.run(f"""
             lsof -i:{port}
+            netstat -ntl | grep {port}
         """)
 
     def find(self, regex_expression: str):
