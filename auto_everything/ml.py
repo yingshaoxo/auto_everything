@@ -1,4 +1,5 @@
 import random
+from typing import Any
 from auto_everything.disk import Disk
 from auto_everything.io import IO
 from auto_everything.language import Language
@@ -66,7 +67,8 @@ class Yingshaoxo_Text_Generator():
         准确率将高得惊人
         https://huggingface.co/distilbert-base-cased-distilled-squad?context=My+name+is+%E8%83%A1%E8%8B%B1%E6%9D%B0&question=What+is+my+name%3F
     """
-    def __init__(self, input_txt_folder_path: str):
+    def __init__(self, input_txt_folder_path: str, use_machine_learning: bool = False, debug_mode: bool = False):
+        self.debug_mode = debug_mode
         self.input_txt_folder_path = input_txt_folder_path
 
         self.text_source_data = ""
@@ -74,6 +76,13 @@ class Yingshaoxo_Text_Generator():
         for file in files:
             self.text_source_data += io_.read(file)
             self.local_case_text_source_data = self.text_source_data.lower()
+        
+        self.use_machine_learning = use_machine_learning
+        if (use_machine_learning == True):
+            # pip install sentence_transformers
+            from sentence_transformers import SentenceTransformer, util
+            self.sentence_transformers_model = SentenceTransformer('all-MiniLM-L6-v2')
+            self.sentence_transformers_utility = util
     
     @staticmethod
     def get_random_text_deriation_from_source_text(source_text: str) -> str:
@@ -88,6 +97,11 @@ class Yingshaoxo_Text_Generator():
             new_lines.append(new_line)
         final_random_text = "\n".join(new_lines)
         return final_random_text
+    
+    def get_similarity_of_two_sentences(self, sentence_1: str, sentence_2: str) -> float:
+        sentence_embedding_list = self.sentence_transformers_model.encode(sentences=[sentence_1, sentence_2], convert_to_tensor=True)
+        similarity = self.sentence_transformers_utility.cos_sim(sentence_embedding_list[0], sentence_embedding_list[1])
+        return float(similarity.cpu().numpy()[0][0])
     
     def _count_how_many_sub_string_in_previous_context(self, start_index: int, input_text: str, how_long_the_text_you_want_to_get: int = 1024):
         input_text = input_text.lower()
@@ -144,7 +158,9 @@ class Yingshaoxo_Text_Generator():
             if use_fuzz_search == False:
                 return self.search_and_get_following_text(input_text = input_text[len(input_text)//2+1:], quick_mode = True, use_fuzz_search = True, how_long_the_text_you_want_to_get = how_long_the_text_you_want_to_get)
             else:
-                #print("Using fuzz searching...")
+                if (self.debug_mode):
+                    print("Using fuzz searching...")
+
                 all_substring_list = []
                 for index, _ in enumerate(input_text):
                     for index2, _ in enumerate(input_text[index:]):
@@ -209,14 +225,18 @@ class Yingshaoxo_Text_Generator():
         for one_input in reversed(input_text_splits):
             if one_input["is_punctuation_or_space"] == False:
                 last_input_sentence = one_input["text"]
-                print(f"last_input_sentence: {last_input_sentence}")
+                if (self.debug_mode):
+                    print(f"last_input_sentence: {last_input_sentence}")
                 break
         
         similarity_list = []
         for index, one_target in enumerate(context_splits):
             if one_target ["is_punctuation_or_space"] == False:
                 one_sentence = one_target["text"]
-                similarity = language.compare_two_sentences(one_sentence, last_input_sentence)
+                if (self.use_machine_learning):
+                    similarity = self.get_similarity_of_two_sentences(one_sentence, last_input_sentence)
+                else:
+                    similarity = language.compare_two_sentences(one_sentence, last_input_sentence)
                 similarity_list.append({
                     "similarity": similarity,
                     "start_index": index
