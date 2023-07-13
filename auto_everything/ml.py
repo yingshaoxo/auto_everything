@@ -85,7 +85,7 @@ class Yingshaoxo_Text_Generator():
             self.sentence_transformers_utility = util
     
     @staticmethod
-    def get_random_text_deriation_from_source_text(source_text: str) -> str:
+    def get_random_text_deriation_from_source_text(source_text: str, random_remove_some_characters: bool = False, random_add_some_characters: bool = False, random_char_source_text: str = "") -> str:
         source_text_lines = source_text.split("\n")
         random.shuffle(source_text_lines)
         new_lines = []
@@ -96,6 +96,19 @@ class Yingshaoxo_Text_Generator():
             new_line = "".join(segments_list)
             new_lines.append(new_line)
         final_random_text = "\n".join(new_lines)
+
+        random_length = int(len(source_text) * 0.2)
+        if random_remove_some_characters:
+            for i in range(random_length):
+                random_index = random.randint(0, len(final_random_text)-1)	
+                final_random_text = final_random_text[:random_index] + final_random_text[random_index + 1:]
+        if random_add_some_characters:
+            for i in range(random_length):
+                random_index = random.randint(0, len(final_random_text)-1)	
+                if (random_char_source_text == ""):
+                    random_char_source_text = source_text
+                final_random_text = final_random_text[:random_index] + random.choice(random_char_source_text) + final_random_text[random_index:]
+
         return final_random_text
     
     def get_similarity_of_two_sentences(self, sentence_1: str, sentence_2: str) -> float:

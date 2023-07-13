@@ -5,11 +5,9 @@ from pprint import pprint
 language = Language()
 
 text="""
-I am ok, how are you? my dear.
-niha-
+I'm yingshaoxo.
 
-你好阿，小朋友。m,m,masd.
+你好阿，小朋友。
 """
 
-print(Yingshaoxo_Text_Generator.get_random_text_deriation_from_source_text(source_text=text))
-print(Yingshaoxo_Text_Generator(input_txt_folder_path=".", use_machine_learning=True).get_similarity_of_two_sentences("aaa", "aab"))
+print(Yingshaoxo_Text_Generator.get_random_text_deriation_from_source_text(source_text=text, random_remove_some_characters=False, random_add_some_characters=False))
