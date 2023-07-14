@@ -111,10 +111,20 @@ class Yingshaoxo_Text_Generator():
 
         return final_random_text
     
-    def get_similarity_of_two_sentences(self, sentence_1: str, sentence_2: str) -> float:
-        sentence_embedding_list = self.sentence_transformers_model.encode(sentences=[sentence_1, sentence_2], convert_to_tensor=True)
-        similarity = self.sentence_transformers_utility.cos_sim(sentence_embedding_list[0], sentence_embedding_list[1])
-        return float(similarity.cpu().numpy()[0][0])
+    def get_similarity_of_two_sentences(self, sentence_1: str, sentence_2: str, use_both_machine_learning_and_traditional_method: bool = False) -> float:
+        if use_both_machine_learning_and_traditional_method == True:
+            sentence_embedding_list = self.sentence_transformers_model.encode(sentences=[sentence_1, sentence_2], convert_to_tensor=True)
+            similarity = self.sentence_transformers_utility.cos_sim(sentence_embedding_list[0], sentence_embedding_list[1])
+            similarity1 = float(similarity.cpu().numpy()[0][0])
+            similarity2 = language.compare_two_sentences(sentence_1, sentence_2)
+            return (similarity1 + similarity2) / 2
+        else:
+            if self.use_machine_learning == True:
+                sentence_embedding_list = self.sentence_transformers_model.encode(sentences=[sentence_1, sentence_2], convert_to_tensor=True)
+                similarity = self.sentence_transformers_utility.cos_sim(sentence_embedding_list[0], sentence_embedding_list[1])
+                return float(similarity.cpu().numpy()[0][0])
+            else:
+                return language.compare_two_sentences(sentence_1, sentence_2)
     
     def _count_how_many_sub_string_in_previous_context(self, start_index: int, input_text: str, how_long_the_text_you_want_to_get: int = 1024):
         input_text = input_text.lower()
@@ -224,7 +234,7 @@ class Yingshaoxo_Text_Generator():
                 else:
                     return self.search_and_get_following_text(input_text = input_text[len(input_text)//2+1:], quick_mode = quick_mode, use_fuzz_search = use_fuzz_search, how_long_the_text_you_want_to_get = how_long_the_text_you_want_to_get)
 
-    def search_and_get_following_text_in_a_exact_way(self, input_text: str, quick_mode: bool = False, how_long_the_text_you_want_to_get: int = 1024) -> str:
+    def search_and_get_following_text_in_a_exact_way(self, input_text: str, quick_mode: bool = False, extremly_accrate_mode: bool = False, how_long_the_text_you_want_to_get: int = 1024, also_want_the_current_line: bool = False) -> str:
         context, following_text = self.search_and_get_following_text(input_text=input_text, quick_mode=quick_mode, use_fuzz_search=True, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
         if (context.strip() == ""):
             return "..."
@@ -254,17 +264,36 @@ class Yingshaoxo_Text_Generator():
                     "similarity": similarity,
                     "start_index": index
                 })
-        
         similarity_list.sort(key=lambda item: item["similarity"], reverse=True)
-
         the_seperator_index = similarity_list[0]["start_index"]
 
-        for index, one in enumerate(context_splits[the_seperator_index:]):
-            if one["is_punctuation_or_space"] == False:
-                the_seperator_index += index
-                break
+        if extremly_accrate_mode == True:
+            for index, one_target in enumerate(context_splits):
+                if one_target ["is_punctuation_or_space"] == False:
+                    one_sentence = one_target["text"]
+                    if one_sentence.lower() == last_input_sentence.lower():
+                        the_seperator_index = index
+                        break
+
+        if (also_want_the_current_line == False):
+            for index, one in enumerate(context_splits[the_seperator_index:]):
+                if one["is_punctuation_or_space"] == False:
+                    the_seperator_index += index
+                    break
+        else:
+            the_seperator_index -= 1
 
         return "".join([one["text"] for one in context_splits[the_seperator_index:]])
+    
+    def folowing_code_generation(self, text: str):
+        """
+        1. take the previous text as input
+        2. take sub_string of the input_text, from right to left, from long to short.
+        3. search the database source text, if that sub_string matchs, add len(sub_string) to variable {one_following_char: count + len(sub_string)}
+        4. take the biggest counting char as the next char
+        """
+        print("Haven't implement yet.")
+        return text
 
 
 if __name__ == "__main__":
