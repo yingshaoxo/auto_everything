@@ -1,11 +1,16 @@
 import random
 from typing import Any
-from auto_everything.disk import Disk
+from auto_everything.terminal import Terminal
+from auto_everything.disk import Disk, Store
 from auto_everything.io import IO
 from auto_everything.language import Language
+from auto_everything.time import Time
 disk = Disk()
 io_ = IO()
 language = Language()
+terminal = Terminal()
+time_ = Time()
+store = Store('auto_everything_ml_module')
 
 
 class DataProcessor():
@@ -67,15 +72,15 @@ class Yingshaoxo_Text_Generator():
         准确率将高得惊人
         https://huggingface.co/distilbert-base-cased-distilled-squad?context=My+name+is+%E8%83%A1%E8%8B%B1%E6%9D%B0&question=What+is+my+name%3F
     """
-    def __init__(self, input_txt_folder_path: str, use_machine_learning: bool = False, debug_mode: bool = False):
+    def __init__(self, input_txt_folder_path: str, only_search_the_first_level_of_folders: bool = True, use_machine_learning: bool = False, debug_mode: bool = False):
         self.debug_mode = debug_mode
         self.input_txt_folder_path = input_txt_folder_path
 
         self.text_source_data = ""
-        files = disk.get_files(self.input_txt_folder_path, recursive=True, type_limiter=[".txt"])
+        files = disk.get_files(self.input_txt_folder_path, recursive=not only_search_the_first_level_of_folders)
         for file in files:
             self.text_source_data += io_.read(file)
-            self.local_case_text_source_data = self.text_source_data.lower()
+            self.lower_case_text_source_data = self.text_source_data.lower()
         
         self.use_machine_learning = use_machine_learning
         if (use_machine_learning == True):
@@ -138,7 +143,7 @@ class Yingshaoxo_Text_Generator():
         all_substring_list.sort(key=len, reverse=True)
         all_substring_list = all_substring_list[:len(all_substring_list)//2]
 
-        new_source_text = self.local_case_text_source_data[start_index-how_long_the_text_you_want_to_get: start_index]
+        new_source_text = self.lower_case_text_source_data[start_index-how_long_the_text_you_want_to_get: start_index]
         counting = 0
         for index, sub_string in enumerate(all_substring_list):
             if sub_string in new_source_text:
@@ -157,7 +162,7 @@ class Yingshaoxo_Text_Generator():
         found_dict = {}
         search_start_index = 0
         while True:
-            found = self.local_case_text_source_data.find(input_text, search_start_index)
+            found = self.lower_case_text_source_data.find(input_text, search_start_index)
             if found == -1:
                 # didn't found
                 break
@@ -201,7 +206,7 @@ class Yingshaoxo_Text_Generator():
                     highest_counting = 0
                     highest_counting_info_dict = None
                     while True:
-                        found = self.local_case_text_source_data.find(sub_string, search_start_index)
+                        found = self.lower_case_text_source_data.find(sub_string, search_start_index)
                         if found == -1:
                             # didn't found
                             break
@@ -285,15 +290,62 @@ class Yingshaoxo_Text_Generator():
 
         return "".join([one["text"] for one in context_splits[the_seperator_index:]])
     
-    def folowing_code_generation(self, text: str):
+    @staticmethod
+    def next_code_generation(data_source_folder_path: str, input_text: str, quck_mode: bool = True, type_limiter: list[str] = [".txt", ".py", ".md"], how_long_the_text_you_want_to_get: int = 1024):
         """
         1. take the previous text as input
         2. take sub_string of the input_text, from right to left, from long to short.
         3. search the database source text, if that sub_string matchs, add len(sub_string) to variable {one_following_char: count + len(sub_string)}
         4. take the biggest counting char as the next char
+
+        method1: previous_text[-i:], search from i == 0 to i == len(previous_text), until it founds nothing, then go back, choose a random one
+        method2: previous_text[i:], search from i == 0 to i == len(previous_text), for each time, i=i*2, until it found something, return that
         """
-        print("Haven't implement yet.")
-        return text
+        text_source_data = ""
+        should_update_datasource = False
+
+        datestamp_string = store.get('last_code_generation_database_update_time', None)
+        if (datestamp_string == None):
+            should_update_datasource = True
+        else:
+            old_time = time_.get_datetime_object_from_timestamp(int(datestamp_string))
+            new_time = time_.get_datetime_object_from_timestamp(time_.get_current_timestamp_in_10_digits_format())
+            if (new_time - old_time).days > 3: #update the database for every 3 days
+                should_update_datasource = True
+
+        data_source_txt_file_path = terminal.fix_path("~/.auto_everything/ml/code_completion_data_source.txt")
+        disk.create_a_folder(disk.get_directory_path(data_source_txt_file_path))
+        if (not disk.exists(data_source_txt_file_path)):
+            io_.write(file_path=data_source_txt_file_path, content="")
+
+        if should_update_datasource == True:
+            files = disk.get_files(folder=terminal.fix_path(data_source_folder_path), type_limiter=type_limiter)
+            io_.write(file_path=data_source_txt_file_path, content="")
+            for file in files:
+                io_.append(file_path=data_source_txt_file_path, content=io_.read(file) + "\n\n\n\n")
+            store.set('last_code_generation_database_update_time', str(time_.get_current_timestamp_in_10_digits_format()))
+        else:
+            text_source_data = io_.read(data_source_txt_file_path)
+
+        def real_next_code_generation(input_text: str, how_long_the_text_you_want_to_get: int = 1024):
+            if (input_text.strip() == ""):
+                return ""
+
+            found_start_index = text_source_data.find(input_text)
+            if found_start_index == -1:
+                # didn't found
+                if quck_mode == True:
+                    input_text = input_text[len(input_text)//2+1:]
+                else:
+                    input_text = input_text[1:]
+                return real_next_code_generation(input_text=input_text, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
+            else:
+                start = found_start_index
+                end = found_start_index + len(input_text)
+                following = text_source_data[end: end + how_long_the_text_you_want_to_get]
+                return following.rstrip()
+        
+        return real_next_code_generation(input_text=input_text, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
 
 
 if __name__ == "__main__":
