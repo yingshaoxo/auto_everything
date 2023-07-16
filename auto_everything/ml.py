@@ -71,6 +71,14 @@ class Yingshaoxo_Text_Generator():
         举个例子，把input_text放进谷歌搜索，将第一页所有网页的内容作为问答系统的context
         准确率将高得惊人
         https://huggingface.co/distilbert-base-cased-distilled-squad?context=My+name+is+%E8%83%A1%E8%8B%B1%E6%9D%B0&question=What+is+my+name%3F
+
+    Wha kind of problem I have solved using traditional programming?
+    1. ChatBot
+    2. Sentence translation
+    3. Grammar correction
+    4. Punctuation Correction Or Adding
+    5. Code completion
+    6. Sentence rewrite
     """
     def __init__(self, input_txt_folder_path: str, only_search_the_first_level_of_folders: bool = True, use_machine_learning: bool = False, debug_mode: bool = False):
         self.debug_mode = debug_mode
@@ -239,8 +247,8 @@ class Yingshaoxo_Text_Generator():
                 else:
                     return self.search_and_get_following_text(input_text = input_text[len(input_text)//2+1:], quick_mode = quick_mode, use_fuzz_search = use_fuzz_search, how_long_the_text_you_want_to_get = how_long_the_text_you_want_to_get)
 
-    def search_and_get_following_text_in_a_exact_way(self, input_text: str, quick_mode: bool = False, extremly_accrate_mode: bool = False, how_long_the_text_you_want_to_get: int = 1024, also_want_the_current_line: bool = False) -> str:
-        context, following_text = self.search_and_get_following_text(input_text=input_text, quick_mode=quick_mode, use_fuzz_search=True, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
+    def search_and_get_following_text_in_a_exact_way(self, input_text: str, quick_mode: bool = False, use_fuzz_search: bool = True, extremly_accrate_mode: bool = False, how_long_the_text_you_want_to_get: int = 1024, also_want_the_current_line: bool = False) -> str:
+        context, following_text = self.search_and_get_following_text(input_text=input_text, quick_mode=quick_mode, use_fuzz_search=use_fuzz_search, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
         if (context.strip() == ""):
             return "..."
 
@@ -326,7 +334,7 @@ class Yingshaoxo_Text_Generator():
             store.set('last_code_generation_database_update_time', str(time_.get_current_timestamp_in_10_digits_format()))
         else:
             text_source_data = io_.read(data_source_txt_file_path)
-
+        
         def real_next_code_generation(input_text: str, how_long_the_text_you_want_to_get: int = 1024):
             if (input_text.strip() == ""):
                 return ""
@@ -343,9 +351,47 @@ class Yingshaoxo_Text_Generator():
                 start = found_start_index
                 end = found_start_index + len(input_text)
                 following = text_source_data[end: end + how_long_the_text_you_want_to_get]
-                return following.rstrip()
+                following = following.rstrip()
+                return following
         
         return real_next_code_generation(input_text=input_text, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
+
+    def text_to_text_harding_coding_transforming(self, input_text_list: list[str], output_text_list: list[str], text_you_want_to_transform: str):
+        """
+        1. Just think the whole transforming process as doing the search in a Q table.
+        2. You use a patten filter to check the input_text, "I love you", 3 elements as a window, then you use this patten to do a search in the Q table, you found ["I hate you", "I trust you", "I hate you"], it seems like 'hate' has higher chance to be in the middle of that sentence.
+        3. Or, you can simply think this: For a list of "I * you" patten in dataset, what word has more frequency in the position of *?, Choose the one has higher frequency.
+        4. tip 3 is still in [MASK] level. If you want to handle the sentence segment sorting problem, you have to predict the 'move farwrd x characters' and 'move backword x chracter' information. Which can also be treated like a mask.
+
+        speak of the process speed, use cache.
+        
+        this function could be used on 'wrong word correction', 'punctuation adding', 'sub_sentence rewrite'
+
+        for 'summarytion task', get substrings from source_text, then get substrings from target_text, see how many substring shold get removed, get couting of those substrings that should get removed over the whole dataset.
+            for the next time, in a new input sentence, we get those substring ranks, simply remove those substring that has higher 'garbage rank number'
+        
+        for 'sorting task', get substrings from input_text, then try to use before_context and following_context to do a search in target dataset, get the percentage of start_index/the_whole_length_of_the_sentence. 
+            do a compare for the substring in the input_text, so you would get a percentage number of weather to move that substring farward or backward.
+        """
+        print("Haven't get implemented yet.")
+        # def _count_how_many_sub_string_in_previous_context(self, start_index: int, input_text: str, how_long_the_text_you_want_to_get: int = 1024):
+        #     input_text = input_text.lower()
+
+        #     all_substring_list = []
+        #     for index, _ in enumerate(input_text):
+        #         for index2, _ in enumerate(input_text[index:]):
+        #             index2 = index + index2 + 1
+        #             sub_string = input_text[index: index2]
+        #             all_substring_list.append(sub_string)
+        #     all_substring_list.sort(key=len, reverse=True)
+        #     all_substring_list = all_substring_list[:len(all_substring_list)//2]
+
+        #     new_source_text = self.lower_case_text_source_data[start_index-how_long_the_text_you_want_to_get: start_index]
+        #     counting = 0
+        #     for index, sub_string in enumerate(all_substring_list):
+        #         if sub_string in new_source_text:
+        #             counting += len(sub_string)
+        #     return counting
 
 
 if __name__ == "__main__":
