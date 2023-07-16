@@ -44,9 +44,13 @@ class IO():
             if (result != None):
                 encoding = result['encoding']
             
-        with open(file_path, 'r', encoding=encoding, errors="ignore") as f:
-            result = f.read()
-        return result
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding=encoding, errors="ignore") as f:
+                result = f.read()
+            return result
+        else:
+            print(f"File '{file_path}' does not exists.")
+            return ""
 
     def write(self, file_path: str, content: str):
         """
