@@ -350,6 +350,8 @@ class Terminal:
         c, temp_sh = self.__text_to_py(c)
 
         args_list = shlex.split(c)
+        # print(args_list)
+        # input("Go on?")
         try:
             try:
                 result = subprocess.run(

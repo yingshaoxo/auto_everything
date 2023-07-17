@@ -912,7 +912,7 @@ class Store:
         else:
             return False
 
-    def get(self, key: str, default_value: Any):
+    def get(self, key: str, default_value: Any = None):
         """
         get a value by using a key
 

@@ -80,12 +80,12 @@ class Yingshaoxo_Text_Generator():
     5. Code completion
     6. Sentence rewrite
     """
-    def __init__(self, input_txt_folder_path: str, only_search_the_first_level_of_folders: bool = True, use_machine_learning: bool = False, debug_mode: bool = False):
+    def __init__(self, input_txt_folder_path: str, only_search_the_first_level_of_folders: bool = True, type_limiter: list[str] = [".txt", ".md"], use_machine_learning: bool = False, debug_mode: bool = False):
         self.debug_mode = debug_mode
         self.input_txt_folder_path = input_txt_folder_path
 
         self.text_source_data = ""
-        files = disk.get_files(self.input_txt_folder_path, recursive=not only_search_the_first_level_of_folders)
+        files = disk.get_files(self.input_txt_folder_path, recursive=not only_search_the_first_level_of_folders, type_limiter=type_limiter)
         for file in files:
             self.text_source_data += io_.read(file)
             self.lower_case_text_source_data = self.text_source_data.lower()
