@@ -26,7 +26,7 @@ or
 sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
 ```
 
-> What the fuck the `debian` or `pip` or `python community` is thinking of? Why we can't use pip to directly install a package?
+> What the fuck the `debian` or `pip` or `python community` is thinking of? Why we can't use pip to directly install a package anymore?
 
 > Those **assohle** who in charge never want to make things easy, are they?
 
