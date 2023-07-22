@@ -1,3 +1,5 @@
+from typing import Callable
+
 from generated_python_protobuff_class_example import *
 from auto_everything.database import Database_Of_Yingshaoxo
 
@@ -52,6 +54,35 @@ def _search_function(self: Any, item_filter: Any, page_number:int|None=None, pag
 
     return self.database_of_yingshaoxo.search(one_row_dict_handler=one_row_dict_filter)
 
+def _raw_search_function(self: Any, one_row_json_string_handler: Callable[[str], dict[str, Any] | None], page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False):
+    search_temp_dict = {}
+    search_temp_dict["_raw_search_counting"] = 0
+    search_temp_dict["_search_counting"] = 0
+    if (page_number!=None and page_size != None and start_from != None):
+        search_temp_dict["_real_start"] = page_number * page_size
+        search_temp_dict["_real_end"] = search_temp_dict["_real_start"] + page_size
+
+    def new_one_row_json_string_handler(a_json_string: str):
+        search_temp_dict["_raw_search_counting"] += 1
+
+        if (page_number!=None and page_size != None and start_from != None):
+            if search_temp_dict["_raw_search_counting"] < start_from:
+                return None
+
+        result = one_row_json_string_handler(a_json_string)
+
+        if result != None:
+            search_temp_dict["_search_counting"] += 1
+
+        if (page_number!=None and page_size != None and start_from != None):
+            if search_temp_dict["_search_counting"] <= search_temp_dict["_real_start"]:
+                return None
+            if search_temp_dict["_search_counting"] > search_temp_dict["_real_end"]:
+                return None
+        
+        return result
+
+    return list(self.database_of_yingshaoxo.raw_search(one_row_json_string_handler=new_one_row_json_string_handler))
 
 def _delete(self, item_filter: Any):
     item_dict = item_filter.to_dict()
@@ -113,8 +144,14 @@ class Yingshaoxo_Database_Yingshaoxo_info:
     def add(self, item: Yingshaoxo_info):
         self.database_of_yingshaoxo.add(data=item.to_dict())
 
-    def search(self, item_filter: Yingshaoxo_info, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False):
-        return _search_function(self=self, item_filter=item_filter, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)
+    def search(self, item_filter: Yingshaoxo_info, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[Yingshaoxo_info]:
+        return [Yingshaoxo_info().from_dict(one) for one in _search_function(self=self, item_filter=item_filter, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
+
+    def raw_search(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None], page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[Yingshaoxo_info]:
+        '''
+        one_row_json_string_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
+        '''
+        return [Yingshaoxo_info().from_dict(one) for one in _raw_search_function(self=self, one_row_json_string_handler=one_row_json_string_handler, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
 
     def delete(self, item_filter: Yingshaoxo_info):
         return _delete(self=self, item_filter=item_filter)

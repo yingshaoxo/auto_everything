@@ -40,11 +40,17 @@ class IO():
         if (auto_detect_encoding == True):
             import chardet
             rawdata = open(file_path, "rb").read()
-            encoding = chardet.detect(rawdata)['encoding']
+            result = chardet.detect(rawdata)
+            if (result != None):
+                encoding = result['encoding']
             
-        with open(file_path, 'r', encoding=encoding, errors="ignore") as f:
-            result = f.read()
-        return result
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding=encoding, errors="ignore") as f:
+                result = f.read()
+            return result
+        else:
+            print(f"File '{file_path}' does not exists.")
+            return ""
 
     def write(self, file_path: str, content: str):
         """
@@ -73,6 +79,12 @@ class IO():
         """
         with open(file_path, 'a', encoding="utf-8", errors="ignore") as f:
             f.write(content)
+
+    def string_to_hex(self, utf_8_string: str) -> str:
+        return utf_8_string.encode("utf-8", errors="ignore").hex()
+
+    def hex_to_string(self, hex_string: str) -> str:
+        return bytes.fromhex(hex_string).decode("utf-8", errors="ignore")
 
     def __make_sure_txt_exist(self, path: str):
         if not os.path.exists(path):
@@ -137,3 +149,10 @@ class MyIO():
     def bytesio_to_base64(self, bytes_io: io.BytesIO):
         bytes_io.seek(0)
         return base64.b64encode(bytes_io.getvalue()).decode()
+
+    def hex_to_bytes(self, hex_string: str):
+        return bytes.fromhex(hex_string)
+
+    def bytes_to_hex(self, bytes_data: bytes):
+        return bytes_data.hex()
+

@@ -1,5 +1,6 @@
 import re
 from typing import Any, Dict, Tuple
+from pprint import pprint
 
 from auto_everything.terminal import Terminal
 from auto_everything.io import IO
@@ -427,7 +428,7 @@ package {filename}_grpc_key_string_maps
                 # var Column_key_list__: List<String> = listOf<String>()
                 io_.write(target_file_path, template)
         else:
-            raise Exception(f"We don't support '{for_which_language}' language.")
+            raise Exception(f"We don't support '{for_which_language}' language. You can @yingshaoxo in social media or send him an email for support.")
 
 
 class YRPC:
@@ -525,6 +526,9 @@ class YRPC:
         return text[0].capitalize() + text[1:]
 
     def get_information_from_yrpc_protocol_code(self, source_code: str) -> Tuple[dict[str, Any], dict[str, Any]]:
+        source_code = "\n".join(line for line in source_code.split("\n") if (not line.strip().startswith("//")))
+        source_code = re.sub(r"/\*([\s\S]*?)\*/", "", source_code, flags=re.MULTILINE) 
+
         code_block_list = re.findall(r"(?P<type>\w+)\s+(?P<object_name>\w+)\s+\{(?P<properties>(\s*.*?\s*)+)\}", source_code, re.DOTALL)
         code_block_list = [
                     [string for string in one][:3]
@@ -557,7 +561,7 @@ class YRPC:
         class_name_list = [one[1].strip() for one in new_parsed_object_list]
         for one in class_name_list:
             if class_name_list.count(one) > 1:
-                raise Exception("You must make sure there has no duplicated class/message name.")
+                raise Exception(f"You must make sure there has no duplicated class/message name. (the duplicated one: '{one}')")
 
         enum_class_name_list = [one[1].strip() for one in new_parsed_object_list if one[0].strip() == "enum"]
 
@@ -573,7 +577,7 @@ class YRPC:
             name_list = [one[2] for one in variable_list]
             for one in name_list:
                 if name_list.count(one) > 1:
-                    raise Exception("You must make sure there has no duplicated variable name.")
+                    raise Exception(f"You must make sure there has no duplicated variable name. (the duplicated one: '{one}')")
 
             arguments_defination_tree[class_name] = {
                 "**type**": code_block_type
@@ -631,8 +635,10 @@ class YRPC:
 
             if code_block_type == "enum":
                 variable_list: list[str] = []
+                a_temp_name = ""
                 for index, one in enumerate(class_info.values()):
                     name = one['name']
+                    a_temp_name = name
                     variable_list.append(f"""
     {name} = "{name}"
                     """.rstrip().lstrip('\n'))
@@ -640,6 +646,8 @@ class YRPC:
 
                 enum_class_text = f"""
 class {class_name}(Enum):
+    # yingshaoxo: I strongly recommend you use enum as a string type in other message data_model
+    # for example, `{class_name}.{a_temp_name}.value`
 {variable_list_text}
                 """.rstrip().lstrip('\n')
 
@@ -655,7 +663,7 @@ class {class_name}(Enum):
                         if one['type'] in arguments_dict.keys():
                             type = one['type']
                         else:
-                            raise Exception(f"We don't support type of '{one['type']}'")
+                            raise Exception(f"We don't support type of '{one['type']}', have you defined this type in your protocol code?")
                     is_list = one['is_list']
 
                     if is_list == False:
@@ -924,6 +932,7 @@ if __name__ == "__main__":
 
                 enum_class_text = f"""
 enum {class_name} {{
+    // yingshaoxo: I strongly recommend you use enum as a string type in other message data_model
 {variable_list_text}
 }}
                 """.rstrip().lstrip('\n')
@@ -947,7 +956,7 @@ enum {class_name} {{
                         if one['type'] in arguments_dict.keys():
                             type = one['type']
                         else:
-                            raise Exception(f"We don't support type of '{one['type']}'")
+                            raise Exception(f"We don't support type of '{one['type']}', have you defined this type in your protocol code?")
                     is_list = one['is_list']
                     is_enum = one['is_enum']
                     is_custom_message_type = one['is_custom_message_type']
@@ -1265,7 +1274,8 @@ class Client_{identity_name} {{
                 variable_list_text = "\n".join(variable_list)
 
                 enum_class_text = f"""
-enum {class_name} {{
+export enum {class_name} {{
+    // yingshaoxo: I strongly recommend you use enum as a string type in other message data_model
 {variable_list_text}
 }}
                 """.rstrip().lstrip('\n')
@@ -1276,6 +1286,8 @@ enum {class_name} {{
                 variable_list: list[str] = []
                 property_name_to_its_type_dict_variable_list: list[str] = []
                 key_string_dict_list: list[str] = []
+                constructor_arguments_list: list[str] = []
+                constructor_arguments_inside_code_block_list: list[str] = []
 
                 for index, one in enumerate(variable_info.values()):
                     name = one['name']
@@ -1284,7 +1296,7 @@ enum {class_name} {{
                         if one['type'] in arguments_dict.keys():
                             type = one['type']
                         else:
-                            raise Exception(f"We don't support type of '{one['type']}'")
+                            raise Exception(f"We don't support type of '{one['type']}', have you defined this type in your protocol code?")
                     is_list = one['is_list']
                     is_enum = one['is_enum']
                     is_custom_message_type = one['is_custom_message_type']
@@ -1310,10 +1322,18 @@ enum {class_name} {{
         {name}: "{name}",
                     """.rstrip().lstrip('\n'))
 
+                    constructor_arguments_list.append(f"""{name}: {type}{"[]" if is_list else ""} | null = null""".rstrip().lstrip('\n'))
+
+                    constructor_arguments_inside_code_block_list.append(f"""
+            this.{name} = {name}
+                    """.rstrip().lstrip('\n'))
+
                 interface_variable_list_text = "\n".join(interface_variable_list)
                 variable_list_text = "\n".join(variable_list)
                 property_name_to_its_type_dict_variable_list_text = "\n".join(property_name_to_its_type_dict_variable_list)
                 key_string_dict_list_text = "\n".join(key_string_dict_list)
+                constructor_arguments_list_text = ", ".join(constructor_arguments_list)
+                constructor_arguments_inside_code_block_list_text = "\n".join(constructor_arguments_inside_code_block_list)
 
                 dataclass_text = f"""
 export interface _{class_name} {{
@@ -1330,6 +1350,12 @@ export class {class_name} {{
     _key_string_dict = {{
 {key_string_dict_list_text}
     }};
+
+    /*
+    constructor({constructor_arguments_list_text}) {{
+{constructor_arguments_inside_code_block_list_text}
+    }}
+    */
 
     to_dict(): _{class_name} {{
         return _general_to_dict_function(this);
@@ -1704,7 +1730,7 @@ export default Client_{identity_name}
                         if one['type'] in arguments_dict.keys():
                             type = one['type']
                         else:
-                            raise Exception(f"We don't support type of '{one['type']}'")
+                            raise Exception(f"We don't support type of '{one['type']}', have you defined this type in your protocol code?")
                     is_list = one['is_list']
                     is_enum = one['is_enum']
                     is_custom_message_type = one['is_custom_message_type']
@@ -1822,7 +1848,7 @@ package {identity_name}
         }
 
         if which_language not in language_to_file_suffix_dict.keys():
-            raise Exception(f"Sorry, we don't support '{which_language}' language.")
+            raise Exception(f"Sorry, we don't support '{which_language}' language. You can @yingshaoxo in social media or send him an email for support.")
         
         if which_language == "python":
             init_file_for_python = disk.join_paths(output_folder, "__init__.py")

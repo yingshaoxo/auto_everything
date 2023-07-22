@@ -181,7 +181,8 @@ git checkout main && git merge upstream/main  --allow-unrelated-histories
     
     def find_port(self, port: str):
         t.run(f"""
-            lsof -i:{port}
+            sudo lsof -i:{port}
+            sudo ss -lptn 'sport = :{port}'
         """)
 
     def find(self, regex_expression: str):

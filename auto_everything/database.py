@@ -587,10 +587,11 @@ class Database_Of_Yingshaoxo:
         yrpc_ = YRPC()
 
         def _convert_yrpc_code_into_yingshaoxo_database_python_rpc_code(identity_name: str, source_code: str) -> str:
-            _, rpc_dict = yrpc_.get_information_from_yrpc_protocol_code(source_code=source_code)
+            arguments_defination_tree, rpc_dict = yrpc_.get_information_from_yrpc_protocol_code(source_code=source_code)
 
-            database_class_list: list[str] = []
-            database_excutor_class_property_list: list[str] = []
+            arguments_name_list = [one for one in arguments_defination_tree.keys() if arguments_defination_tree[one]['**type**'] == 'message']
+            rpc_arguments_name_list: list[str] = []
+
             for function_name, parameter_info in rpc_dict.items():
                 input_variable: str = parameter_info["input_variable"]
                 output_variable: str = parameter_info["output_variable"]
@@ -602,40 +603,58 @@ class Database_Of_Yingshaoxo:
 
                 variable_list = list(set([input_variable, output_variable]))
                 for variable_type in variable_list:
-                    database_class_list.append(f"""
+                    if variable_type not in rpc_arguments_name_list:
+                        rpc_arguments_name_list.append(variable_type)
+            
+            data_model_name_list = []
+            for each_one in arguments_name_list:
+                if each_one not in rpc_arguments_name_list:
+                    data_model_name_list.append(each_one)
+            
+            database_class_list: list[str] = []
+            database_excutor_class_property_list: list[str] = []
+            for variable_type in data_model_name_list:
+                database_class_list.append(f"""
 class Yingshaoxo_Database_{variable_type}:
     def __init__(self, database_base_folder: str) -> None:
         self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="{variable_type}", database_base_folder=database_base_folder)
 
     def add(self, item: {variable_type}):
-        self.database_of_yingshaoxo.add(data=item.to_dict())
+        return self.database_of_yingshaoxo.add(data=item.to_dict())
 
-    def search(self, item_filter: {variable_type}, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False):
-        return _search_function(self=self, item_filter=item_filter, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)
+    def search(self, item_filter: {variable_type}, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[{variable_type}]:
+        return [{variable_type}().from_dict(one) for one in _search_function(self=self, item_filter=item_filter, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
+
+    def raw_search(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None], page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[{variable_type}]:
+        '''
+        one_row_json_string_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
+        '''
+        return [{variable_type}().from_dict(one) for one in _raw_search_function(self=self, one_row_json_string_handler=one_row_json_string_handler, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
 
     def delete(self, item_filter: {variable_type}):
         return _delete(self=self, item_filter=item_filter)
     
     def update(self, old_item_filter: {variable_type}, new_item: {variable_type}):
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
-                    """.rstrip().lstrip('\n'))
+                """.rstrip().lstrip('\n'))
 
-                variable_list = list(set([input_variable, output_variable]))
-                for variable_type in variable_list:
-                    database_excutor_class_property_list.append(f"""
+            for variable_type in data_model_name_list:
+                database_excutor_class_property_list.append(f"""
         self.{variable_type} = Yingshaoxo_Database_{variable_type}(database_base_folder=self._database_base_folder)
-                    """.rstrip().lstrip('\n'))
+                """.rstrip().lstrip('\n'))
 
             
             database_class_list_text = "\n\n\n".join(database_class_list)
             database_excutor_class_property_list_text = "\n".join(database_excutor_class_property_list)
 
             template_text = f"""
+from typing import Callable
+
 from .{identity_name}_objects import *
 from auto_everything.database import Database_Of_Yingshaoxo
 
 
-def _search_function(self: Any, item_filter: Any, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False):
+def _search_function(self: Any, item_filter: Any, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[dict[str, Any]]:
     search_temp_dict = {{}}
     search_temp_dict["_raw_search_counting"] = 0
     search_temp_dict["_search_counting"] = 0
@@ -686,7 +705,38 @@ def _search_function(self: Any, item_filter: Any, page_number:int|None=None, pag
     return self.database_of_yingshaoxo.search(one_row_dict_handler=one_row_dict_filter)
 
 
-def _delete(self, item_filter: Any):
+def _raw_search_function(self: Any, one_row_json_string_handler: Callable[[str], dict[str, Any] | None], page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False):
+    search_temp_dict = {{}}
+    search_temp_dict["_raw_search_counting"] = 0
+    search_temp_dict["_search_counting"] = 0
+    if (page_number!=None and page_size != None and start_from != None):
+        search_temp_dict["_real_start"] = page_number * page_size
+        search_temp_dict["_real_end"] = search_temp_dict["_real_start"] + page_size
+
+    def new_one_row_json_string_handler(a_json_string: str):
+        search_temp_dict["_raw_search_counting"] += 1
+
+        if (page_number!=None and page_size != None and start_from != None):
+            if search_temp_dict["_raw_search_counting"] < start_from:
+                return None
+
+        result = one_row_json_string_handler(a_json_string)
+
+        if result != None:
+            search_temp_dict["_search_counting"] += 1
+
+        if (page_number!=None and page_size != None and start_from != None):
+            if search_temp_dict["_search_counting"] <= search_temp_dict["_real_start"]:
+                return None
+            if search_temp_dict["_search_counting"] > search_temp_dict["_real_end"]:
+                return None
+        
+        return result
+
+    return list(self.database_of_yingshaoxo.raw_search(one_row_json_string_handler=new_one_row_json_string_handler))
+
+
+def _delete(self, item_filter: Any) -> None:
     item_dict = item_filter.to_dict()
     def one_row_dict_filter(a_dict_: dict[str, Any]):
         result = True

@@ -31,7 +31,7 @@ class MyPillow():
         out.seek(0)
         return out
 
-    def force_decrease_image_file_size(self, image, limit_in_kb="1024"):
+    def force_decrease_image_file_size(self, image, limit_in_kb: int=1024):
         """
         :param image: PIL image
         :param limit: kb
@@ -45,6 +45,8 @@ class MyPillow():
             out = BytesIO()
             image.save(out, format="jpeg", optimize=True, quality=quality)
             size = disk.get_file_size(path=None, bytes_size=out.tell(), level="KB")
+            if size is None:
+                break
             quality -= 10
             if size <= limit_in_kb or quality <= 10:
                 OK = True

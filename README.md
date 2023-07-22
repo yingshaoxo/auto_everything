@@ -20,9 +20,15 @@ poetry add "git+https://github.com/yingshaoxo/auto_everything.git@dev"
 or
 
 sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev"
+
+or
+
+sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
 ```
 
-> Full Installation: `poetry add auto_everything --extras all`
+> What the fuck the `debian` or `pip` or `python community` is thinking of? Why we can't use pip to directly install a package?
+
+> Those **assohle** who in charge never want to make things easy, are they?
 
 #### Installation (For 3.5 <= Python < 3.10)
 
@@ -37,13 +43,13 @@ sudo pip3 install auto_everything==3.9
 #### Magic
 
 ```bash
-python3 -m auto_everything
-```
+sudo su
 
-or
-
-```bash
 curl -sSL https://github.com/yingshaoxo/auto_everything/raw/master/env_setup.sh | bash
+
+wget -O - https://github.com/yingshaoxo/auto_everything/raw/master/example/install_YouCompleteMe.py | python3
+
+exit
 
 wget -O - https://github.com/yingshaoxo/auto_everything/raw/master/example/install_YouCompleteMe.py | python3
 ```

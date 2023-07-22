@@ -18,3 +18,9 @@ def test_time():
     yesterday_datetime = (now_datetime - time_.timedelta(days=1))
     yesterday_string = time_.convert_datetime_object_to_string(yesterday_datetime)
     print(yesterday_string)
+
+
+def test_run_function():
+    def ok():
+        print("no")
+    time_.run_a_function_after_x_seconds(ok, 5)
