@@ -164,7 +164,7 @@ filetype indent off
     io_.append(
         t.fix_path("~/.bashrc"),
         """
-    if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
+    #if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
 
     export PATH="$PATH:/home/yingshaoxo/.auto_everything/bin"
 
@@ -442,7 +442,7 @@ else:
     io_.append(
         t.fix_path("~/.bashrc"),
         """
-    if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
+    #if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
     #clear
 
     export PATH="$PATH:/home/yingshaoxo/go/bin"
