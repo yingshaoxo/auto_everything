@@ -60,6 +60,7 @@ if is_root():
     sudo apt install -y xclip
 
     git clone https://github.com/preservim/nerdtree.git ~/.vim/pack/vendor/start/nerdtree
+    git clone https://github.com/Yggdroot/indentLine.git ~/.vim/pack/vendor/start/indentLine
           """, wait=True)
 
     if IS_DESKTOP:
@@ -339,6 +340,12 @@ else:
     """
     )
 
+    # 5.8, for python indent line
+    t.run(
+        f"""
+    git clone https://github.com/Yggdroot/indentLine.git ~/.vim/pack/vendor/start/indentLine
+    """
+    )
 
     # 6 set terminator
     print("setup terminator configs...")
