@@ -716,6 +716,14 @@ class Disk:
             os.remove(target_file_path)
         os.rename(source_file_path, target_file_path)
 
+    def copy_a_file(self, source_file_path: str, target_file_path: str):
+        source_file_path = self._expand_user(source_file_path)
+        target_file_path = self._expand_user(target_file_path)
+        if source_file_path == target_file_path:
+            return
+        self.create_a_folder(self.get_directory_path(target_file_path))
+        shutil.copyfile(source_file_path, target_file_path)
+
     def convert_bytes_to_bytesio(self, bytes_data: bytes) -> BytesIO:
         bytes_io = BytesIO()
         bytes_io.write(bytes_data)
