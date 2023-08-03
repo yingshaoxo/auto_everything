@@ -1,6 +1,7 @@
 from typing import Any, Callable, Iterator
 from datetime import datetime
 import json
+import re
 
 
 class MongoDB:
@@ -359,7 +360,7 @@ class Database_Of_Yingshaoxo:
     position at start | +   +    +   +
     position at end   |                   +   +
     """
-    def __init__(self, database_name: str, database_base_folder: str = "./yingshaoxo_database") -> None:
+    def __init__(self, database_name: str, database_base_folder: str = "./yingshaoxo_database", use_sqlite: bool = False) -> None:
         from auto_everything.disk import Disk
         from auto_everything.io import IO
         import json
@@ -378,66 +379,128 @@ class Database_Of_Yingshaoxo:
         self.database_txt_file_path = self._disk.join_paths(self.database_base_folder, f"{database_name}.txt")
         if (not self._disk.exists(self.database_txt_file_path)):
             self._io.write(self.database_txt_file_path, "")
+        
+        self.use_sqlite = use_sqlite
+        if self.use_sqlite:
+            import sqlite3 as sqlite3
+
+            self._SQL_DATA_FILE = self._disk.join_paths(self.database_base_folder, f"{database_name}.db")
+            if sqlite3.threadsafety == 3:
+                check_same_thread = False
+            else:
+                check_same_thread = True
+            self.sql_connection = sqlite3.connect(self._SQL_DATA_FILE, check_same_thread=check_same_thread)
+
+            def regular_expression(expr: str, item: Any):
+                reg = re.compile(expr, flags=re.DOTALL)
+                return reg.search(item) is not None
+
+            self.sql_connection.create_function(
+                "REGEXP", 2, regular_expression
+            )  # 2 here means two parameters. REGEXP is a fixed value
+
+            self._sql_table_name = database_name.replace(" ", "_")
+            self.sql_cursor = self.sql_connection.cursor()
+            self.sql_cursor.execute(
+                f"""CREATE TABLE IF NOT EXISTS {self._sql_table_name}
+                        (value TEXT)"""
+            )
     
     def add(self, data: dict[str, Any]):
         json_string = self._json.dumps(data, sort_keys=True).strip()
-        with open(self.database_txt_file_path, "a+", encoding="utf-8", errors="ignore") as file_stream:
-            file_stream.seek(0, self._os.SEEK_END) 
-            file_stream.write(json_string + "\n")
+
+        if self.use_sqlite:
+            self.sql_cursor.execute(
+                f"INSERT INTO {self._sql_table_name} (value) VALUES (?)", (json_string, )
+            )
+            self.sql_connection.commit()
+        else:
+            with open(self.database_txt_file_path, "a+", encoding="utf-8", errors="ignore") as file_stream:
+                file_stream.seek(0, self._os.SEEK_END) 
+                file_stream.write(json_string + "\n")
 
     def raw_search(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None]) -> Iterator[dict[str, Any]]:
         """
         one_row_json_string_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
+        ```
+            def one_row_json_string_handler(item: str) -> dict[str, Any]:
+                return json.loads(item)
+                #return None
+        ```
         """
-        with open(self.database_txt_file_path, "r") as file_stream:
-            previous_position = None
-            while True:
-                current_position = file_stream.tell()
-                line = file_stream.readline()
-                if previous_position == current_position:
-                    # reach the end
-                    break
-                previous_position = current_position
-                if (line.strip() == ""):
-                    # ignore empty line
-                    continue
-
-                if (line.startswith('#')):
-                    # ignore deleted line
-                    continue
-
-                result = one_row_json_string_handler(line)
+        if self.use_sqlite:
+            for row in self.sql_cursor.execute(
+                f"SELECT * FROM {self._sql_table_name}"
+            ):
+                result = one_row_json_string_handler(row[0])
                 if (result != None):
                     yield result
+        else:
+            with open(self.database_txt_file_path, "r") as file_stream:
+                previous_position = None
+                while True:
+                    current_position = file_stream.tell()
+                    line = file_stream.readline()
+                    if previous_position == current_position:
+                        # reach the end
+                        break
+                    previous_position = current_position
+                    if (line.strip() == ""):
+                        # ignore empty line
+                        continue
+
+                    if (line.startswith('#')):
+                        # ignore deleted line
+                        continue
+
+                    result = one_row_json_string_handler(line)
+                    if (result != None):
+                        yield result
     
     def search(self, one_row_dict_handler: Callable[[dict[str, Any]], dict[str, Any] | None]) -> list[dict[str, Any]]:
         """
         one_row_dict_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
+        ```
+            def one_row_dict_handler(item: dict[str, Any]) -> dict[str, Any]:
+                return item
+                #return None
+        ```
         """
-        result_list = []
-        with open(self.database_txt_file_path, "r") as file_stream:
-            previous_position = None
-            while True:
-                current_position = file_stream.tell()
-                line = file_stream.readline()
-                if previous_position == current_position:
-                    # reach the end
-                    break
-                previous_position = current_position
-                if (line.strip() == ""):
-                    # ignore empty line
-                    continue
-
-                if (line.startswith('#')):
-                    # ignore deleted line
-                    continue
-
-                json_dict = self._json.loads(line)
-
+        if self.use_sqlite:
+            result_list = []
+            for row in self.sql_cursor.execute(
+                f"SELECT * FROM {self._sql_table_name}"
+            ):
+                json_dict = self._json.loads(row[0])
                 result = one_row_dict_handler(json_dict)
                 if (result != None):
                     result_list.append(result)
-        return result_list
+            return result_list
+        else:
+            result_list = []
+            with open(self.database_txt_file_path, "r") as file_stream:
+                previous_position = None
+                while True:
+                    current_position = file_stream.tell()
+                    line = file_stream.readline()
+                    if previous_position == current_position:
+                        # reach the end
+                        break
+                    previous_position = current_position
+                    if (line.strip() == ""):
+                        # ignore empty line
+                        continue
+
+                    if (line.startswith('#')):
+                        # ignore deleted line
+                        continue
+
+                    json_dict = self._json.loads(line)
+
+                    result = one_row_dict_handler(json_dict)
+                    if (result != None):
+                        result_list.append(result)
+            return result_list
     
     # def reverse_search(self):
     #     #https://stackoverflow.com/a/23646049/8667243
@@ -447,116 +510,206 @@ class Database_Of_Yingshaoxo:
     def raw_delete(self, one_row_json_string_filter: Callable[[str], bool]):
         """
         one_row_json_string_filter: a_function to handle deletion process. If it returns False, we'll ignore it, otherwise, if it is True, we'll delete that row of data.
+        ```
+            def one_row_json_string_filter(item_string: str) -> bool:
+                item = json.loads(item_string)
+                return False
+                #return True
+        ```
         """
-        with open(self.database_txt_file_path, "r+") as file_stream:
-            end_detection_counting = 1
-            old_position_pair = None
-            while True:
-                previous_position = file_stream.tell()
-                line = file_stream.readline()
-                current_position = file_stream.tell()
-
-                new_position_pair = (previous_position, current_position)
-                if old_position_pair == new_position_pair:
-                    end_detection_counting += 1 
-                else:
-                    old_position_pair = new_position_pair
-                if end_detection_counting >= 3:
-                    # We could make sure it is the end of the file
-                    old_position_pair = None
-                    break
-
-                if (line.strip() == ""):
-                    # ignore empty line
-                    continue
-
-                if (line.startswith('#')):
-                    # ignore deleted line
-                    continue
-
-                result = one_row_json_string_filter(line)
+        if self.use_sqlite:
+            need_to_get_deleted_value_list = []
+            for row in self.sql_cursor.execute(
+                f"SELECT * FROM {self._sql_table_name}"
+            ):
+                result = one_row_json_string_filter(row[0])
                 if (result == True):
-                    # replace the first character of the line with '#' symbol
-                    file_stream.seek(previous_position)
-                    file_stream.write("#"+line[1:])
+                    need_to_get_deleted_value_list.append(row[0]) 
+
+            for value in need_to_get_deleted_value_list:
+                self.sql_cursor.execute(
+                    f"DELETE FROM {self._sql_table_name} WHERE value=?", (value,)
+                )
+
+            self.sql_connection.commit()
+        else:
+            with open(self.database_txt_file_path, "r+") as file_stream:
+                end_detection_counting = 1
+                old_position_pair = None
+                while True:
+                    previous_position = file_stream.tell()
+                    line = file_stream.readline()
+                    current_position = file_stream.tell()
+
+                    new_position_pair = (previous_position, current_position)
+                    if old_position_pair == new_position_pair:
+                        end_detection_counting += 1 
+                    else:
+                        old_position_pair = new_position_pair
+                    if end_detection_counting >= 3:
+                        # We could make sure it is the end of the file
+                        old_position_pair = None
+                        break
+
+                    if (line.strip() == ""):
+                        # ignore empty line
+                        continue
+
+                    if (line.startswith('#')):
+                        # ignore deleted line
+                        continue
+
+                    result = one_row_json_string_filter(line)
+                    if (result == True):
+                        # replace the first character of the line with '#' symbol
+                        file_stream.seek(previous_position)
+                        file_stream.write("#"+line[1:])
 
     def delete(self, one_row_dict_filter: Callable[[dict[str, Any]], bool]):
         """
         one_row_dict_filter: a_function to handle deletion process. If it returns False, we'll ignore it, otherwise, if it is True, we'll delete that row of data.
+        ```
+            def one_row_dict_filter(item: dict[str, Any]) -> bool:
+                return False
+                #return True
+        ```
         """
-        with open(self.database_txt_file_path, "r+") as file_stream:
-            end_detection_counting = 1
-            old_position_pair = None
-            while True:
-                previous_position = file_stream.tell()
-                line = file_stream.readline()
-                current_position = file_stream.tell()
-
-                new_position_pair = (previous_position, current_position)
-                #print(new_position_pair)
-                if old_position_pair == new_position_pair:
-                    end_detection_counting += 1 
-                else:
-                    old_position_pair = new_position_pair
-                if end_detection_counting >= 3:
-                    # We could make sure it is the end of the file
-                    old_position_pair = None
-                    break
-
-                if (line.strip() == ""):
-                    # ignore empty line
-                    continue
-
-                if (line.startswith('#')):
-                    # ignore deleted line
-                    continue
-
-                json_dict = self._json.loads(line)
-
-                result = one_row_dict_filter(json_dict)
-                #print(result)
+        if self.use_sqlite:
+            need_to_get_deleted_value_list = []
+            for row in self.sql_cursor.execute(
+                f"SELECT * FROM {self._sql_table_name}"
+            ):
+                result = one_row_dict_filter(json.loads(row[0]))
                 if (result == True):
-                    # replace the first character of the line with '#' symbol
-                    file_stream.seek(previous_position)
-                    file_stream.write("#"+line[1:])
+                    need_to_get_deleted_value_list.append(row[0]) 
+
+            for value in need_to_get_deleted_value_list:
+                self.sql_cursor.execute(
+                    f"DELETE FROM {self._sql_table_name} WHERE value=?", (value,)
+                )
+
+            self.sql_connection.commit()
+        else:
+            with open(self.database_txt_file_path, "r+") as file_stream:
+                end_detection_counting = 1
+                old_position_pair = None
+                while True:
+                    previous_position = file_stream.tell()
+                    line = file_stream.readline()
+                    current_position = file_stream.tell()
+
+                    new_position_pair = (previous_position, current_position)
+                    #print(new_position_pair)
+                    if old_position_pair == new_position_pair:
+                        end_detection_counting += 1 
+                    else:
+                        old_position_pair = new_position_pair
+                    if end_detection_counting >= 3:
+                        # We could make sure it is the end of the file
+                        old_position_pair = None
+                        break
+
+                    if (line.strip() == ""):
+                        # ignore empty line
+                        continue
+
+                    if (line.startswith('#')):
+                        # ignore deleted line
+                        continue
+
+                    json_dict = self._json.loads(line)
+
+                    result = one_row_dict_filter(json_dict)
+                    #print(result)
+                    if (result == True):
+                        # replace the first character of the line with '#' symbol
+                        file_stream.seek(previous_position)
+                        file_stream.write("#"+line[1:])
 
     def raw_update(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None]):
         """
         one_row_json_string_handler: a_function to handle update process. If it returns None, we'll ignore it, otherwise, we'll update the old value with the new value the handler function returns.
+        ```
+            def one_row_json_string_handler(item_string: str) -> dict[str, Any]:
+                return json,loads(item_string)
+        ```
         """
-        new_record_list = []
+        if self.use_sqlite:
+            need_to_get_updated_value_list = []
 
-        def one_row_dict_filter(old_value: str) -> bool:
-            result = one_row_json_string_handler(old_value)
-            if result == None:
-                return False
-            else:
-                new_record_list.append(result)
-                return True
-        self.raw_delete(one_row_json_string_filter=one_row_dict_filter)
+            for row in self.sql_cursor.execute(
+                f"SELECT * FROM {self._sql_table_name}"
 
-        for one in new_record_list:
-            self.add(one)
+            ):
+                result = one_row_json_string_handler(row[0])
+                if (result != None):
+                    need_to_get_updated_value_list.append([row[0], json.dumps(result)])
+
+            for item in need_to_get_updated_value_list:
+                self.sql_cursor.execute(
+                    f"UPDATE {self._sql_table_name} SET value=? WHERE value=?", (item[1], item[0], )
+                )
+
+            self.sql_connection.commit()
+        else:
+            new_record_list = []
+
+            def one_row_dict_filter(old_value: str) -> bool:
+                result = one_row_json_string_handler(old_value)
+                if result == None:
+                    return False
+                else:
+                    new_record_list.append(result)
+                    return True
+            self.raw_delete(one_row_json_string_filter=one_row_dict_filter)
+
+            for one in new_record_list:
+                self.add(one)
 
     def update(self, one_row_dict_handler: Callable[[dict[str, Any]], dict[str, Any] | None]):
         """
         one_row_dict_handler: a_function to handle update process. If it returns None, we'll ignore it, otherwise, we'll update the old value with the new value the handler function returns.
+        ```
+            def one_row_dict_handler(item: dict[str, Any]) -> dict[str, Any]:
+                return item
+        ```
         """
-        new_record_list = []
+        if self.use_sqlite:
+            need_to_get_updated_value_list = []
 
-        def one_row_dict_filter(old_value: dict[str, Any]) -> bool:
-            result = one_row_dict_handler(old_value)
-            if result == None:
-                return False
-            else:
-                new_record_list.append(result)
-                return True
-        self.delete(one_row_dict_filter=one_row_dict_filter)
+            for row in self.sql_cursor.execute(
+                f"SELECT * FROM {self._sql_table_name}"
 
-        for one in new_record_list:
-            self.add(one)
+            ):
+                result = one_row_dict_handler(json.loads(row[0]))
+                if (result != None):
+                    need_to_get_updated_value_list.append([row[0], json.dumps(result)])
+
+            for item in need_to_get_updated_value_list:
+                self.sql_cursor.execute(
+                    f"UPDATE {self._sql_table_name} SET value=? WHERE value=?", (item[1], item[0], )
+                )
+
+            self.sql_connection.commit()
+        else:
+            new_record_list = []
+
+            def one_row_dict_filter(old_value: dict[str, Any]) -> bool:
+                result = one_row_dict_handler(old_value)
+                if result == None:
+                    return False
+                else:
+                    new_record_list.append(result)
+                    return True
+            self.delete(one_row_dict_filter=one_row_dict_filter)
+
+            for one in new_record_list:
+                self.add(one)
 
     def refactor_database(self):
+        if self.use_sqlite:
+            return
+
         text = self._io.read(self.database_txt_file_path)
         lines = []
         for line in [line.strip() for line in text.split("\n") if line.strip() != ""]:
@@ -565,6 +718,13 @@ class Database_Of_Yingshaoxo:
         self._io.write(self.database_txt_file_path, "\n".join(lines)+"\n")
 
     def clear_database(self):
+        if self.use_sqlite:
+            self.sql_cursor.execute(
+                f"DELETE FROM {self._sql_table_name}"
+            )
+            self.sql_connection.commit()
+            return
+
         self._io.write(self.database_txt_file_path, "")
     
     @staticmethod
