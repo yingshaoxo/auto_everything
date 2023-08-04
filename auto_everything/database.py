@@ -372,13 +372,13 @@ class Database_Of_Yingshaoxo:
         self._subprocess = subprocess
         self._os = os
 
+        self.database_base_folder = database_base_folder
+        if (not self._disk.exists(self.database_base_folder)):
+            self._disk.create_a_folder(self.database_base_folder)
+
         self.use_sqlite = use_sqlite
 
         if self.use_sqlite == False:
-            self.database_base_folder = database_base_folder
-            if (not self._disk.exists(self.database_base_folder)):
-                self._disk.create_a_folder(self.database_base_folder)
-
             self.database_txt_file_path = self._disk.join_paths(self.database_base_folder, f"{database_name}.txt")
             if (not self._disk.exists(self.database_txt_file_path)):
                 self._io.write(self.database_txt_file_path, "")
