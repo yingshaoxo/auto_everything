@@ -423,7 +423,7 @@ class Database_Of_Yingshaoxo:
         """
         one_row_json_string_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
         ```
-            def one_row_json_string_handler(item: str) -> dict[str, Any]:
+            def one_row_json_string_handler(item: str) -> dict[str, Any] | None:
                 return json.loads(item)
                 #return None
         ```
@@ -461,7 +461,7 @@ class Database_Of_Yingshaoxo:
         """
         one_row_dict_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
         ```
-            def one_row_dict_handler(item: dict[str, Any]) -> dict[str, Any]:
+            def one_row_dict_handler(item: dict[str, Any]) -> dict[str, Any] | None:
                 return item
                 #return None
         ```
@@ -630,8 +630,9 @@ class Database_Of_Yingshaoxo:
         """
         one_row_json_string_handler: a_function to handle update process. If it returns None, we'll ignore it, otherwise, we'll update the old value with the new value the handler function returns.
         ```
-            def one_row_json_string_handler(item_string: str) -> dict[str, Any]:
+            def one_row_json_string_handler(item_string: str) -> dict[str, Any] | None:
                 return json,loads(item_string)
+                #return None
         ```
         """
         if self.use_sqlite:
@@ -670,8 +671,9 @@ class Database_Of_Yingshaoxo:
         """
         one_row_dict_handler: a_function to handle update process. If it returns None, we'll ignore it, otherwise, we'll update the old value with the new value the handler function returns.
         ```
-            def one_row_dict_handler(item: dict[str, Any]) -> dict[str, Any]:
+            def one_row_dict_handler(item: dict[str, Any]) -> dict[str, Any] | None:
                 return item
+                #return None
         ```
         """
         if self.use_sqlite:
