@@ -1,5 +1,8 @@
-import random
 from typing import Any
+import random
+
+from networkx import difference
+
 from auto_everything.terminal import Terminal
 from auto_everything.disk import Disk, Store
 from auto_everything.io import IO
@@ -48,11 +51,6 @@ class DataProcessor():
                 array_2d.append(array_1d.copy())
                 array_1d.clear()
         return array_2d, array_target
-
-
-class SpeechToText():
-    pass
-    # https://tfhub.dev/silero/silero-stt/en/1
 
 
 class Yingshaoxo_Text_Generator():
@@ -392,6 +390,28 @@ class Yingshaoxo_Text_Generator():
         #         if sub_string in new_source_text:
         #             counting += len(sub_string)
         #     return counting
+
+
+class Yingshaoxo_Computer_Vision():
+    def __init__(self):
+        import numpy
+        self.numpy = numpy
+
+    def get_similarity_of_two_images(self, numpy_image_1: Any, numpy_image_2: Any) -> float:
+        """
+        return a float between 0 and 1, 1 means equal, 0 means no relate.
+        """
+        mean1 = self.numpy.mean(numpy_image_1, axis=(0, 1))
+        mean2 = self.numpy.mean(numpy_image_2, axis=(0, 1))
+
+        difference = 0.0
+        difference += self.numpy.absolute(mean1[0] - mean2[0])
+        difference += self.numpy.absolute(mean1[1] - mean2[1])
+        difference += self.numpy.absolute(mean1[2] - mean2[2])
+
+        final_difference = ((difference * 100) / (255*3)) / 20
+        final_difference = 1 - final_difference
+        return final_difference
 
 
 if __name__ == "__main__":
