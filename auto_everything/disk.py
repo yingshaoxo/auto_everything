@@ -440,6 +440,15 @@ class Disk:
         path = os.path.dirname(path)
         return os.path.basename(path)
 
+    def get_parent_directory_path(self, path: str):
+        """
+        /hi/you/abc.txt -> /hi/you
+        /hi/you -> /hi
+        """
+        path = self._expand_user(path)
+        path = os.path.dirname(path)
+        return path
+
     def get_file_name(self, path: str):
         """
         /hi/you/abc.txt -> abc.txt
