@@ -445,6 +445,7 @@ class Disk:
         /hi/you/abc.txt -> /hi/you
         /hi/you -> /hi
         """
+        path = path.rstrip("/")
         path = self._expand_user(path)
         path = os.path.dirname(path)
         return path
