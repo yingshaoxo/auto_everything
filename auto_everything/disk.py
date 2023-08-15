@@ -726,6 +726,15 @@ class Disk:
             os.remove(target_file_path)
         os.rename(source_file_path, target_file_path)
 
+    def move_a_folder(self, source_folder_path: str, target_folder_path: str):
+        source_folder_path = self._expand_user(source_folder_path)
+        target_folder_path = self._expand_user(target_folder_path)
+        if source_folder_path == target_folder_path:
+            return
+        if self.exists(target_folder_path):
+            self.delete_a_folder(target_folder_path)
+        os.rename(source_folder_path, target_folder_path)
+
     def copy_a_file(self, source_file_path: str, target_file_path: str):
         source_file_path = self._expand_user(source_file_path)
         target_file_path = self._expand_user(target_file_path)
