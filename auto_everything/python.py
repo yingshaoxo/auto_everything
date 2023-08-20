@@ -318,10 +318,31 @@ class Python():
                                     possible_new_words.append(function_string)
                             if len(possible_new_words) == 1:
                                 new_word = possible_new_words[0]
-                            else:
-                                new_word = ""
-                            if new_word != "":
+                                # complete a whole word
                                 final_command_line = final_command_line[:-len(last_word)]
+                                final_command_line += new_word
+                            elif len(possible_new_words) == 0:
+                                new_word = ""
+                                # complete nothing
+                            else:
+                                temp_possible_new_words = [word.lstrip(last_word) for word in possible_new_words]
+                                temp_possible_new_words.sort(key=len)
+                                start_i = 0
+                                last_char = None
+                                while True:
+                                    for word in temp_possible_new_words:
+                                        if start_i + 1 >= len(word):
+                                            break
+                                        current_char = word[start_i]
+                                        if last_char != None and last_char != current_char:
+                                            break
+                                        last_char = current_char
+                                    start_i += 1
+                                    if start_i >= len(temp_possible_new_words[-1]):
+                                        break
+                                common_part = temp_possible_new_words[0][:start_i]
+                                new_word = common_part
+                                # complete common word
                                 final_command_line += new_word
                         else:
                             # complete arguments name
