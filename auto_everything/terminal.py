@@ -680,7 +680,7 @@ class Terminal_User_Interface:
                     break
     
     def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None]):
-        user_response = input(text+" _").strip()
+        user_response = input(text).strip()
         if (user_response == ""):
             handle_function(default_value)
         else:
