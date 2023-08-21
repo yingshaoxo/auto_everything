@@ -79,30 +79,6 @@ class OS():
             self._t.run("sudo apt purge {name} -y".format(name=package_name))
 
 
-class Deploy():
-    def __init__(self):
-        self._t = Terminal()
-        self.file_modification_dict: dict[str, Any] = {}
-
-    def whether_a_file_or_dir_has_changed(self, file_path: str):
-        last_modification_time = os.path.getmtime(file_path)
-
-        def update_dict():
-            self.file_modification_dict.update({
-                file_path: last_modification_time
-            })
-
-        if file_path in self.file_modification_dict:
-            if last_modification_time != self.file_modification_dict[file_path]:
-                update_dict()
-                return True
-            else:
-                return False
-        else:
-            update_dict()
-            return False
-
-
 class Super():
     """
     This is for sudo operations in linux

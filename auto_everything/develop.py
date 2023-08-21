@@ -1,5 +1,7 @@
-import re
 from typing import Any, Dict, Tuple
+
+import re
+import os
 from pprint import pprint
 
 from auto_everything.terminal import Terminal
@@ -1892,6 +1894,60 @@ package {identity_name}
                     rpc_code = self._convert_yrpc_code_into_golang_rpc_code(identity_name=filename, source_code=source_code)
                 io_.write(file_path=target_objects_file_path_for_package_based_language, content=objects_code)
                 io_.write(file_path=target_rpc_file_path_for_package_based_language, content=rpc_code)
+
+
+class Deploy():
+    def __init__(self):
+        self.file_modification_dict: dict[str, Any] = {}
+        self.folder_modification_dict: dict[str, dict[str, Any]] = {}
+
+    def whether_a_file_has_changed(self, file_path: str):
+        last_modification_time = os.path.getmtime(file_path)
+
+        def update_dict():
+            self.file_modification_dict.update({
+                file_path: last_modification_time
+            })
+
+        if file_path in self.file_modification_dict:
+            if last_modification_time != self.file_modification_dict[file_path]:
+                update_dict()
+                return True
+            else:
+                return False
+        else:
+            update_dict()
+            return False
+
+    def whether_a_folder_has_changed(self, folder_path: str, type_limiter: list[str] = [".py"]):
+        if self.folder_modification_dict.get(folder_path) == None:
+            self.folder_modification_dict[folder_path] = {}
+
+        files = disk.get_files(folder=folder_path, type_limiter=type_limiter, gitignore_text=".venv/\n\n.node_modules/")
+        for file in files:
+            changed = False
+
+            last_modification_time = os.path.getmtime(file)
+
+            def update_dict():
+                self.folder_modification_dict[folder_path].update({
+                    file: last_modification_time
+                })
+
+            if file in self.file_modification_dict[folder_path]:
+                if last_modification_time != self.file_modification_dict[folder_path][file]:
+                    update_dict()
+                    changed = True
+                else:
+                    changed = False
+            else:
+                update_dict()
+                changed = False
+            
+            if changed == True:
+                return True
+        
+        return False
 
 
 if __name__ == "__main__":
