@@ -1896,7 +1896,7 @@ package {identity_name}
                 io_.write(file_path=target_rpc_file_path_for_package_based_language, content=rpc_code)
 
 
-class Deploy():
+class Develop():
     def __init__(self):
         self.file_modification_dict: dict[str, Any] = {}
         self.folder_modification_dict: dict[str, dict[str, Any]] = {}
