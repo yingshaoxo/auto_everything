@@ -1934,8 +1934,8 @@ class Develop():
                     file: last_modification_time
                 })
 
-            if file in self.file_modification_dict[folder_path]:
-                if last_modification_time != self.file_modification_dict[folder_path][file]:
+            if file in self.folder_modification_dict[folder_path]:
+                if last_modification_time != self.folder_modification_dict[folder_path][file]:
                     update_dict()
                     changed = True
                 else:
