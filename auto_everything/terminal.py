@@ -668,7 +668,7 @@ class Terminal_User_Interface:
         while True:
             self.clear_screen()
             print(text)
-            print("\n".join([f"{ascii_letters[index]}.{one[0]}" for index, one in enumerate(selections)]))
+            print("\n".join([f"    {ascii_letters[index]}.{one[0]}" for index, one in enumerate(selections)]))
             max_index = len(selections)-1
             max_alphabet = ascii_letters[max_index]
             user_response = input(f"What do you choose? (a-{max_alphabet}) _").strip()
