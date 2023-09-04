@@ -1624,14 +1624,18 @@ export class Client_{identity_name} {{
    * @param {{{{ [key: string]: string }}}} _header  http headers, it's a dictionary, liek {{'content-type', 'application/json'}}
    * @param {{Function}} _error_handle_function will get called when http request got error, you need to give it a function like: (err: String) {{print(err)}}
    * @param {{Function}} _interceptor_function will get called for every response, you need to give it a function like: (data: dict[Any, Any]) {{print(data)}}
+   * @param {{Function}} _function_before_request will get called before every request, you need to give it a function like: () {{global_loading_animation = true}}
+   * @param {{Function}} _function_after_request will get called after every request, you need to give it a function like: () {{global_loading_animation = false}}
    */
     _service_url: string
     _header: {{ [key: string]: string }} = {{}}
     _error_handle_function: (error: string) => void = (error: string) => {{console.log(error)}}
     _special_error_key: string = "__yingshaoxo's_error__"
     _interceptor_function: (data: any) => void = (data: any) => {{console.log(data)}}
+    _function_before_request: () => void = () => {{}}
+    _function_after_request: () => void = () => {{}}
 
-    constructor(service_url: string, header?: {{ [key: string]: string }}, error_handle_function?: (error: string) => void, interceptor_function?: (data: any) => void) {{
+    constructor(service_url: string, header?: {{ [key: string]: string }}, error_handle_function?: (error: string) => void, interceptor_function?: (data: any) => void, function_before_request?: () => void, function_after_request?: () => void) {{
         if (service_url.endsWith("/")) {{
             service_url = service_url.slice(0, service_url.length-1);
         }}
@@ -1660,11 +1664,20 @@ export class Client_{identity_name} {{
         if (interceptor_function != null) {{
             this._interceptor_function = interceptor_function
         }}
+
+        if (function_before_request != null) {{
+            this._function_before_request = function_before_request
+        }}
+
+        if (function_after_request != null) {{
+            this._function_after_request = function_after_request
+        }}
     }} 
 
     async _get_reponse_or_error_by_url_path_and_input(sub_url: string, input_dict: {{ [key: string]: any }}): Promise<any> {{
         let the_url = `${{this._service_url}}/{identity_name}/${{sub_url}}/`
         try {{
+            this._function_before_request()
             const response = await fetch(the_url, 
             {{
                 method: "POST",
@@ -1675,9 +1688,11 @@ export class Client_{identity_name} {{
                 }}
             }});
             var json_response = await response.json()
+            this._function_after_request()
             this._interceptor_function(json_response)
             return json_response
         }} catch (e) {{
+            this._function_after_request()
             return {{[this._special_error_key]: String(e)}};
         }}
     }}
