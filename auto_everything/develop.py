@@ -1197,13 +1197,18 @@ class Client_{identity_name} {{
   /// [_error_handle_function] will get called when http request got error, you need to give it a function like: (err: String) {{print(err)}}
   String _service_url = "";
   Map<String, String> _header = Map<String, String>();
-  String _special_error_key = "__yingshaoxo's_error__";
-  Function(String error_message)? _error_handle_function;
+  final _special_error_key = "__yingshaoxo's_error__";
+  Function(String error_message) _error_handle_function =
+      (String error_message) {{}};
+  Function() _function_before_request = () {{}};
+  Function() _function_after_request = () {{}};
 
   Client_{identity_name}(
       {{required String service_url,
       Map<String, String>? header,
-      Function(String error_message)? error_handle_function}}) {{
+      Function(String error_message)? error_handle_function,
+      Function()? function_before_request,
+      Function()? function_after_request}}) {{
     if (service_url.endsWith("/")) {{
       service_url =
           service_url.splitMapJoin(RegExp(r'/$'), onMatch: (p0) => "");
@@ -1214,12 +1219,17 @@ class Client_{identity_name} {{
       this._header = header;
     }}
 
-    if (error_handle_function == null) {{
-      error_handle_function = (error_message) {{
-        print(error_message);
-      }};
+    if (error_handle_function != null) {{
+      this._error_handle_function = error_handle_function;
     }}
-    this._error_handle_function = error_handle_function;
+
+    if (function_before_request != null) {{
+      this._function_before_request = function_before_request;
+    }}
+
+    if (function_after_request != null) {{
+      this._function_after_request = function_after_request;
+    }}
   }}
 
   Future<Map<String, dynamic>> _get_reponse_or_error_by_url_path_and_input(
@@ -1232,6 +1242,8 @@ class Client_{identity_name} {{
     try {{
       var the_url_data = Uri.parse(the_url);
 
+      this._function_before_request();
+
       HttpClientRequest request = await client.postUrl(the_url_data);
       request.headers.set('content-type', 'application/json');
       _header.forEach((key, value) {{
@@ -1243,9 +1255,17 @@ class Client_{identity_name} {{
       HttpClientResponse response = await request.close();
       final stringData = await response.transform(utf8.decoder).join();
       final output_dict = json.decode(stringData);
+
+      this._function_after_request();
+
       return output_dict;
     }} catch (e) {{
-      return {{_special_error_key: e.toString()}};
+      final error_string = e.toString();
+      this._error_handle_function(error_string);
+
+      this._function_after_request();
+
+      return {{_special_error_key: error_string}};
     }} finally {{
       client.close();
     }}
