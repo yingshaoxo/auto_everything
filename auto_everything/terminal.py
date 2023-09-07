@@ -644,7 +644,7 @@ class Terminal_User_Interface:
         """
         while True:
             self.clear_screen()
-            user_response = input(f"{text}(y/n) _").strip()
+            user_response = input(f"{text}(y/n) ").strip()
 
             if user_response.lower() == "n":
                 no_callback_function()
@@ -671,7 +671,7 @@ class Terminal_User_Interface:
             print("\n".join([f"    {ascii_letters[index]}.{one[0]}" for index, one in enumerate(selections)]))
             max_index = len(selections)-1
             max_alphabet = ascii_letters[max_index]
-            user_response = input(f"What do you choose? (a-{max_alphabet}) _").strip()
+            user_response = input(f"What do you choose? (a-{max_alphabet}) ").strip()
             if len(user_response) != 1:
                 continue
             else:
