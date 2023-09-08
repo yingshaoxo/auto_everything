@@ -832,7 +832,14 @@ class YRPC_OBJECT_BASE_CLASS:
 
             service_class_function_list.append(f"""
     async def {function_name}(self, headers: dict[str, str], item: {input_variable}) -> {output_variable}:
-        return {output_variable}()
+        default_response = {output_variable}()
+
+        try:
+            pass
+        except Exception as e:
+            print(f"Error: {{e}}")
+
+        return default_response
             """.rstrip().lstrip('\n'))
 
             service_api_function_list.append(f"""
