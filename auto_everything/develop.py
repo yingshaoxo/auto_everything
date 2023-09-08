@@ -838,6 +838,8 @@ class YRPC_OBJECT_BASE_CLASS:
             pass
         except Exception as e:
             print(f"Error: {{e}}")
+            #default_response.error = str(e)
+            #default_response.success = False
 
         return default_response
             """.rstrip().lstrip('\n'))
