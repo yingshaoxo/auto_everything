@@ -601,6 +601,7 @@ class Yingshaoxo_Text_to_Speech():
         output_file = os.path.abspath(os.path.join(self.disk.get_a_temp_folder_path(), "output.wav"))
         self.disk.create_a_folder(self.disk.get_directory_path(output_file))
 
+        text = text.strip("!\"#$%&'()*+, -./:;<=>?@[\\]^_`{|}~ \n，。！？；：（）［］【】")
         if (language == "en"):
             tts = self.tts_en
             text += "."
