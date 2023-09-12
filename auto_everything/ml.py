@@ -478,7 +478,7 @@ class Yingshaoxo_Translator():
         self.languages = self.dl_translate.lang
         self._language = Language()
     
-    def translate(self, text: str, from_language: Any, to_language: Any, sentence_seperation: bool = False):
+    def translate(self, text: str, from_language: Any, to_language: Any, sentence_seperation: bool = False) -> str:
         try:
             text = text.strip()
             if sentence_seperation == True:
@@ -502,7 +502,7 @@ class Yingshaoxo_Translator():
                         text_list.append(segment["text"])
                 return "".join(text_list)
             else:
-                return self.dl_translate_model.translate(text, source=from_language, target=to_language)
+                return self.dl_translate_model.translate(text, source=from_language, target=to_language) #type: ignore
         except Exception as e:
             print(e)
             return text
