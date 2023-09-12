@@ -671,16 +671,13 @@ class Terminal_User_Interface:
             print("\n".join([f"    {index}. {one[0]}" for index, one in enumerate(selections)]))
             max_index = len(selections)-1
             user_response = input(f"What do you choose? (0-{str(max_index)}) ").strip()
-            if len(user_response) != 1:
-                continue
-            else:
-                try:
-                    select_index = int(user_response)
-                    if 0 <= select_index <= max_index:
-                        selections[select_index][1]()
-                        break
-                except Exception as e:
-                    pass
+            try:
+                select_index = int(user_response)
+                if 0 <= select_index <= max_index:
+                    selections[select_index][1]()
+                    break
+            except Exception as e:
+                pass
     
     def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None]):
         user_response = input(text).strip()
