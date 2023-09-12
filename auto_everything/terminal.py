@@ -634,12 +634,20 @@ class Terminal_User_Interface:
             # for windows platfrom
             os.system('cls')
 
-    def confirm_box(self, text: str, yes_callback_function: Callable[[], None], no_callback_function: Callable[[], None]) -> str:
+    def confirm_box(self, text: str, yes_callback_function: Callable[[], None] | None = None, no_callback_function: Callable[[], None] | None = None) -> str:
         """
         terminal_user_interface.confirm_box(
             "Are you sure to delete it?", 
             lambda: print("yes"),
             lambda: print("no"),
+        )
+
+        #or 
+
+        y_or_n = terminal_user_interface.confirm_box(
+            "Are you sure to delete it?", 
+            None,
+            None,
         )
         """
         while True:
@@ -647,20 +655,31 @@ class Terminal_User_Interface:
             user_response = input(f"{text}(y/n) ").strip()
 
             if user_response.lower() == "n":
-                no_callback_function()
+                if (no_callback_function != None):
+                    no_callback_function()
                 return "n"
             elif user_response.lower() == "y":
-                yes_callback_function()
+                if (yes_callback_function != None):
+                    yes_callback_function()
                 return "y"
 
-    def selection_box(self, text: str, selections: list[Tuple[str, Callable[[],None]]]) -> str:
+    def selection_box(self, text: str, selections: list[Tuple[str, Callable[[],None] | None]]) -> str:
         """
-        terminal_user_interface = Terminal_User_Interface()
         terminal_user_interface.selection_box(
             "Please do a choice:", 
             [
                 ("the_a", lambda: print("You choose a")),
                 ("the_b", lambda: print("You choose b"))
+            ]
+        )
+
+        #or
+
+        the_a_or_the_b = terminal_user_interface.selection_box(
+            "Please do a choice:", 
+            [
+                ("the_a", None),
+                ("the_b", None)
             ]
         )
         """
@@ -673,15 +692,25 @@ class Terminal_User_Interface:
             try:
                 select_index = int(user_response)
                 if 0 <= select_index <= max_index:
-                    selections[select_index][1]()
+                    if selections[select_index][1] != None:
+                        selections[select_index][1]() # type: ignore
                     return selections[select_index][0]
             except Exception as e:
                 pass
     
-    def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None]) -> str:
+    def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None] | None) -> str:
+        """
+        your_name = terminal_user_interface.input_box(
+            "Please input your name:", 
+            "Nobody",
+            None
+        )
+        """
         user_response = input(text).strip()
         if (user_response == ""):
-            handle_function(default_value)
-        else:
+            user_response = default_value
+
+        if handle_function != None:
             handle_function(user_response)
+
         return user_response
