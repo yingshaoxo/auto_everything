@@ -664,20 +664,20 @@ class Terminal_User_Interface:
             ]
         )
         """
-        # from string import ascii_letters
+        from string import ascii_letters
         while True:
             self.clear_screen()
             print(text)
-            print("\n".join([f"    {index}. {one[0]}" for index, one in enumerate(selections)]))
+            print("\n".join([f"    {ascii_letters[index]}. {one[0]}" for index, one in enumerate(selections)]))
             max_index = len(selections)-1
-            user_response = input(f"What do you choose? (0-{str(max_index)}) ").strip()
-            try:
-                select_index = int(user_response)
-                if 0 <= select_index <= max_index:
-                    selections[select_index][1]()
+            max_alphabet = ascii_letters[max_index]
+            user_response = input(f"What do you choose? (a-{max_alphabet}) ").strip()
+            if len(user_response) != 1:
+                continue
+            else:
+                if user_response in ascii_letters[0: max_index + 1]:
+                    selections[ascii_letters.find(user_response)][1]()
                     break
-            except Exception as e:
-                pass
     
     def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None]):
         user_response = input(text).strip()
