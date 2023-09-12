@@ -606,10 +606,13 @@ class Yingshaoxo_Text_to_Speech():
         else:
             tts = self.tts_cn
 
-        if tts.speakers == None:
-            tts.tts_to_file(text=text, file_path=output_file)
-        else:
-            tts.tts_to_file(text=text, file_path=output_file, speaker=tts.speakers[0], language=tts.languages[0], speed=2.5) #type:ignore
+        try:
+            if tts.speakers == None:
+                tts.tts_to_file(text=text, file_path=output_file)
+            else:
+                tts.tts_to_file(text=text, file_path=output_file, speaker=tts.speakers[0], language=tts.languages[0], speed=2.5) #type:ignore
+        except Exception as e:
+            print(e)
 
         self.terminal.run(f"""
         ffplay -autoexit -nodisp "{output_file}"
