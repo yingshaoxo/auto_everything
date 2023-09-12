@@ -1,8 +1,6 @@
 from typing import Any
 import random
 
-from networkx import difference
-
 from auto_everything.terminal import Terminal
 from auto_everything.disk import Disk, Store
 from auto_everything.io import IO
@@ -412,6 +410,62 @@ class Yingshaoxo_Computer_Vision():
         final_difference = ((difference * 100) / (255*3)) / 20
         final_difference = 1 - final_difference
         return final_difference
+
+
+class Yingshaoxo_Speech_Recognizer():
+    def __init__(self, language: str = 'en'):
+        # pip install vosk
+        # pip install sounddevice
+        import queue
+        import sys
+        import sounddevice
+        from vosk import Model, KaldiRecognizer
+
+        self.queue = queue
+        self.sys = sys
+        self.sounddevice = sounddevice
+
+        if language == "en":
+            self.vosk_model = Model(lang="en-us")
+        else:
+            self.vosk_model = Model(model_name="vosk-model-cn-0.22")
+
+        self.KaldiRecognizer = KaldiRecognizer
+
+        self.microphone_bytes_data_queue = queue.Queue()
+    
+    def recognize_following_speech(self) -> str:
+        while self.microphone_bytes_data_queue.empty() == False:
+            self.microphone_bytes_data_queue.get_nowait()
+
+        def callback(indata, frames, time, status):
+            """This is called (from a separate thread) for each audio block."""
+            if status:
+                print(status, file=self.sys.stderr)
+            self.microphone_bytes_data_queue.put(bytes(indata))
+
+        try:
+            device_info = self.sounddevice.query_devices(None, "input")
+            samplerate = int(device_info["default_samplerate"]) #type:ignore
+                
+            with self.sounddevice.RawInputStream(samplerate=samplerate, blocksize = 8000, device=None,
+                    dtype="int16", channels=1, callback=callback):
+                rec = self.KaldiRecognizer(self.vosk_model, samplerate)
+
+                while True:
+                    data = self.microphone_bytes_data_queue.get()
+                    if rec.AcceptWaveform(data):
+                        text = json.loads(rec.Result())["text"] #type:ignore
+                        text = text.replace(" ", "").strip()
+                        if len(text) != 0:
+                            #print(text)
+                            return text
+                    else:
+                        # print(rec.PartialResult())
+                        pass
+        except Exception as e:
+            print(e)
+            return ""
 
 
 if __name__ == "__main__":
