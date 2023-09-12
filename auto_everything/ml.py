@@ -534,8 +534,8 @@ class Yingshaoxo_Text_to_Speech():
         self.torch = torch
         #pprint(TTS.list_models())
 
-        # self.tts_en = TTS("tts_models/en/ljspeech/tacotron2-DDC", gpu=use_gpu)
-        self.tts_en = TTS("tts_models/en/ljspeech/fast_pitch", gpu=use_gpu)
+        self.tts_en = TTS("tts_models/en/ljspeech/tacotron2-DDC", gpu=use_gpu)
+        # self.tts_en = TTS("tts_models/en/ljspeech/fast_pitch", gpu=use_gpu)
         self.tts_cn = TTS("tts_models/zh-CN/baker/tacotron2-DDC-GST", gpu=use_gpu)
 
     def _language_splitor(self, text: str):
@@ -603,8 +603,10 @@ class Yingshaoxo_Text_to_Speech():
 
         if (language == "en"):
             tts = self.tts_en
+            text += "."
         else:
             tts = self.tts_cn
+            text += "。"
 
         try:
             if tts.speakers == None:
