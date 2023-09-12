@@ -502,7 +502,7 @@ class Yingshaoxo_Translator():
                         text_list.append(segment["text"])
                 return "".join(text_list)
             else:
-                return self.dl_translate_model.translate(input_text, source=from_language, target=to_language)
+                return self.dl_translate_model.translate(text, source=from_language, target=to_language)
         except Exception as e:
             print(e)
             return text
