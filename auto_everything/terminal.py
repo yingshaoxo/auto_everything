@@ -634,7 +634,7 @@ class Terminal_User_Interface:
             # for windows platfrom
             os.system('cls')
 
-    def confirm_box(self, text: str, yes_callback_function: Callable[[], None], no_callback_function: Callable[[], None]):
+    def confirm_box(self, text: str, yes_callback_function: Callable[[], None], no_callback_function: Callable[[], None]) -> str:
         """
         terminal_user_interface.confirm_box(
             "Are you sure to delete it?", 
@@ -648,12 +648,12 @@ class Terminal_User_Interface:
 
             if user_response.lower() == "n":
                 no_callback_function()
-                break
+                return "n"
             elif user_response.lower() == "y":
                 yes_callback_function()
-                break
+                return "y"
 
-    def selection_box(self, text: str, selections: list[Tuple[str, Callable[[],None]]]):
+    def selection_box(self, text: str, selections: list[Tuple[str, Callable[[],None]]]) -> str:
         """
         terminal_user_interface = Terminal_User_Interface()
         terminal_user_interface.selection_box(
@@ -674,13 +674,14 @@ class Terminal_User_Interface:
                 select_index = int(user_response)
                 if 0 <= select_index <= max_index:
                     selections[select_index][1]()
-                    return
+                    return selections[select_index][0]
             except Exception as e:
                 pass
     
-    def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None]):
+    def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None]) -> str:
         user_response = input(text).strip()
         if (user_response == ""):
             handle_function(default_value)
         else:
             handle_function(user_response)
+        return user_response
