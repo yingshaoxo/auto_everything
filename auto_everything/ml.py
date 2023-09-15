@@ -421,10 +421,12 @@ class Yingshaoxo_Speech_Recognizer():
         import sys
         import sounddevice
         from vosk import Model, KaldiRecognizer
+        from auto_everything.time import Time
 
         self.queue = queue
         self.sys = sys
         self.sounddevice = sounddevice
+        self.time_ = Time()
 
         if language == "en":
             self.vosk_model = Model(lang="en-us")
@@ -435,7 +437,7 @@ class Yingshaoxo_Speech_Recognizer():
 
         self.microphone_bytes_data_queue = queue.Queue()
     
-    def recognize_following_speech(self) -> str:
+    def recognize_following_speech(self, timeout_in_seconds: int | None = None) -> str:
         while self.microphone_bytes_data_queue.empty() == False:
             self.microphone_bytes_data_queue.get_nowait()
 
@@ -453,6 +455,7 @@ class Yingshaoxo_Speech_Recognizer():
                     dtype="int16", channels=1, callback=callback):
                 rec = self.KaldiRecognizer(self.vosk_model, samplerate)
 
+                start_time = self.time_.get_current_timestamp_in_10_digits_format()
                 while True:
                     data = self.microphone_bytes_data_queue.get()
                     if rec.AcceptWaveform(data):
@@ -464,6 +467,11 @@ class Yingshaoxo_Speech_Recognizer():
                     else:
                         # print(rec.PartialResult())
                         pass
+                    end_time = self.time_.get_current_timestamp_in_10_digits_format()
+                    if timeout_in_seconds != None:
+                        duration = self.time_.get_datetime_object_from_timestamp(end_time) - self.time_.get_datetime_object_from_timestamp(start_time)
+                        if duration.seconds > timeout_in_seconds:
+                            return ""
         except Exception as e:
             print(e)
             return ""
