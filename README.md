@@ -2,28 +2,36 @@
 
 Linux automation
 
-#### Help Wanted
+<!-- #### Help Wanted
 
 I lost my job for almost 2 years. If you wish to see me alive, please buy me some food:
 
 * Paypal: https://paypal.me/yingshaoxo
-* Patron: https://www.patreon.com/bePatron?u=45200693
+* Patron: https://www.patreon.com/bePatron?u=45200693 -->
 
 <!-- [<img src="https://github.com/yingshaoxo/yingshaoxo/raw/master/become_a_patron_button.png" width="200">](https://www.patreon.com/bePatron?u=45200693) -->
 
 #### Installation (For Python >= 3.10)
 
 ```bash
-curl -sSL https://install.python-poetry.org | python3
-poetry add "git+https://github.com/yingshaoxo/auto_everything.git@dev"
+# curl -sSL https://install.python-poetry.org | python3
+# poetry add "git+https://github.com/yingshaoxo/auto_everything.git@dev"
 
-or
+# or
 
-sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev"
+# sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev"
 
-or
+# or
 
-sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
+# sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
+
+Fuck the github becuase they can ban your account in any time because you speak something that they think is wrong. And because of that, no one can download anything from your account.
+
+But you know what? In dictator system, the one who get banned has big chance is right.
+```
+
+```bash
+pip install auto_everything --break-system-packages
 ```
 
 > What the fuck the `debian` or `pip` or `python community` is thinking of? Why we can't use pip to directly install a package anymore?
