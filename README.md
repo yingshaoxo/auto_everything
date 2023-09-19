@@ -25,6 +25,7 @@ I lost my job for almost 2 years. If you wish to see me alive, please buy me som
 
 # sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
 
+
 Fuck the github becuase they can ban your account in any time because you speak something that they think is wrong. And because of that, no one can download anything from your account.
 
 But you know what? In dictator system, the one who get banned has big chance is right.
