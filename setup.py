@@ -32,7 +32,6 @@ setup(
     license="MIT",
     install_requires=[
         "setuptools",
-        "psutil",
     ],
     extras_require={
         "database": ["pymongo"],

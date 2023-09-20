@@ -12,8 +12,6 @@ import shlex
 import subprocess
 # from multiprocessing import Manager; share_dict = Manager().dict()
 
-import psutil
-
 
 class Terminal:
     """
@@ -471,10 +469,9 @@ class Terminal:
 
         get a list of pids, only available in Linux ; [string, ...]
         """
-        """
         if self.machine_type == "darwin":
             # it is mac os
-            lines = self.run_command(f"pgrep {name}").strip("\n ").splits("\n")
+            lines = self.run_command(f"pgrep {name}").strip("\n ").split("\n")
             pids = [i.strip("\n ") for i in lines]
             return pids
         else:
@@ -487,33 +484,32 @@ class Terminal:
                 if name in command:
                     target_pids.append(pid)
             return target_pids
-        """
-        pids:list[str] = []
-        # Iterate over all running process
-        for proc in psutil.process_iter():
-            try:
-                # Get process name & pid from process object.
-                # processName = proc.name()
-                process_id = proc.pid
-                process_command = " ".join(proc.cmdline())
-                if name in process_command:
-                    pids.append(str(process_id))
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                pass
-        return pids
+
+        # pids:list[str] = []
+        # # Iterate over all running process
+        # for proc in psutil.process_iter():
+        #     try:
+        #         # Get process name & pid from process object.
+        #         # processName = proc.name()
+        #         process_id = proc.pid
+        #         process_command = " ".join(proc.cmdline())
+        #         if name in process_command:
+        #             pids.append(str(process_id))
+        #     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        #         pass
+        # return pids
 
     def _get_all_running_pids(self) -> List[str]:
-        pids:list[str] = []
-        # Iterate over all running process
-        for proc in psutil.process_iter():
-            try:
-                # Get process name & pid from process object.
-                # processName = proc.name()
-                process_id = proc.pid
-                pids.append(str(process_id))
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                pass
-        return pids
+        if self.machine_type == "darwin":
+            # it is mac os
+            lines = self.run_command(f'pgrep ""').strip("\n ").split("\n")
+            pids = [i.strip("\n ") for i in lines]
+            return pids
+        else:
+            # it is Linux
+            pids = os.listdir("/proc")
+            pids = [i for i in pids if i.isdigit()]
+            return pids
 
     def is_running(self, name: str) -> bool:
         """

@@ -133,7 +133,6 @@ setup(
     setup_requires=["pybind11>=2.5.0"],
     install_requires=[
         "setuptools",
-        "psutil",
     ],
     extras_require={
         "video": ["numpy", "librosa", "moviepy>=1.0.0,<1.0.1", "pyaudio", "vosk"],
