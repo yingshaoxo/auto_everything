@@ -35,13 +35,15 @@ But you know what? In dictator system, the one who get banned has big chance is 
 pip install auto_everything --break-system-packages
 ```
 
-> What the fuck the `debian` or `pip` is thinking of? Why we can't use pip to directly install a package anymore? debian/ubuntu linux branch want to force people to let them package go through a strict censorship process so that they can decide what software is OK, what is not?
+> What the fuck the `debian` or `pip` is thinking of? Why we can't use pip to directly install a package anymore? **debian/ubuntu linux branch** want to force people to let their package go through **a strict censorship process** so that they can decide which software is good, which is not?
 
 > npx 'npm install -g *' still working fine, 'export PATH=$PATH:/**/bin/' still working fine.
 
 > Those **assohle dictators** who in charge never want to make things easy, are they?
 
-> Where is the freedom? My dear people?
+> Where is the freedom? My dear people! 
+
+> What is the difference between `pip install` and `apt install`? Simply because **pypi has more freedom**?
 
 #### Installation (For 3.5 <= Python < 3.10)
 
@@ -53,7 +55,7 @@ or
 sudo pip3 install auto_everything==3.9
 ```
 
-#### Magic
+<!-- #### Magic
 
 ```bash
 sudo su
@@ -69,7 +71,7 @@ wget -O - https://github.com/yingshaoxo/auto_everything/raw/master/example/insta
 
 #### Docs
 
-https://yingshaoxo.github.io/auto_everything
+https://yingshaoxo.github.io/auto_everything -->
 
 ---
 
