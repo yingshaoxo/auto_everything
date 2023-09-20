@@ -35,9 +35,13 @@ But you know what? In dictator system, the one who get banned has big chance is 
 pip install auto_everything --break-system-packages
 ```
 
-> What the fuck the `debian` or `pip` or `python community` is thinking of? Why we can't use pip to directly install a package anymore?
+> What the fuck the `debian` or `pip` is thinking of? Why we can't use pip to directly install a package anymore? debian/ubuntu linux branch want to force people to let them package go through a strict censorship process so that they can decide what software is OK, what is not?
 
-> Those **assohle** who in charge never want to make things easy, are they?
+> npx 'npm install -g *' still working fine, 'export PATH=$PATH:/**/bin/' still working fine.
+
+> Those **assohle dictators** who in charge never want to make things easy, are they?
+
+> Where is the freedom? My dear people?
 
 #### Installation (For 3.5 <= Python < 3.10)
 
