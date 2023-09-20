@@ -1,12 +1,12 @@
+#from .style_shop_objects import *
+from style_shop_objects import *
+
 from typing import Any
 import http.server as http_server
 import json
 import os
 import multiprocessing
 from time import sleep
-
-#from .style_shop_objects import *
-from style_shop_objects import *
 
 
 class Service_style_shop:
@@ -63,6 +63,8 @@ def run(service_instance: Service_style_shop, port: str, html_folder_path: str="
 
     def handle_post_url(sub_url: str, headers: dict[str, str], item: dict[str, Any]) -> str:
         sub_url = sub_url.strip("/")
+        #sub_url = sub_url.replace("{identity_name}", "", 1)
+        #sub_url = sub_url.strip("/")
         request_url = sub_url.split("/")[0].strip()
 
         if (request_url == ""):
