@@ -330,13 +330,18 @@ class Python():
                                 start_i = 0
                                 last_char = None
                                 while True:
+                                    get_the_answer = False
                                     for word in temp_possible_new_words:
                                         if start_i + 1 >= len(word):
+                                            get_the_answer = True
                                             break
                                         current_char = word[start_i]
                                         if last_char != None and last_char != current_char:
+                                            get_the_answer = True
                                             break
                                         last_char = current_char
+                                    if (get_the_answer == True):
+                                        break
                                     start_i += 1
                                     if start_i >= len(temp_possible_new_words[-1]):
                                         break
