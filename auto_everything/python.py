@@ -246,8 +246,11 @@ class Python():
                         else:
                             print(function_name)
                 def print_argument_info(function_name: str):
-                    argument_part = ', '.join(my_method_and_propertys[function_name]['arguments_string'].split(', ')[1:])[:-1]
-                    print(argument_part)
+                    if (function_name in my_method_and_propertys.keys()):
+                        argument_part = ', '.join(my_method_and_propertys[function_name]['arguments_string'].split(', ')[1:])[:-1]
+                        print(argument_part)
+                    else:
+                        print(f"No such function: {function_name}")
                 def print_chars(text: str):
                     print(text, end="", flush=True)
                 def clear_screen():
@@ -325,30 +328,20 @@ class Python():
                                 new_word = ""
                                 # complete nothing
                             else:
+                                # complete common word
                                 temp_possible_new_words = [word.lstrip(last_word) for word in possible_new_words]
                                 temp_possible_new_words.sort(key=len)
-                                start_i = 0
-                                last_char = None
+                                the_longest_word = temp_possible_new_words[-1]
+                                common_chars = ""
+                                end_i = 0
                                 while True:
-                                    get_the_answer = False
-                                    for word in temp_possible_new_words:
-                                        if start_i + 1 >= len(word):
-                                            get_the_answer = True
-                                            break
-                                        current_char = word[start_i]
-                                        if last_char != None and last_char != current_char:
-                                            get_the_answer = True
-                                            break
-                                        last_char = current_char
-                                    if (get_the_answer == True):
+                                    end_i += 1
+                                    current_common_chars = the_longest_word[0:end_i]
+                                    if all([word.startswith(current_common_chars) for word in temp_possible_new_words]):
+                                        common_chars = current_common_chars
+                                    if end_i > len(the_longest_word):
                                         break
-                                    start_i += 1
-                                    if start_i >= len(temp_possible_new_words[-1]):
-                                        break
-                                common_part = temp_possible_new_words[0][:start_i]
-                                new_word = common_part
-                                # complete common word
-                                final_command_line += new_word
+                                final_command_line += common_chars
                         else:
                             # complete arguments name
                             current_function_name = final_command_line.split(" ")[1].strip()
