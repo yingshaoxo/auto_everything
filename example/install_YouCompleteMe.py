@@ -469,6 +469,7 @@ else:
         2. start vim by `vim`
             then type
                 `:PluginInstall`
+            > ctrl+w+w to switch between sub_window in vim
     After these, enjoy!
     """
     print(last)
