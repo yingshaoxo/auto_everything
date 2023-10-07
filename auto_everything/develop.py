@@ -880,7 +880,7 @@ def get_headers_dict_from_string(headers: str) -> dict:
     return dic
 
 
-def run(service_instance: Service_style_shop, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+def run(service_instance: Service_{identity_name}, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
     # allow_origins=['*'],
     # allow_credentials=True,
     # allow_methods=["*"],
@@ -978,7 +978,7 @@ def run(service_instance: Service_style_shop, port: str, html_folder_path: str="
     http.serve_forever()
 
 
-def run_with_hot_load(watch_path: str, service_instance: Service_style_shop, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+def run_with_hot_load(watch_path: str, service_instance: Service_{identity_name}, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
     from auto_everything.develop import Develop
     develop = Develop()
 
