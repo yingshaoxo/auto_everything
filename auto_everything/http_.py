@@ -1,6 +1,7 @@
 from typing import Any, Callable
 from dataclasses import dataclass
 
+import os
 import socket
 import multiprocessing
 import json
@@ -22,7 +23,7 @@ class Yingshaoxo_Http_Request():
     payload: str | None
 
 
-def _handle_socket_request(socket_connection, context, router):
+def _handle_socket_request(socket_connection, context, router, handle_get_file_url):
     try:
         host = None
         method = None
@@ -111,21 +112,30 @@ def _handle_socket_request(socket_connection, context, router):
         raw_response = None
         response = f"HTTP/1.1 500 Server error\r\n\r\n"
 
-        the_request_object = Yingshaoxo_Http_Request(
-            context=context,
-            host=host,
-            method=method,
-            url=url,
-            url_arguments=url_arguments,
-            headers=headers_dict,
-            payload=payload
-        )
-        for route_regex_expression, route_function in reversed(list(router.items())):
-            if re.fullmatch(route_regex_expression, url) != None:
-                raw_response = route_function(the_request_object)
+        if handle_get_file_url != None and method == "GET":
+            # handle file download request, for example, html, css...
+            raw_response = handle_get_file_url(url)
+
+        # if do not need to serve file, or file not exists, then handle others
+        if raw_response == None:
+            the_request_object = Yingshaoxo_Http_Request(
+                context=context,
+                host=host,
+                method=method,
+                url=url,
+                url_arguments=url_arguments,
+                headers=headers_dict,
+                payload=payload
+            )
+            for route_regex_expression, route_function in reversed(list(router.items())):
+                if re.fullmatch(route_regex_expression, url) != None:
+                    raw_response = route_function(the_request_object)
 
         if type(raw_response) == str:
-            response = f"HTTP/1.1 200 OK\r\n\r\n{raw_response}"
+            response = f"""
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
+"""
         elif type(raw_response) == dict:
             raw_response = json.dumps(raw_response, indent=4)
             json_length = len(raw_response)
@@ -133,17 +143,42 @@ def _handle_socket_request(socket_connection, context, router):
 HTTP/1.1 200 OK
 Content-Type: application/json
 Content-Length: {json_length}
-
-{raw_response}
+Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
             """
+        elif type(raw_response) == bytes:
+            bytes_length = len(raw_response)
+
+            the_content_type = None
+            if url.endswith(".html"):
+                the_content_type = "text/html"
+            elif url.endswith(".css"):
+                the_content_type = "text/css"
+
+            if the_content_type != None:
+                response = f"""
+HTTP/1.1 200 OK
+Content-Type: {the_content_type}
+Content-Length: {bytes_length}
+Access-Control-Allow-Origin: *\r\n\r\n"""
+            else:
+                response = f"""
+HTTP/1.1 200 OK
+Content-Length: {bytes_length}
+Access-Control-Allow-Origin: *\r\n\r\n"""
+            response = response.encode("utf-8", errors="ignore")
+            response += raw_response
         else:
             response = f"HTTP/1.1 500 Server error\r\n\r\nNo router for {url}"
 
-        socket_connection.sendall(response.encode("utf-8", errors="ignore"))
+        if type(response) == str:
+            response = response.encode("utf-8", errors="ignore")
+
+        socket_connection.sendall(response)
     except Exception as e:
         print(e)
         response = f"HTTP/1.1 200 OK\r\n\r\n{e}"
-        socket_connection.sendall(response.encode("utf-8", errors="ignore"))
+        response = response.encode("utf-8", errors="ignore")
+        socket_connection.sendall(response)
     finally:
         socket_connection.shutdown(1)
         socket_connection.close()
@@ -151,7 +186,7 @@ Content-Length: {json_length}
 
 
 def _yingshaoxo_home_handler_example(request: Yingshaoxo_Http_Request) -> dict:
-    return {"message": "Hello, world, fight for inner peace."}
+    return {"message": "Hello, world, fight for inner peace"}
 
 def _yingshaoxo_special_handler_example(request: Yingshaoxo_Http_Request) -> dict:
     return "Hello, world, fight for personal freedom."
@@ -170,8 +205,27 @@ class Yingshaoxo_Http_Server():
         self.context = multiprocess_manager.dict()
         self.router = router
 
-    def start(self, host:str = "0.0.0.0", port:int = 80): 
+    def start(self, host:str = "0.0.0.0", port:int = 80, html_folder_path: str="", serve_html_under_which_url: str="/"): 
         try:
+            handle_get_file_url = None
+            if (html_folder_path != ""):
+                if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
+                    def handle_get_file_url(sub_url: str) -> bytes | None:
+                        sub_url = sub_url.strip("/")
+                        sub_url = sub_url.lstrip(serve_html_under_which_url)
+                        if sub_url == '':
+                            sub_url = 'index.html'
+                        real_file_path = f"{os.path.join(html_folder_path, sub_url)}"
+                        if os.path.exists(real_file_path) and os.path.isfile(real_file_path):
+                            with open(real_file_path, mode="rb") as f:
+                                the_data = f.read()
+                        else:
+                            #return b"Resource not found"
+                            return None
+                        return the_data
+                else:
+                    print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
+
             server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             server.bind((host, port))
@@ -183,7 +237,7 @@ class Yingshaoxo_Http_Server():
 
             while True:
                 socket_connection, addr = server.accept()
-                process = multiprocessing.Process(target=_handle_socket_request, args=(socket_connection, self.context, self.router))
+                process = multiprocessing.Process(target=_handle_socket_request, args=(socket_connection, self.context, self.router, handle_get_file_url))
                 process.start()
                 process_list.append(process)
 
@@ -201,10 +255,43 @@ class Yingshaoxo_Http_Server():
             server.close()
         except Exception as e:
             print(e)
+            print("Quit...")
+            for a_process in process_list:
+                if a_process.is_alive():
+                    a_process.terminate()
+            server.shutdown(1)
+            server.close()
         finally:
             pass
+
+    def start_with_hot_load(self, watch_path: str, hotload_command: str):
+        """
+        watch_path: a folder you want to watch, whenever some of those file get changed, the hotload_command will get re executed
+        hotload_command: a bash command to start the server, for example, "python3 main.py"
+        """
+        from auto_everything.develop import Develop
+        from auto_everything.terminal import Terminal
+        develop = Develop()
+        terminal = Terminal()
+
+        def run_the_process():
+            the_running_process = terminal.run(hotload_command, wait=True)
+
+        the_running_process = multiprocessing.Process(target=run_the_process, args=())
+        the_running_process.start()
+
+        while True:
+            changed = develop.whether_a_folder_has_changed(folder_path=watch_path, type_limiter=[".py", ".html", ".css", ".js"])
+            if (changed):
+                print("Source code get changed, doing a reloading now...")
+                the_running_process.kill()
+                while the_running_process.is_alive():
+                    sleep(1)
+                the_running_process = multiprocessing.Process(target=run_the_process, args=())
+                the_running_process.start()
+            sleep(1)
 
 
 if __name__ == "__main__":
     yingshaoxo_http_server = Yingshaoxo_Http_Server(router=_yingshaoxo_router_example)
-    yingshaoxo_http_server.start(port=1212)
+    yingshaoxo_http_server.start(port=1212, html_folder_path="./")
