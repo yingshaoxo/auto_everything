@@ -120,7 +120,7 @@ def _handle_socket_request(socket_connection, context, router):
             headers=headers_dict,
             payload=payload
         )
-        for route_regex_expression, route_function in router.items():
+        for route_regex_expression, route_function in reversed(list(router.items())):
             if re.fullmatch(route_regex_expression, url) != None:
                 raw_response = route_function(the_request_object)
 
@@ -157,8 +157,8 @@ def _yingshaoxo_special_handler_example(request: Yingshaoxo_Http_Request) -> dic
     return "Hello, world, fight for personal freedom."
 
 _yingshaoxo_router_example = {
-    r"(.*)": _yingshaoxo_home_handler_example,
     r"/freedom": _yingshaoxo_special_handler_example,
+    r"(.*?)": _yingshaoxo_home_handler_example,
 }
 
 

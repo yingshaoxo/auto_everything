@@ -9,8 +9,8 @@ def special_handler(request: Yingshaoxo_Http_Request) -> str:
 
 
 router = {
-    r"(.*)": home_handler,
     r"/freedom": special_handler
+    r"(.*)": home_handler,
 }
 
 
