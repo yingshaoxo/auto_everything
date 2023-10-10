@@ -186,7 +186,7 @@ Access-Control-Allow-Origin: *\r\n\r\n"""
 
 
 def _yingshaoxo_home_handler_example(request: Yingshaoxo_Http_Request) -> dict:
-    return {"message": "Hello, world, fight for inner peace"}
+    return {"message": "Hello, world, fight for inner peace."}
 
 def _yingshaoxo_special_handler_example(request: Yingshaoxo_Http_Request) -> dict:
     return "Hello, world, fight for personal freedom."
@@ -264,32 +264,34 @@ class Yingshaoxo_Http_Server():
         finally:
             pass
 
-    def start_with_hot_load(self, watch_path: str, hotload_command: str):
-        """
-        watch_path: a folder you want to watch, whenever some of those file get changed, the hotload_command will get re executed
-        hotload_command: a bash command to start the server, for example, "python3 main.py"
-        """
-        from auto_everything.develop import Develop
-        from auto_everything.terminal import Terminal
-        develop = Develop()
-        terminal = Terminal()
+def run_a_command_with_hot_load(watch_path: str, hotload_command: str):
+    """
+    watch_path: a folder you want to watch, whenever some of those file get changed, the hotload_command will get re executed
+    hotload_command: a bash command to start the server, for example, "python3 main.py"
 
-        def run_the_process():
-            the_running_process = terminal.run(hotload_command, wait=True)
+    You should run this function on a diffirent python file than the hotload_command has.
+    """
+    from auto_everything.develop import Develop
+    from auto_everything.terminal import Terminal
+    develop = Develop()
+    terminal = Terminal()
 
-        the_running_process = multiprocessing.Process(target=run_the_process, args=())
-        the_running_process.start()
+    def run_the_process():
+        terminal.run(hotload_command, wait=True)
 
-        while True:
-            changed = develop.whether_a_folder_has_changed(folder_path=watch_path, type_limiter=[".py", ".html", ".css", ".js"])
-            if (changed):
-                print("Source code get changed, doing a reloading now...")
-                the_running_process.kill()
-                while the_running_process.is_alive():
-                    sleep(1)
-                the_running_process = multiprocessing.Process(target=run_the_process, args=())
-                the_running_process.start()
-            sleep(1)
+    the_running_process = multiprocessing.Process(target=run_the_process, args=())
+    the_running_process.start()
+
+    while True:
+        changed = develop.whether_a_folder_has_changed(folder_path=watch_path, type_limiter=[".py", ".html", ".css", ".js"])
+        if (changed):
+            print("Source code get changed, doing a reloading now...")
+            the_running_process.kill()
+            while the_running_process.is_alive():
+                sleep(1)
+            the_running_process = multiprocessing.Process(target=run_the_process, args=())
+            the_running_process.start()
+        sleep(1)
 
 
 if __name__ == "__main__":
