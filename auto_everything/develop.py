@@ -816,6 +816,97 @@ class YRPC_OBJECT_BASE_CLASS:
         """.strip()
         return template_text.strip()
 
+    def _convert_yrpc_code_into_auto_everything_based_python_rpc_code(self, identity_name: str, source_code: str) -> str:
+        _, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        service_class_function_list: list[str] = []
+        service_api_calling_code_list: list[str] = []
+        for function_name, parameter_info in rpc_dict.items():
+            input_variable: str = parameter_info["input_variable"]
+            output_variable: str = parameter_info["output_variable"]
+
+            if " " in input_variable:
+                input_variable = re.split(r"\s+", input_variable)[1]
+            if " " in output_variable:
+                output_variable = re.split(r"\s+", output_variable)[1]
+
+            service_class_function_list.append(f"""
+    def {function_name}(self, headers: dict[str, str], item: {input_variable}) -> {output_variable}:
+        default_response = {output_variable}()
+
+        try:
+            pass
+        except Exception as e:
+            print(f"Error: {{e}}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+            """.rstrip().lstrip('\n'))
+
+            service_api_calling_code_list.append(f"""
+        elif (request_url == "{function_name}"):
+            correct_item = {input_variable}().from_dict(item)
+            return json.dumps((service_instance.{function_name}(headers, correct_item)).to_dict())
+            """.rstrip().lstrip('\n'))
+
+        
+        service_class_function_list_text = "\n\n".join(service_class_function_list)
+        service_api_calling_code_list_text = "\n\n".join(service_api_calling_code_list)
+
+        template_text = f"""
+from .{identity_name}_objects import *
+
+
+from typing import Any
+import json
+from auto_everything.http_ import Yingshaoxo_Http_Server, Yingshaoxo_Http_Request
+
+
+class Service_{identity_name}:
+{service_class_function_list_text}
+
+
+def run(service_instance: Service_{identity_name}, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+    def handle_get_url(sub_url: str, headers: dict[str, str]) -> str:
+        return 'Hi there, this website is using yrpc (Yingshaoxo remote procedure control module).'
+
+    def handle_post_url(sub_url: str, headers: dict[str, str], item: dict[str, Any]) -> dict | str:
+        sub_url = sub_url.strip("/")
+        sub_url = sub_url.replace("{identity_name}", "", 1)
+        sub_url = sub_url.strip("/")
+        request_url = sub_url.split("/")[0].strip()
+
+        if (request_url == ""):
+            return f"Request url '{{request_url}}' is empty"
+{service_api_calling_code_list_text}
+
+        return f"No API url matchs '{{request_url}}'"
+
+    def general_handler(request: Yingshaoxo_Http_Request) -> dict | str:
+        response = f"No handler for {{request.url}}"
+        if request.method == "GET":
+            response = handle_get_url(request.url, request.headers)
+        elif request.method == "POST":
+            response = handle_post_url(request.url, request.headers, json.loads(request.payload))
+        return response
+
+    router = {{
+        r"(.*)": general_handler,
+    }}
+
+    yingshaoxo_http_server = Yingshaoxo_Http_Server(router=router)
+    yingshaoxo_http_server.start(host="0.0.0.0", port=int(port), html_folder_path=html_folder_path, serve_html_under_which_url=serve_html_under_which_url)
+
+
+if __name__ == "__main__":
+    service_instance = Service_{identity_name}()
+    run(service_instance, port="6060")
+        """.strip()
+
+        return template_text
+
+
     def _convert_yrpc_code_into_pure_python_rpc_code(self, identity_name: str, source_code: str) -> str:
         _, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
 
@@ -2111,6 +2202,10 @@ package {identity_name}
                     pure_python_rpc_code = self._convert_yrpc_code_into_pure_python_rpc_code(identity_name=identity_name, source_code=source_code)
                     target_pure_python_rpc_file_path = disk.join_paths(output_folder, filename + "_pure_python_rpc" + language_to_file_suffix_dict[which_language])
                     io_.write(file_path=target_pure_python_rpc_file_path, content=pure_python_rpc_code)
+
+                    auto_everything_based_pure_python_rpc_code = self._convert_yrpc_code_into_auto_everything_based_python_rpc_code(identity_name=identity_name, source_code=source_code)
+                    target_auto_everything_based_pure_python_rpc_file_path = disk.join_paths(output_folder, filename + "_auto_everything_based_pure_python_rpc" + language_to_file_suffix_dict[which_language])
+                    io_.write(file_path=target_auto_everything_based_pure_python_rpc_file_path, content=auto_everything_based_pure_python_rpc_code)
                 elif which_language == "dart":
                     objects_code = self._convert_yrpc_code_into_dart_objects_code(source_code=source_code)
                     rpc_code = self._convert_yrpc_code_into_dart_rpc_code(identity_name=identity_name, source_code=source_code)
