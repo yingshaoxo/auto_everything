@@ -288,7 +288,7 @@ class Network:
         data = json.dumps(data, indent=4)
         data = data.encode("utf-8", errors="ignore")
         r_ = request.urlopen(a_request, data=data)
-        content = r_.read()
+        content = r_.read().decode("utf-8", errors="ignore")
         return content
 
 
@@ -304,4 +304,4 @@ if __name__ == "__main__":
     # print(text_info)
 
     #network.ip_port_forward("127.0.0.1:9998", "127.0.0.1:5551")
-    print(network.send_a_post(url="http://127.0.0.1:1212", data={"1":"1"}, headers={"hi": "you"}))
+    print(network.send_a_post(url="http://127.0.0.1:1212/seed", data={"1":"1"}, headers={"hi": "you"}))
