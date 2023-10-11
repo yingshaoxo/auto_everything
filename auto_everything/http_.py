@@ -110,7 +110,7 @@ def _handle_socket_request(socket_connection, context, router, handle_get_file_u
         #print(f"headers:\n{headers_dict}")
         #print(f"payload:\n{payload}")
         raw_response = None
-        response = f"HTTP/1.1 500 Server error\r\n\r\n"
+        response = f"HTTP/1.1 500 Server error\r\n\r\n".lstrip()
 
         if handle_get_file_url != None and method == "GET":
             # handle file download request, for example, html, css...
@@ -135,7 +135,7 @@ def _handle_socket_request(socket_connection, context, router, handle_get_file_u
             response = f"""
 HTTP/1.1 200 OK
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
-"""
+""".strip()
         elif type(raw_response) == dict:
             raw_response = json.dumps(raw_response, indent=4)
             json_length = len(raw_response)
@@ -144,7 +144,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json
 Content-Length: {json_length}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
-            """
+            """.strip()
         elif type(raw_response) == bytes:
             bytes_length = len(raw_response)
 
@@ -159,16 +159,16 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
 HTTP/1.1 200 OK
 Content-Type: {the_content_type}
 Content-Length: {bytes_length}
-Access-Control-Allow-Origin: *\r\n\r\n"""
+Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             else:
                 response = f"""
 HTTP/1.1 200 OK
 Content-Length: {bytes_length}
-Access-Control-Allow-Origin: *\r\n\r\n"""
+Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             response = response.encode("utf-8", errors="ignore")
             response += raw_response
         else:
-            response = f"HTTP/1.1 500 Server error\r\n\r\nNo router for {url}"
+            response = f"HTTP/1.1 500 Server error\r\n\r\nNo router for {url}".strip()
 
         if type(response) == str:
             response = response.encode("utf-8", errors="ignore")
@@ -176,7 +176,7 @@ Access-Control-Allow-Origin: *\r\n\r\n"""
         socket_connection.sendall(response)
     except Exception as e:
         print(e)
-        response = f"HTTP/1.1 200 OK\r\n\r\n{e}"
+        response = f"HTTP/1.1 200 OK\r\n\r\n{e}".strip()
         response = response.encode("utf-8", errors="ignore")
         socket_connection.sendall(response)
     finally:
