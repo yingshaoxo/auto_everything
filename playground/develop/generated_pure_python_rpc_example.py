@@ -2,10 +2,10 @@
 from style_shop_objects import *
 
 from typing import Any
-import http.server as http_server
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from socketserver import ThreadingMixIn
 import json
 import os
-import multiprocessing
 from time import sleep
 
 
@@ -23,7 +23,7 @@ class Service_style_shop:
         return default_response
 
 
-def get_headers_dict_from_string(headers: str) -> dict:
+def _get_headers_dict_from_string(headers: str) -> dict:
     dic = {}
     for line in headers.split("\n"):
         if line.startswith(("GET", "POST")):
@@ -75,10 +75,10 @@ def run(service_instance: Service_style_shop, port: str, html_folder_path: str="
 
         return f"No API url matchs '{request_url}'"
     
-    class WebRequestHandler(http_server.BaseHTTPRequestHandler):
+    class WebRequestHandler(BaseHTTPRequestHandler):
         def do_GET(self):
             sub_url = self.path
-            headers = get_headers_dict_from_string(self.headers.as_string())
+            headers = _get_headers_dict_from_string(self.headers.as_string())
 
             self.send_response(200)
 
@@ -96,7 +96,7 @@ def run(service_instance: Service_style_shop, port: str, html_folder_path: str="
 
         def do_POST(self):
             sub_url = self.path
-            headers = get_headers_dict_from_string(self.headers.as_string())
+            headers = _get_headers_dict_from_string(self.headers.as_string())
 
             content_length = headers.get('Content-Length')
             if content_length is None:
@@ -120,20 +120,20 @@ def run(service_instance: Service_style_shop, port: str, html_folder_path: str="
 
             self.wfile.write(response.encode("utf-8"))
 
-    
-    # Creating Server
-    ServerClass  = http_server.HTTPServer
+    class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+        pass
     
     # Setting TCP Address
     server_address = ('0.0.0.0', int(port))
     
     # invoking server
-    http = ServerClass(server_address, WebRequestHandler)
+    http = ThreadedHTTPServer(server_address, WebRequestHandler)
     
     http.serve_forever()
 
 
 def run_with_hot_load(watch_path: str, service_instance: Service_style_shop, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+    import multiprocessing
     from auto_everything.develop import Develop
     develop = Develop()
 
