@@ -110,7 +110,7 @@ class Terminal:
         path = self.fix_path(path)
         return os.path.exists(path)
 
-    def __text_to_sh(self, text: str) -> Tuple[str, str]:
+    def __text_to_sh(self, text: str, wait: bool=False) -> Tuple[str, str]:
         m = hashlib.sha256()
         m.update(str(datetime.now()).encode("utf-8"))
         m.update(text.encode("utf-8"))
@@ -118,7 +118,10 @@ class Terminal:
         # pre_line = f"cd {self.current_dir}\n\n"
         # text = pre_line + text
         self._io.write(temp_sh, text)
-        return "bash {path} &".format(path=temp_sh), temp_sh
+        if wait == False:
+            return "bash {path} &".format(path=temp_sh), temp_sh
+        else:
+            return "bash {path}".format(path=temp_sh), temp_sh
 
     def __text_to_py(self, text: str) -> Tuple[str, str]:
         m = hashlib.sha256()
@@ -134,7 +137,7 @@ class Terminal:
         except Exception:
             pass
 
-    def run(self, c: str, cwd: str | None = None, wait: bool = True):
+    def run(self, c: str, cwd: str | None = None, wait: bool = True, use_os_system: bool = False):
         """
         run shell commands without value returning
 
@@ -146,6 +149,8 @@ class Terminal:
             current working directory
         wait: bool
             True, this command may keep running forever
+        use_os_system: bool 
+            False, if this is ture, it will use os.system() to execute command. This will let this function return None
         """
 
         if cwd is None:
@@ -159,7 +164,21 @@ class Terminal:
             print("\n" + "-" * 20 + "\n")
             print(c)
             print("\n" + "-" * 20 + "\n")
-        c, temp_sh = self.__text_to_sh(c)
+
+        if (use_os_system == True):
+            c = f'cd "{os.path.abspath(cwd)}"' + "\n\n" + c
+            c, temp_sh = self.__text_to_sh(c, wait=True)
+        else:
+            c, temp_sh = self.__text_to_sh(c, wait=False)
+
+        if (use_os_system == True):
+            try:
+                os.system(c)
+                self.__remove_temp_sh(temp_sh)
+            except Exception as e:
+                self.__remove_temp_sh(temp_sh)
+                raise e
+            return None
 
         try:
             args_list = shlex.split(c)
