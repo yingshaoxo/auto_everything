@@ -189,8 +189,11 @@ class Terminal:
                 while p.poll() is None:
                     if p.stdout is None:
                         break
-                    line = p.stdout.readline()  # strip(' \n')
-                    print(line, end="")
+                    if p.stdout.readable():
+                        char = p.stdout.read(1)
+                        print(char, end="", flush=True)
+                    #line = p.stdout.readline()
+                    #print(line, end="", flush=True)
             except KeyboardInterrupt:
                 self.__remove_temp_sh(temp_sh)
                 self.kill_a_process_by_pid(p.pid)
