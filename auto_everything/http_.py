@@ -3,18 +3,14 @@ from dataclasses import dataclass
 
 import os
 import socket
-import multiprocessing
 import json
 import re
 from time import sleep
 
 
-multiprocess_manager = multiprocessing.Manager()
-
-
 @dataclass()
 class Yingshaoxo_Http_Request():
-    context: multiprocess_manager.dict
+    context: Any
     host: str
     method: str
     url: str
@@ -202,6 +198,10 @@ class Yingshaoxo_Http_Server():
         """
         router: a dict where key is the url regex, value is a function like "def handle_function(request: Yingshaoxo_Http_Request) -> str|dict"
         """
+        import multiprocessing
+        self._multiprocessing = multiprocessing
+        multiprocess_manager = self._multiprocessing.Manager()
+
         self.context = multiprocess_manager.dict()
         self.router = router
 
@@ -237,7 +237,7 @@ class Yingshaoxo_Http_Server():
 
             while True:
                 socket_connection, addr = server.accept()
-                process = multiprocessing.Process(target=_handle_socket_request, args=(socket_connection, self.context, self.router, handle_get_file_url))
+                process = self._multiprocessing.Process(target=_handle_socket_request, args=(socket_connection, self.context, self.router, handle_get_file_url))
                 process.start()
                 process_list.append(process)
 
@@ -271,6 +271,7 @@ def run_a_command_with_hot_load(watch_path: str, hotload_command: str):
 
     You should run this function on a diffirent python file than the hotload_command has.
     """
+    import multiprocessing
     from auto_everything.develop import Develop
     from auto_everything.terminal import Terminal
     develop = Develop()
