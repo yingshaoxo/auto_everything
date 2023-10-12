@@ -154,6 +154,9 @@ filetype indent off
 
 "show json quotes
 let g:vim_json_conceal=0
+
+"disable dark mode
+set background=light
     """
     with open(t.fix_path("~/.vimrc"), "w", encoding="utf-8") as f:
         f.write(vimrc)
