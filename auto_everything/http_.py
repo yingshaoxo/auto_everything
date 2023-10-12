@@ -6,6 +6,7 @@ import socket
 import json
 import re
 from time import sleep
+import http.server as built_in_http_server
 
 
 @dataclass()
@@ -264,6 +265,155 @@ class Yingshaoxo_Http_Server():
         finally:
             pass
 
+
+class Yingshaoxo_Threading_Based_Http_Server():
+    def __init__(self, router: dict[str, Callable[[Yingshaoxo_Http_Request], str|dict]]):
+        """
+        router: a dict where key is the url regex, value is a function like "def handle_function(request: Yingshaoxo_Http_Request) -> str|dict"
+        """
+        self.context = dict()
+        self.router = router
+
+    def _get_headers_dict_from_string(self, headers: str) -> dict:
+        dic = {}
+        for line in headers.split("\n"):
+            if line.startswith(("GET", "POST")):
+                continue
+            point_index = line.find(":")
+            dic[line[:point_index].strip()] = line[point_index+1:].strip()
+        return dic
+
+    def start(self, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+        def handle_file_request_url(sub_url: str) -> bytes | None:
+            return b'Hi there, this website is using yrpc (Yingshaoxo remote procedure control module).'
+
+        if (html_folder_path != ""):
+            if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
+                def handle_file_request_url(sub_url: str) -> bytes | None:
+                    sub_url = sub_url.strip("/")
+                    sub_url = sub_url.lstrip(serve_html_under_which_url)
+                    if sub_url == '':
+                        sub_url = 'index.html'
+                    real_file_path = f"{os.path.join(html_folder_path, sub_url)}"
+                    if os.path.exists(real_file_path) and os.path.isfile(real_file_path):
+                        with open(real_file_path, mode="rb") as f:
+                            the_data = f.read()
+                    else:
+                        return None
+                    return the_data
+            else:
+                print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
+
+        def handle_any_url(method: str, sub_url: str, headers: dict[str, str], payload: dict[str, Any] | None = None) -> tuple[bytes, str | bytes | dict]: 
+            #sub_url = sub_url.strip("/")
+            #sub_url = sub_url.replace("{identity_name}", "", 1)
+            #sub_url = sub_url.strip("/")
+            #request_url = sub_url.split("/")[0].strip()
+
+            raw_response = None 
+
+            if method == "GET":
+                raw_response = handle_file_request_url(sub_url)
+
+            url_arguments = dict()
+            url_splits = sub_url.split("?")
+            if len(url_splits) >= 2:
+                sub_url = url_splits[0]
+                raw_url_arguments = "?".join(url_splits[1:])
+                url_arguments_splits = raw_url_arguments.split("&")
+                for one in url_arguments_splits:
+                    if "=" in one:
+                        argument_key, argument_value = one.split("=")
+                        url_arguments[argument_key] = argument_value
+
+            the_request_object = Yingshaoxo_Http_Request(
+                context=self.context,
+                host=headers.get("Host"),
+                method=method,
+                url=sub_url,
+                url_arguments=url_arguments,
+                headers=headers,
+                payload=payload
+            )
+            for route_regex_expression, route_function in reversed(list(self.router.items())):
+                if re.fullmatch(route_regex_expression, sub_url) != None:
+                    raw_response = route_function(the_request_object)
+
+            if raw_response == None:
+                raw_response = f"No API url matchs '{sub_url}'"
+
+            raw_type = str
+            if type(raw_response) == str:
+                raw_response = raw_response.encode("utf-8", errors="ignore")
+                raw_type = str
+            elif type(raw_response) == dict:
+                raw_response = json.dumps(raw_response, indent=4).encode("utf-8", errors="ignore")
+                raw_type = dict
+            elif type(raw_response) == bytes:
+                raw_type = bytes
+
+            return raw_response, raw_type
+        
+        class WebRequestHandler(built_in_http_server.BaseHTTPRequestHandler):
+            def do_GET(self2):
+                sub_url = self2.path
+                headers = self._get_headers_dict_from_string(self2.headers.as_string())
+
+                self2.send_response(200)
+
+                self2.send_header("Access-Control-Allow-Origin", "*")
+
+                if sub_url.endswith(".html"):
+                    self2.send_header("Content-Type", "text/html")
+                elif sub_url.endswith(".css"):
+                    self2.send_header("Content-Type", "text/css")
+
+                response, raw_type = handle_any_url("GET", sub_url, headers, None)
+
+                self2.end_headers()
+                self2.wfile.write(response)
+
+            def do_POST(self2):
+                sub_url = self2.path
+                headers = self._get_headers_dict_from_string(self2.headers.as_string())
+
+                content_length = headers.get('Content-Length')
+                if content_length is None:
+                    self2.wfile.write("What you send is not json".encode("utf-8", errors="ignore"))
+                    return
+                else:
+                    content_length = int(content_length)
+                
+                if content_length == 0:
+                    self2.wfile.write("What you send is not json".encode("utf-8", errors="ignore"))
+                    return
+
+                request_json_dict = json.loads(self2.rfile.read(content_length))
+
+                self2.send_response(200)
+                self2.send_header("Access-Control-Allow-Origin", "*")
+
+                response, raw_type = handle_any_url("POST", sub_url, headers, request_json_dict)
+                if raw_type == dict:
+                    self2.send_header("Content-Type", "application/json")
+
+                self2.end_headers()
+                self2.wfile.write(response)
+        
+        # Creating Server
+        ServerClass  = built_in_http_server.HTTPServer
+        
+        # Setting TCP Address
+        server_address = ('0.0.0.0', int(port))
+        
+        # invoking server
+        http = ServerClass(server_address, WebRequestHandler)
+
+        print(f"The website is running at: http://127.0.0.1:{port}/")
+        
+        http.serve_forever()
+
+
 def run_a_command_with_hot_load(watch_path: str, hotload_command: str):
     """
     watch_path: a folder you want to watch, whenever some of those file get changed, the hotload_command will get re executed
@@ -297,4 +447,5 @@ def run_a_command_with_hot_load(watch_path: str, hotload_command: str):
 
 if __name__ == "__main__":
     yingshaoxo_http_server = Yingshaoxo_Http_Server(router=_yingshaoxo_router_example)
+    #yingshaoxo_http_server = Yingshaoxo_Threading_Based_Http_Server(router=_yingshaoxo_router_example)
     yingshaoxo_http_server.start(port=1212, html_folder_path="./")
