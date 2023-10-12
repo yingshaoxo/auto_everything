@@ -6,7 +6,6 @@ import socket
 import json
 import re
 from time import sleep
-import http.server as built_in_http_server
 
 
 @dataclass()
@@ -271,6 +270,13 @@ class Yingshaoxo_Threading_Based_Http_Server():
         """
         router: a dict where key is the url regex, value is a function like "def handle_function(request: Yingshaoxo_Http_Request) -> str|dict"
         """
+        from http.server import HTTPServer, BaseHTTPRequestHandler
+        from socketserver import ThreadingMixIn
+        #import http.server as built_in_http_server
+        self._HTTPServer = HTTPServer
+        self._BaseHTTPRequestHandler = BaseHTTPRequestHandler
+        self._ThreadingMixIn = ThreadingMixIn
+
         self.context = dict()
         self.router = router
 
@@ -283,7 +289,7 @@ class Yingshaoxo_Threading_Based_Http_Server():
             dic[line[:point_index].strip()] = line[point_index+1:].strip()
         return dic
 
-    def start(self, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+    def start(self, host:str = "0.0.0.0", port: int = 80, html_folder_path: str="", serve_html_under_which_url: str="/"):
         def handle_file_request_url(sub_url: str) -> bytes | None:
             return b'Hi there, this website is using yrpc (Yingshaoxo remote procedure control module).'
 
@@ -354,7 +360,7 @@ class Yingshaoxo_Threading_Based_Http_Server():
 
             return raw_response, raw_type
         
-        class WebRequestHandler(built_in_http_server.BaseHTTPRequestHandler):
+        class WebRequestHandler(self._BaseHTTPRequestHandler):
             def do_GET(self2):
                 sub_url = self2.path
                 headers = self._get_headers_dict_from_string(self2.headers.as_string())
@@ -399,15 +405,15 @@ class Yingshaoxo_Threading_Based_Http_Server():
 
                 self2.end_headers()
                 self2.wfile.write(response)
-        
-        # Creating Server
-        ServerClass  = built_in_http_server.HTTPServer
+
+        class ThreadedHTTPServer(self._ThreadingMixIn, self._HTTPServer):
+            pass
         
         # Setting TCP Address
-        server_address = ('0.0.0.0', int(port))
+        server_address = (host, port)
         
         # invoking server
-        http = ServerClass(server_address, WebRequestHandler)
+        http = ThreadedHTTPServer(server_address, WebRequestHandler)
 
         print(f"The website is running at: http://127.0.0.1:{port}/")
         
@@ -446,6 +452,6 @@ def run_a_command_with_hot_load(watch_path: str, hotload_command: str):
 
 
 if __name__ == "__main__":
-    yingshaoxo_http_server = Yingshaoxo_Http_Server(router=_yingshaoxo_router_example)
-    #yingshaoxo_http_server = Yingshaoxo_Threading_Based_Http_Server(router=_yingshaoxo_router_example)
+    #yingshaoxo_http_server = Yingshaoxo_Http_Server(router=_yingshaoxo_router_example)
+    yingshaoxo_http_server = Yingshaoxo_Threading_Based_Http_Server(router=_yingshaoxo_router_example)
     yingshaoxo_http_server.start(port=1212, html_folder_path="./")
