@@ -17,6 +17,10 @@ from fnmatch import fnmatch
 import shutil
 import random
 
+import copy
+import struct
+import sys
+
 from auto_everything.terminal import Terminal
 t = Terminal(debug=True)
 
@@ -46,6 +50,116 @@ class _FileInfo:
     level: int
     # parent: _FileInfo | None = None # You could try to make a global dict[path, _FilelInfo], then iterate twice to set parent
     children: List[_FileInfo] | None = None
+
+
+class Sha256:
+    ks = [
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+        0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+        0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+        0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+        0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+        0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+        0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+        0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+        0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+        0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+        0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+        0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+        0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+        0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+        0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+    ]
+
+    hs = [
+        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+        0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+    ]
+
+    M32 = 0xFFFFFFFF
+
+    def __init__(self, m = None):
+        self.mlen = 0
+        self.buf = b''
+        self.k = self.ks[:]
+        self.h = self.hs[:]
+        self.fin = False
+        if m is not None:
+            self.update(m)
+
+    @staticmethod
+    def pad(mlen):
+        mdi = mlen & 0x3F
+        length = (mlen << 3).to_bytes(8, 'big')
+        padlen = 55 - mdi if mdi < 56 else 119 - mdi
+        return b'\x80' + b'\x00' * padlen + length
+
+    @staticmethod
+    def ror(x, y):
+        return ((x >> y) | (x << (32 - y))) & Sha256.M32
+
+    @staticmethod
+    def maj(x, y, z):
+        return (x & y) ^ (x & z) ^ (y & z)
+
+    @staticmethod
+    def ch(x, y, z):
+        return (x & y) ^ ((~x) & z)
+
+    def compress(self, c):
+        w = [0] * 64
+        w[0 : 16] = [int.from_bytes(c[i : i + 4], 'big') for i in range(0, len(c), 4)]
+
+        for i in range(16, 64):
+            s0 = self.ror(w[i - 15],  7) ^ self.ror(w[i - 15], 18) ^ (w[i - 15] >>  3)
+            s1 = self.ror(w[i -  2], 17) ^ self.ror(w[i -  2], 19) ^ (w[i -  2] >> 10)
+            w[i] = (w[i - 16] + s0 + w[i - 7] + s1) & self.M32
+
+        a, b, c, d, e, f, g, h = self.h
+
+        for i in range(64):
+            s0 = self.ror(a, 2) ^ self.ror(a, 13) ^ self.ror(a, 22)
+            t2 = s0 + self.maj(a, b, c)
+            s1 = self.ror(e, 6) ^ self.ror(e, 11) ^ self.ror(e, 25)
+            t1 = h + s1 + self.ch(e, f, g) + self.k[i] + w[i]
+
+            h = g
+            g = f
+            f = e
+            e = (d + t1) & self.M32
+            d = c
+            c = b
+            b = a
+            a = (t1 + t2) & self.M32
+
+        for i, (x, y) in enumerate(zip(self.h, [a, b, c, d, e, f, g, h])):
+            self.h[i] = (x + y) & self.M32
+
+    def update(self, m):
+        if m is None or len(m) == 0:
+            return
+
+        assert not self.fin, 'Hash already finalized and can not be updated!'
+
+        self.mlen += len(m)
+        m = self.buf + m
+
+        for i in range(0, len(m) // 64):
+            self.compress(m[64 * i : 64 * (i + 1)])
+
+        self.buf = m[len(m) - (len(m) % 64):]
+
+    def digest(self):
+        if not self.fin:
+            self.update(self.pad(self.mlen))
+            self.digest = b''.join(x.to_bytes(4, 'big') for x in self.h[:8])
+            self.fin = True
+        return self.digest
+
+    def hexdigest(self):
+        tab = '0123456789abcdef'
+        return ''.join(tab[b >> 4] + tab[b & 0xF] for b in self.digest())
 
 
 class Disk:
@@ -79,7 +193,7 @@ class Disk:
         """
         path = self._expand_user(path)
         return Path(path).exists()
-    
+
     def is_directory(self, path: str) -> bool:
         """
         Check if it is a folder.
@@ -96,10 +210,10 @@ class Disk:
 
     def concatenate_paths(self, *path: str) -> str:
         return os.path.join(*path) # type: ignore
- 
+
     def join_paths(self, *path: str) -> str:
         return self.concatenate_paths(*path)
-    
+
     def join_relative_paths(self, path1: str, path2: str) -> str:
         """
         Join path like: /aa/bb/cc + .././../d.txt
@@ -114,7 +228,7 @@ class Disk:
                 return self.join_paths(path1, path2)
         else:
             return self.join_paths(path1, path2)
-    
+
     def get_current_working_directory(self) -> str:
         """
         Similar to bash script: `cwd`
@@ -133,7 +247,7 @@ class Disk:
             else:
                 new_ignore_pattern_list.append(pattern)
         return new_ignore_pattern_list
-    
+
     def _file_match_the_gitignore_rule_list(self, start_folder: str, file_path: str, ignore_pattern_list: list[str]):
         if not start_folder.endswith("/"):
             start_folder = start_folder + "/"
@@ -142,10 +256,10 @@ class Disk:
 
         if file_path.startswith("./"):
             file_path = file_path[2:]
-        
+
         # if file_path.endswith(".ipynb_checkpoints"):
         #     pass
-        
+
         match = False
         for pattern in ignore_pattern_list:
             if fnmatch(file_path.removeprefix(start_folder), pattern.removeprefix("./")):
@@ -154,10 +268,10 @@ class Disk:
         return match
 
     def get_files(
-        self, 
-        folder: str, 
-        recursive: bool = True, 
-        type_limiter: List[str] | None = None, 
+        self,
+        folder: str,
+        recursive: bool = True,
+        type_limiter: List[str] | None = None,
         gitignore_text: str|None = None
     ) -> List[str]:
         """
@@ -202,7 +316,7 @@ class Disk:
                     for f in os.listdir(folder)
                     if os.path.isfile(os.path.join(folder, f))
                 ]
-        
+
         if gitignore_text != None:
             ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=gitignore_text)
 
@@ -214,15 +328,15 @@ class Disk:
                     ignore_pattern_list=ignore_pattern_list
                 ) == False:
                     result_files.append(file)
-            
+
             files = result_files
-        
+
         return files
 
     def get_folder_and_files(
-        self, 
-        folder: str, 
-        recursive: bool = True, 
+        self,
+        folder: str,
+        recursive: bool = True,
         type_limiter: List[str] | None = None,
         gitignore_text: str|None = None
     ) -> Iterable[_FileInfo]:
@@ -255,12 +369,12 @@ class Disk:
 
                 if gitignore_text != None:
                     if self._file_match_the_gitignore_rule_list(
-                        start_folder=folder, 
+                        start_folder=folder,
                         file_path=abs_folder_path,
                         ignore_pattern_list=ignore_pattern_list,
                     ):
                         continue
-                
+
                 yield _FileInfo(
                     level=level,
                     path=abs_folder_path,
@@ -284,10 +398,10 @@ class Disk:
                         should_remain = True
                     if should_remain == False:
                         continue
-                
+
                 if gitignore_text != None:
                     if self._file_match_the_gitignore_rule_list(
-                        start_folder=folder, 
+                        start_folder=folder,
                         file_path=abs_folder_path,
                         ignore_pattern_list=ignore_pattern_list,
                     ):
@@ -305,7 +419,7 @@ class Disk:
 
             if recursive == False:
                 break
-    
+
     def _super_sort_key_function(self, element: str) -> int:
         text = ""
         for char in element:
@@ -318,8 +432,8 @@ class Disk:
         return int(text[:10])
 
     def get_folder_and_files_tree(
-        self, 
-        folder: str, 
+        self,
+        folder: str,
         reverse: bool = False,
         type_limiter: List[str] | None = None,
         gitignore_text: str|None = None,
@@ -353,12 +467,12 @@ class Disk:
             folder = node.path
 
             if not os.path.isdir(folder):
-                return 
+                return
 
             items = os.listdir(folder)
             if len(items) == 0:
-                return 
-            
+                return
+
             files_and_folders: list[_FileInfo] = []
             for filename in items:
                 file_path = os.path.join(folder, filename)
@@ -368,12 +482,12 @@ class Disk:
 
                     if gitignore_text != None:
                         if self._file_match_the_gitignore_rule_list(
-                            start_folder=node.path, 
+                            start_folder=node.path,
                             file_path=file_path,
                             ignore_pattern_list=ignore_pattern_list,
                         ):
                             continue
-                    
+
                     new_node = _FileInfo(
                         path=file_path,
                         is_folder=os.path.isdir(file_path),
@@ -392,15 +506,15 @@ class Disk:
                     continue
             files_and_folders.sort(key=lambda node_: self._super_sort_key_function(node_.name), reverse=reverse)
             node.children = files_and_folders
-        
+
         dive(root)
-        
+
         return root
 
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)
         return files
-    
+
     def get_absolute_path(self, path: str) -> str:
         return os.path.abspath(path=path)
 
@@ -417,7 +531,7 @@ class Disk:
         """
         path = self._expand_user(path)
         return os.path.dirname(path)
-    
+
     def get_directory_name(self, path: str):
         """
         /hi/you/abc.txt -> you
@@ -474,6 +588,85 @@ class Disk:
                     break
                 file_hash.update(data)
         return file_hash.hexdigest()
+
+    def get_hash_of_a_file_by_using_yingshaoxo_method(self, path: str) -> str:
+        """
+        get hash string based on the bytes of a file by using yingshaoxo method.
+
+        Parameters
+        ----------
+        path: string
+            the file path
+        """
+        path = self._expand_user(path)
+        file_hash = 0
+        with open(path, "rb") as f:
+            operator_flag = True
+            while True:
+                data = f.read(8192)
+                if not data:
+                    break
+                for one_byte in data:
+                    if operator_flag == True:
+                        file_hash += one_byte
+                        operator_flag = False
+                    else:
+                        file_hash -= one_byte
+                        operator_flag = True
+        file_hash = file_hash % 100000000
+        file_hash = str(file_hash)
+        return file_hash
+
+    def get_hash_of_a_file_by_using_sha256(self, path: str) -> str:
+        """
+        get the sha256 hash string based on the bytes of a file.
+
+        Parameters
+        ----------
+        path: string
+            the file path
+        """
+        path = self._expand_user(path)
+        with open(path, "rb") as f:
+            file_hash = Sha256()
+            while True:
+                data = f.read(8192)
+                if not data:
+                    break
+                file_hash.update(data)
+        return file_hash.hexdigest()
+
+    def get_hash_of_a_folder(self, folder_path: str) -> str:
+        """
+        get the sha256 hash string for a folder.
+
+        Parameters
+        ----------
+        folder_path: string
+            the folder path
+        """
+        folder_path = self._expand_user(folder_path)
+        raw_files = self.get_files(folder_path)
+
+        folder_list = []
+        file_list = []
+        for file in raw_files:
+            if self.is_directory(file):
+                folder_list.append(file)
+            else:
+                file_list.append(file)
+
+        folder_list.sort()
+        file_list.sort()
+
+        general_hash = Sha256()
+
+        for file in file_list:
+            general_hash.update(self.get_hash_of_a_file_by_using_sha256(file).encode("utf-8", errors="ignore"))
+        for folder in folder_list:
+            general_hash.update(folder.encode("utf-8", errors="ignore"))
+
+        return general_hash.hexdigest()
 
     def get_hash_of_a_path(self, path: str) -> str:
         """
@@ -571,7 +764,7 @@ class Disk:
             raise Exception(f"The input_folder_path '{input_folder_path}' should exists.")
         if not self.is_directory(input_folder_path):
             raise Exception(f"The input_folder_path '{input_folder_path}' should be an folder.")
-        
+
         output_folder = self.get_directory_path(output_zip_path)
         self.create_a_folder(folder_path=output_folder)
 
@@ -1017,7 +1210,7 @@ class Dart_File_Hard_Encoder_And_Decoder:
         self._io = IO()
         self._json = json
 
-    def _get_content_json_string(self, source_folder: str) -> str: 
+    def _get_content_json_string(self, source_folder: str) -> str:
         files = self._disk.get_folder_and_files(folder=source_folder, recursive=True)
         object_list = []
         for file in files:
