@@ -905,6 +905,15 @@ class Disk:
             buffer = BytesIO(fh.read())
         return buffer
 
+    def get_part_of_a_file_in_bytesio_format_from_a_file(self, file_path: str, file_segment_size_in_bytes: int, segment_number: int) -> BytesIO:
+        if segment_number <= 0:
+            raise Exception("segment_number should be > 0, for example, 1")
+        with open(file_path, "rb") as fh:
+            for _ in range(segment_number-1):
+                fh.read(file_segment_size_in_bytes)
+            buffer = BytesIO(fh.read(file_segment_size_in_bytes))
+        return buffer
+
     def save_bytesio_to_file(self, bytes_io: BytesIO, file_path: str):
         bytes_io.seek(0)
         with open(file_path, "wb") as f:
