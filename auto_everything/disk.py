@@ -743,6 +743,41 @@ class Disk:
             return int("{:.0f}".format(bytes_size / float(1 << 10)))
         elif level == "MB":
             return int("{:.0f}".format(bytes_size / float(1 << 20)))
+        else:
+            return bytes_size
+
+    def get_folder_size(self, path: str, level: str = "B") -> int:
+        """
+        Get folder size in the unit of  B, KB, MB.
+        Parameters
+        ----------
+        path: string
+            the folder path
+        level: string
+            B, KB, or MB
+        """
+        folder_path = path
+        total_size = 0
+
+        for root, directories, files in os.walk(folder_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_size = os.stat(file_path).st_size
+                total_size += file_size
+
+            for directory in directories:
+                directory_path = os.path.join(root, directory)
+                directory_size = os.stat(directory_path).st_size
+                total_size += directory_size
+
+        if level == "B":
+            return int("{:.0f}".format(total_size))
+        elif level == "KB":
+            return int("{:.0f}".format(total_size / float(1 << 10)))
+        elif level == "MB":
+            return int("{:.0f}".format(total_size / float(1 << 20)))
+        else:
+            return total_size
 
     def compress(self, input_folder_path: str, output_zip_path: str, file_format: str = "zip") -> str:
         """
