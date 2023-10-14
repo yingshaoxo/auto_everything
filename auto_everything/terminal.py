@@ -149,7 +149,7 @@ class Terminal:
             current working directory
         wait: bool
             True, this command may keep running forever
-        use_os_system: bool 
+        use_os_system: bool
             False, if this is ture, it will use os.system() to execute command. This will let this function return None
         """
 
@@ -356,7 +356,7 @@ class Terminal:
         cwd: string
             current working directory
         """
-        c = code 
+        c = code
 
         if cwd is None:
             cwd = self.current_dir
@@ -484,7 +484,7 @@ class Terminal:
             self.run_program(command, cwd=cwd)
         elif wait is True:
             self.run(command, cwd=cwd, wait=True)
-    
+
     def _get_pids(self, name: str) -> List[str]:
         """
         name: what's the name of that program ; string
@@ -547,7 +547,7 @@ class Terminal:
             return True
         else:
             return False
-    
+
     def is_running_by_pid(self, pid: int | str) -> bool:
         """
         cheack if a program is running by pid
@@ -562,7 +562,7 @@ class Terminal:
             return True
         else:
             return False
-    
+
     def kill_a_process_by_pid(self, pid: int | str, force: bool = True, wait: bool = False, timeout: int = 30):
         """
         kill a program by its pid(process id)
@@ -590,7 +590,7 @@ class Terminal:
                 os.killpg(os.getpgid(int(pid)), signal.SIGINT)  # This is typically initiated by pressing Ctrl+C
             except Exception as e:
                 print(e)
-        
+
         if wait is True:
             while self.is_running_by_pid(pid) and timeout > 0:
                 time.sleep(1)
@@ -655,22 +655,22 @@ class Terminal_User_Interface:
     def confirm_box(self, text: str, yes_callback_function: Callable[[], None] | None = None, no_callback_function: Callable[[], None] | None = None) -> str:
         """
         terminal_user_interface.confirm_box(
-            "Are you sure to delete it?", 
+            "Are you sure to delete it?",
             lambda: print("yes"),
             lambda: print("no"),
         )
 
-        #or 
+        #or
 
         y_or_n = terminal_user_interface.confirm_box(
-            "Are you sure to delete it?", 
+            "Are you sure to delete it?",
             None,
             None,
         )
         """
         while True:
             self.clear_screen()
-            user_response = input(f"{text}(y/n) ").strip()
+            user_response = input(f"{text}(y/n) ").strip().lower()
 
             if user_response.lower() == "n":
                 if (no_callback_function != None):
@@ -681,10 +681,10 @@ class Terminal_User_Interface:
                     yes_callback_function()
                 return "y"
 
-    def selection_box(self, text: str, selections: list[Tuple[str, Callable[[],None] | None]]) -> str:
+    def selection_box(self, text: str, selections: list[Tuple[str, Callable[[],None] | None]], seperate_page_loading_function: Callable[[int, int], list[Tuple[str, Callable[[],None] | None]]] | None = None) -> str:
         """
         terminal_user_interface.selection_box(
-            "Please do a choice:", 
+            "Please do a choice:",
             [
                 ("the_a", lambda: print("You choose a")),
                 ("the_b", lambda: print("You choose b"))
@@ -694,32 +694,85 @@ class Terminal_User_Interface:
         #or
 
         the_a_or_the_b = terminal_user_interface.selection_box(
-            "Please do a choice:", 
+            "Please do a choice:",
             [
                 ("the_a", None),
                 ("the_b", None)
             ]
         )
+
+        ___
+
+        def seperate_page_loading_function(page_size:int, current_page:int):
+            all_elements = [
+                ("the_a", None),
+                ("the_b", None),
+                ...
+            ]
+            index = page_size * current_page
+            return all_elements[index: index + page_size]
         """
-        while True:
-            self.clear_screen()
-            print(text)
-            print("\n".join([f"    {index}. {one[0]}" for index, one in enumerate(selections)]))
-            max_index = len(selections)-1
-            user_response = input(f"What do you choose? (0-{str(max_index)}) ").strip()
-            try:
-                select_index = int(user_response)
-                if 0 <= select_index <= max_index:
-                    if selections[select_index][1] != None:
-                        selections[select_index][1]() # type: ignore
-                    return selections[select_index][0]
-            except Exception as e:
-                pass
-    
+        if seperate_page_loading_function == None:
+            # single selection, no real time list
+            while True:
+                self.clear_screen()
+                print(text)
+                print("\n".join([f"    {index}. {one[0]}" for index, one in enumerate(selections)]))
+                max_index = len(selections)-1
+                user_response = input(f"What do you choose? (0-{str(max_index)}) ").strip()
+                try:
+                    select_index = int(user_response)
+                    if 0 <= select_index <= max_index:
+                        if selections[select_index][1] != None:
+                            selections[select_index][1]() # type: ignore
+                        return selections[select_index][0]
+                except Exception as e:
+                    pass
+        else:
+            page_size = 10
+            current_page = 0
+            while True:
+                self.clear_screen()
+                print(text)
+                try:
+                    selections = seperate_page_loading_function(page_size, current_page)
+                    print("\n".join([f"    {index}. {one[0]}" for index, one in enumerate(selections)]))
+                    print()
+                    print(f"(n for next_page, p for previous_page, j+number for page_jump)")
+                    max_index = len(selections)-1
+                    user_response = input(f"What do you choose? (0-{str(max_index)}) ").strip().lower()
+
+                    if user_response == "n":
+                        current_page += 1
+                        selections = seperate_page_loading_function(page_size, current_page)
+                    elif user_response == "p":
+                        current_page -= 1
+                        selections = seperate_page_loading_function(page_size, current_page)
+                    elif user_response.startswith("j"):
+                        temp_user_response = user_response[1:]
+                        if all([char.isdigit() for char in temp_user_response]):
+                            current_page = int(temp_user_response)
+                        selections = seperate_page_loading_function(page_size, current_page)
+
+                    if all([char.isdigit() for char in user_response]):
+                        select_index = int(user_response)
+                        final_result = None
+                        if 0 <= select_index <= max_index:
+                            if selections[select_index][1] != None:
+                                selections[select_index][1]() # type: ignore
+                            final_result = selections[select_index][0]
+
+                        if final_result != None:
+                            return final_result
+                except Exception as e:
+                    print(e)
+                    time.sleep(1)
+                    pass
+
     def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None] | None) -> str:
         """
         your_name = terminal_user_interface.input_box(
-            "Please input your name:", 
+            "Please input your name:",
             "Nobody",
             None
         )
