@@ -149,7 +149,11 @@ class MongoDB:
                     obj = dict(one_object) #type: ignore
                     del obj["_id"]
                     object_list.append(obj)
-                json_string_of_an_collection = json.dumps(object_list, indent=4)
+                try:
+                    json_string_of_an_collection = json.dumps(object_list, indent=4)
+                except Exception as e:
+                    print(e)
+                    continue
 
                 collection_json_file_path = self._disk.join_paths(database_folder_path, collection_name + ".json")
                 self._io.write(collection_json_file_path, json_string_of_an_collection)

@@ -736,6 +736,7 @@ class Terminal_User_Interface:
                 print(text)
                 try:
                     selections = seperate_page_loading_function(page_size, current_page)
+
                     print("\n".join([f"    {index}. {one[0]}" for index, one in enumerate(selections)]))
                     print()
                     print(f"(n for next_page, p for previous_page, j+number for page_jump)")
@@ -766,7 +767,7 @@ class Terminal_User_Interface:
                             return final_result
                 except Exception as e:
                     print(e)
-                    time.sleep(1)
+                    time.sleep(3)
                     pass
 
     def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None] | None) -> str:
