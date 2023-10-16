@@ -60,7 +60,7 @@ class Terminal:
 
         self._io = IO()
 
-    def fix_path(self, path: str, username: str | None = None) -> str:
+    def fix_path(self, path: str, username: str | None = None, startswith: bool = False) -> str:
         # """
         # replace ~ with system username
         # // depressed, please use expanduser_in_path
@@ -72,6 +72,22 @@ class Terminal:
         # username : string
         #    Linux system username
         # """
+        if startswith == True:
+            if not path.startswith("~"):
+                return path
+            else:
+                head_string = ""
+                tail_string = path[1:]
+
+                if username is None:
+                    head_string = os.path.expanduser("~")
+                elif username == "root":
+                    head_string = "/root"
+                else:
+                    head_string = "/".join(os.path.expanduser("~").split("/")[:-1]) + "/" + username
+
+                return head_string + tail_string
+
         if username is None:
             path = path.replace("~", os.path.expanduser("~"))
         elif username == "root":
