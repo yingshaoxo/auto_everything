@@ -53,6 +53,7 @@ class _FileInfo:
 
 
 class Sha256:
+    # I recommend to use md5 or sha1, because this is slow for big file
     ks = [
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
         0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -516,6 +517,9 @@ class Disk:
         return files
 
     def get_absolute_path(self, path: str) -> str:
+        if path.startswith("~"):
+            path = t.fix_path(path)
+
         return os.path.abspath(path=path)
 
     def get_stem_and_suffix_of_a_file(self, path: str) -> Tuple[str, str]:
@@ -579,11 +583,13 @@ class Disk:
         path: string
             the file path
         """
+        segment_size = 1024 * 1024 * 1
         path = self._expand_user(path)
         with open(path, "rb") as f:
             file_hash = hashlib.blake2s()
             while True:
-                data = f.read(8192)
+                #data = f.read(8192)
+                data = f.read(segment_size)
                 if not data:
                     break
                 file_hash.update(data)
@@ -598,12 +604,14 @@ class Disk:
         path: string
             the file path
         """
+        segment_size = 1024 * 1024 * 1
         path = self._expand_user(path)
         file_hash = 0
         with open(path, "rb") as f:
             operator_flag = True
             while True:
-                data = f.read(8192)
+                #data = f.read(8192)
+                data = f.read(segment_size)
                 if not data:
                     break
                 for one_byte in data:
@@ -617,28 +625,30 @@ class Disk:
         file_hash = str(file_hash)
         return file_hash
 
-    def get_hash_of_a_file_by_using_sha256(self, path: str) -> str:
+    def get_hash_of_a_file_by_using_sha1(self, path: str) -> str:
         """
-        get the sha256 hash string based on the bytes of a file.
+        get the sha1 hash string based on the bytes of a file.
 
         Parameters
         ----------
         path: string
             the file path
         """
+        segment_size = 1024 * 1024 * 1
         path = self._expand_user(path)
         with open(path, "rb") as f:
-            file_hash = Sha256()
+            file_hash = hashlib.sha1()
             while True:
-                data = f.read(8192)
+                #data = f.read(8192)
+                data = f.read(segment_size)
                 if not data:
                     break
                 file_hash.update(data)
         return file_hash.hexdigest()
 
-    def get_hash_of_a_folder(self, folder_path: str) -> str:
+    def get_hash_of_a_folder(self, folder_path: str, print_log: bool = False) -> str:
         """
-        get the sha256 hash string for a folder.
+        get the sha1 hash string for a folder.
 
         Parameters
         ----------
@@ -659,10 +669,12 @@ class Disk:
         folder_list.sort()
         file_list.sort()
 
-        general_hash = Sha256()
+        general_hash = hashlib.sha1()
 
         for file in file_list:
-            general_hash.update(self.get_hash_of_a_file_by_using_sha256(file).encode("utf-8", errors="ignore"))
+            if print_log:
+                print(file)
+            general_hash.update(self.get_hash_of_a_file_by_using_sha1(file).encode("utf-8", errors="ignore"))
         for folder in folder_list:
             general_hash.update(folder.encode("utf-8", errors="ignore"))
 
