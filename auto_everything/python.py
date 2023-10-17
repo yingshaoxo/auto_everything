@@ -397,7 +397,7 @@ class Python():
             # for argument that does have '--name=value'
             for one in named_arguments:
                 argument_name = one[2:].split("=")[0]
-                argument_value = one[2:].split("=")[1]
+                argument_value = "=".join(one[2:].split("=")[1:])
                 argument_type = right_arguments[argument_name]['type_function']
                 if (argument_type != None):
                     custom_arguments[argument_name] = argument_type(argument_value)
