@@ -273,7 +273,8 @@ class Disk:
         folder: str,
         recursive: bool = True,
         type_limiter: List[str] | None = None,
-        gitignore_text: str|None = None
+        gitignore_text: str|None = None,
+        use_gitignore_file: bool = False
     ) -> List[str]:
         """
         Get files recursively under a folder.
@@ -286,6 +287,8 @@ class Disk:
             a list used to do a type filter, like [".mp3", ".epub"]
         gitignore_text: str
             similar to git's .gitignore file, if any file matchs any rule, it won't be inside of the 'return file list'
+        use_gitignore_file: bool
+            if true, this function will not return any file/folder that matchs .gitignore file rules
         """
         folder = self._expand_user(folder)
         assert os.path.exists(folder), f"{folder} is not exist!"
@@ -331,6 +334,39 @@ class Disk:
                     result_files.append(file)
 
             files = result_files
+
+        if use_gitignore_file:
+            if "version" not in t.run_command("git --version").lower():
+                print("error: git needs to get installed for using 'use_gitignore_file' paramater.")
+                return files
+            ignored_files = []
+            git_folder_list = []
+            for file in files:
+                if "/.git/" in file:
+                    a_git_folder = file.split("/.git/")[0]
+                    if a_git_folder in git_folder_list:
+                        continue
+                    else:
+                        git_folder_list.append(a_git_folder)
+
+                    result = t.run_command(f"git ls-files --other --directory", cwd=a_git_folder).strip()
+                    if len(result) != 0:
+                        if result.lower().startswith("fatal"):
+                            continue
+                        ignored_files += result.split("\n")
+            ignored_files = list(set(ignored_files))
+
+            new_files = []
+            for file in files:
+                if file not in ignored_files:
+                    ok = True
+                    for git_folder in git_folder_list:
+                        if file.startswith(git_folder + "/.git/"):
+                            ok = False
+                            break
+                    if ok:
+                        new_files.append(file)
+            files = new_files
 
         return files
 
