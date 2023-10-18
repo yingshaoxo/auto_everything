@@ -162,6 +162,8 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
                 the_content_type = "text/html"
             elif url.endswith(".css"):
                 the_content_type = "text/css"
+            elif url.endswith(".js"):
+                the_content_type = "text/javascript"
 
             if the_content_type != None:
                 response = f"""
