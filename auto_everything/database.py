@@ -390,10 +390,13 @@ class Database_Of_Yingshaoxo:
             import sqlite3 as sqlite3
 
             self._SQL_DATA_FILE = self._disk.join_paths(self.database_base_folder, f"{database_name}.db")
+            """
             if sqlite3.threadsafety == 3:
                 check_same_thread = False
             else:
                 check_same_thread = True
+            """
+            check_same_thread = False
             self.sql_connection = sqlite3.connect(self._SQL_DATA_FILE, check_same_thread=check_same_thread)
 
             def regular_expression(expr: str, item: Any):
