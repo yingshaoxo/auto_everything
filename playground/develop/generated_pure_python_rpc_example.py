@@ -76,6 +76,13 @@ def run(service_instance: Service_style_shop, port: str, html_folder_path: str="
         return f"No API url matchs '{request_url}'"
     
     class WebRequestHandler(BaseHTTPRequestHandler):
+        def do_OPTIONS(self):
+            self.send_response(200, "ok")
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', '*')
+            self.send_header("Access-Control-Allow-Headers", "*")
+            self.end_headers()
+
         def do_GET(self):
             sub_url = self.path
             headers = _get_headers_dict_from_string(self.headers.as_string())

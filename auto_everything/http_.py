@@ -37,7 +37,7 @@ def _handle_socket_request(socket_connection, context, router, handle_get_file_u
             head_line = splits[0]
             head_line_splits = head_line.split(" ")
             if len(head_line_splits) == 3:
-                method, url, http_standards = head_line_splits 
+                method, url, http_standards = head_line_splits
                 url_splits = url.split("?")
                 if len(url_splits) >= 2:
                     url = url_splits[0]
@@ -56,7 +56,20 @@ def _handle_socket_request(socket_connection, context, router, handle_get_file_u
         else:
             pass
 
-        raw_headers_lines = splits[1:] 
+        if (method == "OPTIONS"):
+            response = f"""
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: *
+Access-Control-Allow-Headers: *\r\n\r\ndone
+""".strip()
+            response = response.encode("utf-8", errors="ignore")
+            socket_connection.sendall(response)
+            socket_connection.shutdown(1)
+            socket_connection.close()
+            exit()
+
+        raw_headers_lines = splits[1:]
         raw_headers_lines = [line for line in raw_headers_lines if ": " in line]
         headers_dict = {}
         for line in raw_headers_lines:
@@ -71,7 +84,7 @@ def _handle_socket_request(socket_connection, context, router, handle_get_file_u
         payload_seperator = "\r\n\r\n"
         if "Content-Length" in headers_dict:
             content_length = int(headers_dict["Content-Length"])
-        
+
         if content_length != None:
             # receive the rest of data by using socket receiv
             payload_splits = raw_http_request_bytes.split(payload_seperator_bytes)
@@ -310,13 +323,13 @@ class Yingshaoxo_Threading_Based_Http_Server():
             else:
                 print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
 
-        def handle_any_url(method: str, sub_url: str, headers: dict[str, str], payload: dict[str, Any] | None = None) -> tuple[bytes, str | bytes | dict]: 
+        def handle_any_url(method: str, sub_url: str, headers: dict[str, str], payload: dict[str, Any] | None = None) -> tuple[bytes, str | bytes | dict]:
             #sub_url = sub_url.strip("/")
             #sub_url = sub_url.replace("{identity_name}", "", 1)
             #sub_url = sub_url.strip("/")
             #request_url = sub_url.split("/")[0].strip()
 
-            raw_response = None 
+            raw_response = None
 
             if method == "GET":
                 raw_response = handle_file_request_url(sub_url)
@@ -359,8 +372,15 @@ class Yingshaoxo_Threading_Based_Http_Server():
                 raw_type = bytes
 
             return raw_response, raw_type
-        
+
         class WebRequestHandler(self._BaseHTTPRequestHandler):
+            def do_OPTIONS(self2):
+                self2.send_response(200, "ok")
+                self2.send_header('Access-Control-Allow-Origin', '*')
+                self2.send_header('Access-Control-Allow-Methods', '*')
+                self2.send_header("Access-Control-Allow-Headers", "*")
+                self2.end_headers()
+
             def do_GET(self2):
                 sub_url = self2.path
                 headers = self._get_headers_dict_from_string(self2.headers.as_string())
@@ -389,7 +409,7 @@ class Yingshaoxo_Threading_Based_Http_Server():
                     return
                 else:
                     content_length = int(content_length)
-                
+
                 if content_length == 0:
                     self2.wfile.write("What you send is not json".encode("utf-8", errors="ignore"))
                     return
@@ -408,15 +428,15 @@ class Yingshaoxo_Threading_Based_Http_Server():
 
         class ThreadedHTTPServer(self._ThreadingMixIn, self._HTTPServer):
             pass
-        
+
         # Setting TCP Address
         server_address = (host, port)
-        
+
         # invoking server
         http = ThreadedHTTPServer(server_address, WebRequestHandler)
 
         print(f"The website is running at: http://127.0.0.1:{port}/")
-        
+
         http.serve_forever()
 
 
