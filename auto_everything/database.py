@@ -21,13 +21,13 @@ class MongoDB:
     @staticmethod
     def _get_mongodb_client_by_giving_arguments(host: str, port: str, user: str, password: str): #type: ignore
         return MongoDB(f"mongodb://{user}:{password}@{host}:{port}") #type: ignore
-    
+
     def delete_a_database(self, database_name: str):
         self.client.drop_database(database_name) #type: ignore
-    
+
     def list_database(self): #type: ignore
         return self.client.list_database_names() #type: ignore
-    
+
     def get_database(self, database_name: str): #type: ignore
         return self.client.get_database(database_name) #type: ignore
 
@@ -42,7 +42,7 @@ class MongoDB:
 
     def delete_item(self, database_name: str | None, collection_name: str | None, filter: dict[str, Any] | None) -> dict[str, Any]: #type: ignore
         pass
-    
+
     def clear_mongodb(self, database_name: str|None = None, collection_name: str|None = None):
         database_name_list: list[str] = self.list_database()
         for a_database_name in database_name_list:
@@ -58,7 +58,7 @@ class MongoDB:
                             self.client.get_database(name=a_database_name).get_collection(name=collection_name).delete_many({}) # type: ignore
                         else:
                             self.client.drop_database(name_or_database=a_database_name) # type: ignore
-    
+
     def backup_collection(self, database_name: str, collection_name: str, json_file_saving_path: str | None=None) -> list[dict[Any, Any]]:
         database_name_list: list[str] = self.list_database()
         if database_name not in database_name_list:
@@ -73,7 +73,7 @@ class MongoDB:
             obj = dict(one_object) #type: ignore
             del obj["_id"]
             object_list.append(obj)
-        
+
         if json_file_saving_path != None:
             if not json_file_saving_path.endswith(".json"):
                 raise Exception(f"the json_file_saving_path you give me should be ended with '.json' other than '{json_file_saving_path}'")
@@ -98,13 +98,13 @@ class MongoDB:
 
     def backup_mongodb(self, backup_folder_path: str, use_time_as_sub_folder_name: bool=True):
         """
-        backup_folder_path: str 
+        backup_folder_path: str
             the backup folder
         use_time_as_sub_folder_name: bool
             if it is true:
                 it saves files into this structure:
                     ── 2023-03-31_09-30
-                    │   ├── __mongodb_info__.json      
+                    │   ├── __mongodb_info__.json
                     │   │   database_name_1
                     │   │   ├── collection_name_1.json
                     │   │   ├── collection_name_2.json
@@ -113,7 +113,7 @@ class MongoDB:
                     │   │   ├── collection_name_2.json
             else:
                 it saves files into this structure:
-                    ├── __mongodb_info__.json      
+                    ├── __mongodb_info__.json
                     │   database_name_1
                     │   ├── collection_name_1.json
                     │   ├── collection_name_2.json
@@ -125,12 +125,12 @@ class MongoDB:
             self._disk.create_a_folder(backup_folder_path)
         if not self._disk.exists(backup_folder_path):
             raise Exception(f"You should give me a valid backup_folder_path than '{backup_folder_path}'")
-        
+
         if use_time_as_sub_folder_name == True:
             now = datetime.now()
             today_string = now.strftime(r"%Y-%m-%d_%H-%M")
             backup_folder_path = self._disk.join_paths(backup_folder_path, today_string)
-        
+
         database_name_list: list[str] = self.list_database()
         for database_name in database_name_list:
             if database_name in ["admin", "local", "config"]:
@@ -169,13 +169,13 @@ class MongoDB:
 
     def recover_mongodb(self, backup_folder_path: str, use_time_as_sub_folder_name: bool=True):
         """
-        backup_folder_path: str 
+        backup_folder_path: str
             the backup folder
         use_time_as_sub_folder_name: bool
             if it is true:
                 it loads files from this structure:
                     ── 2023-03-31_09-30
-                    │   ├── __mongodb_info__.json      
+                    │   ├── __mongodb_info__.json
                     │   │   database_name_1
                     │   │   ├── collection_name_1.json
                     │   │   ├── collection_name_2.json
@@ -184,7 +184,7 @@ class MongoDB:
                     │   │   ├── collection_name_2.json
             else:
                 it loads files from this structure:
-                    ├── __mongodb_info__.json      
+                    ├── __mongodb_info__.json
                     │   database_name_1
                     │   ├── collection_name_1.json
                     │   ├── collection_name_2.json
@@ -204,9 +204,9 @@ class MongoDB:
             raise Exception(f"You should give me a valid backup_folder_path than '{backup_folder_path}'")
         if not self._disk.exists(self._disk.join_paths(backup_folder_path, "__mongodb_info__.json")):
             raise Exception(f"You should give me a valid backup_folder_path than '{backup_folder_path}'")
-        
+
         self.clear_mongodb()
-        
+
         database_folder_list = [one for one in self._disk.get_folder_and_files(folder=backup_folder_path, recursive=False) if one.is_folder]
         for database_folder in database_folder_list:
             database_name = database_folder.name
@@ -236,7 +236,7 @@ class Redis:
 
         self.redis = redis.Redis(host=host, port=int(port), db=0, username=username, password=password)
         self.database_name = database_name
-    
+
     @staticmethod
     def _parse_redis_url(redis_URL: str) -> tuple[str, str, str | None, str | None]:
         if not redis_URL.startswith("redis://"):
@@ -264,7 +264,7 @@ class Redis:
             host = splits[0]
             port = splits[1]
         return host, port, username, password
-    
+
     def _get_final_key_with_database_name_as_prefix(self, key: str) -> str:
         return f"{self.database_name}.{key}"
 
@@ -280,14 +280,14 @@ class Redis:
     def set(self, key: str, value: str, expire_time_in_seconds: int | None = None) -> bool:
         result = self.redis.set(
             self._get_final_key_with_database_name_as_prefix(key=key),
-            value, 
+            value,
             ex=expire_time_in_seconds
         )
         if result is None:
             return False
         else:
             return result
-    
+
     def delete(self, key: str) -> bool:
         result = self.redis.delete(
             self._get_final_key_with_database_name_as_prefix(key=key)
@@ -296,13 +296,13 @@ class Redis:
             return False
         else:
             return True
-    
+
     def delete_all(self):
         for key in self.redis.keys(
                 self._get_final_key_with_database_name_as_prefix(key="*")
             ):
             self.redis.delete(key)
-    
+
     def get_remaining_time_of_a_key(self, key: str) -> int:
         """
         The command returns -2 if the key does not exist.
@@ -311,7 +311,7 @@ class Redis:
         return self.redis.ttl(
             self._get_final_key_with_database_name_as_prefix(key=key)
         )
-    
+
     def backup_redis(self, json_file_saving_path: str | None = None) -> list[dict[str, str]]:
         value_list: list[dict[str, str]] = []
         for key in self.redis.keys(
@@ -320,7 +320,7 @@ class Redis:
             value = self.redis.get(key)
             if value != None:
                 object = {
-                    "key": key.decode("utf-8"), 
+                    "key": key.decode("utf-8"),
                     "value": value.decode("utf-8"),
                 }
                 ttl = self.get_remaining_time_of_a_key(key=key.decode("utf-8"))
@@ -410,7 +410,7 @@ class Database_Of_Yingshaoxo:
                 f"""CREATE TABLE IF NOT EXISTS {self._sql_table_name}
                         (value TEXT)"""
             )
-    
+
     def add(self, data: dict[str, Any]):
         json_string = self._json.dumps(data, sort_keys=True).strip()
 
@@ -421,7 +421,7 @@ class Database_Of_Yingshaoxo:
             self.sql_connection.commit()
         else:
             with open(self.database_txt_file_path, "a+", encoding="utf-8", errors="ignore") as file_stream:
-                file_stream.seek(0, self._os.SEEK_END) 
+                file_stream.seek(0, self._os.SEEK_END)
                 file_stream.write(json_string + "\n")
 
     def raw_search(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None]) -> Iterator[dict[str, Any]]:
@@ -461,7 +461,7 @@ class Database_Of_Yingshaoxo:
                     result = one_row_json_string_handler(line)
                     if (result != None):
                         yield result
-    
+
     def search(self, one_row_dict_handler: Callable[[dict[str, Any]], dict[str, Any] | None]) -> list[dict[str, Any]]:
         """
         one_row_dict_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
@@ -506,7 +506,7 @@ class Database_Of_Yingshaoxo:
                     if (result != None):
                         result_list.append(result)
             return result_list
-    
+
     # def reverse_search(self):
     #     #https://stackoverflow.com/a/23646049/8667243
     #     #reverse search will speed up the search process in most of the cases
@@ -529,7 +529,7 @@ class Database_Of_Yingshaoxo:
             ):
                 result = one_row_json_string_filter(row[0])
                 if (result == True):
-                    need_to_get_deleted_value_list.append(row[0]) 
+                    need_to_get_deleted_value_list.append(row[0])
 
             for value in need_to_get_deleted_value_list:
                 self.sql_cursor.execute(
@@ -548,7 +548,7 @@ class Database_Of_Yingshaoxo:
 
                     new_position_pair = (previous_position, current_position)
                     if old_position_pair == new_position_pair:
-                        end_detection_counting += 1 
+                        end_detection_counting += 1
                     else:
                         old_position_pair = new_position_pair
                     if end_detection_counting >= 3:
@@ -586,7 +586,7 @@ class Database_Of_Yingshaoxo:
             ):
                 result = one_row_dict_filter(json.loads(row[0]))
                 if (result == True):
-                    need_to_get_deleted_value_list.append(row[0]) 
+                    need_to_get_deleted_value_list.append(row[0])
 
             for value in need_to_get_deleted_value_list:
                 self.sql_cursor.execute(
@@ -606,7 +606,7 @@ class Database_Of_Yingshaoxo:
                     new_position_pair = (previous_position, current_position)
                     #print(new_position_pair)
                     if old_position_pair == new_position_pair:
-                        end_detection_counting += 1 
+                        end_detection_counting += 1
                     else:
                         old_position_pair = new_position_pair
                     if end_detection_counting >= 3:
@@ -733,7 +733,7 @@ class Database_Of_Yingshaoxo:
             return
 
         self._io.write(self.database_txt_file_path, "")
-    
+
     @staticmethod
     def generate_code_from_yrpc_protocol(which_language: str, input_folder: str, input_files: list[str], output_folder: str = "src/generated_yrpc"):
         """
@@ -772,19 +772,19 @@ class Database_Of_Yingshaoxo:
                 for variable_type in variable_list:
                     if variable_type not in rpc_arguments_name_list:
                         rpc_arguments_name_list.append(variable_type)
-            
+
             data_model_name_list = []
             for each_one in arguments_name_list:
                 if each_one not in rpc_arguments_name_list:
                     data_model_name_list.append(each_one)
-            
+
             database_class_list: list[str] = []
             database_excutor_class_property_list: list[str] = []
             for variable_type in data_model_name_list:
                 database_class_list.append(f"""
 class Yingshaoxo_Database_{variable_type}:
-    def __init__(self, database_base_folder: str) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="{variable_type}", database_base_folder=database_base_folder)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="{variable_type}", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
 
     def add(self, item: {variable_type}):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -800,17 +800,17 @@ class Yingshaoxo_Database_{variable_type}:
 
     def delete(self, item_filter: {variable_type}):
         return _delete(self=self, item_filter=item_filter)
-    
+
     def update(self, old_item_filter: {variable_type}, new_item: {variable_type}):
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
                 """.rstrip().lstrip('\n'))
 
             for variable_type in data_model_name_list:
                 database_excutor_class_property_list.append(f"""
-        self.{variable_type} = Yingshaoxo_Database_{variable_type}(database_base_folder=self._database_base_folder)
+        self.{variable_type} = Yingshaoxo_Database_{variable_type}(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
                 """.rstrip().lstrip('\n'))
 
-            
+
             database_class_list_text = "\n\n\n".join(database_class_list)
             database_excutor_class_property_list_text = "\n".join(database_excutor_class_property_list)
 
@@ -866,7 +866,7 @@ def _search_function(self: Any, item_filter: Any, page_number:int|None=None, pag
                 return None
             if search_temp_dict["_search_counting"] > search_temp_dict["_real_end"]:
                 return None
-        
+
         return final_result
 
     return self.database_of_yingshaoxo.search(one_row_dict_handler=one_row_dict_filter)
@@ -897,7 +897,7 @@ def _raw_search_function(self: Any, one_row_json_string_handler: Callable[[str],
                 return None
             if search_temp_dict["_search_counting"] > search_temp_dict["_real_end"]:
                 return None
-        
+
         return result
 
     return list(self.database_of_yingshaoxo.raw_search(one_row_json_string_handler=new_one_row_json_string_handler))
@@ -960,7 +960,7 @@ def _update(self, old_item_filter: Any, new_item: Any):
 
 
 class Yingshaoxo_Database_Excutor_{identity_name}:
-    def __init__(self, database_base_folder: str):
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False):
         self._database_base_folder = database_base_folder
 {database_excutor_class_property_list_text}
 
@@ -999,7 +999,7 @@ if __name__ == "__main__":
 
         if which_language not in language_to_file_suffix_dict.keys():
             raise Exception(f"Sorry, we don't support '{which_language}' language.")
-        
+
         if which_language == "python":
             init_file_for_python = disk_.join_paths(output_folder, "__init__.py")
             if not disk_.exists(init_file_for_python):
@@ -1028,7 +1028,7 @@ if __name__ == "__main__":
             else:
                 print(f"Sorry, we do not support this programming language: {which_language}")
                 exit()
-    
+
 
 if __name__ == "__main__":
     pass
@@ -1049,7 +1049,7 @@ class MySQL:
     def delete_a_database(self, database_name: str):
         if (database_name not in self._block_list):
             self.engine.execute(f"DROP DATABASE IF EXISTS {database_name};")
-    
+
     def list_database(self) -> str:
         existing_databases = self.engine.execute("SHOW DATABASES;")
         return [d[0] for d in existing_databases if d[0] not in self._block_list]
