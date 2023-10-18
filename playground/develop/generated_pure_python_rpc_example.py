@@ -54,7 +54,11 @@ def run(service_instance: Service_style_shop, port: str, html_folder_path: str="
                     with open(real_file_path, mode="rb") as f:
                         the_data = f.read()
                 else:
-                    return b"Resource not found\\n\\n(This web service is using YRPC (Yingshaoxo Remote Procedure Call))"
+                    #return b"Resource not found\\n\\n(This web service is using YRPC (Yingshaoxo Remote Procedure Call))"
+                    sub_url = 'index.html'
+                    real_file_path = f"{os.path.join(html_folder_path, sub_url)}"
+                    with open(real_file_path, mode="rb") as f:
+                        the_data = f.read()
                 return the_data
 
             print(f"The website is running at: http://127.0.0.1:{port}/")
@@ -95,6 +99,8 @@ def run(service_instance: Service_style_shop, port: str, html_folder_path: str="
                 self.send_header("Content-Type", "text/html")
             elif sub_url.endswith(".css"):
                 self.send_header("Content-Type", "text/css")
+            elif sub_url.endswith(".js"):
+                self.send_header("Content-Type", "text/javascript")
 
             response = handle_get_url(sub_url, headers)
 

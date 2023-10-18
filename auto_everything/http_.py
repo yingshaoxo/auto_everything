@@ -318,7 +318,11 @@ class Yingshaoxo_Threading_Based_Http_Server():
                         with open(real_file_path, mode="rb") as f:
                             the_data = f.read()
                     else:
-                        return None
+                        #return None #instead return None, return index.html for single app page
+                        sub_url = 'index.html'
+                        real_file_path = f"{os.path.join(html_folder_path, sub_url)}"
+                        with open(real_file_path, mode="rb") as f:
+                            the_data = f.read()
                     return the_data
             else:
                 print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
@@ -393,6 +397,8 @@ class Yingshaoxo_Threading_Based_Http_Server():
                     self2.send_header("Content-Type", "text/html")
                 elif sub_url.endswith(".css"):
                     self2.send_header("Content-Type", "text/css")
+                elif sub_url.endswith(".js"):
+                    self2.send_header("Content-Type", "text/javascript")
 
                 response, raw_type = handle_any_url("GET", sub_url, headers, None)
 
