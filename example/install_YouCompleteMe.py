@@ -304,6 +304,12 @@ else:
 
     "no auto indent
     filetype indent off
+
+    let g:vim_json_conceal=0
+
+    set background=light
+
+    let g:ycm_global_ycm_extra_conf = '~/.vim/.ycm_extra_conf.py'
     """
     with open(t.fix_path("~/.vimrc"), "w", encoding="utf-8") as f:
         f.write(vimrc)
@@ -352,6 +358,26 @@ else:
     git clone https://github.com/Yggdroot/indentLine.git ~/.vim/pack/vendor/start/indentLine
     """
     )
+
+    # 5.9, for pure c completion
+    ycm_extra_configuration = """
+def Settings( **kwargs ):
+    return {
+        'flags': [
+            '-x', 'c',
+            '-std=', 'c99',
+
+            #'-x', 'c++',
+
+            '-static',
+            '-no-pie',
+            '-D_POSIX_SOURCE',
+        ],
+    }
+    """.strip()
+    ycm_configuration_path = "~/.vim/.ycm_extra_conf.py"
+    ycm_configuration_path = terminal.fix_path(ycm_configuration_path)
+    io_.write(ycm_configuration_path, ycm_extra_configuration)
 
     # 6 set terminator
     print("setup terminator configs...")
