@@ -34,12 +34,12 @@ print("Srript Start...\n\n")
 if is_root():
     print("install base dependencies...")
     t.run("""
-    sudo apt install -y build-essential cmake                                                                                        
-    sudo apt install -y python3-dev                                                                                                  
-    sudo apt install -y python3-pip                                                                                                  
-    sudo apt install -y vim                                                                                                                                    
-    sudo apt install -y git                                                                                                                                    
-    sudo apt install -y curl                                                                                                                                   
+    sudo apt install -y build-essential cmake
+    sudo apt install -y python3-dev
+    sudo apt install -y python3-pip
+    sudo apt install -y vim
+    sudo apt install -y git
+    sudo apt install -y curl
 
     sudo apt install -y golang
 
@@ -48,7 +48,7 @@ if is_root():
     # source ~/.bashrc
     # nvm install node
 
-    sudo apt-get install -y gcc g++ make 
+    sudo apt-get install -y gcc g++ make
 
     sudo pacman --noconfirm -S make
     sudo pacman --noconfirm -S cmake
@@ -56,7 +56,7 @@ if is_root():
     sudo pacman --noconfirm -S git
     sudo pacman --noconfirm -S curl
 
-    sudo apt install -y tmux 
+    sudo apt install -y tmux
     sudo apt install -y xclip
 
     git clone https://github.com/preservim/nerdtree.git ~/.vim/pack/vendor/start/nerdtree
@@ -184,7 +184,7 @@ set background=light
 \n\n\n
 There just left two thing for you to do:
     1. start tmux by `tmux`
-        then type 
+        then type
             `ctrl+b+I`
     2. run `sudo vim`, and hit `ctrl+\` to trigger file exploer
     3. you can use `ctrl+p` to auto_complete in vim
@@ -194,15 +194,15 @@ Enjoy!
 else:
     # 1
     print("install building tools...")
-    c = """                                                                                                       
+    c = """
     sudo -S apt update
 
-    sudo apt install -y build-essential cmake                                                                                        
-    sudo apt install -y python3-dev                                                                                                  
-    sudo apt install -y python3-pip                                                                                                  
-    sudo apt install -y vim                                                                                                                                    
-    sudo apt install -y git                                                                                                                                    
-    sudo apt install -y curl                                                                                                                                   
+    sudo apt install -y build-essential cmake
+    sudo apt install -y python3-dev
+    sudo apt install -y python3-pip
+    sudo apt install -y vim
+    sudo apt install -y git
+    sudo apt install -y curl
 
     sudo apt install -y golang
 
@@ -210,7 +210,7 @@ else:
     source ~/.bashrc
     nvm install node
 
-    sudo apt-get install -y gcc g++ make 
+    sudo apt-get install -y gcc g++ make
 
     sudo pacman --noconfirm -S make
     sudo pacman --noconfirm -S cmake
@@ -219,7 +219,7 @@ else:
     sudo pacman --noconfirm -S curl
 
     sudo apt install -y terminator
-    sudo apt install -y tmux 
+    sudo apt install -y tmux
     sudo apt install -y xclip
     """
     t.run(c, wait=True)
@@ -364,14 +364,16 @@ else:
 def Settings( **kwargs ):
     return {
         'flags': [
+            '-std=gnu99',
+            #'-std=c99',
             '-x', 'c',
-            '-std=', 'c99',
 
+            #'-std=cpp11',
             #'-x', 'c++',
 
             '-static',
             '-no-pie',
-            '-D_POSIX_SOURCE',
+            #'-D_POSIX_SOURCE',
         ],
     }
     """.strip()
@@ -496,7 +498,7 @@ def Settings( **kwargs ):
     \n\n\n
     There just left two thing for you to do:
         1. start tmux by `tmux`
-            then type 
+            then type
                 `ctrl+b+I`
         2. start vim by `vim`
             then type
