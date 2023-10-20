@@ -448,6 +448,19 @@ class Yingshaoxo_Threading_Based_Http_Server():
         http.serve_forever()
 
 
+
+class Yingshaoxo_Http_Client():
+    def __init__(self):
+        from auto_everything.network import Network
+        self._network = Network()
+
+    def get(self, url: str, headers: dict | None=None, return_bytes: bool = False):
+        return self._network.send_a_get_request(url, headers, return_bytes=return_bytes)
+
+    def post(self, url: str, data: dict, headers: dict | None=None):
+        return self._network.send_a_post(url, data, headers)
+
+
 def run_a_command_with_hot_load(watch_path: str, hotload_command: str):
     """
     watch_path: a folder you want to watch, whenever some of those file get changed, the hotload_command will get re executed
@@ -481,5 +494,9 @@ def run_a_command_with_hot_load(watch_path: str, hotload_command: str):
 
 if __name__ == "__main__":
     #yingshaoxo_http_server = Yingshaoxo_Http_Server(router=_yingshaoxo_router_example)
-    yingshaoxo_http_server = Yingshaoxo_Threading_Based_Http_Server(router=_yingshaoxo_router_example)
-    yingshaoxo_http_server.start(port=1212, html_folder_path="./")
+    #yingshaoxo_http_server = Yingshaoxo_Threading_Based_Http_Server(router=_yingshaoxo_router_example)
+    #yingshaoxo_http_server.start(port=1212, html_folder_path="./")
+
+    client = Yingshaoxo_Http_Client()
+    result = client.get("http://google.com")
+    print(result)

@@ -279,6 +279,18 @@ class Network:
         a_network = ipaddress.ip_network(ip_network)
         return an_address in a_network
 
+    def send_a_get_request(self, url: str, headers: dict | None=None, return_bytes: bool = False) -> str | bytes:
+        a_request = request.Request(url, method="GET")
+        if headers != None:
+            for key, value in headers.items():
+                a_request.add_header(key, value)
+        r_ = request.urlopen(a_request)
+        content = r_.read()
+        if return_bytes == True:
+            return content
+        else:
+            return content.decode("utf-8", errors="ignore")
+
     def send_a_post(self, url: str, data: dict, headers: dict | None=None) -> str:
         a_request = request.Request(url, method="POST")
         a_request.add_header('Content-Type', 'application/json')
