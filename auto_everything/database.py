@@ -2,6 +2,8 @@ from typing import Any, Callable, Iterator
 from datetime import datetime
 import json
 import re
+from time import sleep
+import random
 
 
 class MongoDB:
@@ -364,9 +366,10 @@ class Database_Of_Yingshaoxo:
     position at start | +   +    +   +
     position at end   |                   +   +
     """
-    def __init__(self, database_name: str, database_base_folder: str = "./yingshaoxo_database", use_sqlite: bool = False) -> None:
+    def __init__(self, database_name: str, database_base_folder: str = "./yingshaoxo_database", use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None) -> None:
         from auto_everything.disk import Disk
         from auto_everything.io import IO
+        from auto_everything.time import Time
         import json
         import subprocess
         import os
@@ -375,21 +378,34 @@ class Database_Of_Yingshaoxo:
         self._json = json
         self._subprocess = subprocess
         self._os = os
+        self._time = Time()
 
+        self.database_name = database_name
         self.database_base_folder = database_base_folder
         if (not self._disk.exists(self.database_base_folder)):
             self._disk.create_a_folder(self.database_base_folder)
 
         self.use_sqlite = use_sqlite
+        self.global_multiprocessing_shared_dict = global_multiprocessing_shared_dict
+
+        if self.global_multiprocessing_shared_dict != None:
+            # There should have a database backup function to backup global_multiprocessing_shared_dict into a file
+            self._the_key_for_memory_data = f"data_of_{self.database_name}_"
+            self._the_key_for_the_lock_of_memory_data = f"lock_of_{self.database_name}_"
+            self.global_multiprocessing_shared_dict[self._the_key_for_memory_data] = []
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
+            # if you want to make sure there have no competation, you have to make an order list, where if you want to access that resource, you make an order first by using a unique id, then wait for 1 second to access it. If others see there has order, they will simply wait until order is gone or timeout. If an order timeout for 10 seconds, you cancel it by your hand.
+            self.database_txt_file_path = self._disk.join_paths(self.database_base_folder, f"{self.database_name}_memory.txt")
+            return
 
         if self.use_sqlite == False:
-            self.database_txt_file_path = self._disk.join_paths(self.database_base_folder, f"{database_name}.txt")
+            self.database_txt_file_path = self._disk.join_paths(self.database_base_folder, f"{self.database_name}.txt")
             if (not self._disk.exists(self.database_txt_file_path)):
                 self._io.write(self.database_txt_file_path, "")
         else:
             import sqlite3 as sqlite3
 
-            self._SQL_DATA_FILE = self._disk.join_paths(self.database_base_folder, f"{database_name}.db")
+            self._SQL_DATA_FILE = self._disk.join_paths(self.database_base_folder, f"{self.database_name}.db")
             """
             if sqlite3.threadsafety == 3:
                 check_same_thread = False
@@ -407,15 +423,36 @@ class Database_Of_Yingshaoxo:
                 "REGEXP", 2, regular_expression
             )  # 2 here means two parameters. REGEXP is a fixed value
 
-            self._sql_table_name = database_name.replace(" ", "_")
+            self._sql_table_name = self.database_name.replace(" ", "_")
             self.sql_cursor = self.sql_connection.cursor()
             self.sql_cursor.execute(
                 f"""CREATE TABLE IF NOT EXISTS {self._sql_table_name}
                         (value TEXT)"""
             )
 
+    def _wait_until_unlock(self):
+        start_time = self._time.get_datetime_object_from_timestamp(self._time.get_current_timestamp_in_10_digits_format())
+        while True:
+            if self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] == False:
+                break
+            sleep(random.random() * 0.1)
+            current_time = self._time.get_datetime_object_from_timestamp(self._time.get_current_timestamp_in_10_digits_format())
+            time_difference = (current_time - start_time).seconds
+            if time_difference > 10:
+                # force to do the operation because it seems like the lock is always there
+                break
+
     def add(self, data: dict[str, Any]):
         json_string = self._json.dumps(data, sort_keys=True).strip()
+
+        if self.global_multiprocessing_shared_dict != None:
+            self._wait_until_unlock()
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_memory_data] += [data]
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
+            return
 
         if self.use_sqlite:
             self.sql_cursor.execute(
@@ -436,6 +473,19 @@ class Database_Of_Yingshaoxo:
                 #return None
         ```
         """
+        if self.global_multiprocessing_shared_dict != None:
+            self._wait_until_unlock()
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
+
+            for row in self.global_multiprocessing_shared_dict[self._the_key_for_memory_data]:
+                json_string = self._json.dumps(row, sort_keys=True).strip()
+                result = one_row_json_string_handler(json_string)
+                if (result != None):
+                    yield result
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
+            return
+
         if self.use_sqlite:
             for row in self.sql_cursor.execute(
                 f"SELECT * FROM {self._sql_table_name}"
@@ -474,6 +524,20 @@ class Database_Of_Yingshaoxo:
                 #return None
         ```
         """
+        if self.global_multiprocessing_shared_dict != None:
+            self._wait_until_unlock()
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
+
+            result_list = []
+            for row in self.global_multiprocessing_shared_dict[self._the_key_for_memory_data]:
+                result = one_row_dict_handler(row)
+                if (result != None):
+                    result_list.append(result)
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
+
+            return result_list
+
         if self.use_sqlite:
             result_list = []
             for row in self.sql_cursor.execute(
@@ -525,6 +589,22 @@ class Database_Of_Yingshaoxo:
                 #return True
         ```
         """
+        if self.global_multiprocessing_shared_dict != None:
+            self._wait_until_unlock()
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
+
+            value_saved = []
+            for row in self.global_multiprocessing_shared_dict[self._the_key_for_memory_data]:
+                json_string = self._json.dumps(row, sort_keys=True).strip()
+                result = one_row_json_string_filter(json_string)
+                if (result != True):
+                    value_saved.append(row)
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_memory_data] = value_saved
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
+            return
+
         if self.use_sqlite:
             need_to_get_deleted_value_list = []
             for row in self.sql_cursor.execute(
@@ -582,6 +662,21 @@ class Database_Of_Yingshaoxo:
                 #return True
         ```
         """
+        if self.global_multiprocessing_shared_dict != None:
+            self._wait_until_unlock()
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
+
+            value_saved = []
+            for row in self.global_multiprocessing_shared_dict[self._the_key_for_memory_data]:
+                result = one_row_dict_filter(json.loads(row))
+                if (result != True):
+                    value_saved.append(row)
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_memory_data] = value_saved
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
+            return
+
         if self.use_sqlite:
             need_to_get_deleted_value_list = []
             for row in self.sql_cursor.execute(
@@ -643,6 +738,24 @@ class Database_Of_Yingshaoxo:
                 #return None
         ```
         """
+        if self.global_multiprocessing_shared_dict != None:
+            self._wait_until_unlock()
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
+
+            value_saved = []
+            for row in self.global_multiprocessing_shared_dict[self._the_key_for_memory_data]:
+                json_string = self._json.dumps(row, sort_keys=True).strip()
+                result = one_row_json_string_handler(json_string)
+                if (result != None):
+                    value_saved.append(result)
+                else:
+                    value_saved.append(row)
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_memory_data] = value_saved
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
+            return
+
         if self.use_sqlite:
             need_to_get_updated_value_list = []
 
@@ -684,6 +797,23 @@ class Database_Of_Yingshaoxo:
                 #return None
         ```
         """
+        if self.global_multiprocessing_shared_dict != None:
+            self._wait_until_unlock()
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
+
+            value_saved = []
+            for row in self.global_multiprocessing_shared_dict[self._the_key_for_memory_data]:
+                result = one_row_dict_handler(row)
+                if (result != None):
+                    value_saved.append(result)
+                else:
+                    value_saved.append(row)
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_memory_data] = value_saved
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
+            return
+
         if self.use_sqlite:
             need_to_get_updated_value_list = []
 
@@ -717,6 +847,9 @@ class Database_Of_Yingshaoxo:
                 self.add(one)
 
     def refactor_database(self):
+        if self.global_multiprocessing_shared_dict != None:
+            return
+
         if self.use_sqlite:
             return
 
@@ -728,6 +861,9 @@ class Database_Of_Yingshaoxo:
         self._io.write(self.database_txt_file_path, "\n".join(lines)+"\n")
 
     def clear_database(self):
+        if self.global_multiprocessing_shared_dict != None:
+            return
+
         if self.use_sqlite:
             self.sql_cursor.execute(
                 f"DELETE FROM {self._sql_table_name}"
@@ -736,6 +872,17 @@ class Database_Of_Yingshaoxo:
             return
 
         self._io.write(self.database_txt_file_path, "")
+
+    def backup_global_multiprocessing_shared_dict(self):
+        if self.global_multiprocessing_shared_dict != None:
+            self._wait_until_unlock()
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
+
+            json_string = self._json.dumps(self.global_multiprocessing_shared_dict[self._the_key_for_memory_data], sort_keys=True).strip()
+
+            self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
+
+            self._io.write(self.database_txt_file_path, json_string)
 
     @staticmethod
     def generate_code_from_yrpc_protocol(which_language: str, input_folder: str, input_files: list[str], output_folder: str = "src/generated_yrpc"):
@@ -786,8 +933,8 @@ class Database_Of_Yingshaoxo:
             for variable_type in data_model_name_list:
                 database_class_list.append(f"""
 class Yingshaoxo_Database_{variable_type}:
-    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="{variable_type}", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="{variable_type}", database_base_folder=database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict)
 
     def add(self, item: {variable_type}):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -810,7 +957,7 @@ class Yingshaoxo_Database_{variable_type}:
 
             for variable_type in data_model_name_list:
                 database_excutor_class_property_list.append(f"""
-        self.{variable_type} = Yingshaoxo_Database_{variable_type}(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
+        self.{variable_type} = Yingshaoxo_Database_{variable_type}(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict)
                 """.rstrip().lstrip('\n'))
 
 
@@ -963,7 +1110,7 @@ def _update(self, old_item_filter: Any, new_item: Any):
 
 
 class Yingshaoxo_Database_Excutor_{identity_name}:
-    def __init__(self, database_base_folder: str, use_sqlite: bool = False):
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None):
         self._database_base_folder = database_base_folder
 {database_excutor_class_property_list_text}
 
