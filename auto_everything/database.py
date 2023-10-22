@@ -366,7 +366,7 @@ class Database_Of_Yingshaoxo:
     position at start | +   +    +   +
     position at end   |                   +   +
     """
-    def __init__(self, database_name: str, database_base_folder: str = "./yingshaoxo_database", use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None) -> None:
+    def __init__(self, database_name: str, database_base_folder: str = "./yingshaoxo_database", use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None, auto_backup: bool = False) -> None:
         from auto_everything.disk import Disk
         from auto_everything.io import IO
         from auto_everything.time import Time
@@ -387,6 +387,7 @@ class Database_Of_Yingshaoxo:
 
         self.use_sqlite = use_sqlite
         self.global_multiprocessing_shared_dict = global_multiprocessing_shared_dict
+        self.auto_backup = auto_backup
 
         if self.global_multiprocessing_shared_dict != None:
             # There should have a database backup function to backup global_multiprocessing_shared_dict into a file
@@ -396,6 +397,17 @@ class Database_Of_Yingshaoxo:
             self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
             # if you want to make sure there have no competation, you have to make an order list, where if you want to access that resource, you make an order first by using a unique id, then wait for 1 second to access it. If others see there has order, they will simply wait until order is gone or timeout. If an order timeout for 10 seconds, you cancel it by your hand.
             self.database_txt_file_path = self._disk.join_paths(self.database_base_folder, f"{self.database_name}_memory.txt")
+            self.last_save_time = self._time.get_current_timestamp_in_10_digits_format()
+
+            try:
+                if self._disk.exists(self.database_txt_file_path):
+                    json_string =self._io.read(self.database_txt_file_path)
+                    json_object = self._json.loads(json_string)
+                    if type(json_object) == list:
+                        self.global_multiprocessing_shared_dict[self._the_key_for_memory_data] = json_object
+            except Exception as e:
+                print(e)
+
             return
 
         if self.use_sqlite == False:
@@ -432,6 +444,22 @@ class Database_Of_Yingshaoxo:
 
     def _wait_until_unlock(self):
         start_time = self._time.get_datetime_object_from_timestamp(self._time.get_current_timestamp_in_10_digits_format())
+
+        if self.auto_backup == True:
+            save_data = False
+            if (self._time.get_current_timestamp_in_10_digits_format() - self.last_save_time) > 1800: # 60 * 30 seconds
+                # save data for every half hour
+                save_data = True
+                self.last_save_time = self._time.get_current_timestamp_in_10_digits_format()
+                while True:
+                    if self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] == False:
+                        self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
+
+                        json_string = self._json.dumps(self.global_multiprocessing_shared_dict[self._the_key_for_memory_data], sort_keys=True).strip()
+                        self._io.write(self.database_txt_file_path, json_string)
+                        self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
+                        break
+
         while True:
             if self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] == False:
                 break
@@ -933,8 +961,8 @@ class Database_Of_Yingshaoxo:
             for variable_type in data_model_name_list:
                 database_class_list.append(f"""
 class Yingshaoxo_Database_{variable_type}:
-    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="{variable_type}", database_base_folder=database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None, auto_backup: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="{variable_type}", database_base_folder=database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
 
     def add(self, item: {variable_type}):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -957,7 +985,7 @@ class Yingshaoxo_Database_{variable_type}:
 
             for variable_type in data_model_name_list:
                 database_excutor_class_property_list.append(f"""
-        self.{variable_type} = Yingshaoxo_Database_{variable_type}(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict)
+        self.{variable_type} = Yingshaoxo_Database_{variable_type}(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
                 """.rstrip().lstrip('\n'))
 
 
@@ -1110,7 +1138,7 @@ def _update(self, old_item_filter: Any, new_item: Any):
 
 
 class Yingshaoxo_Database_Excutor_{identity_name}:
-    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None):
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None, auto_backup: bool = False):
         self._database_base_folder = database_base_folder
 {database_excutor_class_property_list_text}
 
