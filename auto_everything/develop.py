@@ -1144,7 +1144,7 @@ if __name__ == "__main__":
         return (await service_instance.{function_name}(headers, item)).to_dict()
             """.rstrip().lstrip('\n'))
 
-        
+
         service_class_function_list_text = "\n\n".join(service_class_function_list)
         service_api_function_list_text = "\n\n".join(service_api_function_list)
 
@@ -1154,7 +1154,7 @@ from .{identity_name}_objects import *
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from starlette.responses import FileResponse 
+from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
@@ -1171,7 +1171,7 @@ def init(service_instance: Any):
 {service_api_function_list_text}
 
 
-def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/", only_return_app: bool = False):
     init(service_instance=service_instance)
 
     app = FastAPI()
@@ -1200,12 +1200,15 @@ def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_u
         else:
             print(f"Error: You should give me an absolute html_folder_path than {{html_folder_path}}")
 
+    if only_return_app == True:
+        return app
+
     print(f"You can see the docs here: http://127.0.0.1:{{port}}/docs")
     uvicorn.run( #type: ignore
         app=app,
         host="0.0.0.0",
         port=int(port)
-    ) 
+    )
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ def init(service_instance: Any):
         return (await service_instance.create_hello_request(headers, item)).to_dict()
 
 
-def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/", only_return_app: bool = False):
     init(service_instance=service_instance)
 
     app = FastAPI()
@@ -54,12 +54,15 @@ def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_u
         else:
             print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
 
+    if only_return_app == True:
+        return app
+
     print(f"You can see the docs here: http://127.0.0.1:{port}/docs")
     uvicorn.run( #type: ignore
         app=app,
         host="0.0.0.0",
         port=int(port)
-    ) 
+    )
 
 
 if __name__ == "__main__":
