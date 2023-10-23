@@ -3,13 +3,10 @@ from build.test_protobuff_code_objects import *
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from starlette.responses import FileResponse 
+from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
-
-
-router = APIRouter()
 
 
 class Service_test_protobuff_code:
@@ -17,7 +14,7 @@ class Service_test_protobuff_code:
         return hello_request()
 
 
-def init(service_instance: Any):
+def init(service_instance: Any, router: Any):
     @router.post("/create_hello_request/", tags=["test_protobuff_code"])
     async def create_hello_request(request: Request, item: hello_request) -> hello_request:
         item = hello_request().from_dict(item.to_dict())
@@ -26,7 +23,9 @@ def init(service_instance: Any):
 
 
 def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/", only_return_app: bool = False):
-    init(service_instance=service_instance)
+    router = APIRouter()
+
+    init(service_instance=service_instance, router=router)
 
     app = FastAPI()
     app.add_middleware(

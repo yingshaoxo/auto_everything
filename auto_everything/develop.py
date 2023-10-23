@@ -1160,19 +1160,18 @@ import uvicorn
 import os
 
 
-router = APIRouter()
-
-
 class Service_{identity_name}:
 {service_class_function_list_text}
 
 
-def init(service_instance: Any):
+def init(service_instance: Any, router: Any):
 {service_api_function_list_text}
 
 
 def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/", only_return_app: bool = False):
-    init(service_instance=service_instance)
+    router = APIRouter()
+
+    init(service_instance=service_instance, router=router)
 
     app = FastAPI()
     app.add_middleware(
