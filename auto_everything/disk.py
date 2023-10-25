@@ -787,7 +787,7 @@ class Disk:
             return root
         else:
             result_list = []
-            queue = [root_node]
+            queue = [root]
             while len(queue) > 0:
                 node = queue[0]
                 queue = queue[1:]
