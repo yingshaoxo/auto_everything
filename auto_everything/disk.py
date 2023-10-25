@@ -1,26 +1,27 @@
 from __future__ import annotations
 
-import base64
-from dataclasses import dataclass
-import datetime
-import pathlib
-import tempfile
 from typing import Any, Iterable, List, Tuple
-from pathlib import Path
+
 import os
 import re
 import json
-import hashlib
-import unicodedata
-import string
-from io import BytesIO
-from fnmatch import fnmatch
-import shutil
 import random
-
+import string
+import hashlib
 import copy
 import struct
 import sys
+import base64
+import datetime
+import shutil
+from io import BytesIO
+
+from dataclasses import dataclass
+import pathlib
+import tempfile
+from pathlib import Path
+import unicodedata
+from fnmatch import fnmatch
 
 from auto_everything.terminal import Terminal
 t = Terminal(debug=True)
@@ -604,7 +605,19 @@ class Disk:
         gitignore_text: str|None = None,
     ) -> _FileInfo:
         """
-        Get files recursively under a folder.
+        Get files and folders recursively under a folder.
+        This function will return you a tree object as:
+        ```
+            @dataclass
+            class _FileInfo:
+                path: str
+                is_folder: bool
+                is_file: bool
+                folder: str
+                name: str
+                level: int
+                children: List[_FileInfo] | None = None
+        ```
 
         Parameters
         ----------
@@ -614,6 +627,8 @@ class Disk:
         gitignore_text: str
             similar to git's .gitignore file, if any file matchs any rule, it won't be inside of the 'return file list'
         """
+        folder = self._expand_user(folder)
+
         root = _FileInfo(
             path=folder,
             is_folder=True,
@@ -675,6 +690,111 @@ class Disk:
         dive(root)
 
         return root
+
+    def get_folder_and_files_with_gitignore(
+        self,
+        folder: str,
+        include_docker_ignore_file: bool = False,
+        return_list_than_tree: bool = False,
+    ) -> _FileInfo | list[_FileInfo]:
+        """
+        Get files and folders recursively under a folder.
+        This function will return you a tree object as:
+        ```
+            @dataclass
+            class _FileInfo:
+                path: str
+                is_folder: bool
+                is_file: bool
+                folder: str
+                name: str
+                level: int
+                children: List[_FileInfo] | None = None
+        ```
+
+        Parameters
+        ----------
+        folder: string
+        include_docker_ignore_file: bool = False,
+        return_list_than_tree: bool = False,
+        """
+        folder = self._expand_user(folder)
+
+        root = _FileInfo(
+            path=folder,
+            is_folder=True,
+            is_file=False,
+            folder=self.get_directory_name(folder),
+            name=self.get_file_name(folder),
+            level=0,
+            children=None
+        )
+
+        def dive(node: _FileInfo, git_ignore_pattern_list: list[str] = []):
+            folder = node.path
+
+            if not os.path.isdir(folder):
+                return
+
+            items = os.listdir(folder)
+            if len(items) == 0:
+                return
+
+            ignore_pattern_list = git_ignore_pattern_list
+            if ".gitignore" in items:
+                temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".gitignore")).decode("utf-8", errors="ignore")
+                temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
+                ignore_pattern_list += temp_git_ignore_pattern_list
+            if ".dockerignore" in items:
+                temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".dockerignore")).decode("utf-8", errors="ignore")
+                temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
+                ignore_pattern_list += temp_git_ignore_pattern_list
+            ignore_pattern_list.append(".git")
+            ignore_pattern_list = list(set(ignore_pattern_list))
+            #print(ignore_pattern_list)
+
+            files_and_folders: list[_FileInfo] = []
+            for filename in items:
+                file_path = os.path.join(folder, filename)
+
+                if self._file_match_the_gitignore_rule_list(
+                    start_folder=node.path,
+                    file_path=file_path,
+                    ignore_pattern_list=ignore_pattern_list,
+                ):
+                    continue
+
+                new_node = _FileInfo(
+                    path=file_path,
+                    is_folder=os.path.isdir(file_path),
+                    is_file=os.path.isfile(file_path),
+                    folder=self.get_directory_name(file_path),
+                    name=self.get_file_name(file_path),
+                    level=node.level + 1,
+                    children=None
+                )
+                dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list)
+                files_and_folders.append(
+                    new_node
+                )
+
+            files_and_folders.sort(key=lambda node_: self._super_sort_key_function(node_.name))
+            node.children = files_and_folders
+
+        dive(root, [])
+
+        if return_list_than_tree == False:
+            return root
+        else:
+            result_list = []
+            queue = [root_node]
+            while len(queue) > 0:
+                node = queue[0]
+                queue = queue[1:]
+                if node.children != None:
+                    queue += node.children
+                result_list.append(node)
+            return result_list
 
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)
