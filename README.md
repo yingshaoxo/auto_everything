@@ -14,16 +14,16 @@ I lost my job for almost 2 years. If you wish to see me alive, please buy me som
 #### Installation (For Python >= 3.10)
 
 ```bash
-pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
+python3 -m pip install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
 
-# Use github on cares, you may get banned(404) by saying the 'fuck' word: https://yingshaoxo.xyz/pictures/github/index.html
+# Use github on care, you may get banned(404) by saying the 'fuck' word: https://yingshaoxo.xyz/pictures/github/index.html
 ```
 
 or
 
 
 ```bash
-pip install auto_everything --break-system-packages
+python3 -m pip install auto_everything --break-system-packages
 ```
 
 > What the fuck the `debian` or `pip` is thinking of? Why we can't use pip to directly install a package anymore? **debian/ubuntu linux branch** want to force people to let their package go through **a strict censorship process** so that they can decide which software is good, which is not?
@@ -39,11 +39,11 @@ pip install auto_everything --break-system-packages
 #### Installation (For 3.5 <= Python < 3.10)
 
 ```bash
-poetry add auto_everything==3.9
+sudo pip3 install auto_everything==3.9
 
 or
 
-sudo pip3 install auto_everything==3.9
+poetry add auto_everything==3.9
 ```
 
 <!-- #### Magic
