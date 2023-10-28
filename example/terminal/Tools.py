@@ -141,6 +141,11 @@ git checkout master && git merge upstream/master  --allow-unrelated-histories
 git checkout main && git merge upstream/main  --allow-unrelated-histories
         """)
 
+    def add_remote_git_repo_url(self, repo_url: str):
+        t.run(f"""
+git remote set-url --add --push origin {repo_url}
+        """)
+
     def abort(self):
         t.run(f"""
         git merge --abort

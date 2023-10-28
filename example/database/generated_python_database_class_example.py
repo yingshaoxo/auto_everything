@@ -138,8 +138,8 @@ def _update(self, old_item_filter: Any, new_item: Any):
 
 
 class Yingshaoxo_Database_Yingshaoxo_info:
-    def __init__(self, database_base_folder: str) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Yingshaoxo_info", database_base_folder=database_base_folder)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Yingshaoxo_info", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
 
     def add(self, item: Yingshaoxo_info):
         self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -161,9 +161,9 @@ class Yingshaoxo_Database_Yingshaoxo_info:
 
 
 class Yingshaoxo_Database_Excutor:
-    def __init__(self, database_base_folder: str):
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False):
         self._database_base_folder = database_base_folder
-        self.Yingshaoxo_info = Yingshaoxo_Database_Yingshaoxo_info(database_base_folder=self._database_base_folder)
+        self.Yingshaoxo_info = Yingshaoxo_Database_Yingshaoxo_info(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
 
 
 if __name__ == "__main__":

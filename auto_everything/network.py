@@ -5,6 +5,7 @@ from pathlib import Path
 import os
 import http.client as httplib
 from urllib import request
+import json
 
 from auto_everything.base import Terminal, OS
 
@@ -278,6 +279,30 @@ class Network:
         a_network = ipaddress.ip_network(ip_network)
         return an_address in a_network
 
+    def send_a_get_request(self, url: str, headers: dict | None=None, return_bytes: bool = False) -> str | bytes:
+        a_request = request.Request(url, method="GET")
+        if headers != None:
+            for key, value in headers.items():
+                a_request.add_header(key, value)
+        r_ = request.urlopen(a_request)
+        content = r_.read()
+        if return_bytes == True:
+            return content
+        else:
+            return content.decode("utf-8", errors="ignore")
+
+    def send_a_post(self, url: str, data: dict, headers: dict | None=None) -> str:
+        a_request = request.Request(url, method="POST")
+        a_request.add_header('Content-Type', 'application/json')
+        if headers != None:
+            for key, value in headers.items():
+                a_request.add_header(key, value)
+        data = json.dumps(data, indent=4)
+        data = data.encode("utf-8", errors="ignore")
+        r_ = request.urlopen(a_request, data=data)
+        content = r_.read().decode("utf-8", errors="ignore")
+        return content
+
 
 if __name__ == "__main__":
     network = Network()
@@ -290,4 +315,5 @@ if __name__ == "__main__":
     # text_info = net.get_text_record_by_using_domain_url("https://gmail.com/")
     # print(text_info)
 
-    network.ip_port_forward("127.0.0.1:9998", "127.0.0.1:5551")
+    #network.ip_port_forward("127.0.0.1:9998", "127.0.0.1:5551")
+    print(network.send_a_post(url="http://127.0.0.1:1212/seed", data={"1":"1"}, headers={"hi": "you"}))

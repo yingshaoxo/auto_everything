@@ -12,8 +12,6 @@ import shlex
 import subprocess
 # from multiprocessing import Manager; share_dict = Manager().dict()
 
-import psutil
-
 
 class Terminal:
     """
@@ -62,7 +60,7 @@ class Terminal:
 
         self._io = IO()
 
-    def fix_path(self, path: str, username: str | None = None) -> str:
+    def fix_path(self, path: str, username: str | None = None, startswith: bool = False) -> str:
         # """
         # replace ~ with system username
         # // depressed, please use expanduser_in_path
@@ -74,6 +72,22 @@ class Terminal:
         # username : string
         #    Linux system username
         # """
+        if startswith == True:
+            if not path.startswith("~"):
+                return path
+            else:
+                head_string = ""
+                tail_string = path[1:]
+
+                if username is None:
+                    head_string = os.path.expanduser("~")
+                elif username == "root":
+                    head_string = "/root"
+                else:
+                    head_string = "/".join(os.path.expanduser("~").split("/")[:-1]) + "/" + username
+
+                return head_string + tail_string
+
         if username is None:
             path = path.replace("~", os.path.expanduser("~"))
         elif username == "root":
@@ -112,7 +126,7 @@ class Terminal:
         path = self.fix_path(path)
         return os.path.exists(path)
 
-    def __text_to_sh(self, text: str) -> Tuple[str, str]:
+    def __text_to_sh(self, text: str, wait: bool=False) -> Tuple[str, str]:
         m = hashlib.sha256()
         m.update(str(datetime.now()).encode("utf-8"))
         m.update(text.encode("utf-8"))
@@ -120,7 +134,10 @@ class Terminal:
         # pre_line = f"cd {self.current_dir}\n\n"
         # text = pre_line + text
         self._io.write(temp_sh, text)
-        return "bash {path} &".format(path=temp_sh), temp_sh
+        if wait == False:
+            return "bash {path} &".format(path=temp_sh), temp_sh
+        else:
+            return "bash {path}".format(path=temp_sh), temp_sh
 
     def __text_to_py(self, text: str) -> Tuple[str, str]:
         m = hashlib.sha256()
@@ -136,7 +153,7 @@ class Terminal:
         except Exception:
             pass
 
-    def run(self, c: str, cwd: str | None = None, wait: bool = True):
+    def run(self, c: str, cwd: str | None = None, wait: bool = True, use_os_system: bool = False):
         """
         run shell commands without value returning
 
@@ -148,6 +165,8 @@ class Terminal:
             current working directory
         wait: bool
             True, this command may keep running forever
+        use_os_system: bool
+            False, if this is ture, it will use os.system() to execute command. This will let this function return None
         """
 
         if cwd is None:
@@ -161,7 +180,21 @@ class Terminal:
             print("\n" + "-" * 20 + "\n")
             print(c)
             print("\n" + "-" * 20 + "\n")
-        c, temp_sh = self.__text_to_sh(c)
+
+        if (use_os_system == True):
+            c = f'cd "{os.path.abspath(cwd)}"' + "\n\n" + c
+            c, temp_sh = self.__text_to_sh(c, wait=True)
+        else:
+            c, temp_sh = self.__text_to_sh(c, wait=False)
+
+        if (use_os_system == True):
+            try:
+                os.system(c)
+                self.__remove_temp_sh(temp_sh)
+            except Exception as e:
+                self.__remove_temp_sh(temp_sh)
+                raise e
+            return None
 
         try:
             args_list = shlex.split(c)
@@ -191,8 +224,11 @@ class Terminal:
                 while p.poll() is None:
                     if p.stdout is None:
                         break
-                    line = p.stdout.readline()  # strip(' \n')
-                    print(line, end="")
+                    if p.stdout.readable():
+                        char = p.stdout.read(1)
+                        print(char, end="", flush=True)
+                    #line = p.stdout.readline()
+                    #print(line, end="", flush=True)
             except KeyboardInterrupt:
                 self.__remove_temp_sh(temp_sh)
                 self.kill_a_process_by_pid(p.pid)
@@ -336,7 +372,7 @@ class Terminal:
         cwd: string
             current working directory
         """
-        c = code 
+        c = code
 
         if cwd is None:
             cwd = self.current_dir
@@ -464,17 +500,16 @@ class Terminal:
             self.run_program(command, cwd=cwd)
         elif wait is True:
             self.run(command, cwd=cwd, wait=True)
-    
+
     def _get_pids(self, name: str) -> List[str]:
         """
         name: what's the name of that program ; string
 
         get a list of pids, only available in Linux ; [string, ...]
         """
-        """
         if self.machine_type == "darwin":
             # it is mac os
-            lines = self.run_command(f"pgrep {name}").strip("\n ").splits("\n")
+            lines = self.run_command(f"pgrep {name}").strip("\n ").split("\n")
             pids = [i.strip("\n ") for i in lines]
             return pids
         else:
@@ -487,33 +522,32 @@ class Terminal:
                 if name in command:
                     target_pids.append(pid)
             return target_pids
-        """
-        pids:list[str] = []
-        # Iterate over all running process
-        for proc in psutil.process_iter():
-            try:
-                # Get process name & pid from process object.
-                # processName = proc.name()
-                process_id = proc.pid
-                process_command = " ".join(proc.cmdline())
-                if name in process_command:
-                    pids.append(str(process_id))
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                pass
-        return pids
+
+        # pids:list[str] = []
+        # # Iterate over all running process
+        # for proc in psutil.process_iter():
+        #     try:
+        #         # Get process name & pid from process object.
+        #         # processName = proc.name()
+        #         process_id = proc.pid
+        #         process_command = " ".join(proc.cmdline())
+        #         if name in process_command:
+        #             pids.append(str(process_id))
+        #     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        #         pass
+        # return pids
 
     def _get_all_running_pids(self) -> List[str]:
-        pids:list[str] = []
-        # Iterate over all running process
-        for proc in psutil.process_iter():
-            try:
-                # Get process name & pid from process object.
-                # processName = proc.name()
-                process_id = proc.pid
-                pids.append(str(process_id))
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                pass
-        return pids
+        if self.machine_type == "darwin":
+            # it is mac os
+            lines = self.run_command(f'pgrep ""').strip("\n ").split("\n")
+            pids = [i.strip("\n ") for i in lines]
+            return pids
+        else:
+            # it is Linux
+            pids = os.listdir("/proc")
+            pids = [i for i in pids if i.isdigit()]
+            return pids
 
     def is_running(self, name: str) -> bool:
         """
@@ -529,7 +563,7 @@ class Terminal:
             return True
         else:
             return False
-    
+
     def is_running_by_pid(self, pid: int | str) -> bool:
         """
         cheack if a program is running by pid
@@ -544,7 +578,7 @@ class Terminal:
             return True
         else:
             return False
-    
+
     def kill_a_process_by_pid(self, pid: int | str, force: bool = True, wait: bool = False, timeout: int = 30):
         """
         kill a program by its pid(process id)
@@ -572,7 +606,7 @@ class Terminal:
                 os.killpg(os.getpgid(int(pid)), signal.SIGINT)  # This is typically initiated by pressing Ctrl+C
             except Exception as e:
                 print(e)
-        
+
         if wait is True:
             while self.is_running_by_pid(pid) and timeout > 0:
                 time.sleep(1)
@@ -634,54 +668,137 @@ class Terminal_User_Interface:
             # for windows platfrom
             os.system('cls')
 
-    def confirm_box(self, text: str, yes_callback_function: Callable[[], None], no_callback_function: Callable[[], None]):
+    def confirm_box(self, text: str, yes_callback_function: Callable[[], None] | None = None, no_callback_function: Callable[[], None] | None = None) -> str:
         """
         terminal_user_interface.confirm_box(
-            "Are you sure to delete it?", 
+            "Are you sure to delete it?",
             lambda: print("yes"),
             lambda: print("no"),
+        )
+
+        #or
+
+        y_or_n = terminal_user_interface.confirm_box(
+            "Are you sure to delete it?",
+            None,
+            None,
         )
         """
         while True:
             self.clear_screen()
-            user_response = input(f"{text}(y/n) _").strip()
+            user_response = input(f"{text}(y/n) ").strip().lower()
 
             if user_response.lower() == "n":
-                no_callback_function()
-                break
+                if (no_callback_function != None):
+                    no_callback_function()
+                return "n"
             elif user_response.lower() == "y":
-                yes_callback_function()
-                break
+                if (yes_callback_function != None):
+                    yes_callback_function()
+                return "y"
 
-    def selection_box(self, text: str, selections: list[Tuple[str, Callable[[],None]]]):
+    def selection_box(self, text: str, selections: list[Tuple[str, Callable[[],None] | None]], seperate_page_loading_function: Callable[[int, int], list[Tuple[str, Callable[[],None] | None]]] | None = None) -> str:
         """
-        terminal_user_interface = Terminal_User_Interface()
         terminal_user_interface.selection_box(
-            "Please do a choice:", 
+            "Please do a choice:",
             [
                 ("the_a", lambda: print("You choose a")),
                 ("the_b", lambda: print("You choose b"))
             ]
         )
+
+        #or
+
+        the_a_or_the_b = terminal_user_interface.selection_box(
+            "Please do a choice:",
+            [
+                ("the_a", None),
+                ("the_b", None)
+            ]
+        )
+
+        ___
+
+        def seperate_page_loading_function(page_size:int, current_page:int):
+            all_elements = [
+                ("the_a", None),
+                ("the_b", None),
+                ...
+            ]
+            index = page_size * current_page
+            return all_elements[index: index + page_size]
         """
-        from string import ascii_letters
-        while True:
-            self.clear_screen()
-            print(text)
-            print("\n".join([f"{ascii_letters[index]}.{one[0]}" for index, one in enumerate(selections)]))
-            max_index = len(selections)-1
-            max_alphabet = ascii_letters[max_index]
-            user_response = input(f"What do you choose? (a-{max_alphabet}) _").strip()
-            if len(user_response) != 1:
-                continue
-            else:
-                if user_response in ascii_letters[0: max_index + 1]:
-                    selections[ascii_letters.find(user_response)][1]()
-                    break
-    
-    def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None]):
-        user_response = input(text+" _").strip()
-        if (user_response == ""):
-            handle_function(default_value)
+        if seperate_page_loading_function == None:
+            # single selection, no real time list
+            while True:
+                self.clear_screen()
+                print(text)
+                print("\n".join([f"    {index}. {one[0]}" for index, one in enumerate(selections)]))
+                max_index = len(selections)-1
+                user_response = input(f"What do you choose? (0-{str(max_index)}) ").strip()
+                try:
+                    select_index = int(user_response)
+                    if 0 <= select_index <= max_index:
+                        if selections[select_index][1] != None:
+                            selections[select_index][1]() # type: ignore
+                        return selections[select_index][0]
+                except Exception as e:
+                    pass
         else:
+            page_size = 10
+            current_page = 0
+            while True:
+                self.clear_screen()
+                print(text)
+                try:
+                    selections = seperate_page_loading_function(page_size, current_page)
+
+                    print("\n".join([f"    {index}. {one[0]}" for index, one in enumerate(selections)]))
+                    print()
+                    print(f"(n for next_page, p for previous_page, j+number for page_jump)")
+                    max_index = len(selections)-1
+                    user_response = input(f"What do you choose? (0-{str(max_index)}) ").strip().lower()
+
+                    if user_response == "n":
+                        current_page += 1
+                        selections = seperate_page_loading_function(page_size, current_page)
+                    elif user_response == "p":
+                        current_page -= 1
+                        selections = seperate_page_loading_function(page_size, current_page)
+                    elif user_response.startswith("j"):
+                        temp_user_response = user_response[1:]
+                        if all([char.isdigit() for char in temp_user_response]):
+                            current_page = int(temp_user_response)
+                        selections = seperate_page_loading_function(page_size, current_page)
+
+                    if all([char.isdigit() for char in user_response]):
+                        select_index = int(user_response)
+                        final_result = None
+                        if 0 <= select_index <= max_index:
+                            if selections[select_index][1] != None:
+                                selections[select_index][1]() # type: ignore
+                            final_result = selections[select_index][0]
+
+                        if final_result != None:
+                            return final_result
+                except Exception as e:
+                    print(e)
+                    time.sleep(3)
+                    pass
+
+    def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None] | None) -> str:
+        """
+        your_name = terminal_user_interface.input_box(
+            "Please input your name:",
+            "Nobody",
+            None
+        )
+        """
+        user_response = input(text).strip()
+        if (user_response == ""):
+            user_response = default_value
+
+        if handle_function != None:
             handle_function(user_response)
+
+        return user_response

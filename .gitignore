@@ -1,3 +1,5 @@
+poetry.lock
+
 blackhole/
 test_docs/
 .DS_Store

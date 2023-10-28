@@ -5,7 +5,7 @@ from setuptools.command.build_ext import build_ext
 from setuptools import setup, find_packages
 from os.path import dirname, join, abspath
 
-version = "3.23"
+version = "3.30"
 
 # main
 file_path = join(abspath(dirname(__file__)), "README.md")
@@ -133,7 +133,6 @@ setup(
     setup_requires=["pybind11>=2.5.0"],
     install_requires=[
         "setuptools",
-        "psutil",
     ],
     extras_require={
         "video": ["numpy", "librosa", "moviepy>=1.0.0,<1.0.1", "pyaudio", "vosk"],

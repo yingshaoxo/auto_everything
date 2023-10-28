@@ -43,7 +43,7 @@ class IO():
             result = chardet.detect(rawdata)
             if (result != None):
                 encoding = result['encoding']
-            
+
         if os.path.exists(file_path):
             with open(file_path, 'r', encoding=encoding, errors="ignore") as f:
                 result = f.read()

@@ -5,7 +5,7 @@ import re
 class Language():
     def compare_two_sentences(self, sentence1: str, sentence2: str) -> float:
         """
-        return similarity, from `0.0` to `1.0`
+        return similarity, from `0.0` to `1.0`, 1 means equal, 0 means no relate.
 
         Parameters
         ----------

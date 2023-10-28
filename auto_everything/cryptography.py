@@ -286,7 +286,7 @@ class Encryption_And_Decryption():
             new_message += new_char
         return new_message
     
-    def encrypt_a_code_folder(self, source_folder: str, target_folder: str, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], password: str = "yingshaoxo is the best, no one can deny that!!!", text_handle_function: Any = None):
+    def encrypt_a_code_folder(self, source_folder: str, target_folder: str, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], password: str = "yingshaoxo is the best, no one can deny that!!!", text_handle_function: Any = None, gitignore_text: str|None = None):
         from auto_everything.io import IO   
         from auto_everything.disk import Disk
         io_ = IO()
@@ -300,7 +300,7 @@ class Encryption_And_Decryption():
 
         password_dict = self.get_secret_alphabet_dict(password)
 
-        files = disk.get_files(fake_code_folder, recursive=True, type_limiter=type_limiter)
+        files = disk.get_files(fake_code_folder, recursive=True, type_limiter=type_limiter, gitignore_text=gitignore_text)
         for file in files:
             text = io_.read(file)
 
@@ -311,7 +311,7 @@ class Encryption_And_Decryption():
 
             io_.write(file, new_text)
 
-    def decrypt_a_code_folder(self, source_folder: str, target_folder: str, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], password: str = "yingshaoxo is the best, no one can deny that!!!", text_handle_function: Any = None):
+    def decrypt_a_code_folder(self, source_folder: str, target_folder: str, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], password: str = "yingshaoxo is the best, no one can deny that!!!", text_handle_function: Any = None, gitignore_text: str|None = None):
         from auto_everything.io import IO   
         from auto_everything.disk import Disk
         io_ = IO()
@@ -325,7 +325,7 @@ class Encryption_And_Decryption():
 
         password_dict = self.get_secret_alphabet_dict(password)
 
-        files = disk.get_files(predict_code_folder, recursive=True, type_limiter=type_limiter)
+        files = disk.get_files(predict_code_folder, recursive=True, type_limiter=type_limiter, gitignore_text=gitignore_text)
         for file in files:
             text = io_.read(file)
 

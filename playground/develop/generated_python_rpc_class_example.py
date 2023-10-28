@@ -3,13 +3,10 @@ from build.test_protobuff_code_objects import *
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from starlette.responses import FileResponse 
+from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
-
-
-router = APIRouter()
 
 
 class Service_test_protobuff_code:
@@ -17,7 +14,7 @@ class Service_test_protobuff_code:
         return hello_request()
 
 
-def init(service_instance: Any):
+def init(service_instance: Any, router: Any):
     @router.post("/create_hello_request/", tags=["test_protobuff_code"])
     async def create_hello_request(request: Request, item: hello_request) -> hello_request:
         item = hello_request().from_dict(item.to_dict())
@@ -25,8 +22,10 @@ def init(service_instance: Any):
         return (await service_instance.create_hello_request(headers, item)).to_dict()
 
 
-def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
-    init(service_instance=service_instance)
+def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/", only_return_app: bool = False):
+    router = APIRouter()
+
+    init(service_instance=service_instance, router=router)
 
     app = FastAPI()
     app.add_middleware(
@@ -54,12 +53,15 @@ def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_u
         else:
             print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
 
+    if only_return_app == True:
+        return app
+
     print(f"You can see the docs here: http://127.0.0.1:{port}/docs")
     uvicorn.run( #type: ignore
         app=app,
         host="0.0.0.0",
         port=int(port)
-    ) 
+    )
 
 
 if __name__ == "__main__":

@@ -1,21 +1,27 @@
 from __future__ import annotations
-import base64
-from dataclasses import dataclass
-import datetime
-import pathlib
-import tempfile
+
 from typing import Any, Iterable, List, Tuple
-from pathlib import Path
+
 import os
 import re
 import json
-import hashlib
-import unicodedata
-import string
-from io import BytesIO
-from fnmatch import fnmatch
-import shutil
 import random
+import string
+import hashlib
+import copy
+import struct
+import sys
+import base64
+import datetime
+import shutil
+from io import BytesIO
+
+from dataclasses import dataclass
+import pathlib
+import tempfile
+from pathlib import Path
+import unicodedata
+from fnmatch import fnmatch
 
 from auto_everything.terminal import Terminal
 t = Terminal(debug=True)
@@ -46,6 +52,244 @@ class _FileInfo:
     level: int
     # parent: _FileInfo | None = None # You could try to make a global dict[path, _FilelInfo], then iterate twice to set parent
     children: List[_FileInfo] | None = None
+
+
+class Sha1():
+    """A class that mimics that hashlib api and implements the SHA-1 algorithm."""
+
+    def __init__(self):
+        # Initial digest variables
+        self._h = (
+            0x67452301,
+            0xEFCDAB89,
+            0x98BADCFE,
+            0x10325476,
+            0xC3D2E1F0,
+        )
+
+        # bytes object with 0 <= len < 64 used to store the end of the message
+        # if the message length is not congruent to 64
+        self._unprocessed = b''
+        # Length in bytes of all data that has been processed so far
+        self._message_byte_length = 0
+
+    def _left_rotate(self, n, b):
+        """Left rotate a 32-bit integer n by b bits."""
+        return ((n << b) | (n >> (32 - b))) & 0xffffffff
+
+    def _process_chunk(self, chunk, h0, h1, h2, h3, h4):
+        """Process a chunk of data and return the new digest variables."""
+        assert len(chunk) == 64
+
+        w = [0] * 80
+
+        # Break chunk into sixteen 4-byte big-endian words w[i]
+        for i in range(16):
+            w[i] = struct.unpack(b'>I', chunk[i * 4:i * 4 + 4])[0]
+
+        # Extend the sixteen 4-byte words into eighty 4-byte words
+        for i in range(16, 80):
+            w[i] = self._left_rotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1)
+
+        # Initialize hash value for this chunk
+        a = h0
+        b = h1
+        c = h2
+        d = h3
+        e = h4
+
+        for i in range(80):
+            if 0 <= i <= 19:
+                # Use alternative 1 for f from FIPS PB 180-1 to avoid bitwise not
+                f = d ^ (b & (c ^ d))
+                k = 0x5A827999
+            elif 20 <= i <= 39:
+                f = b ^ c ^ d
+                k = 0x6ED9EBA1
+            elif 40 <= i <= 59:
+                f = (b & c) | (b & d) | (c & d)
+                k = 0x8F1BBCDC
+            elif 60 <= i <= 79:
+                f = b ^ c ^ d
+                k = 0xCA62C1D6
+
+            a, b, c, d, e = ((self._left_rotate(a, 5) + f + e + k + w[i]) & 0xffffffff,
+                             a, self._left_rotate(b, 30), c, d)
+
+        # Add this chunk's hash to result so far
+        h0 = (h0 + a) & 0xffffffff
+        h1 = (h1 + b) & 0xffffffff
+        h2 = (h2 + c) & 0xffffffff
+        h3 = (h3 + d) & 0xffffffff
+        h4 = (h4 + e) & 0xffffffff
+
+        return h0, h1, h2, h3, h4
+
+    def update(self, arg: bytes | bytearray):
+        """Update the current digest.
+
+        This may be called repeatedly, even after calling digest or hexdigest.
+
+        Arguments:
+            arg: bytes, bytearray, or BytesIO object to read from.
+        """
+        if isinstance(arg, (bytes, bytearray)):
+            arg = BytesIO(arg)
+
+        # Try to build a chunk out of the unprocessed data, if any
+        chunk = self._unprocessed + arg.read(64 - len(self._unprocessed))
+
+        # Read the rest of the data, 64 bytes at a time
+        while len(chunk) == 64:
+            self._h = self._process_chunk(chunk, *self._h)
+            self._message_byte_length += 64
+            chunk = arg.read(64)
+
+        self._unprocessed = chunk
+        return self
+
+    def digest(self):
+        """Produce the final hash value (big-endian) as a bytes object"""
+        return b''.join(struct.pack(b'>I', h) for h in self._produce_digest())
+
+    def hexdigest(self):
+        """Produce the final hash value (big-endian) as a hex string"""
+        return '%08x%08x%08x%08x%08x' % self._produce_digest()
+
+    def _produce_digest(self):
+        """Return finalized digest variables for the data processed so far."""
+        # Pre-processing:
+        message = self._unprocessed
+        message_byte_length = self._message_byte_length + len(message)
+
+        # append the bit '1' to the message
+        message += b'\x80'
+
+        # append 0 <= k < 512 bits '0', so that the resulting message length (in bytes)
+        # is congruent to 56 (mod 64)
+        message += b'\x00' * ((56 - (message_byte_length + 1) % 64) % 64)
+
+        # append length of message (before pre-processing), in bits, as 64-bit big-endian integer
+        message_bit_length = message_byte_length * 8
+        message += struct.pack(b'>Q', message_bit_length)
+
+        # Process the final chunk
+        # At this point, the length of the message is either 64 or 128 bytes.
+        h = self._process_chunk(message[:64], *self._h)
+        if len(message) == 64:
+            return h
+        return self._process_chunk(message[64:], *h)
+
+
+class Sha256:
+    # I recommend to use md5 or sha1, because this is slow for big file
+    ks = [
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+        0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+        0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+        0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+        0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+        0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+        0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+        0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+        0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+        0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+        0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+        0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+        0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+        0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+        0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+    ]
+
+    hs = [
+        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+        0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+    ]
+
+    M32 = 0xFFFFFFFF
+
+    def __init__(self, m = None):
+        self.mlen = 0
+        self.buf = b''
+        self.k = self.ks[:]
+        self.h = self.hs[:]
+        self.fin = False
+        if m is not None:
+            self.update(m)
+
+    @staticmethod
+    def pad(mlen):
+        mdi = mlen & 0x3F
+        length = (mlen << 3).to_bytes(8, 'big')
+        padlen = 55 - mdi if mdi < 56 else 119 - mdi
+        return b'\x80' + b'\x00' * padlen + length
+
+    @staticmethod
+    def ror(x, y):
+        return ((x >> y) | (x << (32 - y))) & Sha256.M32
+
+    @staticmethod
+    def maj(x, y, z):
+        return (x & y) ^ (x & z) ^ (y & z)
+
+    @staticmethod
+    def ch(x, y, z):
+        return (x & y) ^ ((~x) & z)
+
+    def compress(self, c):
+        w = [0] * 64
+        w[0 : 16] = [int.from_bytes(c[i : i + 4], 'big') for i in range(0, len(c), 4)]
+
+        for i in range(16, 64):
+            s0 = self.ror(w[i - 15],  7) ^ self.ror(w[i - 15], 18) ^ (w[i - 15] >>  3)
+            s1 = self.ror(w[i -  2], 17) ^ self.ror(w[i -  2], 19) ^ (w[i -  2] >> 10)
+            w[i] = (w[i - 16] + s0 + w[i - 7] + s1) & self.M32
+
+        a, b, c, d, e, f, g, h = self.h
+
+        for i in range(64):
+            s0 = self.ror(a, 2) ^ self.ror(a, 13) ^ self.ror(a, 22)
+            t2 = s0 + self.maj(a, b, c)
+            s1 = self.ror(e, 6) ^ self.ror(e, 11) ^ self.ror(e, 25)
+            t1 = h + s1 + self.ch(e, f, g) + self.k[i] + w[i]
+
+            h = g
+            g = f
+            f = e
+            e = (d + t1) & self.M32
+            d = c
+            c = b
+            b = a
+            a = (t1 + t2) & self.M32
+
+        for i, (x, y) in enumerate(zip(self.h, [a, b, c, d, e, f, g, h])):
+            self.h[i] = (x + y) & self.M32
+
+    def update(self, m):
+        if m is None or len(m) == 0:
+            return
+
+        assert not self.fin, 'Hash already finalized and can not be updated!'
+
+        self.mlen += len(m)
+        m = self.buf + m
+
+        for i in range(0, len(m) // 64):
+            self.compress(m[64 * i : 64 * (i + 1)])
+
+        self.buf = m[len(m) - (len(m) % 64):]
+
+    def digest(self):
+        if not self.fin:
+            self.update(self.pad(self.mlen))
+            self.digest = b''.join(x.to_bytes(4, 'big') for x in self.h[:8])
+            self.fin = True
+        return self.digest
+
+    def hexdigest(self):
+        tab = '0123456789abcdef'
+        return ''.join(tab[b >> 4] + tab[b & 0xF] for b in self.digest())
 
 
 class Disk:
@@ -79,7 +323,7 @@ class Disk:
         """
         path = self._expand_user(path)
         return Path(path).exists()
-    
+
     def is_directory(self, path: str) -> bool:
         """
         Check if it is a folder.
@@ -96,10 +340,10 @@ class Disk:
 
     def concatenate_paths(self, *path: str) -> str:
         return os.path.join(*path) # type: ignore
- 
+
     def join_paths(self, *path: str) -> str:
         return self.concatenate_paths(*path)
-    
+
     def join_relative_paths(self, path1: str, path2: str) -> str:
         """
         Join path like: /aa/bb/cc + .././../d.txt
@@ -114,7 +358,7 @@ class Disk:
                 return self.join_paths(path1, path2)
         else:
             return self.join_paths(path1, path2)
-    
+
     def get_current_working_directory(self) -> str:
         """
         Similar to bash script: `cwd`
@@ -133,7 +377,7 @@ class Disk:
             else:
                 new_ignore_pattern_list.append(pattern)
         return new_ignore_pattern_list
-    
+
     def _file_match_the_gitignore_rule_list(self, start_folder: str, file_path: str, ignore_pattern_list: list[str]):
         if not start_folder.endswith("/"):
             start_folder = start_folder + "/"
@@ -142,10 +386,10 @@ class Disk:
 
         if file_path.startswith("./"):
             file_path = file_path[2:]
-        
+
         # if file_path.endswith(".ipynb_checkpoints"):
         #     pass
-        
+
         match = False
         for pattern in ignore_pattern_list:
             if fnmatch(file_path.removeprefix(start_folder), pattern.removeprefix("./")):
@@ -154,11 +398,12 @@ class Disk:
         return match
 
     def get_files(
-        self, 
-        folder: str, 
-        recursive: bool = True, 
-        type_limiter: List[str] | None = None, 
-        gitignore_text: str|None = None
+        self,
+        folder: str,
+        recursive: bool = True,
+        type_limiter: List[str] | None = None,
+        gitignore_text: str|None = None,
+        use_gitignore_file: bool = False
     ) -> List[str]:
         """
         Get files recursively under a folder.
@@ -171,6 +416,8 @@ class Disk:
             a list used to do a type filter, like [".mp3", ".epub"]
         gitignore_text: str
             similar to git's .gitignore file, if any file matchs any rule, it won't be inside of the 'return file list'
+        use_gitignore_file: bool
+            if true, this function will not return any file/folder that matchs .gitignore file rules
         """
         folder = self._expand_user(folder)
         assert os.path.exists(folder), f"{folder} is not exist!"
@@ -202,7 +449,7 @@ class Disk:
                     for f in os.listdir(folder)
                     if os.path.isfile(os.path.join(folder, f))
                 ]
-        
+
         if gitignore_text != None:
             ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=gitignore_text)
 
@@ -214,15 +461,48 @@ class Disk:
                     ignore_pattern_list=ignore_pattern_list
                 ) == False:
                     result_files.append(file)
-            
+
             files = result_files
-        
+
+        if use_gitignore_file:
+            if "version" not in t.run_command("git --version").lower():
+                print("error: git needs to get installed for using 'use_gitignore_file' paramater.")
+                return files
+            ignored_files = []
+            git_folder_list = []
+            for file in files:
+                if "/.git/" in file:
+                    a_git_folder = file.split("/.git/")[0]
+                    if a_git_folder in git_folder_list:
+                        continue
+                    else:
+                        git_folder_list.append(a_git_folder)
+
+                    result = t.run_command(f"git ls-files --other --directory", cwd=a_git_folder).strip()
+                    if len(result) != 0:
+                        if result.lower().startswith("fatal"):
+                            continue
+                        ignored_files += result.split("\n")
+            ignored_files = list(set(ignored_files))
+
+            new_files = []
+            for file in files:
+                if file not in ignored_files:
+                    ok = True
+                    for git_folder in git_folder_list:
+                        if file.startswith(git_folder + "/.git/"):
+                            ok = False
+                            break
+                    if ok:
+                        new_files.append(file)
+            files = new_files
+
         return files
 
     def get_folder_and_files(
-        self, 
-        folder: str, 
-        recursive: bool = True, 
+        self,
+        folder: str,
+        recursive: bool = True,
         type_limiter: List[str] | None = None,
         gitignore_text: str|None = None
     ) -> Iterable[_FileInfo]:
@@ -255,12 +535,12 @@ class Disk:
 
                 if gitignore_text != None:
                     if self._file_match_the_gitignore_rule_list(
-                        start_folder=folder, 
+                        start_folder=folder,
                         file_path=abs_folder_path,
                         ignore_pattern_list=ignore_pattern_list,
                     ):
                         continue
-                
+
                 yield _FileInfo(
                     level=level,
                     path=abs_folder_path,
@@ -284,10 +564,10 @@ class Disk:
                         should_remain = True
                     if should_remain == False:
                         continue
-                
+
                 if gitignore_text != None:
                     if self._file_match_the_gitignore_rule_list(
-                        start_folder=folder, 
+                        start_folder=folder,
                         file_path=abs_folder_path,
                         ignore_pattern_list=ignore_pattern_list,
                     ):
@@ -305,7 +585,7 @@ class Disk:
 
             if recursive == False:
                 break
-    
+
     def _super_sort_key_function(self, element: str) -> int:
         text = ""
         for char in element:
@@ -318,14 +598,26 @@ class Disk:
         return int(text[:10])
 
     def get_folder_and_files_tree(
-        self, 
-        folder: str, 
+        self,
+        folder: str,
         reverse: bool = False,
         type_limiter: List[str] | None = None,
         gitignore_text: str|None = None,
     ) -> _FileInfo:
         """
-        Get files recursively under a folder.
+        Get files and folders recursively under a folder.
+        This function will return you a tree object as:
+        ```
+            @dataclass
+            class _FileInfo:
+                path: str
+                is_folder: bool
+                is_file: bool
+                folder: str
+                name: str
+                level: int
+                children: List[_FileInfo] | None = None
+        ```
 
         Parameters
         ----------
@@ -335,6 +627,8 @@ class Disk:
         gitignore_text: str
             similar to git's .gitignore file, if any file matchs any rule, it won't be inside of the 'return file list'
         """
+        folder = self._expand_user(folder)
+
         root = _FileInfo(
             path=folder,
             is_folder=True,
@@ -353,12 +647,12 @@ class Disk:
             folder = node.path
 
             if not os.path.isdir(folder):
-                return 
+                return
 
             items = os.listdir(folder)
             if len(items) == 0:
-                return 
-            
+                return
+
             files_and_folders: list[_FileInfo] = []
             for filename in items:
                 file_path = os.path.join(folder, filename)
@@ -368,12 +662,12 @@ class Disk:
 
                     if gitignore_text != None:
                         if self._file_match_the_gitignore_rule_list(
-                            start_folder=node.path, 
+                            start_folder=node.path,
                             file_path=file_path,
                             ignore_pattern_list=ignore_pattern_list,
                         ):
                             continue
-                    
+
                     new_node = _FileInfo(
                         path=file_path,
                         is_folder=os.path.isdir(file_path),
@@ -392,16 +686,124 @@ class Disk:
                     continue
             files_and_folders.sort(key=lambda node_: self._super_sort_key_function(node_.name), reverse=reverse)
             node.children = files_and_folders
-        
+
         dive(root)
-        
+
         return root
+
+    def get_folder_and_files_with_gitignore(
+        self,
+        folder: str,
+        include_docker_ignore_file: bool = False,
+        return_list_than_tree: bool = False,
+    ) -> _FileInfo | list[_FileInfo]:
+        """
+        Get files and folders recursively under a folder.
+        This function will return you a tree object as:
+        ```
+            @dataclass
+            class _FileInfo:
+                path: str
+                is_folder: bool
+                is_file: bool
+                folder: str
+                name: str
+                level: int
+                children: List[_FileInfo] | None = None
+        ```
+
+        Parameters
+        ----------
+        folder: string
+        include_docker_ignore_file: bool = False,
+        return_list_than_tree: bool = False,
+        """
+        folder = self._expand_user(folder)
+
+        root = _FileInfo(
+            path=folder,
+            is_folder=True,
+            is_file=False,
+            folder=self.get_directory_name(folder),
+            name=self.get_file_name(folder),
+            level=0,
+            children=None
+        )
+
+        def dive(node: _FileInfo, git_ignore_pattern_list: list[str] = []):
+            folder = node.path
+
+            if not os.path.isdir(folder):
+                return
+
+            items = os.listdir(folder)
+            if len(items) == 0:
+                return
+
+            ignore_pattern_list = git_ignore_pattern_list
+            if ".gitignore" in items:
+                temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".gitignore")).decode("utf-8", errors="ignore")
+                temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
+                ignore_pattern_list += temp_git_ignore_pattern_list
+            if ".dockerignore" in items:
+                temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".dockerignore")).decode("utf-8", errors="ignore")
+                temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
+                ignore_pattern_list += temp_git_ignore_pattern_list
+            ignore_pattern_list.append(".git")
+            ignore_pattern_list = list(set(ignore_pattern_list))
+            #print(ignore_pattern_list)
+
+            files_and_folders: list[_FileInfo] = []
+            for filename in items:
+                file_path = os.path.join(folder, filename)
+
+                if self._file_match_the_gitignore_rule_list(
+                    start_folder=node.path,
+                    file_path=file_path,
+                    ignore_pattern_list=ignore_pattern_list,
+                ):
+                    continue
+
+                new_node = _FileInfo(
+                    path=file_path,
+                    is_folder=os.path.isdir(file_path),
+                    is_file=os.path.isfile(file_path),
+                    folder=self.get_directory_name(file_path),
+                    name=self.get_file_name(file_path),
+                    level=node.level + 1,
+                    children=None
+                )
+                dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list)
+                files_and_folders.append(
+                    new_node
+                )
+
+            files_and_folders.sort(key=lambda node_: self._super_sort_key_function(node_.name))
+            node.children = files_and_folders
+
+        dive(root, [])
+
+        if return_list_than_tree == False:
+            return root
+        else:
+            result_list = []
+            queue = [root]
+            while len(queue) > 0:
+                node = queue[0]
+                queue = queue[1:]
+                if node.children != None:
+                    queue += node.children
+                result_list.append(node)
+            return result_list
 
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)
         return files
-    
+
     def get_absolute_path(self, path: str) -> str:
+        if path.startswith("~"):
+            path = t.fix_path(path)
+
         return os.path.abspath(path=path)
 
     def get_stem_and_suffix_of_a_file(self, path: str) -> Tuple[str, str]:
@@ -417,7 +819,7 @@ class Disk:
         """
         path = self._expand_user(path)
         return os.path.dirname(path)
-    
+
     def get_directory_name(self, path: str):
         """
         /hi/you/abc.txt -> you
@@ -440,6 +842,16 @@ class Disk:
         path = os.path.dirname(path)
         return os.path.basename(path)
 
+    def get_parent_directory_path(self, path: str):
+        """
+        /hi/you/abc.txt -> /hi/you
+        /hi/you -> /hi
+        """
+        path = path.rstrip("/")
+        path = self._expand_user(path)
+        path = os.path.dirname(path)
+        return path
+
     def get_file_name(self, path: str):
         """
         /hi/you/abc.txt -> abc.txt
@@ -455,15 +867,102 @@ class Disk:
         path: string
             the file path
         """
+        segment_size = 1024 * 1024 * 1
         path = self._expand_user(path)
         with open(path, "rb") as f:
             file_hash = hashlib.blake2s()
             while True:
-                data = f.read(8192)
+                #data = f.read(8192)
+                data = f.read(segment_size)
                 if not data:
                     break
                 file_hash.update(data)
         return file_hash.hexdigest()
+
+    def get_hash_of_a_file_by_using_yingshaoxo_method(self, path: str) -> str:
+        """
+        get hash string based on the bytes of a file by using yingshaoxo method.
+
+        Parameters
+        ----------
+        path: string
+            the file path
+        """
+        segment_size = 1024 * 1024 * 1
+        path = self._expand_user(path)
+        file_hash = 0
+        with open(path, "rb") as f:
+            operator_flag = True
+            while True:
+                #data = f.read(8192)
+                data = f.read(segment_size)
+                if not data:
+                    break
+                for one_byte in data:
+                    if operator_flag == True:
+                        file_hash += one_byte
+                        operator_flag = False
+                    else:
+                        file_hash -= one_byte
+                        operator_flag = True
+        file_hash = file_hash % 100000000
+        file_hash = str(file_hash)
+        return file_hash
+
+    def get_hash_of_a_file_by_using_sha1(self, path: str) -> str:
+        """
+        get the sha1 hash string based on the bytes of a file.
+
+        Parameters
+        ----------
+        path: string
+            the file path
+        """
+        segment_size = 1024 * 1024 * 1
+        path = self._expand_user(path)
+        with open(path, "rb") as f:
+            file_hash = hashlib.sha1()
+            while True:
+                #data = f.read(8192)
+                data = f.read(segment_size)
+                if not data:
+                    break
+                file_hash.update(data)
+        return file_hash.hexdigest()
+
+    def get_hash_of_a_folder(self, folder_path: str, print_log: bool = False) -> str:
+        """
+        get the sha1 hash string for a folder.
+
+        Parameters
+        ----------
+        folder_path: string
+            the folder path
+        """
+        folder_path = self._expand_user(folder_path)
+        raw_files = self.get_files(folder_path)
+
+        folder_list = []
+        file_list = []
+        for file in raw_files:
+            if self.is_directory(file):
+                folder_list.append(file)
+            else:
+                file_list.append(file)
+
+        folder_list.sort()
+        file_list.sort()
+
+        general_hash = hashlib.sha1()
+
+        for file in file_list:
+            if print_log:
+                print(file)
+            general_hash.update(self.get_hash_of_a_file_by_using_sha1(file).encode("utf-8", errors="ignore"))
+        for folder in folder_list:
+            general_hash.update(folder.encode("utf-8", errors="ignore"))
+
+        return general_hash.hexdigest()
 
     def get_hash_of_a_path(self, path: str) -> str:
         """
@@ -540,6 +1039,41 @@ class Disk:
             return int("{:.0f}".format(bytes_size / float(1 << 10)))
         elif level == "MB":
             return int("{:.0f}".format(bytes_size / float(1 << 20)))
+        else:
+            return bytes_size
+
+    def get_folder_size(self, path: str, level: str = "B") -> int:
+        """
+        Get folder size in the unit of  B, KB, MB.
+        Parameters
+        ----------
+        path: string
+            the folder path
+        level: string
+            B, KB, or MB
+        """
+        folder_path = path
+        total_size = 0
+
+        for root, directories, files in os.walk(folder_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_size = os.stat(file_path).st_size
+                total_size += file_size
+
+            for directory in directories:
+                directory_path = os.path.join(root, directory)
+                directory_size = os.stat(directory_path).st_size
+                total_size += directory_size
+
+        if level == "B":
+            return int("{:.0f}".format(total_size))
+        elif level == "KB":
+            return int("{:.0f}".format(total_size / float(1 << 10)))
+        elif level == "MB":
+            return int("{:.0f}".format(total_size / float(1 << 20)))
+        else:
+            return total_size
 
     def compress(self, input_folder_path: str, output_zip_path: str, file_format: str = "zip") -> str:
         """
@@ -561,7 +1095,7 @@ class Disk:
             raise Exception(f"The input_folder_path '{input_folder_path}' should exists.")
         if not self.is_directory(input_folder_path):
             raise Exception(f"The input_folder_path '{input_folder_path}' should be an folder.")
-        
+
         output_folder = self.get_directory_path(output_zip_path)
         self.create_a_folder(folder_path=output_folder)
 
@@ -667,6 +1201,15 @@ class Disk:
             buffer = BytesIO(fh.read())
         return buffer
 
+    def get_part_of_a_file_in_bytesio_format_from_a_file(self, file_path: str, file_segment_size_in_bytes: int, segment_number: int) -> BytesIO:
+        if segment_number <= 0:
+            raise Exception("segment_number should be > 0, for example, 1")
+        with open(file_path, "rb") as fh:
+            for _ in range(segment_number-1):
+                fh.read(file_segment_size_in_bytes)
+            buffer = BytesIO(fh.read(file_segment_size_in_bytes))
+        return buffer
+
     def save_bytesio_to_file(self, bytes_io: BytesIO, file_path: str):
         bytes_io.seek(0)
         with open(file_path, "wb") as f:
@@ -715,6 +1258,23 @@ class Disk:
         if self.exists(target_file_path):
             os.remove(target_file_path)
         os.rename(source_file_path, target_file_path)
+
+    def move_a_folder(self, source_folder_path: str, target_folder_path: str):
+        source_folder_path = self._expand_user(source_folder_path)
+        target_folder_path = self._expand_user(target_folder_path)
+        if source_folder_path == target_folder_path:
+            return
+        if self.exists(target_folder_path):
+            self.delete_a_folder(target_folder_path)
+        os.rename(source_folder_path, target_folder_path)
+
+    def copy_a_file(self, source_file_path: str, target_file_path: str):
+        source_file_path = self._expand_user(source_file_path)
+        target_file_path = self._expand_user(target_file_path)
+        if source_file_path == target_file_path:
+            return
+        self.create_a_folder(self.get_directory_path(target_file_path))
+        shutil.copyfile(source_file_path, target_file_path)
 
     def convert_bytes_to_bytesio(self, bytes_data: bytes) -> BytesIO:
         bytes_io = BytesIO()
@@ -990,7 +1550,7 @@ class Dart_File_Hard_Encoder_And_Decoder:
         self._io = IO()
         self._json = json
 
-    def _get_content_json_string(self, source_folder: str) -> str: 
+    def _get_content_json_string(self, source_folder: str) -> str:
         files = self._disk.get_folder_and_files(folder=source_folder, recursive=True)
         object_list = []
         for file in files:

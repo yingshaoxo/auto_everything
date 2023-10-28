@@ -246,8 +246,11 @@ class Python():
                         else:
                             print(function_name)
                 def print_argument_info(function_name: str):
-                    argument_part = ', '.join(my_method_and_propertys[function_name]['arguments_string'].split(', ')[1:])[:-1]
-                    print(argument_part)
+                    if (function_name in my_method_and_propertys.keys()):
+                        argument_part = ', '.join(my_method_and_propertys[function_name]['arguments_string'].split(', ')[1:])[:-1]
+                        print(argument_part)
+                    else:
+                        print(f"No such function: {function_name}")
                 def print_chars(text: str):
                     print(text, end="", flush=True)
                 def clear_screen():
@@ -318,11 +321,27 @@ class Python():
                                     possible_new_words.append(function_string)
                             if len(possible_new_words) == 1:
                                 new_word = possible_new_words[0]
-                            else:
-                                new_word = ""
-                            if new_word != "":
+                                # complete a whole word
                                 final_command_line = final_command_line[:-len(last_word)]
                                 final_command_line += new_word
+                            elif len(possible_new_words) == 0:
+                                new_word = ""
+                                # complete nothing
+                            else:
+                                # complete common word
+                                temp_possible_new_words = [word.lstrip(last_word) for word in possible_new_words]
+                                temp_possible_new_words.sort(key=len)
+                                the_longest_word = temp_possible_new_words[-1]
+                                common_chars = ""
+                                end_i = 0
+                                while True:
+                                    end_i += 1
+                                    current_common_chars = the_longest_word[0:end_i]
+                                    if all([word.startswith(current_common_chars) for word in temp_possible_new_words]):
+                                        common_chars = current_common_chars
+                                    if end_i > len(the_longest_word):
+                                        break
+                                final_command_line += common_chars
                         else:
                             # complete arguments name
                             current_function_name = final_command_line.split(" ")[1].strip()
@@ -378,7 +397,7 @@ class Python():
             # for argument that does have '--name=value'
             for one in named_arguments:
                 argument_name = one[2:].split("=")[0]
-                argument_value = one[2:].split("=")[1]
+                argument_value = "=".join(one[2:].split("=")[1:])
                 argument_type = right_arguments[argument_name]['type_function']
                 if (argument_type != None):
                     custom_arguments[argument_name] = argument_type(argument_value)

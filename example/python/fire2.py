@@ -10,7 +10,7 @@ class Tools():
 
     def hi(self):
         print('hi, yingshaoxo.')
-    
+
     def hi_you(self, you:str):
         print(f"Hi, {you}")
 

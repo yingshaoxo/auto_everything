@@ -2,33 +2,39 @@
 
 Linux automation
 
-#### Help Wanted
+<!-- #### Help Wanted
 
-I lost my job for almost a year. If you wish to see me alive, please buy me some food:
+I lost my job for almost 2 years. If you wish to see me alive, please buy me some food:
 
 * Paypal: https://paypal.me/yingshaoxo
-* Patron: https://www.patreon.com/bePatron?u=45200693
+* Patron: https://www.patreon.com/bePatron?u=45200693 -->
 
 <!-- [<img src="https://github.com/yingshaoxo/yingshaoxo/raw/master/become_a_patron_button.png" width="200">](https://www.patreon.com/bePatron?u=45200693) -->
 
 #### Installation (For Python >= 3.10)
 
 ```bash
-curl -sSL https://install.python-poetry.org | python3
-poetry add "git+https://github.com/yingshaoxo/auto_everything.git@dev"
+pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
 
-or
-
-sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev"
-
-or
-
-sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
+# Use github on cares, you may get banned(404) by saying the 'fuck' word: https://yingshaoxo.xyz/pictures/github/index.html
 ```
 
-> What the fuck the `debian` or `pip` or `python community` is thinking of? Why we can't use pip to directly install a package?
+or
 
-> Those **assohle** who in charge never want to make things easy, are they?
+
+```bash
+pip install auto_everything --break-system-packages
+```
+
+> What the fuck the `debian` or `pip` is thinking of? Why we can't use pip to directly install a package anymore? **debian/ubuntu linux branch** want to force people to let their package go through **a strict censorship process** so that they can decide which software is good, which is not?
+
+> npx 'npm install -g *' still working fine, 'export PATH=$PATH:/**/bin/' still working fine.
+
+> Those **assohle dictators** who in charge never want to make things easy, are they?
+
+> Where is the freedom? My dear people! 
+
+> What is the difference between `pip install` and `apt install`? Simply because **pypi has more freedom**?
 
 #### Installation (For 3.5 <= Python < 3.10)
 
@@ -40,7 +46,7 @@ or
 sudo pip3 install auto_everything==3.9
 ```
 
-#### Magic
+<!-- #### Magic
 
 ```bash
 sudo su
@@ -56,7 +62,7 @@ wget -O - https://github.com/yingshaoxo/auto_everything/raw/master/example/insta
 
 #### Docs
 
-https://yingshaoxo.github.io/auto_everything
+https://yingshaoxo.github.io/auto_everything -->
 
 ---
 

@@ -1,5 +1,7 @@
-import re
 from typing import Any, Dict, Tuple
+
+import re
+import os
 from pprint import pprint
 
 from auto_everything.terminal import Terminal
@@ -814,7 +816,299 @@ class YRPC_OBJECT_BASE_CLASS:
         """.strip()
         return template_text.strip()
 
-    def _convert_yrpc_code_into_python_rpc_code(self, identity_name: str, source_code: str) -> str:
+    def _convert_yrpc_code_into_auto_everything_based_python_rpc_code(self, identity_name: str, source_code: str) -> str:
+        _, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        service_class_function_list: list[str] = []
+        service_api_calling_code_list: list[str] = []
+        for function_name, parameter_info in rpc_dict.items():
+            input_variable: str = parameter_info["input_variable"]
+            output_variable: str = parameter_info["output_variable"]
+
+            if " " in input_variable:
+                input_variable = re.split(r"\s+", input_variable)[1]
+            if " " in output_variable:
+                output_variable = re.split(r"\s+", output_variable)[1]
+
+            service_class_function_list.append(f"""
+    def {function_name}(self, headers: dict[str, str], item: {input_variable}) -> {output_variable}:
+        default_response = {output_variable}()
+
+        try:
+            pass
+        except Exception as e:
+            print(f"Error: {{e}}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+            """.rstrip().lstrip('\n'))
+
+            service_api_calling_code_list.append(f"""
+        elif (request_url == "{function_name}"):
+            correct_item = {input_variable}().from_dict(item)
+            return json.dumps((service_instance.{function_name}(headers, correct_item)).to_dict())
+            """.rstrip().lstrip('\n'))
+
+        
+        service_class_function_list_text = "\n\n".join(service_class_function_list)
+        service_api_calling_code_list_text = "\n\n".join(service_api_calling_code_list)
+
+        template_text = f"""
+from .{identity_name}_objects import *
+
+
+from typing import Any
+import json
+from auto_everything.http_ import Yingshaoxo_Http_Server, Yingshaoxo_Http_Request
+
+
+class Service_{identity_name}:
+{service_class_function_list_text}
+
+
+def run(service_instance: Service_{identity_name}, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+    def handle_get_url(sub_url: str, headers: dict[str, str]) -> str:
+        return 'Hi there, this website is using yrpc (Yingshaoxo remote procedure control module).'
+
+    def handle_post_url(sub_url: str, headers: dict[str, str], item: dict[str, Any]) -> dict | str:
+        sub_url = sub_url.strip("/")
+        sub_url = sub_url.replace("{identity_name}", "", 1)
+        sub_url = sub_url.strip("/")
+        request_url = sub_url.split("/")[0].strip()
+
+        if (request_url == ""):
+            return f"Request url '{{request_url}}' is empty"
+{service_api_calling_code_list_text}
+
+        return f"No API url matchs '{{request_url}}'"
+
+    def general_handler(request: Yingshaoxo_Http_Request) -> dict | str:
+        response = f"No handler for {{request.url}}"
+        if request.method == "GET":
+            response = handle_get_url(request.url, request.headers)
+        elif request.method == "POST":
+            response = handle_post_url(request.url, request.headers, json.loads(request.payload))
+        return response
+
+    router = {{
+        r"(.*)": general_handler,
+    }}
+
+    yingshaoxo_http_server = Yingshaoxo_Http_Server(router=router)
+    yingshaoxo_http_server.start(host="0.0.0.0", port=int(port), html_folder_path=html_folder_path, serve_html_under_which_url=serve_html_under_which_url)
+
+
+if __name__ == "__main__":
+    service_instance = Service_{identity_name}()
+    run(service_instance, port="6060")
+        """.strip()
+
+        return template_text
+
+
+    def _convert_yrpc_code_into_pure_python_rpc_code(self, identity_name: str, source_code: str) -> str:
+        _, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        service_class_function_list: list[str] = []
+        service_api_calling_code_list: list[str] = []
+        for function_name, parameter_info in rpc_dict.items():
+            input_variable: str = parameter_info["input_variable"]
+            output_variable: str = parameter_info["output_variable"]
+
+            if " " in input_variable:
+                input_variable = re.split(r"\s+", input_variable)[1]
+            if " " in output_variable:
+                output_variable = re.split(r"\s+", output_variable)[1]
+
+            service_class_function_list.append(f"""
+    def {function_name}(self, headers: dict[str, str], item: {input_variable}) -> {output_variable}:
+        default_response = {output_variable}()
+
+        try:
+            pass
+        except Exception as e:
+            print(f"Error: {{e}}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+            """.rstrip().lstrip('\n'))
+
+            service_api_calling_code_list.append(f"""
+        elif (request_url == "{function_name}"):
+            correct_item = {input_variable}().from_dict(item)
+            return json.dumps((service_instance.{function_name}(headers, correct_item)).to_dict())
+            """.rstrip().lstrip('\n'))
+
+        
+        service_class_function_list_text = "\n\n".join(service_class_function_list)
+        service_api_calling_code_list_text = "\n\n".join(service_api_calling_code_list)
+
+        template_text = f"""
+from .{identity_name}_objects import *
+
+
+from typing import Any
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from socketserver import ThreadingMixIn
+import json
+import os
+from time import sleep
+
+
+class Service_{identity_name}:
+{service_class_function_list_text}
+
+
+def _get_headers_dict_from_string(headers: str) -> dict:
+    dic = {{}}
+    for line in headers.split("\\n"):
+        if line.startswith(("GET", "POST")):
+            continue
+        point_index = line.find(":")
+        dic[line[:point_index].strip()] = line[point_index+1:].strip()
+    return dic
+
+
+def run(service_instance: Service_{identity_name}, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+    # allow_origins=['*'],
+    # allow_credentials=True,
+    # allow_methods=["*"],
+    # allow_headers=["*"],
+
+    def handle_get_url(sub_url: str, headers: dict[str, str]) -> bytes:
+        return b'Hi there, this website is using yrpc (Yingshaoxo remote procedure control module).'
+
+    if (html_folder_path != ""):
+        if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
+            def handle_get_url(sub_url: str, headers: dict[str, str]) -> bytes:
+                sub_url = sub_url.strip("/")
+                sub_url = sub_url.lstrip(serve_html_under_which_url)
+                if sub_url == '':
+                    sub_url = 'index.html'
+                real_file_path = f"{{os.path.join(html_folder_path, sub_url)}}"
+                if os.path.exists(real_file_path) and os.path.isfile(real_file_path):
+                    with open(real_file_path, mode="rb") as f:
+                        the_data = f.read()
+                else:
+                    #return b"Resource not found\\n\\n(This web service is using YRPC (Yingshaoxo Remote Procedure Call))"
+                    sub_url = 'index.html'
+                    real_file_path = f"{{os.path.join(html_folder_path, sub_url)}}"
+                    with open(real_file_path, mode="rb") as f:
+                        the_data = f.read()
+                return the_data
+
+            print(f"The website is running at: http://127.0.0.1:{{port}}/")
+        else:
+            print(f"Error: You should give me an absolute html_folder_path than {{html_folder_path}}")
+
+    def handle_post_url(sub_url: str, headers: dict[str, str], item: dict[str, Any]) -> str:
+        sub_url = sub_url.strip("/")
+        sub_url = sub_url.replace("{identity_name}", "", 1)
+        sub_url = sub_url.strip("/")
+        request_url = sub_url.split("/")[0].strip()
+
+        if (request_url == ""):
+            return f"Request url '{{request_url}}' is empty"
+{service_api_calling_code_list_text}
+
+        return f"No API url matchs '{{request_url}}'"
+
+    class WebRequestHandler(BaseHTTPRequestHandler):
+        def do_OPTIONS(self):
+            self.send_response(200, "ok")
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', '*')
+            self.send_header("Access-Control-Allow-Headers", "*")
+            self.end_headers()
+
+        def do_GET(self):
+            sub_url = self.path
+            headers = _get_headers_dict_from_string(self.headers.as_string())
+
+            self.send_response(200)
+
+            self.send_header("Access-Control-Allow-Origin", "*")
+
+            if sub_url.endswith(".html"):
+                self.send_header("Content-Type", "text/html")
+            elif sub_url.endswith(".css"):
+                self.send_header("Content-Type", "text/css")
+            elif sub_url.endswith(".js"):
+                self.send_header("Content-Type", "text/javascript")
+
+            response = handle_get_url(sub_url, headers)
+
+            self.end_headers()
+            self.wfile.write(response)
+
+        def do_POST(self):
+            sub_url = self.path
+            headers = _get_headers_dict_from_string(self.headers.as_string())
+
+            content_length = headers.get('Content-Length')
+            if content_length is None:
+                self.wfile.write("What you send is not json".encode("utf-8"))
+                return
+            else:
+                content_length = int(content_length)
+            
+            if content_length == 0:
+                self.wfile.write("What you send is not json".encode("utf-8"))
+                return
+
+            request_json_dict = json.loads(self.rfile.read(content_length))
+
+            self.send_response(200)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+
+            response = handle_post_url(sub_url, headers, request_json_dict)
+
+            self.wfile.write(response.encode("utf-8"))
+
+    class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+        pass
+    
+    # Setting TCP Address
+    server_address = ('0.0.0.0', int(port))
+    
+    # invoking server
+    http = ThreadedHTTPServer(server_address, WebRequestHandler)
+    
+    http.serve_forever()
+
+
+def run_with_hot_load(watch_path: str, service_instance: Service_{identity_name}, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
+    import multiprocessing
+    from auto_everything.develop import Develop
+    develop = Develop()
+
+    the_running_process = multiprocessing.Process(target=run, args=(service_instance, port, html_folder_path, serve_html_under_which_url))
+    the_running_process.start()
+
+    while True:
+        changed = develop.whether_a_folder_has_changed(folder_path=watch_path, type_limiter=[".py", ".html", ".css", ".js"])
+        if (changed):
+            print("Source code get changed, doing a reloading now...")
+            the_running_process.kill()
+            while the_running_process.is_alive():
+                sleep(1)
+            the_running_process = multiprocessing.Process(target=run, args=(service_instance, port, html_folder_path, serve_html_under_which_url))
+            the_running_process.start()
+        sleep(1)
+
+
+if __name__ == "__main__":
+    service_instance = Service_{identity_name}()
+    run(service_instance, port="6060")
+        """.strip()
+
+        return template_text
+
+    def _convert_yrpc_code_into_python_fastapi_rpc_code(self, identity_name: str, source_code: str) -> str:
         _, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
 
         service_class_function_list: list[str] = []
@@ -830,7 +1124,16 @@ class YRPC_OBJECT_BASE_CLASS:
 
             service_class_function_list.append(f"""
     async def {function_name}(self, headers: dict[str, str], item: {input_variable}) -> {output_variable}:
-        return {output_variable}()
+        default_response = {output_variable}()
+
+        try:
+            pass
+        except Exception as e:
+            print(f"Error: {{e}}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
             """.rstrip().lstrip('\n'))
 
             service_api_function_list.append(f"""
@@ -841,7 +1144,7 @@ class YRPC_OBJECT_BASE_CLASS:
         return (await service_instance.{function_name}(headers, item)).to_dict()
             """.rstrip().lstrip('\n'))
 
-        
+
         service_class_function_list_text = "\n\n".join(service_class_function_list)
         service_api_function_list_text = "\n\n".join(service_api_function_list)
 
@@ -851,25 +1154,24 @@ from .{identity_name}_objects import *
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from starlette.responses import FileResponse 
+from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
-
-
-router = APIRouter()
 
 
 class Service_{identity_name}:
 {service_class_function_list_text}
 
 
-def init(service_instance: Any):
+def init(service_instance: Any, router: Any):
 {service_api_function_list_text}
 
 
-def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
-    init(service_instance=service_instance)
+def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/", only_return_app: bool = False):
+    router = APIRouter()
+
+    init(service_instance=service_instance, router=router)
 
     app = FastAPI()
     app.add_middleware(
@@ -897,17 +1199,106 @@ def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_u
         else:
             print(f"Error: You should give me an absolute html_folder_path than {{html_folder_path}}")
 
+    if only_return_app == True:
+        return app
+
     print(f"You can see the docs here: http://127.0.0.1:{{port}}/docs")
     uvicorn.run( #type: ignore
         app=app,
         host="0.0.0.0",
         port=int(port)
-    ) 
+    )
 
 
 if __name__ == "__main__":
     service_instance = Service_{identity_name}()
     run(service_instance, port="6060")
+        """.strip()
+
+        return template_text
+
+    def _convert_yrpc_code_into_pure_python_rpc_client_code(self, identity_name: str, source_code: str) -> str:
+        _, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        client_function_list: list[str] = []
+        for function_name, parameter_info in rpc_dict.items():
+            input_variable: str = parameter_info["input_variable"]
+            output_variable: str = parameter_info["output_variable"]
+
+            if " " in input_variable:
+                input_variable = re.split(r"\s+", input_variable)[1]
+            if " " in output_variable:
+                output_variable = re.split(r"\s+", output_variable)[1]
+
+            client_function_list.append(f"""
+    def {function_name}(self, item: {input_variable}, ignore_error: bool | None=None) -> {output_variable} | None:
+        result = self._get_reponse_or_error_by_url_path_and_input("{function_name}", item.to_dict())
+        if self._special_error_key in result.keys():
+            if ((ignore_error == None) or ((ignore_error != None) and (not ignore_error))):
+                self._error_handle_function(result[self._special_error_key])
+            return None
+        else:
+            return {output_variable}().from_dict(result)
+            """.rstrip().lstrip('\n'))
+
+        client_function_list_text = "\n\n".join(client_function_list)
+
+        template_text = f"""
+from .{identity_name}_objects import *
+
+from typing import Any, Callable
+import json
+from urllib import request
+
+
+def _send_a_post(url: str, data: dict, headers: dict | None=None) -> str:
+    a_request = request.Request(url, method="POST")
+    a_request.add_header('Content-Type', 'application/json')
+    if headers != None:
+        for key, value in headers.items():
+            a_request.add_header(key, value)
+    data = json.dumps(data, indent=4)
+    data = data.encode("utf-8", errors="ignore")
+    r_ = request.urlopen(a_request, data=data)
+    content = r_.read().decode("utf-8", errors="ignore")
+    return content
+
+
+class Client_{identity_name}:
+    def __init__(self, service_url: str, headers: dict[str, Any] | None = None, error_handle_function: Callable[[str], None] | None = None, special_error_key: str = "__yingshaoxo's_error__", interceptor_function: Callable[[dict], None] | None = None):
+        if (service_url.endswith("/")):
+            service_url = service_url[:-1]
+        self._service_url = service_url 
+
+        if headers == None:
+            headers = {{}}
+        self._header = headers
+
+        def _default_error_handle_function(error_message: str):
+            print(f"errors: {{error_message}}")
+        if error_handle_function == None:
+            error_handle_function = _default_error_handle_function
+        self._error_handle_function = error_handle_function
+
+        self._special_error_key = special_error_key
+
+        def _default_interceptor_function(data: dict):
+            pass
+        if interceptor_function == None:
+            interceptor_function = _default_interceptor_function
+        self._interceptor_function = interceptor_function
+
+    def _get_reponse_or_error_by_url_path_and_input(self, sub_url: str, input_dict: dict[str, Any]):
+        the_url = f"{{self._service_url}}/{identity_name}/{{sub_url}}/"
+        try:
+            response = _send_a_post(url=the_url, data=input_dict, headers=self._header)
+            json_response = json.loads(response)
+            self._interceptor_function(json_response)
+            return json_response
+        except Exception as e: 
+            return {{self._special_error_key: str(e)}}
+
+{client_function_list_text}
         """.strip()
 
         return template_text
@@ -1195,13 +1586,18 @@ class Client_{identity_name} {{
   /// [_error_handle_function] will get called when http request got error, you need to give it a function like: (err: String) {{print(err)}}
   String _service_url = "";
   Map<String, String> _header = Map<String, String>();
-  String _special_error_key = "__yingshaoxo's_error__";
-  Function(String error_message)? _error_handle_function;
+  final _special_error_key = "__yingshaoxo's_error__";
+  Function(String error_message) _error_handle_function =
+      (String error_message) {{}};
+  Function() _function_before_request = () {{}};
+  Function() _function_after_request = () {{}};
 
   Client_{identity_name}(
       {{required String service_url,
       Map<String, String>? header,
-      Function(String error_message)? error_handle_function}}) {{
+      Function(String error_message)? error_handle_function,
+      Function()? function_before_request,
+      Function()? function_after_request}}) {{
     if (service_url.endsWith("/")) {{
       service_url =
           service_url.splitMapJoin(RegExp(r'/$'), onMatch: (p0) => "");
@@ -1212,12 +1608,17 @@ class Client_{identity_name} {{
       this._header = header;
     }}
 
-    if (error_handle_function == null) {{
-      error_handle_function = (error_message) {{
-        print(error_message);
-      }};
+    if (error_handle_function != null) {{
+      this._error_handle_function = error_handle_function;
     }}
-    this._error_handle_function = error_handle_function;
+
+    if (function_before_request != null) {{
+      this._function_before_request = function_before_request;
+    }}
+
+    if (function_after_request != null) {{
+      this._function_after_request = function_after_request;
+    }}
   }}
 
   Future<Map<String, dynamic>> _get_reponse_or_error_by_url_path_and_input(
@@ -1230,6 +1631,8 @@ class Client_{identity_name} {{
     try {{
       var the_url_data = Uri.parse(the_url);
 
+      this._function_before_request();
+
       HttpClientRequest request = await client.postUrl(the_url_data);
       request.headers.set('content-type', 'application/json');
       _header.forEach((key, value) {{
@@ -1241,9 +1644,17 @@ class Client_{identity_name} {{
       HttpClientResponse response = await request.close();
       final stringData = await response.transform(utf8.decoder).join();
       final output_dict = json.decode(stringData);
+
+      this._function_after_request();
+
       return output_dict;
     }} catch (e) {{
-      return {{_special_error_key: e.toString()}};
+      final error_string = e.toString();
+      this._error_handle_function(error_string);
+
+      this._function_after_request();
+
+      return {{_special_error_key: error_string}};
     }} finally {{
       client.close();
     }}
@@ -1622,14 +2033,18 @@ export class Client_{identity_name} {{
    * @param {{{{ [key: string]: string }}}} _header  http headers, it's a dictionary, liek {{'content-type', 'application/json'}}
    * @param {{Function}} _error_handle_function will get called when http request got error, you need to give it a function like: (err: String) {{print(err)}}
    * @param {{Function}} _interceptor_function will get called for every response, you need to give it a function like: (data: dict[Any, Any]) {{print(data)}}
+   * @param {{Function}} _function_before_request will get called before every request, you need to give it a function like: () {{global_loading_animation = true}}
+   * @param {{Function}} _function_after_request will get called after every request, you need to give it a function like: () {{global_loading_animation = false}}
    */
     _service_url: string
     _header: {{ [key: string]: string }} = {{}}
     _error_handle_function: (error: string) => void = (error: string) => {{console.log(error)}}
     _special_error_key: string = "__yingshaoxo's_error__"
     _interceptor_function: (data: any) => void = (data: any) => {{console.log(data)}}
+    _function_before_request: () => void = () => {{}}
+    _function_after_request: () => void = () => {{}}
 
-    constructor(service_url: string, header?: {{ [key: string]: string }}, error_handle_function?: (error: string) => void, interceptor_function?: (data: any) => void) {{
+    constructor(service_url: string, header?: {{ [key: string]: string }}, error_handle_function?: (error: string) => void, interceptor_function?: (data: any) => void, function_before_request?: () => void, function_after_request?: () => void) {{
         if (service_url.endsWith("/")) {{
             service_url = service_url.slice(0, service_url.length-1);
         }}
@@ -1658,11 +2073,20 @@ export class Client_{identity_name} {{
         if (interceptor_function != null) {{
             this._interceptor_function = interceptor_function
         }}
+
+        if (function_before_request != null) {{
+            this._function_before_request = function_before_request
+        }}
+
+        if (function_after_request != null) {{
+            this._function_after_request = function_after_request
+        }}
     }} 
 
     async _get_reponse_or_error_by_url_path_and_input(sub_url: string, input_dict: {{ [key: string]: any }}): Promise<any> {{
         let the_url = `${{this._service_url}}/{identity_name}/${{sub_url}}/`
         try {{
+            this._function_before_request()
             const response = await fetch(the_url, 
             {{
                 method: "POST",
@@ -1673,9 +2097,11 @@ export class Client_{identity_name} {{
                 }}
             }});
             var json_response = await response.json()
+            this._function_after_request()
             this._interceptor_function(json_response)
             return json_response
         }} catch (e) {{
+            this._function_after_request()
             return {{[this._special_error_key]: String(e)}};
         }}
     }}
@@ -1872,7 +2298,23 @@ package {identity_name}
 
                 if which_language == "python":
                     objects_code = self._convert_yrpc_code_into_python_objects_code(source_code=source_code)
-                    rpc_code = self._convert_yrpc_code_into_python_rpc_code(identity_name=identity_name, source_code=source_code)
+                    rpc_code = self._convert_yrpc_code_into_python_fastapi_rpc_code(identity_name=identity_name, source_code=source_code)
+
+                    # additonal files for python
+                    # pure python rpc server code, single process version
+                    pure_python_rpc_code = self._convert_yrpc_code_into_pure_python_rpc_code(identity_name=identity_name, source_code=source_code)
+                    target_pure_python_rpc_file_path = disk.join_paths(output_folder, filename + "_pure_python_rpc" + language_to_file_suffix_dict[which_language])
+                    io_.write(file_path=target_pure_python_rpc_file_path, content=pure_python_rpc_code)
+
+                    # pure python rpc server code, multiprocess version, could handle a lot of users at the same time
+                    auto_everything_based_pure_python_rpc_code = self._convert_yrpc_code_into_auto_everything_based_python_rpc_code(identity_name=identity_name, source_code=source_code)
+                    target_auto_everything_based_pure_python_rpc_file_path = disk.join_paths(output_folder, filename + "_auto_everything_based_pure_python_rpc" + language_to_file_suffix_dict[which_language])
+                    io_.write(file_path=target_auto_everything_based_pure_python_rpc_file_path, content=auto_everything_based_pure_python_rpc_code)
+
+                    # pure python rpc client
+                    pure_python_rpc_client_code = self._convert_yrpc_code_into_pure_python_rpc_client_code(identity_name=identity_name, source_code=source_code)
+                    target_pure_python_rpc_client_file_path = disk.join_paths(output_folder, filename + "_pure_python_rpc_client" + language_to_file_suffix_dict[which_language])
+                    io_.write(file_path=target_pure_python_rpc_client_file_path, content=pure_python_rpc_client_code)
                 elif which_language == "dart":
                     objects_code = self._convert_yrpc_code_into_dart_objects_code(source_code=source_code)
                     rpc_code = self._convert_yrpc_code_into_dart_rpc_code(identity_name=identity_name, source_code=source_code)
@@ -1892,6 +2334,60 @@ package {identity_name}
                     rpc_code = self._convert_yrpc_code_into_golang_rpc_code(identity_name=filename, source_code=source_code)
                 io_.write(file_path=target_objects_file_path_for_package_based_language, content=objects_code)
                 io_.write(file_path=target_rpc_file_path_for_package_based_language, content=rpc_code)
+
+
+class Develop():
+    def __init__(self):
+        self.file_modification_dict: dict[str, Any] = {}
+        self.folder_modification_dict: dict[str, dict[str, Any]] = {}
+
+    def whether_a_file_has_changed(self, file_path: str):
+        last_modification_time = os.path.getmtime(file_path)
+
+        def update_dict():
+            self.file_modification_dict.update({
+                file_path: last_modification_time
+            })
+
+        if file_path in self.file_modification_dict:
+            if last_modification_time != self.file_modification_dict[file_path]:
+                update_dict()
+                return True
+            else:
+                return False
+        else:
+            update_dict()
+            return False
+
+    def whether_a_folder_has_changed(self, folder_path: str, type_limiter: list[str] = [".py"]):
+        if self.folder_modification_dict.get(folder_path) == None:
+            self.folder_modification_dict[folder_path] = {}
+
+        files = disk.get_files(folder=folder_path, type_limiter=type_limiter, gitignore_text=".venv/\n\n.node_modules/")
+        for file in files:
+            changed = False
+
+            last_modification_time = os.path.getmtime(file)
+
+            def update_dict():
+                self.folder_modification_dict[folder_path].update({
+                    file: last_modification_time
+                })
+
+            if file in self.folder_modification_dict[folder_path]:
+                if last_modification_time != self.folder_modification_dict[folder_path][file]:
+                    update_dict()
+                    changed = True
+                else:
+                    changed = False
+            else:
+                update_dict()
+                changed = False
+            
+            if changed == True:
+                return True
+        
+        return False
 
 
 if __name__ == "__main__":

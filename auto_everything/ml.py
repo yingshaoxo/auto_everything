@@ -1,5 +1,7 @@
-import random
 from typing import Any
+import random
+import os
+
 from auto_everything.terminal import Terminal
 from auto_everything.disk import Disk, Store
 from auto_everything.io import IO
@@ -48,11 +50,6 @@ class DataProcessor():
                 array_2d.append(array_1d.copy())
                 array_1d.clear()
         return array_2d, array_target
-
-
-class SpeechToText():
-    pass
-    # https://tfhub.dev/silero/silero-stt/en/1
 
 
 class Yingshaoxo_Text_Generator():
@@ -392,6 +389,253 @@ class Yingshaoxo_Text_Generator():
         #         if sub_string in new_source_text:
         #             counting += len(sub_string)
         #     return counting
+
+
+class Yingshaoxo_Computer_Vision():
+    def __init__(self):
+        import numpy
+        self.numpy = numpy
+
+    def get_similarity_of_two_images(self, numpy_image_1: Any, numpy_image_2: Any) -> float:
+        """
+        return a float between 0 and 1, 1 means equal, 0 means no relate.
+        """
+        mean1 = self.numpy.mean(numpy_image_1, axis=(0, 1))
+        mean2 = self.numpy.mean(numpy_image_2, axis=(0, 1))
+
+        difference = 0.0
+        difference += self.numpy.absolute(mean1[0] - mean2[0])
+        difference += self.numpy.absolute(mean1[1] - mean2[1])
+        difference += self.numpy.absolute(mean1[2] - mean2[2])
+
+        final_difference = ((difference * 100) / (255*3)) / 20
+        final_difference = 1 - final_difference
+        return final_difference
+
+
+class Yingshaoxo_Speech_Recognizer():
+    def __init__(self, language: str = 'en'):
+        # pip install vosk
+        # pip install sounddevice
+        import queue
+        import sys
+        import sounddevice
+        from vosk import Model, KaldiRecognizer
+        from auto_everything.time import Time
+
+        self.queue = queue
+        self.sys = sys
+        self.sounddevice = sounddevice
+        self.time_ = Time()
+
+        if language == "en":
+            self.vosk_model = Model(lang="en-us")
+        else:
+            self.vosk_model = Model(model_name="vosk-model-cn-0.22")
+
+        self.KaldiRecognizer = KaldiRecognizer
+
+        self.microphone_bytes_data_queue = queue.Queue()
+    
+    def recognize_following_speech(self, timeout_in_seconds: int | None = None) -> str:
+        while self.microphone_bytes_data_queue.empty() == False:
+            self.microphone_bytes_data_queue.get_nowait()
+
+        def callback(indata, frames, time, status):
+            """This is called (from a separate thread) for each audio block."""
+            if status:
+                print(status, file=self.sys.stderr)
+            self.microphone_bytes_data_queue.put(bytes(indata))
+
+        try:
+            device_info = self.sounddevice.query_devices(None, "input")
+            samplerate = int(device_info["default_samplerate"]) #type:ignore
+                
+            with self.sounddevice.RawInputStream(samplerate=samplerate, blocksize = 8000, device=None,
+                    dtype="int16", channels=1, callback=callback):
+                rec = self.KaldiRecognizer(self.vosk_model, samplerate)
+
+                start_time = self.time_.get_current_timestamp_in_10_digits_format()
+                while True:
+                    data = self.microphone_bytes_data_queue.get()
+                    if rec.AcceptWaveform(data):
+                        text = json.loads(rec.Result())["text"] #type:ignore
+                        text = text.replace(" ", "").strip()
+                        if len(text) != 0:
+                            #print(text)
+                            return text
+                    else:
+                        # print(rec.PartialResult())
+                        pass
+                    end_time = self.time_.get_current_timestamp_in_10_digits_format()
+                    if timeout_in_seconds != None:
+                        duration = self.time_.get_datetime_object_from_timestamp(end_time) - self.time_.get_datetime_object_from_timestamp(start_time)
+                        if duration.seconds > timeout_in_seconds:
+                            return ""
+        except Exception as e:
+            print(e)
+            return ""
+
+
+class Yingshaoxo_Translator():
+    def __init__(self):
+        # pip install dl-translate
+        import dl_translate
+        from auto_everything.language import Language
+        self.dl_translate = dl_translate
+        self.dl_translate_model = self.dl_translate.TranslationModel(device="auto")
+        self.languages = self.dl_translate.lang
+        self._language = Language()
+    
+    def translate(self, text: str, from_language: Any, to_language: Any, sentence_seperation: bool = False) -> str:
+        try:
+            text = text.strip()
+            if sentence_seperation == True:
+                data_list = self._language.seperate_text_to_segments(text=text, ignore_space=True)
+                """
+                [
+                    {
+                        "is_punctuation_or_space": true, "text": "?",
+                    }, {
+                        "is_punctuation_or_space": false, "text": "Yes",
+                    },
+                ]
+                """
+                text_list = []
+                for segment in data_list:
+                    if segment["is_punctuation_or_space"] == False:
+                        result = self.dl_translate_model.translate(segment["text"], source=from_language, target=to_language)
+                        result = str(result).strip("!\"#$%&'()*+, -./:;<=>?@[\\]^_`{|}~ \n，。！？；：（）［］【】")
+                        text_list.append(result)
+                    else:
+                        text_list.append(segment["text"])
+                return "".join(text_list)
+            else:
+                return self.dl_translate_model.translate(text, source=from_language, target=to_language) #type: ignore
+        except Exception as e:
+            print(e)
+            return text
+    
+    def chinese_to_english(self, text: str, sentence_seperation: bool = False):
+        return self.translate(text=text, from_language=self.languages.CHINESE, to_language=self.languages.ENGLISH, sentence_seperation=sentence_seperation)
+
+    def english_to_chinese(self, text: str, sentence_seperation: bool = False):
+        return self.translate(text=text, from_language=self.languages.ENGLISH, to_language=self.languages.CHINESE, sentence_seperation=sentence_seperation)
+
+
+class Yingshaoxo_Text_to_Speech():
+    def __init__(self):
+        #pip install TTS
+        #sudo apt install ffmpeg                 or          https://github.com/markus-perl/ffmpeg-build-script#:~:text=maintain%20different%20systems.-,Installation,-Quick%20install%20and
+        os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
+        from TTS.api import TTS
+        self.TTS = TTS
+
+        from auto_everything.terminal import Terminal
+        from auto_everything.disk import Disk
+        self.terminal = Terminal()
+        self.disk = Disk()
+
+        import torch
+        use_gpu = True if torch.cuda.is_available() else False
+        self.torch = torch
+        #pprint(TTS.list_models())
+
+        self.tts_en = TTS("tts_models/en/ljspeech/tacotron2-DDC", gpu=use_gpu)
+        # self.tts_en = TTS("tts_models/en/ljspeech/fast_pitch", gpu=use_gpu)
+        self.tts_cn = TTS("tts_models/zh-CN/baker/tacotron2-DDC-GST", gpu=use_gpu)
+
+    def _language_splitor(self, text: str):
+        language_list = []
+        index = 0
+        while True:
+            temp_string = ""
+            if (index >= len(text)):
+                break
+            char = text[index]
+            while ord(char) < 128:
+                # english
+                char = text[index]
+                temp_string += char
+                index += 1
+                if (index >= len(text)):
+                    break
+            if (temp_string.strip() != ""):
+                temp_string = temp_string[:-1]
+                index -= 1
+                language_list.append({
+                    "language": "en",
+                    "text": temp_string
+                })
+
+            temp_string = ""
+            if (index >= len(text)):
+                break
+            char = text[index]
+            while not ord(char) < 128:
+                # chinese 
+                char = text[index]
+                temp_string += char
+                index += 1
+                if (index >= len(text)):
+                    break
+            if (temp_string.strip() != ""):
+                temp_string = temp_string[:-1]
+                index -= 1
+                language_list.append({
+                    "language": "cn",
+                    "text": temp_string
+                })
+
+            if (index+1 >= len(text)):
+                break
+
+        if len(language_list) > 0:
+            language_list[-1]["text"] += text[-1]
+        
+        new_list = []
+        for index, one in enumerate(language_list):
+            new_text = language_list[index]["text"].strip()
+            if len(new_text) > 0:
+                new_list.append({
+                    'language': one['language'],
+                    'text': new_text
+                })
+
+        return new_list
+
+    def _speak_it(self, language: str, text: str):
+        output_file = os.path.abspath(os.path.join(self.disk.get_a_temp_folder_path(), "output.wav"))
+        self.disk.create_a_folder(self.disk.get_directory_path(output_file))
+
+        text = text.strip("!\"#$%&'()*+, -./:;<=>?@[\\]^_`{|}~ \n，。！？；：（）［］【】")
+        if (language == "en"):
+            tts = self.tts_en
+            text += "."
+        else:
+            tts = self.tts_cn
+            text += "。"
+
+        try:
+            if tts.speakers == None:
+                tts.tts_to_file(text=text, file_path=output_file)
+            else:
+                tts.tts_to_file(text=text, file_path=output_file, speaker=tts.speakers[0], language=tts.languages[0], speed=2.5) #type:ignore
+        except Exception as e:
+            print(e)
+
+        self.terminal.run(f"""
+        ffplay -autoexit -nodisp "{output_file}"
+                """, wait=True)
+        
+        self.disk.delete_a_file(output_file)
+
+    def speak_it(self, text: str):
+        data_ = self._language_splitor(text)
+        for one in data_:
+            print(one)
+            self._speak_it(language=one["language"], text=one["text"])
 
 
 if __name__ == "__main__":

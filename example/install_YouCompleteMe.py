@@ -34,12 +34,12 @@ print("Srript Start...\n\n")
 if is_root():
     print("install base dependencies...")
     t.run("""
-    sudo apt install -y build-essential cmake                                                                                        
-    sudo apt install -y python3-dev                                                                                                  
-    sudo apt install -y python3-pip                                                                                                  
-    sudo apt install -y vim                                                                                                                                    
-    sudo apt install -y git                                                                                                                                    
-    sudo apt install -y curl                                                                                                                                   
+    sudo apt install -y build-essential cmake
+    sudo apt install -y python3-dev
+    sudo apt install -y python3-pip
+    sudo apt install -y vim
+    sudo apt install -y git
+    sudo apt install -y curl
 
     sudo apt install -y golang
 
@@ -48,7 +48,7 @@ if is_root():
     # source ~/.bashrc
     # nvm install node
 
-    sudo apt-get install -y gcc g++ make 
+    sudo apt-get install -y gcc g++ make
 
     sudo pacman --noconfirm -S make
     sudo pacman --noconfirm -S cmake
@@ -56,10 +56,11 @@ if is_root():
     sudo pacman --noconfirm -S git
     sudo pacman --noconfirm -S curl
 
-    sudo apt install -y tmux 
+    sudo apt install -y tmux
     sudo apt install -y xclip
 
     git clone https://github.com/preservim/nerdtree.git ~/.vim/pack/vendor/start/nerdtree
+    git clone https://github.com/Yggdroot/indentLine.git ~/.vim/pack/vendor/start/indentLine
           """, wait=True)
 
     if IS_DESKTOP:
@@ -150,6 +151,12 @@ autocmd VimEnter * NERDTree | if argc() > 0 || exists("s:std_in") | wincmd p | e
 
 "no auto indent
 filetype indent off
+
+"show json quotes
+let g:vim_json_conceal=0
+
+"disable dark mode
+set background=light
     """
     with open(t.fix_path("~/.vimrc"), "w", encoding="utf-8") as f:
         f.write(vimrc)
@@ -164,7 +171,7 @@ filetype indent off
     io_.append(
         t.fix_path("~/.bashrc"),
         """
-    if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
+    #if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
 
     export PATH="$PATH:/home/yingshaoxo/.auto_everything/bin"
 
@@ -177,7 +184,7 @@ filetype indent off
 \n\n\n
 There just left two thing for you to do:
     1. start tmux by `tmux`
-        then type 
+        then type
             `ctrl+b+I`
     2. run `sudo vim`, and hit `ctrl+\` to trigger file exploer
     3. you can use `ctrl+p` to auto_complete in vim
@@ -187,15 +194,15 @@ Enjoy!
 else:
     # 1
     print("install building tools...")
-    c = """                                                                                                       
+    c = """
     sudo -S apt update
 
-    sudo apt install -y build-essential cmake                                                                                        
-    sudo apt install -y python3-dev                                                                                                  
-    sudo apt install -y python3-pip                                                                                                  
-    sudo apt install -y vim                                                                                                                                    
-    sudo apt install -y git                                                                                                                                    
-    sudo apt install -y curl                                                                                                                                   
+    sudo apt install -y build-essential cmake
+    sudo apt install -y python3-dev
+    sudo apt install -y python3-pip
+    sudo apt install -y vim
+    sudo apt install -y git
+    sudo apt install -y curl
 
     sudo apt install -y golang
 
@@ -203,7 +210,7 @@ else:
     source ~/.bashrc
     nvm install node
 
-    sudo apt-get install -y gcc g++ make 
+    sudo apt-get install -y gcc g++ make
 
     sudo pacman --noconfirm -S make
     sudo pacman --noconfirm -S cmake
@@ -212,7 +219,7 @@ else:
     sudo pacman --noconfirm -S curl
 
     sudo apt install -y terminator
-    sudo apt install -y tmux 
+    sudo apt install -y tmux
     sudo apt install -y xclip
     """
     t.run(c, wait=True)
@@ -297,6 +304,12 @@ else:
 
     "no auto indent
     filetype indent off
+
+    let g:vim_json_conceal=0
+
+    set background=light
+
+    let g:ycm_global_ycm_extra_conf = '~/.vim/.ycm_extra_conf.py'
     """
     with open(t.fix_path("~/.vimrc"), "w", encoding="utf-8") as f:
         f.write(vimrc)
@@ -339,6 +352,34 @@ else:
     """
     )
 
+    # 5.8, for python indent line
+    t.run(
+        f"""
+    git clone https://github.com/Yggdroot/indentLine.git ~/.vim/pack/vendor/start/indentLine
+    """
+    )
+
+    # 5.9, for pure c completion
+    ycm_extra_configuration = """
+def Settings( **kwargs ):
+    return {
+        'flags': [
+            '-std=gnu99',
+            #'-std=c99',
+            '-x', 'c',
+
+            #'-std=cpp11',
+            #'-x', 'c++',
+
+            '-static',
+            '-no-pie',
+            #'-D_POSIX_SOURCE',
+        ],
+    }
+    """.strip()
+    ycm_configuration_path = "~/.vim/.ycm_extra_conf.py"
+    ycm_configuration_path = terminal.fix_path(ycm_configuration_path)
+    io_.write(ycm_configuration_path, ycm_extra_configuration)
 
     # 6 set terminator
     print("setup terminator configs...")
@@ -442,7 +483,7 @@ else:
     io_.append(
         t.fix_path("~/.bashrc"),
         """
-    if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
+    #if [ -z ${TMUX+x} ]; then eval "export $(tmux show-environment TMUX_WORKING_DIR)" && cd $TMUX_WORKING_DIR; else tmux setenv TMUX_WORKING_DIR $(pwd); fi
     #clear
 
     export PATH="$PATH:/home/yingshaoxo/go/bin"
@@ -457,11 +498,12 @@ else:
     \n\n\n
     There just left two thing for you to do:
         1. start tmux by `tmux`
-            then type 
+            then type
                 `ctrl+b+I`
         2. start vim by `vim`
             then type
                 `:PluginInstall`
+            > ctrl+w+w to switch between sub_window in vim
     After these, enjoy!
     """
     print(last)
