@@ -14,22 +14,13 @@ I lost my job for almost 2 years. If you wish to see me alive, please buy me som
 #### Installation (For Python >= 3.10)
 
 ```bash
-# curl -sSL https://install.python-poetry.org | python3
-# poetry add "git+https://github.com/yingshaoxo/auto_everything.git@dev"
+pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
 
-# or
-
-# sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev"
-
-# or
-
-# sudo pip3 install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
-
-
-Fuck the github becuase they can ban your account in any time because you speak something that they think is wrong. And because of that, no one can download anything from your account.
-
-But you know what? In dictator system, the one who get banned has big chance is right.
+# Use github on cares, you may get banned(404) by saying the 'fuck' word: https://yingshaoxo.xyz/pictures/github/index.html
 ```
+
+or
+
 
 ```bash
 pip install auto_everything --break-system-packages
