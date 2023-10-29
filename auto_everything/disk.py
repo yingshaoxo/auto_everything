@@ -1333,7 +1333,8 @@ class Disk:
                 if source_file.is_folder:
                     self.create_a_folder(target_file_path)
                 else:
-                    self.write_bytes_into_file(target_file_path, self.read_bytes_from_file(source_file.path))
+                    #self.write_bytes_into_file(target_file_path, self.read_bytes_from_file(source_file.path))
+                    self.copy_a_file(source_file.path, target_file_path)
             return
 
         try:
