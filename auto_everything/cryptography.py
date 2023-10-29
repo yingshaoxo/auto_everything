@@ -14,7 +14,7 @@ class JWT_Tool():
 
         Parameters
         ----------
-        data: 
+        data:
             a_dict, which contains the real information
 
         a_secret_string_for_integrity_verifying: string
@@ -47,7 +47,7 @@ class JWT_Tool():
 
         Parameters
         ----------
-        jwt_string: 
+        jwt_string:
             any string
 
         a_secret_string_for_integrity_verifying: string
@@ -57,8 +57,8 @@ class JWT_Tool():
             splits = jwt_string.split(".")
             if len(splits) != 3:
                 return None
-            
-            header = json.loads(base64.b64decode(splits[0]).decode(encoding="utf-8")) 
+
+            header = json.loads(base64.b64decode(splits[0]).decode(encoding="utf-8"))
             header_base64_string = base64.b64encode(json.dumps(header).encode(encoding="utf-8")).decode("ascii")
 
             payload = json.loads(base64.b64decode(splits[1]).decode(encoding="utf-8"))
@@ -86,7 +86,7 @@ class JWT_Tool():
 
         Parameters
         ----------
-        data: 
+        data:
             a_dict, which contains the real information
 
         a_secret_string_for_integrity_verifying: string
@@ -102,7 +102,7 @@ class JWT_Tool():
         bytes_json = json_string.encode(encoding='utf-8', errors="ignore")
         base64_json_string = disk.bytes_to_base64(bytes_data=bytes_json)
         encrypted_base64_string = encryption_and_decryption.encode_message(a_secret_dict=secret_dict, message=base64_json_string)
-        
+
         return encrypted_base64_string
 
     def yingshaoxo_json_web_token_decode(self, jwt_string: str, a_secret_string_for_integrity_verifying: str) -> dict[str, Any] | None:
@@ -111,7 +111,7 @@ class JWT_Tool():
 
         Parameters
         ----------
-        jwt_string: 
+        jwt_string:
             any string
 
         a_secret_string_for_integrity_verifying: string
@@ -152,7 +152,7 @@ class Password_Generator():
 
         Parameters
         ----------
-        secret_string_list: 
+        secret_string_list:
             any string
 
         length: int
@@ -174,11 +174,11 @@ class Password_Generator():
         # result = "A" + result
         return result
 
-    def get_random_password(self, 
-                            use_numbers: bool = True, 
-                            use_ascii_lowercase_characters: bool = True, 
-                            use_ascii_uppercase_characters: bool = True, 
-                            use_punctuation: bool = False, 
+    def get_random_password(self,
+                            use_numbers: bool = True,
+                            use_ascii_lowercase_characters: bool = True,
+                            use_ascii_uppercase_characters: bool = True,
+                            use_punctuation: bool = False,
                             additional_string_at_head: str = "",
                             length: int = 12):
         """
@@ -228,7 +228,7 @@ class Encryption_And_Decryption():
         # for alphabet
         for index, char in enumerate(list(string.ascii_lowercase)):
             final_dict[char] = character_list[index]
-        
+
         # for numbers
         original_numbers_in_alphabet_format = list(string.ascii_lowercase)[:10] #0-9 representations in alphabet format
         secret_numbers_in_alphabet_format = list(final_dict.values())[:10]
@@ -248,7 +248,7 @@ class Encryption_And_Decryption():
             final_number_list = final_number_list + numbers_that_didnt_get_cover
         for index, char in enumerate(final_number_list):
             final_dict[str(index)] = char
-        
+
         return final_dict
 
     def encode_message(self, a_secret_dict: dict[str, str], message: str) -> str:
@@ -265,7 +265,7 @@ class Encryption_And_Decryption():
                 new_char = char
             new_message += new_char
         return new_message
-    
+
     def decode_message(self, a_secret_dict: dict[str, str], message: str) -> str:
         new_secret_dict: dict[str, str] = {}
         for key, value in a_secret_dict.items():
@@ -285,9 +285,9 @@ class Encryption_And_Decryption():
                 new_char = char
             new_message += new_char
         return new_message
-    
-    def encrypt_a_code_folder(self, source_folder: str, target_folder: str, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], password: str = "yingshaoxo is the best, no one can deny that!!!", text_handle_function: Any = None, gitignore_text: str|None = None):
-        from auto_everything.io import IO   
+
+    def encrypt_a_code_folder(self, source_folder: str, target_folder: str, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], password: str = "yingshaoxo is the best, no one can deny that!!!", text_handle_function: Any = None, use_gitignore_file: bool = False):
+        from auto_everything.io import IO
         from auto_everything.disk import Disk
         io_ = IO()
         disk = Disk()
@@ -296,11 +296,11 @@ class Encryption_And_Decryption():
         fake_code_folder = target_folder
 
         disk.delete_a_folder(fake_code_folder)
-        disk.copy_a_folder(real_code_folder, fake_code_folder)
+        disk.copy_a_folder(real_code_folder, fake_code_folder, use_gitignore_file=use_gitignore_file)
 
         password_dict = self.get_secret_alphabet_dict(password)
 
-        files = disk.get_files(fake_code_folder, recursive=True, type_limiter=type_limiter, gitignore_text=gitignore_text)
+        files = disk.get_files(fake_code_folder, recursive=True, type_limiter=type_limiter, use_gitignore_file=use_gitignore_file)
         for file in files:
             text = io_.read(file)
 
@@ -311,8 +311,8 @@ class Encryption_And_Decryption():
 
             io_.write(file, new_text)
 
-    def decrypt_a_code_folder(self, source_folder: str, target_folder: str, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], password: str = "yingshaoxo is the best, no one can deny that!!!", text_handle_function: Any = None, gitignore_text: str|None = None):
-        from auto_everything.io import IO   
+    def decrypt_a_code_folder(self, source_folder: str, target_folder: str, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], password: str = "yingshaoxo is the best, no one can deny that!!!", text_handle_function: Any = None, use_gitignore_file: bool = False):
+        from auto_everything.io import IO
         from auto_everything.disk import Disk
         io_ = IO()
         disk = Disk()
@@ -321,11 +321,11 @@ class Encryption_And_Decryption():
         predict_code_folder = target_folder
 
         disk.delete_a_folder(predict_code_folder)
-        disk.copy_a_folder(fake_code_folder, predict_code_folder)
+        disk.copy_a_folder(fake_code_folder, predict_code_folder, use_gitignore_file=use_gitignore_file)
 
         password_dict = self.get_secret_alphabet_dict(password)
 
-        files = disk.get_files(predict_code_folder, recursive=True, type_limiter=type_limiter, gitignore_text=gitignore_text)
+        files = disk.get_files(predict_code_folder, recursive=True, type_limiter=type_limiter, use_gitignore_file=use_gitignore_file)
         for file in files:
             text = io_.read(file)
 
@@ -336,15 +336,15 @@ class Encryption_And_Decryption():
 
             io_.write(file, new_text)
 
-    def check_if_two_folder_equals(self, source_folder: str, target_folder, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp']):
-        from auto_everything.io import IO   
+    def check_if_two_folder_equals(self, source_folder: str, target_folder, type_limiter: list[str] = ['.py', '.ts', '.js', '.vue', 'kt', '.java', '.go', '.rs', '.c', '.cpp'], use_gitignore_file: bool = False):
+        from auto_everything.io import IO
         from auto_everything.disk import Disk
         io_ = IO()
         disk = Disk()
 
-        files1 = disk.get_files(source_folder, recursive=True, type_limiter=type_limiter)
+        files1 = disk.get_files(source_folder, recursive=True, type_limiter=type_limiter, use_gitignore_file=use_gitignore_file)
         files1.sort()
-        files2 = disk.get_files(target_folder, recursive=True, type_limiter=type_limiter)
+        files2 = disk.get_files(target_folder, recursive=True, type_limiter=type_limiter, use_gitignore_file=use_gitignore_file)
         files2.sort()
 
         equal = True
@@ -363,8 +363,8 @@ class Encryption_And_Decryption():
                     continue
                 else:
                     exit()
-        
-        
+
+
 if __name__ == "__main__":
     # encryption_and_decryption = EncryptionAndDecryption()
 

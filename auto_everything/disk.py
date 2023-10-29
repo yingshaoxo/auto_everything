@@ -417,10 +417,29 @@ class Disk:
         gitignore_text: str
             similar to git's .gitignore file, if any file matchs any rule, it won't be inside of the 'return file list'
         use_gitignore_file: bool
-            if true, this function will not return any file/folder that matchs .gitignore file rules
+            if true, this function will not return any file/folder that matchs .gitignore file rules. And gitignore_text property will lose its effects.
         """
         folder = self._expand_user(folder)
         assert os.path.exists(folder), f"{folder} is not exist!"
+
+        if use_gitignore_file == True:
+            files = self.get_folder_and_files_with_gitignore(folder=folder, recursive=recursive, return_list_than_tree=True)
+            new_files = []
+            for file in files:
+                ok = False
+                if file.is_file == False:
+                    continue
+                if type_limiter == None:
+                    ok = True
+                else:
+                    for type_limit in type_limiter:
+                        if file.path.endswith(type_limit):
+                            ok = True
+                            break
+                if ok == True:
+                    new_files.append(file.path)
+            return new_files
+
         if recursive == True:
             files:list[str] = []
             for root, dirnames, filenames in os.walk(folder):
@@ -464,6 +483,7 @@ class Disk:
 
             files = result_files
 
+        """
         if use_gitignore_file:
             if "version" not in t.run_command("git --version").lower():
                 print("error: git needs to get installed for using 'use_gitignore_file' paramater.")
@@ -496,6 +516,7 @@ class Disk:
                     if ok:
                         new_files.append(file)
             files = new_files
+        """
 
         return files
 
@@ -694,6 +715,7 @@ class Disk:
     def get_folder_and_files_with_gitignore(
         self,
         folder: str,
+        recursive: bool = True,
         include_docker_ignore_file: bool = False,
         return_list_than_tree: bool = False,
     ) -> _FileInfo | list[_FileInfo]:
@@ -715,6 +737,7 @@ class Disk:
         Parameters
         ----------
         folder: string
+        recursive: bool = True,
         include_docker_ignore_file: bool = False,
         return_list_than_tree: bool = False,
         """
@@ -773,7 +796,8 @@ class Disk:
                     level=node.level + 1,
                     children=None
                 )
-                dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list)
+                if recursive == True:
+                    dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list)
                 files_and_folders.append(
                     new_node
                 )
@@ -794,7 +818,7 @@ class Disk:
                 if node.children != None:
                     queue += node.children
                 result_list.append(node)
-            return result_list
+            return result_list[1:]
 
     def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)
@@ -1286,15 +1310,30 @@ class Disk:
         folder_path = self._expand_user(folder_path)
         Path(folder_path).mkdir(parents=True, exist_ok=True)
 
-    def copy_a_folder(self, source_folder_path: str, target_folder_path: str):
+    def copy_a_folder(self, source_folder_path: str, target_folder_path: str, use_gitignore_file: bool = False):
         source_folder_path = self._expand_user(source_folder_path)
         target_folder_path = self._expand_user(target_folder_path)
+
+        source_folder_path = os.path.abspath(source_folder_path)
+        target_folder_path = os.path.abspath(target_folder_path)
 
         if (not self.exists(target_folder_path)):
             self.create_a_folder(target_folder_path)
         else:
             if not self.is_directory(target_folder_path):
                 self.delete_a_file(target_folder_path)
+
+        if use_gitignore_file == True:
+            source_files = self.get_folder_and_files_with_gitignore(folder=source_folder_path, recursive=True, return_list_than_tree=True)
+            for source_file in source_files:
+                sub_file_name = source_file.path[len(source_folder_path):]
+                sub_file_name = sub_file_name.lstrip("/\\")
+                target_file_path = self.join_paths(target_folder_path, sub_file_name)
+                if source_file.is_folder:
+                    self.create_a_folder(target_file_path)
+                else:
+                    self.write_bytes_into_file(target_file_path, self.read_bytes_from_file(source_file.path))
+            return
 
         try:
             shutil.copytree(source_folder_path, target_folder_path, dirs_exist_ok=True)
