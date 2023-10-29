@@ -768,10 +768,11 @@ class Disk:
                 temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".gitignore")).decode("utf-8", errors="ignore")
                 temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
                 ignore_pattern_list += temp_git_ignore_pattern_list
-            if ".dockerignore" in items:
-                temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".dockerignore")).decode("utf-8", errors="ignore")
-                temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
-                ignore_pattern_list += temp_git_ignore_pattern_list
+            if include_docker_ignore_file == True:
+                if ".dockerignore" in items:
+                    temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".dockerignore")).decode("utf-8", errors="ignore")
+                    temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
+                    ignore_pattern_list += temp_git_ignore_pattern_list
             ignore_pattern_list.append(".git")
             ignore_pattern_list = list(set(ignore_pattern_list))
             #print(ignore_pattern_list)
