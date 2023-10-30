@@ -50,6 +50,63 @@ class Python():
         """
         self._os.uninstall_python_package(package_name)
 
+    def reactive(self, old_dict: dict):
+        """
+        This function will return a multiprocessing or threads safe dict. You can use it to share pure data structure, like string, int, float, bool, list, dict
+        It will not share newly added data unless it is inside the old exists list or dict
+
+        Parameters
+        ----------
+        old_dict: dict
+            a python dict
+        """
+        from multiprocessing import Manager
+        import types
+        import inspect
+
+        _manager = Manager()
+
+        def reactive_dict(data):
+            for key, value in data.items():
+                if isinstance(value, dict):
+                    data[key] = reactive_dict(value)
+                elif isinstance(value, list):
+                    data[key] = reactive_list(value)
+                #elif isinstance(value, object) and hasattr(value, "__dict__"):
+                #    data[key] = reactive_instance(value)
+            return _manager.dict(data)
+
+        def reactive_list(data):
+            for i, value in enumerate(data):
+                if isinstance(value, dict):
+                    data[i] = reactive_dict(value)
+                elif isinstance(value, list):
+                    data[i] = reactive_list(value)
+                #elif isinstance(value, object) and hasattr(value, "__dict__"):
+                #    data[i] = reactive_instance(value)
+            return _manager.list(data)
+
+        def reactive_instance(instance):
+            properties = inspect.getmembers(instance, lambda m: not inspect.isroutine(m))
+            properties_dict = {name: value for name, value in properties if not name.startswith("__")}
+            properties_dict = reactive_dict(properties_dict)
+
+            # will have a pickle error: can't pickle local class
+            class ProxyedClass(type(instance)):
+                def __setattr__(self, name, value):
+                    super().__setattr__(name, value)
+                    self.notify(name, value)
+
+                def notify(self, name, value):
+                    properties_dict[name] = value
+
+            proxy_instance = ProxyedClass()
+            proxy_instance.__dict__.update(properties_dict)
+
+            return proxy_instance
+
+        return _manager, reactive_dict(old_dict)
+
     class loop():
         def __init__(self, interval: int | float=1, thread:bool=False):
             """
