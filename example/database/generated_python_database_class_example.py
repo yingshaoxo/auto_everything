@@ -49,7 +49,7 @@ def _search_function(self: Any, item_filter: Any, page_number:int|None=None, pag
                 return None
             if search_temp_dict["_search_counting"] > search_temp_dict["_real_end"]:
                 return None
-        
+
         return final_result
 
     return self.database_of_yingshaoxo.search(one_row_dict_handler=one_row_dict_filter)
@@ -79,7 +79,7 @@ def _raw_search_function(self: Any, one_row_json_string_handler: Callable[[str],
                 return None
             if search_temp_dict["_search_counting"] > search_temp_dict["_real_end"]:
                 return None
-        
+
         return result
 
     return list(self.database_of_yingshaoxo.raw_search(one_row_json_string_handler=new_one_row_json_string_handler))
@@ -155,7 +155,7 @@ class Yingshaoxo_Database_Yingshaoxo_info:
 
     def delete(self, item_filter: Yingshaoxo_info):
         return _delete(self=self, item_filter=item_filter)
-    
+
     def update(self, old_item_filter: Yingshaoxo_info, new_item: Yingshaoxo_info):
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
 

@@ -478,6 +478,7 @@ class Database_Of_Yingshaoxo:
             self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
 
             self.global_multiprocessing_shared_dict[self._the_key_for_memory_data] += [data]
+            self.global_multiprocessing_shared_dict[self._the_key_for_memory_data] = self.global_multiprocessing_shared_dict[self._the_key_for_memory_data]
 
             self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = False
             return
