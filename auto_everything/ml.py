@@ -29,7 +29,7 @@ class DataProcessor():
 
         Parameters
         ----------
-        the_list: 
+        the_list:
         sequence_length: int
             how long you want the subsequence to be.
 
@@ -69,7 +69,7 @@ class Yingshaoxo_Text_Generator():
         准确率将高得惊人
         https://huggingface.co/distilbert-base-cased-distilled-squad?context=My+name+is+%E8%83%A1%E8%8B%B1%E6%9D%B0&question=What+is+my+name%3F
 
-    Wha kind of problem I have solved using traditional programming?
+    Wha kind of problem I have solved using traditional programming (similarity)?
     1. ChatBot
     2. Sentence translation
     3. Grammar correction
@@ -86,14 +86,14 @@ class Yingshaoxo_Text_Generator():
         for file in files:
             self.text_source_data += io_.read(file)
             self.lower_case_text_source_data = self.text_source_data.lower()
-        
+
         self.use_machine_learning = use_machine_learning
         if (use_machine_learning == True):
             # pip install sentence_transformers
             from sentence_transformers import SentenceTransformer, util
             self.sentence_transformers_model = SentenceTransformer('all-MiniLM-L6-v2')
             self.sentence_transformers_utility = util
-    
+
     @staticmethod
     def get_random_text_deriation_from_source_text(source_text: str, random_remove_some_characters: bool = False, random_add_some_characters: bool = False, random_char_source_text: str = "") -> str:
         source_text_lines = source_text.split("\n")
@@ -110,17 +110,17 @@ class Yingshaoxo_Text_Generator():
         random_length = int(len(source_text) * 0.2)
         if random_remove_some_characters:
             for i in range(random_length):
-                random_index = random.randint(0, len(final_random_text)-1)	
+                random_index = random.randint(0, len(final_random_text)-1)
                 final_random_text = final_random_text[:random_index] + final_random_text[random_index + 1:]
         if random_add_some_characters:
             for i in range(random_length):
-                random_index = random.randint(0, len(final_random_text)-1)	
+                random_index = random.randint(0, len(final_random_text)-1)
                 if (random_char_source_text == ""):
                     random_char_source_text = source_text
                 final_random_text = final_random_text[:random_index] + random.choice(random_char_source_text) + final_random_text[random_index:]
 
         return final_random_text
-    
+
     def get_similarity_of_two_sentences(self, sentence_1: str, sentence_2: str, use_both_machine_learning_and_traditional_method: bool = False) -> float:
         if use_both_machine_learning_and_traditional_method == True:
             sentence_embedding_list = self.sentence_transformers_model.encode(sentences=[sentence_1, sentence_2], convert_to_tensor=True)
@@ -135,7 +135,7 @@ class Yingshaoxo_Text_Generator():
                 return float(similarity.cpu().numpy()[0][0])
             else:
                 return language.compare_two_sentences(sentence_1, sentence_2)
-    
+
     def _count_how_many_sub_string_in_previous_context(self, start_index: int, input_text: str, how_long_the_text_you_want_to_get: int = 1024):
         input_text = input_text.lower()
 
@@ -185,7 +185,7 @@ class Yingshaoxo_Text_Generator():
                 #    break
 
         if len(found_dict.keys()) > 0:
-            random_key = random.choice(list(found_dict.keys())) 
+            random_key = random.choice(list(found_dict.keys()))
             return self.text_source_data[found_dict[random_key]["end"]-how_long_the_text_you_want_to_get:found_dict[random_key]["end"]+how_long_the_text_you_want_to_get], found_dict[random_key]["following"]
         else:
             if use_fuzz_search == False:
@@ -261,7 +261,7 @@ class Yingshaoxo_Text_Generator():
                 if (self.debug_mode):
                     print(f"last_input_sentence: {last_input_sentence}")
                 break
-        
+
         similarity_list = []
         for index, one_target in enumerate(context_splits):
             if one_target ["is_punctuation_or_space"] == False:
@@ -294,9 +294,9 @@ class Yingshaoxo_Text_Generator():
             the_seperator_index -= 1
 
         return "".join([one["text"] for one in context_splits[the_seperator_index:]])
-    
+
     @staticmethod
-    def next_code_generation(data_source_folder_path: str, input_text: str, quck_mode: bool = True, type_limiter: list[str] = [".txt", ".py", ".md"], how_long_the_text_you_want_to_get: int = 1024):
+    def next_code_generation(input_text: str, type_limiter: list[str] = [".txt", ".py", ".md"], how_long_the_text_you_want_to_get: int = 1024, quck_mode: bool = True, data_source_text: str | None = None, data_source_folder_path: str | None = None, only_return_source_text: bool = False):
         """
         1. take the previous text as input
         2. take sub_string of the input_text, from right to left, from long to short.
@@ -309,29 +309,38 @@ class Yingshaoxo_Text_Generator():
         text_source_data = ""
         should_update_datasource = False
 
-        datestamp_string = store.get('last_code_generation_database_update_time', None)
-        if (datestamp_string == None):
-            should_update_datasource = True
-        else:
-            old_time = time_.get_datetime_object_from_timestamp(int(datestamp_string))
-            new_time = time_.get_datetime_object_from_timestamp(time_.get_current_timestamp_in_10_digits_format())
-            if (new_time - old_time).days > 3: #update the database for every 3 days
+        if data_source_text == None:
+            if data_source_txt_file_path == None:
+                return ""
+
+            datestamp_string = store.get('last_code_generation_database_update_time', None)
+            if (datestamp_string == None):
                 should_update_datasource = True
+            else:
+                old_time = time_.get_datetime_object_from_timestamp(int(datestamp_string))
+                new_time = time_.get_datetime_object_from_timestamp(time_.get_current_timestamp_in_10_digits_format())
+                if (new_time - old_time).days > 3: #update the database for every 3 days
+                    should_update_datasource = True
 
-        data_source_txt_file_path = terminal.fix_path("~/.auto_everything/ml/code_completion_data_source.txt")
-        disk.create_a_folder(disk.get_directory_path(data_source_txt_file_path))
-        if (not disk.exists(data_source_txt_file_path)):
-            io_.write(file_path=data_source_txt_file_path, content="")
+            data_source_txt_file_path = terminal.fix_path("~/.auto_everything/ml/code_completion_data_source.txt")
+            disk.create_a_folder(disk.get_directory_path(data_source_txt_file_path))
+            if (not disk.exists(data_source_txt_file_path)):
+                io_.write(file_path=data_source_txt_file_path, content="")
 
-        if should_update_datasource == True:
-            files = disk.get_files(folder=terminal.fix_path(data_source_folder_path), type_limiter=type_limiter)
-            io_.write(file_path=data_source_txt_file_path, content="")
-            for file in files:
-                io_.append(file_path=data_source_txt_file_path, content=io_.read(file) + "\n\n\n\n")
-            store.set('last_code_generation_database_update_time', str(time_.get_current_timestamp_in_10_digits_format()))
+            if should_update_datasource == True:
+                files = disk.get_files(folder=terminal.fix_path(data_source_folder_path), type_limiter=type_limiter)
+                io_.write(file_path=data_source_txt_file_path, content="")
+                for file in files:
+                    io_.append(file_path=data_source_txt_file_path, content=io_.read(file) + "\n\n\n\n")
+                store.set('last_code_generation_database_update_time', str(time_.get_current_timestamp_in_10_digits_format()))
+            else:
+                text_source_data = io_.read(data_source_txt_file_path)
+
+            if only_return_source_text == True:
+                return text_source_data
         else:
-            text_source_data = io_.read(data_source_txt_file_path)
-        
+            text_source_data = data_source_text
+
         def real_next_code_generation(input_text: str, how_long_the_text_you_want_to_get: int = 1024):
             if (input_text.strip() == ""):
                 return ""
@@ -350,7 +359,7 @@ class Yingshaoxo_Text_Generator():
                 following = text_source_data[end: end + how_long_the_text_you_want_to_get]
                 following = following.rstrip()
                 return following
-        
+
         return real_next_code_generation(input_text=input_text, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
 
     def text_to_text_harding_coding_transforming(self, input_text_list: list[str], output_text_list: list[str], text_you_want_to_transform: str):
@@ -361,13 +370,13 @@ class Yingshaoxo_Text_Generator():
         4. tip 3 is still in [MASK] level. If you want to handle the sentence segment sorting problem, you have to predict the 'move farwrd x characters' and 'move backword x chracter' information. Which can also be treated like a mask.
 
         speak of the process speed, use cache.
-        
+
         this function could be used on 'wrong word correction', 'punctuation adding', 'sub_sentence rewrite'
 
         for 'summarytion task', get substrings from source_text, then get substrings from target_text, see how many substring shold get removed, get couting of those substrings that should get removed over the whole dataset.
             for the next time, in a new input sentence, we get those substring ranks, simply remove those substring that has higher 'garbage rank number'
-        
-        for 'sorting task', get substrings from input_text, then try to use before_context and following_context to do a search in target dataset, get the percentage of start_index/the_whole_length_of_the_sentence. 
+
+        for 'sorting task', get substrings from input_text, then try to use before_context and following_context to do a search in target dataset, get the percentage of start_index/the_whole_length_of_the_sentence.
             do a compare for the substring in the input_text, so you would get a percentage number of weather to move that substring farward or backward.
         """
         print("Haven't get implemented yet.")
@@ -414,6 +423,10 @@ class Yingshaoxo_Computer_Vision():
 
 
 class Yingshaoxo_Speech_Recognizer():
+    """
+    If you have a text_to_speech dataset, you could make a reverse coding.
+    Use voice similarity to get target voice, then use 1:1 speech_to_text dataset to get the target text.
+    """
     def __init__(self, language: str = 'en'):
         # pip install vosk
         # pip install sounddevice
@@ -436,7 +449,7 @@ class Yingshaoxo_Speech_Recognizer():
         self.KaldiRecognizer = KaldiRecognizer
 
         self.microphone_bytes_data_queue = queue.Queue()
-    
+
     def recognize_following_speech(self, timeout_in_seconds: int | None = None) -> str:
         while self.microphone_bytes_data_queue.empty() == False:
             self.microphone_bytes_data_queue.get_nowait()
@@ -450,7 +463,7 @@ class Yingshaoxo_Speech_Recognizer():
         try:
             device_info = self.sounddevice.query_devices(None, "input")
             samplerate = int(device_info["default_samplerate"]) #type:ignore
-                
+
             with self.sounddevice.RawInputStream(samplerate=samplerate, blocksize = 8000, device=None,
                     dtype="int16", channels=1, callback=callback):
                 rec = self.KaldiRecognizer(self.vosk_model, samplerate)
@@ -478,6 +491,10 @@ class Yingshaoxo_Speech_Recognizer():
 
 
 class Yingshaoxo_Translator():
+    """
+    translation is kind of 1:1 task
+    if you have a super big dataset, you replace longest sentence first, you'll get 100% accurate translation
+    """
     def __init__(self):
         # pip install dl-translate
         import dl_translate
@@ -486,7 +503,7 @@ class Yingshaoxo_Translator():
         self.dl_translate_model = self.dl_translate.TranslationModel(device="auto")
         self.languages = self.dl_translate.lang
         self._language = Language()
-    
+
     def translate(self, text: str, from_language: Any, to_language: Any, sentence_seperation: bool = False) -> str:
         try:
             text = text.strip()
@@ -515,7 +532,7 @@ class Yingshaoxo_Translator():
         except Exception as e:
             print(e)
             return text
-    
+
     def chinese_to_english(self, text: str, sentence_seperation: bool = False):
         return self.translate(text=text, from_language=self.languages.CHINESE, to_language=self.languages.ENGLISH, sentence_seperation=sentence_seperation)
 
@@ -524,6 +541,42 @@ class Yingshaoxo_Translator():
 
 
 class Yingshaoxo_Text_to_Speech():
+    """
+    TTS hard coding method 2:
+
+
+    1. Text map to 64k mp3 audio
+
+    2. Use ",." symbol to separate text, so you get less repeated text data
+
+    3. When you got 1GB of data, you get a well functioned TTS
+
+    > You could even use speech recognition to collect audio to text dict data.
+
+    > By using this method, you could get almost 100% accurate TTS for your voice
+
+
+    #tts #yingshaoxo
+    """
+    """
+    TTS hard coding method, 1:
+
+
+    Word to Sound directly, but with software to control it's strongth, tune, pause length between words.
+
+    The strongth is actually the relative audio volume between a word, a sentence. (Or audio volume line)
+
+    And the tune will need you to change each word length.
+
+    Audio Line: 40 50 70 100 (volume %, from low to high)
+
+    Audio length: 1 1.8 1 (word relative length, "how are you?")
+
+    Audio pause length: 0.1 0.1 (word pause relative length for "how are you")
+
+
+    #tts #yingshaoxo
+    """
     def __init__(self):
         #pip install TTS
         #sudo apt install ffmpeg                 or          https://github.com/markus-perl/ffmpeg-build-script#:~:text=maintain%20different%20systems.-,Installation,-Quick%20install%20and
@@ -593,7 +646,7 @@ class Yingshaoxo_Text_to_Speech():
 
         if len(language_list) > 0:
             language_list[-1]["text"] += text[-1]
-        
+
         new_list = []
         for index, one in enumerate(language_list):
             new_text = language_list[index]["text"].strip()
@@ -628,7 +681,7 @@ class Yingshaoxo_Text_to_Speech():
         self.terminal.run(f"""
         ffplay -autoexit -nodisp "{output_file}"
                 """, wait=True)
-        
+
         self.disk.delete_a_file(output_file)
 
     def speak_it(self, text: str):
