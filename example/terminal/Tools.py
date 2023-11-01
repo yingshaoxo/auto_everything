@@ -69,14 +69,14 @@ class Tools():
             git commit -m "{comment}"
             #git push origin
             """)
-    
+
     def force_push(self):
         branch = "master"
         for s in t.run_command("git branch").split("\n"):
             if "*" in s:
                 branch = s.replace("*", "").strip()
         t.run(f"""
-git push origin {branch} --force 
+git push origin {branch} --force
 """)
 
     def force_pull(self):
@@ -183,7 +183,7 @@ git remote set-url --add --push origin {repo_url}
 
     def pkill(self, name: str):
         t.kill(name)
-    
+
     def find_port(self, port: str):
         t.run(f"""
             sudo lsof -i:{port}
@@ -197,7 +197,7 @@ git remote set-url --add --push origin {repo_url}
     def find_string(self, regex_expression: str):
         pwd = t.run_command('pwd')
         t.run(f"grep -r -e '{regex_expression}' '{pwd}'")
-    
+
     def sync(self, source: str, target: str):
         t.run(f"rsync -v --info=progress2 --partial '{source}' '{target}'")
 
@@ -235,7 +235,7 @@ git remote set-url --add --push origin {repo_url}
         go get -d -u -t ./...
         go mod tidy
         """)
-    
+
     def my_shell(self, type: str | None=None):
         if type == "x":
             def command_line_transforming(command: str) -> str:
@@ -279,7 +279,7 @@ git remote set-url --add --push origin {repo_url}
         """)
         # files = disk.get_folder_and_files(folder=".")
         # pprint(list(files))
-    
+
     def stop_unnecessary_ubuntu_service(self):
         """
         sudo systemctl list-unit-files --type=service
@@ -305,7 +305,7 @@ git remote set-url --add --push origin {repo_url}
             systemctl stop {service_name}
             """
         t.run(script)
-    
+
     def find_big_file(self, path: str = "."):
         t.run(f"""
         du -a -h --max-depth=1 {path} | sort -h
@@ -329,7 +329,7 @@ git remote set-url --add --push origin {repo_url}
                     print(f"{file}: ", e2)
             print(f"Folder got deleted: {file}")
         print("done")
-    
+
     def start_vnc_service(self, password: str="aaaaaaAAAAAA123456!!!!!!"):
         t.run(f"""
         sudo apt-get install x11vnc net-tools
@@ -342,7 +342,7 @@ git remote set-url --add --push origin {repo_url}
         t.run(f"""
         sudo docker container prune
         sudo docker image prune
-        sudo docker system prune -a 
+        sudo docker system prune -a
         """)
 
     def hi(self):
