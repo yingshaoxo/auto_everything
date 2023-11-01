@@ -136,16 +136,36 @@ class Terminal:
         software_name : string
             for example, "wget", "curl", "git", "python3", "node"
         """
+        has_which = False
         if "exists" in self.run_command(f"""
-            if which {software_name} >/dev/null; then
+            if which version >/dev/null; then
                 echo "exists"
             else
                 exit 0
             fi
         """):
-            return True
+            has_which = True
+
+        if has_which:
+            if "exists" in self.run_command(f"""
+                if which {software_name} >/dev/null; then
+                    echo "exists"
+                else
+                    exit 0
+                fi
+            """):
+                return True
         else:
-            return False
+            if "exists" in self.run_command(f"""
+                if {software_name} --version >/dev/null; then
+                    echo "exists"
+                else
+                    exit 0
+                fi
+            """):
+                return True
+
+        return False
 
     def __text_to_sh(self, text: str, wait: bool=False) -> Tuple[str, str]:
         m = hashlib.sha256()
