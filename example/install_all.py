@@ -13,7 +13,7 @@ apt_softwares = [
 for soft in apt_softwares:
     terminal.run(
         f"""
-        sudo apt install -y {soft}                                                                                      
+        sudo apt install -y {soft}
         """
     )
 
@@ -33,6 +33,7 @@ snap_softwares = [
     "flameshot",
 ]
 
+# Use snap on care, it may cut usable permission one by one, in the end, becomes google play store or apple app store, which depresses develop freedom. (And it can't disable auto_update forever.)
 for soft in snap_softwares:
     terminal.run(
         f"""
