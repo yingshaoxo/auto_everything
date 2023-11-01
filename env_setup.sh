@@ -9,13 +9,11 @@ sudo apt -y install g++
 sudo apt -y install python3
 sudo apt -y install python3-pip
 sudo apt -y install python3-dev
-sudo apt -y install tmux
 sudo apt -y install git
-
-#sudo apt-get -y install python3 python-dev python3-dev \
-#     build-essential libssl-dev libffi-dev \
-#     libxml2-dev libxslt1-dev zlib1g-dev \
-#     python-pip
+sudo apt -y install curl
+sudo apt -y install wget
+sudo apt -y install tmux
+sudo apt -y install vim
 
 #arch
 sudo pacman --noconfirm -S gcc
@@ -23,10 +21,11 @@ sudo pacman --noconfirm -S g++
 sudo pacman --noconfirm -S cmake
 sudo pacman --noconfirm -S make
 sudo pacman --noconfirm -Syu python3
+sudo pacman --noconfirm -S git
+sudo pacman --noconfirm -S curl
 curl -O https://bootstrap.pypa.io/get-pip.py
 sudo python get-pip.py
 rm get-pip.py
-#sudo pacman --noconfirm -Syu python-tensorflow-cuda
 
 #macos
 case $(uname | tr '[:upper:]' '[:lower:]') in
@@ -46,10 +45,6 @@ case $(uname | tr '[:upper:]' '[:lower:]') in
     *)
     ;;
 esac
-
-#sudo apt -y install ffmpeg
-#sudo apt -y install python3-opencv
-#sudo pip3 install git+https://github.com/yingshaoxo/auto_everything.git --upgrade
 
 # #########
 # # WITH EXTENSIONS
@@ -89,4 +84,3 @@ esac
 # cd ..
 
 # cd example
-
