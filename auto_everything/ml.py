@@ -383,7 +383,8 @@ class Yingshaoxo_Text_Generator():
                     complete_text += result
             return complete_text
 
-        return predict_next_x_chars(input_text=input_text, x=x)
+        final_text = predict_next_x_chars(input_text=input_text, x=x)
+        return final_text[len(input_text):]
 
     def get_global_string_corrector_dict_by_using_yingshaoxo_method(self, source_text_data: str, levels: int = 10):
         global_string_dict = {
