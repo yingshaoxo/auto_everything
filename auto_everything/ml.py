@@ -74,7 +74,7 @@ def split_string_into_list_by_symbols(input_text, special_symbols = "\n ,.!?()[]
         else:
             is_symbol = False
 
-        if is_symbol == False:
+        if is_symbol == True:
             result_list.append({
                 "language": "symbol",
                 "text": temp_string
@@ -160,7 +160,7 @@ def split_string_into_english_and_not_english_list(input_text):
 
     return result_list
 
-def string_split_by_using_yingshaoxo_method(input_text):
+def string_split_by_using_yingshaoxo_method(input_text, without_punctuation: bool = False):
     """
     Split a string into language segments based on symbols, English and not_English text.
 
@@ -174,23 +174,26 @@ def string_split_by_using_yingshaoxo_method(input_text):
     symbol_list = split_string_into_list_by_symbols(input_text)
     for one in symbol_list:
         if one["language"] == "symbol":
-            final_list.append({
-                "language": "symbol",
-                "text": one["text"]
-            })
+            if without_punctuation == False:
+                final_list.append({
+                    "language": "symbol",
+                    "text": one["text"]
+                })
+            else:
+                pass
         else:
             language_list = split_string_into_english_and_not_english_list(one["text"])
             final_list += language_list
     return final_list
 
-def string_split_to_pure_segment_list_by_using_yingshaoxo_method(input_text):
+def string_split_to_pure_segment_list_by_using_yingshaoxo_method(input_text, without_punctuation: bool = False):
     """
     Split a string into language segments based on symbols, English and not_English text.
 
     return list like: ["how", "are", "you", "?"]
     """
     final_list = []
-    a_list = string_split_by_using_yingshaoxo_method(input_text)
+    a_list = string_split_by_using_yingshaoxo_method(input_text, without_punctuation=without_punctuation)
     for one in a_list:
         if one["language"] == "not_en":
             final_list += list(one["text"])
