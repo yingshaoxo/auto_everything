@@ -296,6 +296,7 @@ class Yingshaoxo_Text_Generator():
             self.text_source_data = ""
         else:
             self.text_source_data = self.get_source_text_data_by_using_yingshaoxo_method(input_txt_folder_path=input_txt_folder_path, type_limiter=type_limiter)
+            self.lower_case_text_source_data = self.text_source_data.lower()
 
         self.use_machine_learning = use_machine_learning
         if (use_machine_learning == True):
