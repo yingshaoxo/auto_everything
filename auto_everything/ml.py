@@ -164,7 +164,7 @@ class Yingshaoxo_Text_Generator():
             return pure_level_dict
 
         max_level = levels
-        for level in reversed(list(range(1, max_level))):
+        for level in reversed(list(range(1, 1+max_level))):
             global_string_dict[level] = get_x_level_dict(source_text_data, level)
 
         return global_string_dict
