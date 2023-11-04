@@ -54,6 +54,33 @@ class DataProcessor():
 
 class Yingshaoxo_Text_Generator():
     """
+    # dict based next word generator
+
+    ```
+    One word Predict next word
+    One word predict next word
+    Two words predict next word
+    Three words predict next word
+    ... words predict next word
+    ```
+
+    When you use it, use it from bottom to top, use longest sequence to predict the next word first.
+    """
+    """
+    Extreme Lite version of chatgpt:
+
+    Use one sentence predicts the next concept word. Then use concept word to predict next x words.
+
+    What it is? Call wiki.
+    Why? Call a wiki or Q&A site.
+    How to do it? Call a Q&A website.
+    How to write code? Call stackiverflow.
+
+    > use text similarity to do the search
+
+    #lite #chatgpt #yingshaoxo
+    """
+    """
     1. First you have to have a folder where has multiple txt files
     2. This class will parse those text, convert it into 30000, 3000, 300, 30, 3, 1 char length sub_context_window, we slide that window by one char each search time
     3. If we found previous x_chars matchs the input_text user asks in our database, we return the following chars from database to the user
@@ -77,15 +104,14 @@ class Yingshaoxo_Text_Generator():
     5. Code completion
     6. Sentence rewrite
     """
-    def __init__(self, input_txt_folder_path: str, only_search_the_first_level_of_folders: bool = True, type_limiter: list[str] = [".txt", ".md"], use_machine_learning: bool = False, debug_mode: bool = False):
+    def __init__(self, input_txt_folder_path: str = "", type_limiter: list[str] = [".txt", ".md"], use_machine_learning: bool = False, debug_mode: bool = False):
         self.debug_mode = debug_mode
         self.input_txt_folder_path = input_txt_folder_path
 
-        self.text_source_data = ""
-        files = disk.get_files(self.input_txt_folder_path, recursive=not only_search_the_first_level_of_folders, type_limiter=type_limiter)
-        for file in files:
-            self.text_source_data += io_.read(file)
-            self.lower_case_text_source_data = self.text_source_data.lower()
+        if input_txt_folder_path == "":
+            self.text_source_data = ""
+        else:
+            self.text_source_data = self.get_source_text_data_by_using_yingshaoxo_method(input_txt_folder_path=input_txt_folder_path, type_limiter=type_limiter)
 
         self.use_machine_learning = use_machine_learning
         if (use_machine_learning == True):
@@ -93,6 +119,86 @@ class Yingshaoxo_Text_Generator():
             from sentence_transformers import SentenceTransformer, util
             self.sentence_transformers_model = SentenceTransformer('all-MiniLM-L6-v2')
             self.sentence_transformers_utility = util
+
+    def get_source_text_data_by_using_yingshaoxo_method(self, input_txt_folder_path: str, type_limiter: list[str] = [".txt", ".md"]) -> str:
+        text_source_data = ""
+        if disk.exists(input_txt_folder_path):
+            files = disk.get_files(input_txt_folder_path, recursive=True, type_limiter=type_limiter, use_gitignore_file=True)
+            for file in files:
+                text_source_data += io_.read(file)
+            return text_source_data
+        else:
+            return ""
+
+    def get_global_string_dict_by_using_yingshaoxo_method(self, source_text_data: str, levels: int = 10):
+        global_string_dict = {
+        }
+
+        def get_x_level_dict(source_text: str, x: int):
+            level_dict = {}
+            for index, _ in enumerate(source_text):
+                if index < (x-1):
+                    continue
+                if index == len(source_text) - x:
+                    break
+                current_chars = source_text[index-(x-1): index+1]
+                next_char = source_text[index+1]
+                if current_chars in level_dict:
+                    if next_char in level_dict[current_chars]:
+                        level_dict[current_chars][next_char] += 1
+                    else:
+                        level_dict[current_chars][next_char] = 1
+                else:
+                    level_dict[current_chars] = {next_char: 1}
+
+            pure_level_dict = {}
+            for key, value in level_dict.items():
+                biggest_value = 0
+                biggest_key = None
+                for key2, value2 in value.items():
+                    if value2 > biggest_value:
+                        biggest_value = value2
+                        biggest_key = key2
+                pure_level_dict[key] = biggest_key
+
+            return pure_level_dict
+
+        max_level = levels
+        for level in reversed(list(range(1, max_level))):
+            global_string_dict[level] = get_x_level_dict(source_text_data, level)
+
+        return global_string_dict
+
+    def get_next_x_chars_by_using_yingshaoxo_method(self, input_text: str, x: int, levels: int = 10, source_text_data: str|None = None, global_string_dict: dict|None = None) -> Any:
+        """
+        This will generate text based on hash map or hash dict. If you use it in memory, the speed would be super quick.
+        """
+        if source_text_data == None:
+            source_text_data = self.text_source_data
+
+        if global_string_dict != None:
+            pass
+        else:
+            global_string_dict = self.get_global_string_dict_by_using_yingshaoxo_method(source_text_data, levels)
+
+        def predict_next_char(input_text: str):
+            for level in global_string_dict.keys():
+                last_chars = input_text[len(input_text)-level:]
+                if last_chars in global_string_dict[level].keys():
+                    return global_string_dict[level][last_chars]
+            return None
+
+        def predict_next_x_chars(input_text: str, x: int):
+            complete_text = input_text
+            for _ in range(x):
+                result = predict_next_char(complete_text)
+                if result == None:
+                    break
+                else:
+                    complete_text += result
+            return complete_text
+
+        return predict_next_x_chars(input_text=input_text, x=x)
 
     @staticmethod
     def get_random_text_deriation_from_source_text(source_text: str, random_remove_some_characters: bool = False, random_add_some_characters: bool = False, random_char_source_text: str = "") -> str:
@@ -689,6 +795,11 @@ class Yingshaoxo_Text_to_Speech():
         for one in data_:
             print(one)
             self._speak_it(language=one["language"], text=one["text"])
+
+
+class ML():
+    def __init__(self):
+        self.Yingshaoxo_Text_Generator = Yingshaoxo_Text_Generator
 
 
 if __name__ == "__main__":
