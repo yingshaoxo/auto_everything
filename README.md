@@ -394,10 +394,12 @@ But now, it becomes ['a', 'b', 'c', 'd']
 
 
 ### For text summary
-For the self attention mechanism, it is using word apperance counting dict. You could think it as a dict, multiple key link to one same value, for all those multiple key string, if a word show up a lot time, it is likely it is important word.
+For the self attention mechanism, it is using word apperance counting dict. You could think it as a dict, multiple key link to one same value, for all those multiple key string, if a word show up a lot of time, it is likely a important word.
 (You can think this as a TV show, for the same envirnoment, if a person only show once, it is not the main character, it is not important. But if a character show a lot times, you can almost see it at any eposide, then it is a important character)
 
 For one sequence or list, If its importance number less than average(half of 'its sequence importance sum'), you remove it
+
+Or you could do this: if that word does not appear again in the following sentence of the input_text in your database, you treat it as not important text.
 
 
 ### For translation
