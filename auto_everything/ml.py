@@ -26,6 +26,9 @@ def split_string_into_list_by_punctuations(input_text, special_punctuations = "\
     ]
     it should be a mixed result list, the order of punctuation and not_punctuation should follow orginal text
     """
+    if input_text.strip() == "":
+        return []
+
     if not_include_punctuations != "":
         for char in not_include_punctuations:
             special_punctuations = special_punctuations.replace(char, "")
@@ -104,6 +107,9 @@ def split_string_into_english_and_not_english_list(input_text):
         { "language": "not_en", "text": },
     ]
     """
+    if input_text.strip() == "":
+        return []
+
     result_list = []
     index = 0
     temp_string = ""
@@ -174,6 +180,9 @@ def string_split_by_using_yingshaoxo_method(input_text, without_punctuation: boo
         { "language": "punctuation", "text": },
     ]
     """
+    if input_text.strip() == "":
+        return []
+
     final_list = []
     punctuation_list = split_string_into_list_by_punctuations(input_text)
     for one in punctuation_list:
@@ -196,6 +205,9 @@ def string_split_to_pure_segment_list_by_using_yingshaoxo_method(input_text, wit
 
     return list like: ["how", "are", "you", "?"]
     """
+    if input_text.strip() == "":
+        return []
+
     final_list = []
     a_list = string_split_by_using_yingshaoxo_method(input_text, without_punctuation=without_punctuation)
     for one in a_list:
