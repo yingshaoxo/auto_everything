@@ -18,46 +18,46 @@ store = Store('auto_everything_ml_module')
 #####
 #Some basic functions
 #####
-def split_string_into_list_by_symbols(input_text, special_symbols = "\n ,.!?()[]{}<>;:’‘“”\"'`’‘「」『』【】〖〗《》《 》〈 〉〔 〕（ ）﹙ ﹚【 】［ ］｛ ｝〖 〗「 」『 』《 》〈 〉《》〔 〕【 】（ ）﹙﹚｛ ｝‘ ’“ ”‘ ’“ ”〞 〝— -—— ……~·•※☆★●○■□▲△▼▽⊙⊕⊖⊘⊚⊛⊜⊝◆◇◊⊿◣◢◥◤@#$%^&*+=_|\\/:;"):
+def split_string_into_list_by_punctuations(input_text, special_punctuations = "\n ,.!?()[]{}<>;:’‘“”\"'`’‘「」『』【】〖〗《》《 》〈 〉〔 〕（ ）﹙ ﹚【 】［ ］｛ ｝〖 〗「 」『 』《 》〈 〉《》〔 〕【 】（ ）﹙﹚｛ ｝‘ ’“ ”‘ ’“ ”〞 〝— -—— ……~·•※☆★●○■□▲△▼▽⊙⊕⊖⊘⊚⊛⊜⊝◆◇◊⊿◣◢◥◤@#$%^&*+=_|\\/:;"):
     """
     return list like: [
-        { "language": "symbol", "text": },
-        { "language": "not_symbol", "text": },
+        { "language": "punctuation", "text": },
+        { "language": "not_punctuation", "text": },
     ]
-    it should be a mixed result list, the order of symbol and not_symbol should follow orginal text
+    it should be a mixed result list, the order of punctuation and not_punctuation should follow orginal text
     """
     result_list = []
     index = 0
     temp_string = ""
-    last_symbol_flag =True
+    last_punctuation_flag =True
     if len(input_text) > 0:
-        if input_text[-1] in special_symbols:
-            last_symbol_flag = True
+        if input_text[-1] in special_punctuations:
+            last_punctuation_flag = True
         else:
-            last_symbol_flag = False
-    is_symbol = True
+            last_punctuation_flag = False
+    is_punctuation = True
     while True:
         current_char = input_text[index]
 
-        if current_char in special_symbols:
-            is_symbol = True
+        if current_char in special_punctuations:
+            is_punctuation = True
         else:
-            is_symbol = False
+            is_punctuation = False
 
-        if last_symbol_flag != is_symbol:
-            if last_symbol_flag == True:
+        if last_punctuation_flag != is_punctuation:
+            if last_punctuation_flag == True:
                 result_list.append({
-                    "language": "symbol",
+                    "language": "punctuation",
                     "text": temp_string
                 })
             else:
                 result_list.append({
-                    "language": "not_symbol",
+                    "language": "not_punctuation",
                     "text": temp_string
                 })
             temp_string = ""
 
-        last_symbol_flag = is_symbol
+        last_punctuation_flag = is_punctuation
         temp_string += current_char
 
         index += 1
@@ -68,15 +68,15 @@ def split_string_into_list_by_symbols(input_text, special_symbols = "\n ,.!?()[]
         if result_list[0]["text"] == "":
             result_list = result_list[1:]
     if temp_string != "":
-        is_symbol = True
-        if temp_string[-1] in special_symbols:
-            is_symbol = True
+        is_punctuation = True
+        if temp_string[-1] in special_punctuations:
+            is_punctuation = True
         else:
-            is_symbol = False
+            is_punctuation = False
 
-        if is_symbol == True:
+        if is_punctuation == True:
             result_list.append({
-                "language": "symbol",
+                "language": "punctuation",
                 "text": temp_string
             })
         else:
@@ -103,12 +103,12 @@ def split_string_into_english_and_not_english_list(input_text):
     result_list = []
     index = 0
     temp_string = ""
-    last_symbol_flag = False
+    last_punctuation_flag = False
     if len(input_text) > 0:
         if input_text[-1].isascii():
-            last_symbol_flag = True
+            last_punctuation_flag = True
         else:
-            last_symbol_flag = False
+            last_punctuation_flag = False
     is_en = True
     while True:
         current_char = input_text[index]
@@ -118,8 +118,8 @@ def split_string_into_english_and_not_english_list(input_text):
         else:
             is_en = False
 
-        if last_symbol_flag != is_en:
-            if last_symbol_flag == False:
+        if last_punctuation_flag != is_en:
+            if last_punctuation_flag == False:
                 result_list.append({
                     "language": "not_en",
                     "text": temp_string
@@ -131,7 +131,7 @@ def split_string_into_english_and_not_english_list(input_text):
                 })
             temp_string = ""
 
-        last_symbol_flag = is_en
+        last_punctuation_flag = is_en
         temp_string += current_char
 
         index += 1
@@ -162,21 +162,21 @@ def split_string_into_english_and_not_english_list(input_text):
 
 def string_split_by_using_yingshaoxo_method(input_text, without_punctuation: bool = False):
     """
-    Split a string into language segments based on symbols, English and not_English text.
+    Split a string into language segments based on punctuations, English and not_English text.
 
     return list like: [
         { "language": "en", "text": },
         { "language": "not_en", "text": },
-        { "language": "symbol", "text": },
+        { "language": "punctuation", "text": },
     ]
     """
     final_list = []
-    symbol_list = split_string_into_list_by_symbols(input_text)
-    for one in symbol_list:
-        if one["language"] == "symbol":
+    punctuation_list = split_string_into_list_by_punctuations(input_text)
+    for one in punctuation_list:
+        if one["language"] == "punctuation":
             if without_punctuation == False:
                 final_list.append({
-                    "language": "symbol",
+                    "language": "punctuation",
                     "text": one["text"]
                 })
             else:
@@ -186,9 +186,9 @@ def string_split_by_using_yingshaoxo_method(input_text, without_punctuation: boo
             final_list += language_list
     return final_list
 
-def string_split_to_pure_segment_list_by_using_yingshaoxo_method(input_text, without_punctuation: bool = False):
+def string_split_to_pure_segment_list_by_using_yingshaoxo_method(input_text, without_punctuation: bool = False) -> list[str]:
     """
-    Split a string into language segments based on symbols, English and not_English text.
+    Split a string into language segments based on punctuations, English and not_English text.
 
     return list like: ["how", "are", "you", "?"]
     """
