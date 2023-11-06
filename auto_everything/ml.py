@@ -18,7 +18,7 @@ store = Store('auto_everything_ml_module')
 #####
 #Some basic functions
 #####
-def split_string_into_list_by_punctuations(input_text, special_punctuations = "\n ,.!?()[]{}<>;:’‘“”\"'`’‘「」『』【】〖〗《》《 》〈 〉〔 〕（ ）﹙ ﹚【 】［ ］｛ ｝〖 〗「 」『 』《 》〈 〉《》〔 〕【 】（ ）﹙﹚｛ ｝‘ ’“ ”‘ ’“ ”〞 〝— -—— ……~·•※☆★●○■□▲△▼▽⊙⊕⊖⊘⊚⊛⊜⊝◆◇◊⊿◣◢◥◤@#$%^&*+=_|\\/:;"):
+def split_string_into_list_by_punctuations(input_text, special_punctuations = "\n ，。；！@#￥%……&*（）-——+=『【』】|、：；“‘～`《》，。？/~`!@#$%^&*()_+-={}[]|\:;\"'<,>.?/,.!?()[]{}<>;:’‘“”\"'`’‘「」『』【】〖〗《》《 》〈 〉〔 〕（ ）﹙ ﹚【 】［ ］｛ ｝〖 〗「 」『 』《 》〈 〉《》〔 〕【 】（ ）﹙﹚｛ ｝‘ ’“ ”‘ ’“ ”〞 〝— -—— ……~·•※☆★●○■□▲△▼▽⊙⊕⊖⊘⊚⊛⊜⊝◆◇◊⊿◣◢◥◤@#$%^&*+=_|\\/:;", not_include_punctuations: str = ""):
     """
     return list like: [
         { "language": "punctuation", "text": },
@@ -26,6 +26,10 @@ def split_string_into_list_by_punctuations(input_text, special_punctuations = "\
     ]
     it should be a mixed result list, the order of punctuation and not_punctuation should follow orginal text
     """
+    if not_include_punctuations != "":
+        for char in not_include_punctuations:
+            special_punctuations = special_punctuations.replace(char, "")
+
     result_list = []
     index = 0
     temp_string = ""
@@ -200,6 +204,9 @@ def string_split_to_pure_segment_list_by_using_yingshaoxo_method(input_text, wit
         else:
             final_list += [one["text"]]
     return final_list
+
+def is_english_string(text: str) -> bool:
+    return text.isascii()
 
 
 class DataProcessor():
