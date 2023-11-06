@@ -399,7 +399,7 @@ For the self attention mechanism, it is using word apperance counting dict. You 
 
 For one sequence or list, If its importance number less than average(half of 'its sequence importance sum'), you remove it
 
-Or you could do this: if that word does not appear again in the following sentence of the input_text in your database, you treat it as not important text.
+Or you could do this: if that word does not appear again in the following sentences of the input_text in your database, you treat it as not important text.
 
 
 ### For translation
