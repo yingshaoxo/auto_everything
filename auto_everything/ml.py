@@ -413,7 +413,7 @@ class Yingshaoxo_Text_Generator():
         final_text = predict_next_x_chars(input_text=input_text, x=x)
         return final_text[len(input_text):]
 
-    def get_global_string_corrector_dict_by_using_yingshaoxo_method(self, source_text_data: str, levels: int = 10):
+    def get_global_string_corrector_dict_by_using_yingshaoxo_method(self, source_text_data: str, levels: int = 10, for_minus_character: bool = False):
         global_string_dict = {
         }
 
@@ -426,8 +426,12 @@ class Yingshaoxo_Text_Generator():
                     continue
                 if index == len(source_text) - x:
                     break
-                current_chars = source_text[index-x: index] + seperator + source_text[index+1: index+x+1]
-                center_char = source_text[index]
+                if for_minus_character == True:
+                    current_chars = source_text[index-x: index] + seperator + source_text[index: index+x]
+                    center_char = ""
+                else:
+                    current_chars = source_text[index-x: index] + seperator + source_text[index+1: index+x+1]
+                    center_char = source_text[index]
                 if current_chars in level_dict:
                     if center_char in level_dict[current_chars]:
                         level_dict[current_chars][center_char] += 1
@@ -455,7 +459,7 @@ class Yingshaoxo_Text_Generator():
 
         return global_string_dict
 
-    def correct_sentence_by_using_yingshaoxo_method(self, input_text: str, levels: int = 6, source_text_data: str|None = None, global_string_corrector_dict: dict|None = None) -> any:
+    def correct_sentence_by_using_yingshaoxo_method(self, input_text: str, levels: int = 6, source_text_data: str|None = None, global_string_corrector_dict: dict|None = None, plus_chracter: bool = False, minus_chracter: bool = False) -> any:
         """
         This will correct text based on pure text or hash map or hash dict. if you use it in memory, the speed would be super quick.
         If you can modify this function from char level to word level, the accuracy could be 100%.
@@ -480,6 +484,20 @@ class Yingshaoxo_Text_Generator():
                 if index >= len(input_text) - level:
                     new_text += input_text[index]
                     continue
+
+            if plus_chracter == True:
+                current_chars = input_text[index-level: index] + seperator + input_text[index: index+level]
+                if current_chars in global_string_corrector_dict[level].keys():
+                    new_text += global_string_corrector_dict[level][current_chars] + input_text[index]
+                else:
+                    new_text += input_text[index]
+            elif minus_chracter == True:
+                current_chars = input_text[index-level: index] + seperator + input_text[index+1: index+1+level]
+                if current_chars in global_string_corrector_dict[level].keys():
+                    new_text += ""
+                else:
+                    new_text += input_text[index]
+            else:
                 current_chars = input_text[index-level: index] + seperator + input_text[index+1: index+1+level]
                 if current_chars in global_string_corrector_dict[level].keys():
                     new_text += global_string_corrector_dict[level][current_chars]
@@ -491,10 +509,13 @@ class Yingshaoxo_Text_Generator():
     def correct_sentence_by_using_yingshaoxo_regex_method(self, input_text: str, source_data_text: str, level: int=3) -> str:
         import re
 
-        def find_match_string_in_source_data(before_chars: str, after_chars: str):
+        def find_match_string_in_source_data(before_chars: str, after_chars: str, for_minus_character: bool = False):
             before_chars = re.escape(before_chars)
             after_chars = re.escape(after_chars)
-            result_list = re.findall(pattern=f"{before_chars}(.){after_chars}", string=source_data_text)
+            if for_minus_character == True:
+                result_list = re.findall(pattern=f"{before_chars}{after_chars}", string=source_data_text)
+            else:
+                result_list = re.findall(pattern=f"{before_chars}(.){after_chars}", string=source_data_text, flags=re.DOTALL)
             counting_dict = {}
             for one in result_list:
                 if one in counting_dict.keys():
@@ -508,24 +529,52 @@ class Yingshaoxo_Text_Generator():
             else:
                 return None
 
-        new_text = ""
-        for index, _ in enumerate(input_text):
-            if index < (level-1):
-                new_text += input_text[index]
-                continue
-            if index >= len(input_text) - level:
-                new_text += input_text[index]
-                continue
-            before_chars = input_text[index-level: index]
-            after_chars = input_text[index+1: index+1+level]
-            #print(before_chars, input_text[index], after_chars)
-            new_chars = find_match_string_in_source_data(before_chars, after_chars)
-            if new_chars != None:
-                new_text += new_chars
-            else:
-                new_text += input_text[index]
+        def do_the_process(input_text: str, plus_chracter: bool = False, minus_chracter: bool = False) -> str:
+            new_text = ""
+            for index, _ in enumerate(input_text):
+                if index < (level-1):
+                    new_text += input_text[index]
+                    continue
+                if index >= len(input_text) - level:
+                    new_text += input_text[index]
+                    continue
 
-        return new_text
+                if plus_chracter == True:
+                    before_chars = input_text[index-level: index]
+                    after_chars = input_text[index: index+level]
+                    new_chars = find_match_string_in_source_data(before_chars, after_chars)
+                    if new_chars != None:
+                        new_text += new_chars + input_text[index]
+                    else:
+                        new_text += input_text[index]
+                elif minus_chracter == True:
+                    before_chars = input_text[index-level: index]
+                    after_chars = input_text[index+1: index+1+level]
+                    new_chars = find_match_string_in_source_data(before_chars, after_chars, for_minus_character=True)
+                    if new_chars != None:
+                        new_text += ""
+                    else:
+                        new_text += input_text[index]
+                else:
+                    before_chars = input_text[index-level: index]
+                    after_chars = input_text[index+1: index+1+level]
+                    new_chars = find_match_string_in_source_data(before_chars, after_chars)
+                    if new_chars != None:
+                        new_text += new_chars
+                    else:
+                        new_text += input_text[index]
+            return new_text
+
+        # minus acb to ab
+        input_text = do_the_process(input_text, minus_chracter=True)
+
+        # correct a*c to abc
+        input_text = do_the_process(input_text)
+
+        # plus ac to abc
+        input_text = do_the_process(input_text, plus_chracter=True)
+
+        return input_text
 
     def get_global_string_word_based_corrector_dict_by_using_yingshaoxo_method(self, source_text_data: str, levels: int = 10):
         global_string_dict = {}
