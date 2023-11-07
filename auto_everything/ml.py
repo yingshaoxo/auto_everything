@@ -264,8 +264,8 @@ class Yingshaoxo_Text_Generator():
     # dict based next word generator
 
     ```
-    One character predict next chracter
-    two character predict next chracter
+    One character predict next character
+    two character predict next character
     ...
     One word predict next word
     Two words predict next word
@@ -459,7 +459,7 @@ class Yingshaoxo_Text_Generator():
 
         return global_string_dict
 
-    def correct_sentence_by_using_yingshaoxo_method(self, input_text: str, levels: int = 6, source_text_data: str|None = None, global_string_corrector_dict: dict|None = None, plus_chracter: bool = False, minus_chracter: bool = False) -> any:
+    def correct_sentence_by_using_yingshaoxo_method(self, input_text: str, levels: int = 6, source_text_data: str|None = None, global_string_corrector_dict: dict|None = None, plus_character: bool = False, minus_character: bool = False) -> any:
         """
         This will correct text based on pure text or hash map or hash dict. if you use it in memory, the speed would be super quick.
         If you can modify this function from char level to word level, the accuracy could be 100%.
@@ -484,13 +484,13 @@ class Yingshaoxo_Text_Generator():
                 if index >= len(input_text) - level:
                     new_text += input_text[index]
                     continue
-                if plus_chracter == True:
+                if plus_character == True:
                     current_chars = input_text[index-level: index] + seperator + input_text[index: index+level]
                     if current_chars in global_string_corrector_dict[level].keys():
                         new_text += global_string_corrector_dict[level][current_chars] + input_text[index]
                     else:
                         new_text += input_text[index]
-                elif minus_chracter == True:
+                elif minus_character == True:
                     current_chars = input_text[index-level: index] + seperator + input_text[index+1: index+1+level]
                     if current_chars in global_string_corrector_dict[level].keys():
                         new_text += ""
@@ -528,7 +528,7 @@ class Yingshaoxo_Text_Generator():
             else:
                 return None
 
-        def do_the_process(input_text: str, plus_chracter: bool = False, minus_chracter: bool = False) -> str:
+        def do_the_process(input_text: str, plus_character: bool = False, minus_character: bool = False) -> str:
             new_text = ""
             for index, _ in enumerate(input_text):
                 if index < (level-1):
@@ -538,7 +538,7 @@ class Yingshaoxo_Text_Generator():
                     new_text += input_text[index]
                     continue
 
-                if plus_chracter == True:
+                if plus_character == True:
                     before_chars = input_text[index-level: index]
                     after_chars = input_text[index: index+level]
                     new_chars = find_match_string_in_source_data(before_chars, after_chars)
@@ -546,7 +546,7 @@ class Yingshaoxo_Text_Generator():
                         new_text += new_chars + input_text[index]
                     else:
                         new_text += input_text[index]
-                elif minus_chracter == True:
+                elif minus_character == True:
                     before_chars = input_text[index-level: index]
                     after_chars = input_text[index+1: index+1+level]
                     new_chars = find_match_string_in_source_data(before_chars, after_chars, for_minus_character=True)
@@ -565,13 +565,13 @@ class Yingshaoxo_Text_Generator():
             return new_text
 
         # minus acb to ab
-        input_text = do_the_process(input_text, minus_chracter=True)
+        input_text = do_the_process(input_text, minus_character=True)
 
         # correct a*c to abc
         input_text = do_the_process(input_text)
 
         # plus ac to abc
-        input_text = do_the_process(input_text, plus_chracter=True)
+        input_text = do_the_process(input_text, plus_character=True)
 
         return input_text
 
@@ -917,7 +917,7 @@ class Yingshaoxo_Text_Generator():
         1. Just think the whole transforming process as doing the search in a Q table.
         2. You use a patten filter to check the input_text, "I love you", 3 elements as a window, then you use this patten to do a search in the Q table, you found ["I hate you", "I trust you", "I hate you"], it seems like 'hate' has higher chance to be in the middle of that sentence.
         3. Or, you can simply think this: For a list of "I * you" patten in dataset, what word has more frequency in the position of *?, Choose the one has higher frequency.
-        4. tip 3 is still in [MASK] level. If you want to handle the sentence segment sorting problem, you have to predict the 'move farwrd x characters' and 'move backword x chracter' information. Which can also be treated like a mask.
+        4. tip 3 is still in [MASK] level. If you want to handle the sentence segment sorting problem, you have to predict the 'move farwrd x characters' and 'move backword x character' information. Which can also be treated like a mask.
 
         speak of the process speed, use cache.
 

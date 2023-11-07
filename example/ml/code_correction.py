@@ -14,5 +14,5 @@ while True:
     from auto*everything.terminal import
     """
 
-    result = text_generator.correct_sentence_by_using_yingshaoxo_method(input_text, global_string_corrector_dict=global_corrector_string_dict)
+    result = text_generator.correct_sentence_by_using_yingshaoxo_method(input_text, global_string_corrector_dict=global_corrector_string_dict, plus_character=False)
     print(result)
