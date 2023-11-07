@@ -18,118 +18,147 @@ store = Store('auto_everything_ml_module')
 #####
 #Some basic functions
 #####
-def split_string_into_list_by_punctuations(input_text, special_punctuations = "\n ，。；！@#￥%……&*（）-——+=『【』】|、：；“‘～`《》，。？/~`!@#$%^&*()_+-={}[]|\:;\"'<,>.?/,.!?()[]{}<>;:’‘“”\"'`’‘「」『』【】〖〗《》《 》〈 〉〔 〕（ ）﹙ ﹚【 】［ ］｛ ｝〖 〗「 」『 』《 》〈 〉《》〔 〕【 】（ ）﹙﹚｛ ｝‘ ’“ ”‘ ’“ ”〞 〝— -—— ……~·•※☆★●○■□▲△▼▽⊙⊕⊖⊘⊚⊛⊜⊝◆◇◊⊿◣◢◥◤@#$%^&*+=_|\\/:;", not_include_punctuations: str = ""):
-    """
-    return list like: [
-        { "language": "punctuation", "text": },
-        { "language": "not_punctuation", "text": },
-    ]
-    it should be a mixed result list, the order of punctuation and not_punctuation should follow orginal text
-    """
-    if input_text.strip() == "":
-        return []
+class Yingshaoxo_Text_Preprocessor():
+    def split_string_into_list_by_punctuations(self, input_text, special_punctuations = "\n ，。；！@#￥%……&*（）-——+=『【』】|、：；“‘～`《》，。？/~`!@#$%^&*()_+-={}[]|\:;\"'<,>.?/,.!?()[]{}<>;:’‘“”\"'`’‘「」『』【】〖〗《》《 》〈 〉〔 〕（ ）﹙ ﹚【 】［ ］｛ ｝〖 〗「 」『 』《 》〈 〉《》〔 〕【 】（ ）﹙﹚｛ ｝‘ ’“ ”‘ ’“ ”〞 〝— -—— ……~·•※☆★●○■□▲△▼▽⊙⊕⊖⊘⊚⊛⊜⊝◆◇◊⊿◣◢◥◤@#$%^&*+=_|\\/:;", not_include_punctuations: str = ""):
+        """
+        return list like: [
+            { "language": "punctuation", "text": },
+            { "language": "not_punctuation", "text": },
+        ]
+        it should be a mixed result list, the order of punctuation and not_punctuation should follow orginal text
+        """
+        if input_text.strip() == "":
+            return []
 
-    if not_include_punctuations != "":
-        for char in not_include_punctuations:
-            special_punctuations = special_punctuations.replace(char, "")
+        if not_include_punctuations != "":
+            for char in not_include_punctuations:
+                special_punctuations = special_punctuations.replace(char, "")
 
-    result_list = []
-    index = 0
-    temp_string = ""
-    last_punctuation_flag =True
-    if len(input_text) > 0:
-        if input_text[-1] in special_punctuations:
-            last_punctuation_flag = True
-        else:
-            last_punctuation_flag = False
-    is_punctuation = True
-    while True:
-        current_char = input_text[index]
+        result_list = []
+        index = 0
+        temp_string = ""
+        last_punctuation_flag =True
+        if len(input_text) > 0:
+            if input_text[-1] in special_punctuations:
+                last_punctuation_flag = True
+            else:
+                last_punctuation_flag = False
+        is_punctuation = True
+        while True:
+            current_char = input_text[index]
 
-        if current_char in special_punctuations:
+            if current_char in special_punctuations:
+                is_punctuation = True
+            else:
+                is_punctuation = False
+
+            if last_punctuation_flag != is_punctuation:
+                if last_punctuation_flag == True:
+                    result_list.append({
+                        "language": "punctuation",
+                        "text": temp_string
+                    })
+                else:
+                    result_list.append({
+                        "language": "not_punctuation",
+                        "text": temp_string
+                    })
+                temp_string = ""
+
+            last_punctuation_flag = is_punctuation
+            temp_string += current_char
+
+            index += 1
+            if index >= len(input_text):
+                break
+
+        if len(result_list) > 0:
+            if result_list[0]["text"] == "":
+                result_list = result_list[1:]
+        if temp_string != "":
             is_punctuation = True
-        else:
-            is_punctuation = False
+            if temp_string[-1] in special_punctuations:
+                is_punctuation = True
+            else:
+                is_punctuation = False
 
-        if last_punctuation_flag != is_punctuation:
-            if last_punctuation_flag == True:
+            if is_punctuation == True:
                 result_list.append({
                     "language": "punctuation",
                     "text": temp_string
                 })
             else:
                 result_list.append({
-                    "language": "not_punctuation",
+                    "language": "language",
                     "text": temp_string
                 })
-            temp_string = ""
 
-        last_punctuation_flag = is_punctuation
-        temp_string += current_char
+        return result_list
 
-        index += 1
-        if index >= len(input_text):
-            break
+    def split_string_into_english_and_not_english_list(self, input_text):
+        """
+        Split a string into a list of language segments based on Chinese and English characters.
 
-    if len(result_list) > 0:
-        if result_list[0]["text"] == "":
-            result_list = result_list[1:]
-    if temp_string != "":
-        is_punctuation = True
-        if temp_string[-1] in special_punctuations:
-            is_punctuation = True
-        else:
-            is_punctuation = False
+        :param input_text: The input string to split.
+        :return: A list of language segments with Chinese and English text.
+        """
+        """
+        return list like: [
+            { "language": "en", "text": },
+            { "language": "not_en", "text": },
+        ]
+        """
+        if input_text.strip() == "":
+            return []
 
-        if is_punctuation == True:
-            result_list.append({
-                "language": "punctuation",
-                "text": temp_string
-            })
-        else:
-            result_list.append({
-                "language": "language",
-                "text": temp_string
-            })
+        result_list = []
+        index = 0
+        temp_string = ""
+        last_punctuation_flag = False
+        if len(input_text) > 0:
+            if input_text[-1].isascii():
+                last_punctuation_flag = True
+            else:
+                last_punctuation_flag = False
+        is_en = True
+        while True:
+            current_char = input_text[index]
 
-    return result_list
+            if current_char.isascii():
+                is_en = True
+            else:
+                is_en = False
 
-def split_string_into_english_and_not_english_list(input_text):
-    """
-    Split a string into a list of language segments based on Chinese and English characters.
+            if last_punctuation_flag != is_en:
+                if last_punctuation_flag == False:
+                    result_list.append({
+                        "language": "not_en",
+                        "text": temp_string
+                    })
+                else:
+                    result_list.append({
+                        "language": "en",
+                        "text": temp_string
+                    })
+                temp_string = ""
 
-    :param input_text: The input string to split.
-    :return: A list of language segments with Chinese and English text.
-    """
-    """
-    return list like: [
-        { "language": "en", "text": },
-        { "language": "not_en", "text": },
-    ]
-    """
-    if input_text.strip() == "":
-        return []
+            last_punctuation_flag = is_en
+            temp_string += current_char
 
-    result_list = []
-    index = 0
-    temp_string = ""
-    last_punctuation_flag = False
-    if len(input_text) > 0:
-        if input_text[-1].isascii():
-            last_punctuation_flag = True
-        else:
-            last_punctuation_flag = False
-    is_en = True
-    while True:
-        current_char = input_text[index]
+            index += 1
+            if index >= len(input_text):
+                break
 
-        if current_char.isascii():
-            is_en = True
-        else:
-            is_en = False
+        if len(result_list) > 0:
+            if result_list[0]["text"] == "":
+                result_list = result_list[1:]
+        if temp_string != "":
+            if temp_string[-1].isascii():
+                is_en = True
+            else:
+                is_en = False
 
-        if last_punctuation_flag != is_en:
-            if last_punctuation_flag == False:
+            if is_en == False:
                 result_list.append({
                     "language": "not_en",
                     "text": temp_string
@@ -139,86 +168,58 @@ def split_string_into_english_and_not_english_list(input_text):
                     "language": "en",
                     "text": temp_string
                 })
-            temp_string = ""
 
-        last_punctuation_flag = is_en
-        temp_string += current_char
+        return result_list
 
-        index += 1
-        if index >= len(input_text):
-            break
+    def string_split_by_using_yingshaoxo_method(self, input_text, without_punctuation: bool = False):
+        """
+        Split a string into language segments based on punctuations, English and not_English text.
 
-    if len(result_list) > 0:
-        if result_list[0]["text"] == "":
-            result_list = result_list[1:]
-    if temp_string != "":
-        if temp_string[-1].isascii():
-            is_en = True
-        else:
-            is_en = False
+        return list like: [
+            { "language": "en", "text": },
+            { "language": "not_en", "text": },
+            { "language": "punctuation", "text": },
+        ]
+        """
+        if input_text.strip() == "":
+            return []
 
-        if is_en == False:
-            result_list.append({
-                "language": "not_en",
-                "text": temp_string
-            })
-        else:
-            result_list.append({
-                "language": "en",
-                "text": temp_string
-            })
-
-    return result_list
-
-def string_split_by_using_yingshaoxo_method(input_text, without_punctuation: bool = False):
-    """
-    Split a string into language segments based on punctuations, English and not_English text.
-
-    return list like: [
-        { "language": "en", "text": },
-        { "language": "not_en", "text": },
-        { "language": "punctuation", "text": },
-    ]
-    """
-    if input_text.strip() == "":
-        return []
-
-    final_list = []
-    punctuation_list = split_string_into_list_by_punctuations(input_text)
-    for one in punctuation_list:
-        if one["language"] == "punctuation":
-            if without_punctuation == False:
-                final_list.append({
-                    "language": "punctuation",
-                    "text": one["text"]
-                })
+        final_list = []
+        punctuation_list = self.split_string_into_list_by_punctuations(input_text)
+        for one in punctuation_list:
+            if one["language"] == "punctuation":
+                if without_punctuation == False:
+                    final_list.append({
+                        "language": "punctuation",
+                        "text": one["text"]
+                    })
+                else:
+                    pass
             else:
-                pass
-        else:
-            language_list = split_string_into_english_and_not_english_list(one["text"])
-            final_list += language_list
-    return final_list
+                language_list = self.split_string_into_english_and_not_english_list(one["text"])
+                final_list += language_list
+        return final_list
 
-def string_split_to_pure_segment_list_by_using_yingshaoxo_method(input_text, without_punctuation: bool = False) -> list[str]:
-    """
-    Split a string into language segments based on punctuations, English and not_English text.
+    def string_split_to_pure_segment_list_by_using_yingshaoxo_method(self, input_text, without_punctuation: bool = False) -> list[str]:
+        """
+        Split a string into language segments based on punctuations, English and not_English text.
 
-    return list like: ["how", "are", "you", "?"]
-    """
-    if input_text.strip() == "":
-        return []
+        return list like: ["how", "are", "you", "?"]
+        """
+        if input_text.strip() == "":
+            return []
 
-    final_list = []
-    a_list = string_split_by_using_yingshaoxo_method(input_text, without_punctuation=without_punctuation)
-    for one in a_list:
-        if one["language"] == "not_en":
-            final_list += list(one["text"])
-        else:
-            final_list += [one["text"]]
-    return final_list
+        final_list = []
+        a_list = self.string_split_by_using_yingshaoxo_method(input_text, without_punctuation=without_punctuation)
+        for one in a_list:
+            if one["language"] == "not_en":
+                final_list += list(one["text"])
+            else:
+                final_list += [one["text"]]
+        return final_list
 
-def is_english_string(text: str) -> bool:
-    return text.isascii()
+    def is_english_string(self, text: str) -> bool:
+        return text.isascii()
 
 
 class DataProcessor():
@@ -328,6 +329,8 @@ class Yingshaoxo_Text_Generator():
             from sentence_transformers import SentenceTransformer, util
             self.sentence_transformers_model = SentenceTransformer('all-MiniLM-L6-v2')
             self.sentence_transformers_utility = util
+
+        self.text_preprocessor = Yingshaoxo_Text_Preprocessor()
 
     def get_source_text_data_by_using_yingshaoxo_method(self, input_txt_folder_path: str, type_limiter: list[str] = [".txt", ".md"]) -> str:
         text_source_data = ""
@@ -531,7 +534,7 @@ class Yingshaoxo_Text_Generator():
 
         def get_x_level_dict(source_text: str, x: int):
             level_dict = {}
-            tokens = string_split_to_pure_segment_list_by_using_yingshaoxo_method(source_text)
+            tokens = self.text_preprocessor.string_split_to_pure_segment_list_by_using_yingshaoxo_method(source_text)
             for index in range(len(tokens)):
                 if index < x:
                     continue
@@ -580,7 +583,7 @@ class Yingshaoxo_Text_Generator():
         seperator = "☺"
         new_text = ""
         for level in global_string_corrector_dict.keys():
-            tokens = string_split_to_pure_segment_list_by_using_yingshaoxo_method(input_text)
+            tokens = self.text_preprocessor.string_split_to_pure_segment_list_by_using_yingshaoxo_method(input_text)
             for index in range(len(tokens)):
                 if index < level or index >= len(tokens) - level:
                     new_text += tokens[index]
@@ -1193,6 +1196,7 @@ class Yingshaoxo_Text_to_Speech():
 class ML():
     def __init__(self):
         self.Yingshaoxo_Text_Generator = Yingshaoxo_Text_Generator
+        self.Yingshaoxo_Text_Preprocessor = Yingshaoxo_Text_Preprocessor
 
 
 if __name__ == "__main__":
