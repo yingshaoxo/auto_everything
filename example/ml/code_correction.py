@@ -10,5 +10,9 @@ global_corrector_string_dict = text_generator.get_global_string_corrector_dict_b
 
 while True:
     input_text = input("What you want to say? ")
+    """
+    from auto*everything.terminal import
+    """
+
     result = text_generator.correct_sentence_by_using_yingshaoxo_method(input_text, global_string_corrector_dict=global_corrector_string_dict)
     print(result)

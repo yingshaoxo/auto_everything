@@ -484,25 +484,24 @@ class Yingshaoxo_Text_Generator():
                 if index >= len(input_text) - level:
                     new_text += input_text[index]
                     continue
-
-            if plus_chracter == True:
-                current_chars = input_text[index-level: index] + seperator + input_text[index: index+level]
-                if current_chars in global_string_corrector_dict[level].keys():
-                    new_text += global_string_corrector_dict[level][current_chars] + input_text[index]
+                if plus_chracter == True:
+                    current_chars = input_text[index-level: index] + seperator + input_text[index: index+level]
+                    if current_chars in global_string_corrector_dict[level].keys():
+                        new_text += global_string_corrector_dict[level][current_chars] + input_text[index]
+                    else:
+                        new_text += input_text[index]
+                elif minus_chracter == True:
+                    current_chars = input_text[index-level: index] + seperator + input_text[index+1: index+1+level]
+                    if current_chars in global_string_corrector_dict[level].keys():
+                        new_text += ""
+                    else:
+                        new_text += input_text[index]
                 else:
-                    new_text += input_text[index]
-            elif minus_chracter == True:
-                current_chars = input_text[index-level: index] + seperator + input_text[index+1: index+1+level]
-                if current_chars in global_string_corrector_dict[level].keys():
-                    new_text += ""
-                else:
-                    new_text += input_text[index]
-            else:
-                current_chars = input_text[index-level: index] + seperator + input_text[index+1: index+1+level]
-                if current_chars in global_string_corrector_dict[level].keys():
-                    new_text += global_string_corrector_dict[level][current_chars]
-                else:
-                    new_text += input_text[index]
+                    current_chars = input_text[index-level: index] + seperator + input_text[index+1: index+1+level]
+                    if current_chars in global_string_corrector_dict[level].keys():
+                        new_text += global_string_corrector_dict[level][current_chars]
+                    else:
+                        new_text += input_text[index]
             break
         return new_text
 

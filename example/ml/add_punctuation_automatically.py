@@ -23,5 +23,7 @@ while True:
 1. 做好准备2. 隐藏反叛思想，暗中捣乱，像穿了隐身衣一样战斗
 """
     result = text_generator.correct_sentence_by_using_yingshaoxo_regex_method(input_text=input_text, source_data_text=text, level=3)
+    print(input_text)
+    print("\n\n**********\n\n")
     print(result)
     break
