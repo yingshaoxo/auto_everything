@@ -218,6 +218,26 @@ class Yingshaoxo_Text_Preprocessor():
                 final_list += [one["text"]]
         return final_list
 
+
+    def string_split_to_pure_sub_sentence_segment_list(self, input_text, without_punctuation: bool = True, without_number: bool = True) -> list[str]:
+        sentence_segment_list = self.split_string_into_list_by_punctuations(input_text, not_include_punctuations="' _*->#")
+        new_list = []
+        for segment in sentence_segment_list:
+            if segment["language"] == "punctuation":
+                if without_punctuation == True:
+                    continue
+                else:
+                    if len(new_list) == 0:
+                        new_list = [segment["text"]]
+                    else:
+                        new_list[-1] += segment["text"]
+            else:
+                if without_number == True:
+                    if segment["text"].isdigit():
+                        continue
+                new_list.append(segment["text"])
+        return new_list
+
     def is_english_string(self, text: str) -> bool:
         return text.isascii()
 
@@ -574,6 +594,41 @@ class Yingshaoxo_Text_Generator():
         input_text = do_the_process(input_text, plus_character=True)
 
         return input_text
+
+    def sort_sub_sentence_in_text(self, input_text: str, source_text: str) -> list[str]:
+        """
+        If you have input_text "Thank you. I'm fine."
+        If you have source_text "I'm fine. Thank you."
+        You will get ["I'm fine", "Thank you."]
+        """
+        sub_sentence_sort_list =  self.text_preprocessor.string_split_to_pure_sub_sentence_segment_list(source_text, without_punctuation=True)
+        input_text_sub_sentence_list = self.text_preprocessor.string_split_to_pure_sub_sentence_segment_list(input_text, without_punctuation=True)
+
+        def _sort_by_source_order_unknown(input_list, source_order_list):
+            """Sorts the input_list by the source_order_list order, and keep unknown elements in input_list order untouched."""
+
+            # Create a dictionary mapping each element in source_order_list to its index.
+            element_to_index = {element: i for i, element in enumerate(source_order_list)}
+
+            # Create a list of known elements and a list of unknown elements.
+            known_elements = []
+            unknown_elements = []
+            for element in input_list:
+                if element in element_to_index:
+                    known_elements.append(element)
+                else:
+                    unknown_elements.append(element)
+
+            # Sort the known elements using the dictionary as a key.
+            sorted_known_elements = sorted(known_elements, key=lambda element: element_to_index[element])
+
+            # Combine the sorted known elements and the unknown elements.
+            sorted_list = sorted_known_elements + unknown_elements
+            return sorted_list
+
+        input_text_sub_sentence_list = _sort_by_source_order_unknown(input_text_sub_sentence_list, sub_sentence_sort_list)
+
+        return input_text_sub_sentence_list
 
     def get_global_string_word_based_corrector_dict_by_using_yingshaoxo_method(self, source_text_data: str, levels: int = 10):
         global_string_dict = {}
