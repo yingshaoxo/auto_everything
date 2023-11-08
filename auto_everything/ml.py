@@ -404,6 +404,10 @@ class Yingshaoxo_Text_Generator():
     def get_next_x_chars_by_using_yingshaoxo_method(self, input_text: str, x: int, levels: int = 10, source_text_data: str|None = None, global_string_dict: dict|None = None) -> Any:
         """
         This will generate text based on hash map or hash dict. If you use it in memory, the speed would be super quick.
+
+        ChatGPT4 uses levels of 8049.
+
+        Normally you just have to set levels to 50 for small dataset.
         """
         if source_text_data == None:
             source_text_data = self.text_source_data
