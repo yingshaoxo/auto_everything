@@ -237,7 +237,7 @@ class Yingshaoxo_Text_Preprocessor():
                         continue
                 else:
                     if segment["text"].isdigit():
-                        new_list.append(list(segment["text"]))
+                        new_list += list(segment["text"])
                     else:
                         new_list.append(segment["text"])
         return new_list
