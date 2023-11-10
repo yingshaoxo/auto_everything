@@ -235,7 +235,11 @@ class Yingshaoxo_Text_Preprocessor():
                 if without_number == True:
                     if segment["text"].isdigit():
                         continue
-                new_list.append(segment["text"])
+                else:
+                    if segment["text"].isdigit():
+                        new_list.append(list(segment["text"]))
+                    else:
+                        new_list.append(segment["text"])
         return new_list
 
     def is_english_string(self, text: str) -> bool:
