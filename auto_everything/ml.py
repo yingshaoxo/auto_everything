@@ -219,8 +219,8 @@ class Yingshaoxo_Text_Preprocessor():
         return final_list
 
 
-    def string_split_to_pure_sub_sentence_segment_list(self, input_text, without_punctuation: bool = True, without_number: bool = True) -> list[str]:
-        sentence_segment_list = self.split_string_into_list_by_punctuations(input_text, not_include_punctuations="' _*->#")
+    def string_split_to_pure_sub_sentence_segment_list(self, input_text, without_punctuation: bool = True, without_number: bool = True, not_include_punctuations: str="' _*->#") -> list[str]:
+        sentence_segment_list = self.split_string_into_list_by_punctuations(input_text, not_include_punctuations=not_include_punctuations)
         new_list = []
         for segment in sentence_segment_list:
             if segment["language"] == "punctuation":
