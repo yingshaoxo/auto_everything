@@ -843,3 +843,63 @@ class Terminal_User_Interface:
             handle_function(user_response)
 
         return user_response
+
+
+class Advanced_Terminal_User_Interface:
+    def __init__(self):
+        import sys
+        import termios
+        import tty
+        self.sys = sys
+        self.termios = termios
+        self.tty = tty
+
+    def get_char_input_in_blocking_way(self):
+        #https://www.physics.udel.edu/~watson/scen103/ascii.html
+
+        fd = self.sys.stdin.fileno()
+        old_settings = self.termios.tcgetattr(fd)
+
+        try:
+            self.tty.setraw(self.sys.stdin.fileno())
+            char = self.sys.stdin.read(1)
+        finally:
+            self.termios.tcsetattr(fd, self.termios.TCSADRAIN, old_settings)
+
+        return char
+
+    class NoBlockingTerminal():
+        """
+        with NoBlockingTerminal() as no_blocking_terminal:
+            while True:
+                if no_blocking_terminal.is_esc_pressed():
+                    break
+        """
+        def __init__(self):
+            import sys
+            import termios
+            import tty
+            import select
+            self.sys = sys
+            self.termios = termios
+            self.tty = tty
+            self.select = select
+
+        def __enter__(self):
+            self.old_settings = self.termios.tcgetattr(self.sys.stdin)
+            self.tty.setcbreak(self.sys.stdin.fileno())
+            return self
+
+        def __exit__(self, type, value, traceback):
+            self.termios.tcsetattr(self.sys.stdin, self.termios.TCSADRAIN, self.old_settings)
+
+        def get_char(self):
+            if self.select.select([self.sys.stdin], [], [], 0) == ([self.sys.stdin], [], []):
+                return self.sys.stdin.read(1)
+            return None
+
+        def is_esc_pressed(self):
+            if self.get_char() == '\x1b':  # x1b is ESC
+                return True
+            else:
+                return False
