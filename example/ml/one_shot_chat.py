@@ -26,7 +26,7 @@ while True:
     input_text = input("What you want to say? ")
     response1, response, response2 = text_generator.do_text_search(input_text, the_text_list, quick_mode=False)
     if response2 != "":
-        if string_.get_string_match_rating_level(input_text, response) >= 0.5:
+        if string_.compare_two_sentences(input_text, response) >= 0.5:
             response = response2
     print("\n\n----------\n\n")
     print(response)

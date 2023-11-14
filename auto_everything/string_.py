@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import string as built_in_string_module
+from difflib import SequenceMatcher
 
 
 class String:
@@ -51,6 +53,19 @@ class String:
                     added = True
 
         return new_text
+
+    def compare_two_sentences(self, sentence1: str, sentence2: str) -> float:
+        """
+        return similarity, from `0.0` to `1.0`, 1 means equal, 0 means no relate.
+
+        Parameters
+        ----------
+        sentence1: string
+
+        sentence2: string
+        """
+        ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
+        return ratio
 
     def is_keywords_in_text(self, keywords: list[str], text: str, lower_case: bool = True) -> bool:
         if lower_case == False:
