@@ -95,10 +95,29 @@ class String:
 
         return counting/(negative_counting+counting)
 
-    def get_fuzz_match_text_from_text_list(self, input_text: str, text_list: list[str], target_score: float | None = None) -> tuple[str, str, str]:
+    def get_fuzz_match_text_from_text_list(self, input_text: str, text_list: list[str], target_score: float | None = None, quick_mode: bool = False) -> tuple[str, str, str]:
         """
         It returns [previous_text, matched_text, next_text]
         """
+        if quick_mode == True:
+            keywords = input_text.split()
+            new_keywords = []
+            for keyword in keywords:
+                new_keywords += keyword.split(" ")
+            keywords = [one.strip() for one in new_keywords if one.strip() != ""]
+
+            for index, value in enumerate(text_list):
+                if self.is_keywords_in_text(keywords, text=value) == True:
+                    previous_text = ""
+                    if index > 0:
+                        previous_text = text_list[index-1]
+                    next_text = ""
+                    if index < len(text_list) - 1:
+                        next_text = text_list[index+1]
+                    return previous_text, value, next_text
+
+            return "", "", ""
+
         all_sub_string = self.get_all_sub_string(input_text)
 
         top_score = 0
@@ -135,9 +154,6 @@ class String:
         return previous_text, text_list[top_index], next_text
 
 
-        # return [previous_text, match_text, next_text]
-
-
 if __name__ == "__main__":
     string_ = String()
-    print(string_.get_fuzz_match_text_from_text_list("a", ["dd", "c", "ab", "k"]))
+    print(string_.get_fuzz_match_text_from_text_list("d", ["dd", "c", "ab", "k"], quick_mode=True))

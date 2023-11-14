@@ -7,12 +7,14 @@ from auto_everything.disk import Disk, Store
 from auto_everything.io import IO
 from auto_everything.language import Language
 from auto_everything.time import Time
+from auto_everything.string_ import String
 disk = Disk()
 io_ = IO()
 language = Language()
 terminal = Terminal()
 time_ = Time()
 store = Store('auto_everything_ml_module')
+string_ = String()
 
 
 #####
@@ -1011,6 +1013,12 @@ class Yingshaoxo_Text_Generator():
         #         if sub_string in new_source_text:
         #             counting += len(sub_string)
         #     return counting
+
+    def do_text_search(self, input_text: str, text_list: list[str], quick_mode: bool = False) -> tuple[str, str, str]:
+        """
+        This function returns [previous_text, matched_text, next_text]
+        """
+        return string_.get_fuzz_match_text_from_text_list(input_text, text_list, quick_mode=quick_mode)
 
 
 class Yingshaoxo_Computer_Vision():
