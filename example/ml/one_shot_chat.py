@@ -11,7 +11,7 @@ offline_question_and_answer_bot_dataset_path = "/home/yingshaoxo/CS/ML/18.fake_a
 if disk.exists(offline_question_and_answer_bot_dataset_path):
     text_generator = ml.Yingshaoxo_Text_Generator()
 
-    new_text = text_generator.get_source_text_data_by_using_yingshaoxo_method(offline_question_and_answer_bot_dataset_path, type_limiter=[".txt"])
+    new_text = text_generator.get_source_text_data_by_using_yingshaoxo_method(offline_question_and_answer_bot_dataset_path, type_limiter=[".txt", ".md"])
     the_text_list = [one.strip() for one in new_text.split("\n\n__**__**__yingshaoxo_is_the_top_one__**__**__\n\n") if one.strip() != ""]
 
     new_text_list = []
