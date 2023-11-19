@@ -10,7 +10,7 @@ string_ = String()
 
 the_text_list = [
     "Are you stupid?",
-    "You are stupid!"
+    "You are stupid!",
 ]
 
 input_text_list = []
@@ -20,13 +20,17 @@ for index, one in enumerate(the_text_list):
         break
     input_text_list.append(one)
     output_text_list.append(the_text_list[index + 1])
+print(input_text_list)
+print(output_text_list)
 
 text_generator = ml.Yingshaoxo_Text_Generator()
+text_transformer = ml.Yingshaoxo_Text_Transformer()
 the_regex_dict = text_generator.get_text_to_text_hard_coding_transforming_dict(input_text_list=input_text_list, output_text_list=output_text_list)
 
 
 input_text = "Are you smart?"
 output_text = text_generator.text_to_text_hard_coding_transforming(input_text, the_regex_dict)
+#output_text = text_transformer.yingshaoxo_regex_expression_based_recursive_transformer(input_text, the_regex_dict)
 print("\n\n----------\n\n")
 print(output_text)
 print("\n\n----------\n\n")

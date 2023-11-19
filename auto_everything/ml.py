@@ -376,6 +376,27 @@ class Yingshaoxo_Text_Transformer():
                 return regex_expression_dict[key].format(*list(result.groups()))
         return ""
 
+    def yingshaoxo_regex_expression_based_recursive_transformer(self, input_text: str, regex_expression_dict: dict[str, str]) -> str:
+        """
+        This is good for 1:1 transformer, for example, translation dataset, but should also doing fine in email replying dataset.
+        """
+        def the_transformer(input_text: str) -> str:
+            for key in sorted(list(regex_expression_dict.keys()), key=len, reverse=True):
+                result = re.search(key, input_text)
+                if result != None:
+                    value = result.group(1)
+
+                    dict_value = regex_expression_dict[key]
+                    dict_value_splits = dict_value.split("{}")
+
+                    next_level_value = the_transformer(value)
+                    if next_level_value != "":
+                        return next_level_value.join(dict_value_splits)
+                    else:
+                        return value.join(dict_value_splits)
+            return ""
+        return the_transformer(input_text)
+
 
 class Yingshaoxo_Text_Generator():
     """
