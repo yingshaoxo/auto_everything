@@ -827,7 +827,7 @@ class Terminal_User_Interface:
                     time.sleep(3)
                     pass
 
-    def input_box(self, text: str, default_value: str, handle_function: Callable[[str], None] | None) -> str:
+    def input_box(self, text: str, default_value: str = "", handle_function: Callable[[str], None] | None = None, with_new_line: bool = False) -> str:
         """
         your_name = terminal_user_interface.input_box(
             "Please input your name:",
@@ -835,7 +835,49 @@ class Terminal_User_Interface:
             None
         )
         """
-        user_response = input(text).strip()
+        if with_new_line == False:
+            user_response = input(text).strip()
+        else:
+            def delete_one_char():
+                sys.stdout.write("\b")
+                sys.stdout.write(" ")
+                sys.stdout.write("\b")
+                sys.stdout.flush()
+
+            self.clear_screen()
+            print(text)
+            print("(press ESC(:ZZ) to end the input)")
+            advanced_terminal_user_interface = Advanced_Terminal_User_Interface()
+            user_response = ""
+            while True:
+                char = advanced_terminal_user_interface.get_char_input_in_blocking_way()
+                char_id = advanced_terminal_user_interface.get_char_id(char)
+                if char_id == 27:
+                    # exit
+                    print("\n", end="", flush=True)
+                    break
+                elif char_id == 10 or char_id == 13:
+                    # newline or enter key
+                    user_response += "\n"
+                elif char_id == 127:
+                    # delete key
+                    delete_one_char()
+                    user_response = user_response[:-1]
+                else:
+                    if char.isprintable():
+                        user_response += char
+                self.clear_screen()
+                advanced_terminal_user_interface.sys.stdout.write(user_response)
+                print("", end="", flush=True)
+                #advanced_terminal_user_interface.sys.stdout.flush()
+
+                if user_response.endswith(":ZZ"):
+                    user_response = user_response[:-3]
+                    print("\n", end="", flush=True)
+                    break
+
+            user_response = user_response.strip()
+
         if (user_response == ""):
             user_response = default_value
 
@@ -843,6 +885,36 @@ class Terminal_User_Interface:
             handle_function(user_response)
 
         return user_response
+
+    def edit_box(self, text: str, handle_function: Callable[[str], None] | None = None, editor: str | None = None) -> str:
+        from auto_everything.disk import Disk
+        from auto_everything.io import IO
+        disk = Disk()
+        io_ = IO()
+
+        terminal = Terminal()
+        file_path = disk.get_a_temp_file_path("edit.txt")
+        io_.write(file_path, text)
+
+        if editor != None:
+            terminal.run(f"{editor} {file_path}")
+        else:
+            if terminal.software_exists("vi"):
+                terminal.run(f"vi {file_path}")
+            elif terminal.software_exists("vim"):
+                terminal.run(f"vim {file_path}")
+            elif terminal.software_exists("gedit"):
+                terminal.run(f"gedit {file_path}")
+            else:
+                raise Exception("You should specify the editor, for example, 'vim'")
+
+        if not disk.exists(file_path):
+            new_text = ""
+        else:
+            new_text = io_.read(file_path)
+
+        disk.remove_a_file(file_path)
+        return new_text
 
 
 class Advanced_Terminal_User_Interface:
@@ -854,7 +926,7 @@ class Advanced_Terminal_User_Interface:
         self.termios = termios
         self.tty = tty
 
-    def get_char_input_in_blocking_way(self):
+    def get_char_input_in_blocking_way(self) -> str:
         #https://www.physics.udel.edu/~watson/scen103/ascii.html
 
         fd = self.sys.stdin.fileno()
@@ -867,6 +939,10 @@ class Advanced_Terminal_User_Interface:
             self.termios.tcsetattr(fd, self.termios.TCSADRAIN, old_settings)
 
         return char
+
+    def get_char_id(self, char: str) -> int:
+        char_id = ord(char)
+        return char_id
 
     class NoBlockingTerminal():
         """
@@ -893,13 +969,20 @@ class Advanced_Terminal_User_Interface:
         def __exit__(self, type, value, traceback):
             self.termios.tcsetattr(self.sys.stdin, self.termios.TCSADRAIN, self.old_settings)
 
-        def get_char(self):
+        def get_char(self) -> str:
             if self.select.select([self.sys.stdin], [], [], 0) == ([self.sys.stdin], [], []):
                 return self.sys.stdin.read(1)
             return None
 
-        def is_esc_pressed(self):
+        def is_esc_pressed(self) -> bool:
             if self.get_char() == '\x1b':  # x1b is ESC
                 return True
             else:
                 return False
+
+
+if __name__ ==  "__main__":
+    terminal_user_interface = Terminal_User_Interface()
+    #result = terminal_user_interface.input_box("Please do the input: ", with_new_line=True)
+    result = terminal_user_interface.edit_box("You can do edit of this text\n\nIt is fun.", editor="gedit")
+    print(result)

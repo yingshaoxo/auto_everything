@@ -147,6 +147,7 @@ def monitor_the_terminal_keyboard(callback_function_that_takes_input_string, exi
                 # command = command.strip("\n ")
                 command = command[:-1]
             if char_id == 10 or char_id == 13:
+                # newline or enter key
                 break
 
             callback_function_that_takes_input_string(command)
