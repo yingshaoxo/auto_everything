@@ -366,7 +366,7 @@ class Yingshaoxo_Text_Transformer():
         If you want to let it smarter or equal than google bard chat ai, you have to use recursive function
         You have to recursively replace the context (the one inside of (.*?)) to a detailed information
         For example, "How to make love?", the first template it meets is "How to (.*?)"
-        The answer is probabally "If you want to make love, you have to:\n{}"
+        The answer is probabally "If you want to make love, you have to:\nmake love"
         But it's not done yet, you have to use 'make love' as keyword, search regex_expression_dict to get a more detaild info/value
         In the end, you'll get a detaild response: "If you want to make love, you have to:\n1.ask permission from the one you want to make love with..."
         """
