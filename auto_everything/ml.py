@@ -371,7 +371,7 @@ class Yingshaoxo_Text_Transformer():
         In the end, you'll get a detaild response: "If you want to make love, you have to:\n1.ask permission from the one you want to make love with..."
         """
         for key in sorted(list(regex_expression_dict.keys()), key=len, reverse=True):
-            result = re.search(key, input_text)
+            result = re.search(key, input_text, flags=re.DOTALL)
             if result != None:
                 return regex_expression_dict[key].format(*list(result.groups()))
         return ""
@@ -382,7 +382,7 @@ class Yingshaoxo_Text_Transformer():
         """
         def the_transformer(input_text: str) -> str:
             for key in sorted(list(regex_expression_dict.keys()), key=len, reverse=True):
-                result = re.search(key, input_text)
+                result = re.search(key, input_text, flags=re.DOTALL)
                 if result != None:
                     value = result.group(1)
 
@@ -1104,7 +1104,7 @@ class Yingshaoxo_Text_Generator():
 
         return the_dict
 
-    def text_to_text_hard_coding_transforming(self, input_text: str, the_string_dict: dict[str, str]):
+    def text_to_text_hard_coding_transforming(self, input_text: str, the_string_dict: dict[str, str], recursive: bool = False):
         """
         1. Just think the whole transforming process as doing the search in a Q table.
         2. You use a patten filter to check the input_text, "I love you", 3 elements as a window, then you use this patten to do a search in the Q table, you found ["I hate you", "I trust you", "I hate you"], it seems like 'hate' has higher chance to be in the middle of that sentence.
@@ -1122,10 +1122,16 @@ class Yingshaoxo_Text_Generator():
             do a compare for the substring in the input_text, so you would get a percentage number of weather to move that substring farward or backward.
         """
         yingshaoxo_text_transformer = Yingshaoxo_Text_Transformer()
-        result = yingshaoxo_text_transformer.yingshaoxo_regex_expression_based_transformer(
-            input_text=input_text,
-            regex_expression_dict=the_string_dict
-        )
+        if recursive == False:
+            result = yingshaoxo_text_transformer.yingshaoxo_regex_expression_based_transformer(
+                input_text=input_text,
+                regex_expression_dict=the_string_dict
+            )
+        else:
+            result = yingshaoxo_text_transformer.yingshaoxo_regex_expression_based_recursive_transformer(
+                input_text=input_text,
+                regex_expression_dict=the_string_dict
+            )
         return result
         # def _count_how_many_sub_string_in_previous_context(self, start_index: int, input_text: str, how_long_the_text_you_want_to_get: int = 1024):
         #     input_text = input_text.lower()
