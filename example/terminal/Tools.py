@@ -5,6 +5,7 @@
 
 import os, re
 import random
+import json
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 from auto_everything.disk import Disk
@@ -319,6 +320,49 @@ git remote set-url --add --push origin {repo_url}
         sudo docker image prune
         sudo docker system prune -a
         """)
+
+    def fake_storage_backup(self, backup_file_path: str | None=None):
+        saving_path = None
+        if backup_file_path != None:
+            saving_path = backup_file_path
+        else:
+            saving_path = "./fake_storage_backup.json"
+
+        files = disk.get_folder_and_files(folder=".")
+        data_list: list[Any] = []
+        for file_or_folder in files:
+            data_list.append({
+                "path": file_or_folder.path,
+                "type": 'folder' if file_or_folder.is_folder else 'file'
+            })
+
+        with open(saving_path, 'w', encoding="utf-8") as f:
+            f.write(json.dumps(data_list, indent=4))
+        print(f"fake backup is done, it is in: {saving_path}")
+
+    def fake_storage_recover(self, storage_tree_json_file: str | None=None):
+        if (storage_tree_json_file == None):
+            storage_tree_json_file = "./fake_storage_backup.json"
+            if not disk.exists(storage_tree_json_file):
+                print("you need to give me a json file that was generated from 'fake_backup' function.")
+                exit()
+
+        with open(storage_tree_json_file, 'r', encoding='utf-8') as f:
+            raw_json = f.read()
+            json_object = json.loads(raw_json)
+
+        for item in json_object:
+            path = item['path']
+            type = item['type']
+            if type == 'folder':
+                os.mkdir(path)
+                print(path)
+            else:
+                with open(path, 'w', encoding='utf-8') as f:
+                    f.write("")
+                print(path)
+
+        print("\nfake recover is done, sir.")
 
     def hi(self):
         self.help()

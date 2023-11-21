@@ -48,8 +48,8 @@ class Tools():
         files = get_folder_and_files(folder=".")
         for file in files:
             print(file)
-    
-    def fake_backup(self, backup_file_path: str | None=None):
+
+    def fake_storage_backup(self, backup_file_path: str | None=None):
         saving_path = None
         if backup_file_path != None:
             saving_path = backup_file_path
@@ -65,7 +65,7 @@ class Tools():
                 f.write(json.dumps(data_list, indent=4))
             print(f"fake backup is done, it is in: {saving_path}")
 
-    def fake_recover(self, storage_tree_json_file: str | None=None):
+    def fake_storage_recover(self, storage_tree_json_file: str | None=None):
         if (storage_tree_json_file == None):
             print("you need to give me a json file that was generated from 'fake_backup' function.")
             exit()
