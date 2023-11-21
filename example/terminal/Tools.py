@@ -364,6 +364,18 @@ git remote set-url --add --push origin {repo_url}
 
         print("\nfake recover is done, sir.")
 
+    def delete_git_and_gitignore_file(self):
+        files = disk.get_gitignore_folders_and_files(".", also_return_dot_git_folder=True)
+        for file in files:
+            try:
+                if disk.is_directory(file):
+                    disk.delete_a_folder(file)
+                else:
+                    disk.delete_a_file(file)
+                print(f"file/folder deleted: {file}")
+            except Exception as e:
+                print(e)
+
     def hi(self):
         self.help()
 

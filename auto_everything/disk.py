@@ -397,6 +397,46 @@ class Disk:
                 break
         return match
 
+    def get_gitignore_folders_and_files(self, folder: str, also_return_dot_git_folder: bool = False) -> list[str]:
+        files = self.get_files(folder=folder)
+
+        if "version" not in t.run_command("git --version").lower():
+            print("error: git needs to get installed for using 'use_gitignore_file' paramater.")
+            return files
+
+        ignored_files = []
+        git_folder_list = []
+        for file in files:
+            if "/.git/" in file:
+                a_git_folder = file.split("/.git/")[0]
+                if a_git_folder in git_folder_list:
+                    continue
+                else:
+                    git_folder_list.append(a_git_folder)
+
+                result = t.run_command(f"git ls-files --other --directory", cwd=a_git_folder).strip()
+                if len(result) != 0:
+                    if result.lower().startswith("fatal"):
+                        continue
+                    temp_files = result.split("\n")
+                    temp_files = [self.join_paths(a_git_folder, one) for one in temp_files]
+                    ignored_files += temp_files
+        ignored_files = list(set(ignored_files))
+
+        if also_return_dot_git_folder == True:
+            dot_git_folder_files = []
+            for file in files:
+                if file not in ignored_files:
+                    for git_folder in git_folder_list:
+                        a_git_folder = git_folder + "/.git/"
+                        if file.startswith(a_git_folder):
+                            if a_git_folder not in dot_git_folder_files:
+                                dot_git_folder_files.append(a_git_folder)
+                                break
+            ignored_files += dot_git_folder_files
+
+        return ignored_files
+
     def get_files(
         self,
         folder: str,
@@ -482,41 +522,6 @@ class Disk:
                     result_files.append(file)
 
             files = result_files
-
-        """
-        if use_gitignore_file:
-            if "version" not in t.run_command("git --version").lower():
-                print("error: git needs to get installed for using 'use_gitignore_file' paramater.")
-                return files
-            ignored_files = []
-            git_folder_list = []
-            for file in files:
-                if "/.git/" in file:
-                    a_git_folder = file.split("/.git/")[0]
-                    if a_git_folder in git_folder_list:
-                        continue
-                    else:
-                        git_folder_list.append(a_git_folder)
-
-                    result = t.run_command(f"git ls-files --other --directory", cwd=a_git_folder).strip()
-                    if len(result) != 0:
-                        if result.lower().startswith("fatal"):
-                            continue
-                        ignored_files += result.split("\n")
-            ignored_files = list(set(ignored_files))
-
-            new_files = []
-            for file in files:
-                if file not in ignored_files:
-                    ok = True
-                    for git_folder in git_folder_list:
-                        if file.startswith(git_folder + "/.git/"):
-                            ok = False
-                            break
-                    if ok:
-                        new_files.append(file)
-            files = new_files
-        """
 
         return files
 
