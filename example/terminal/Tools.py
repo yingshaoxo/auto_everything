@@ -110,12 +110,12 @@ git reset --mixed HEAD~1
 git reset --hard HEAD^
 """)
 
-    def delete_big_git_file(self, filename: str):
+    def delete_git_big_git_file(self, filename: str):
         t.run(f"""
 bfg --delete-files {filename}
 """)
 
-    def delete_ds_store(self):
+    def delete_macos_ds_store(self):
         files = disk.get_files(".", recursive=True)
         for file in files:
             if ".DS_Store" in file:
@@ -124,6 +124,19 @@ bfg --delete-files {filename}
                     print(f"file deleted: {file}")
                 except Exception as e:
                     print(e)
+            else:
+                if disk.get_file_name(file).startswith("._"):
+                    sure = False
+                    for file2 in files:
+                        if disk.get_file_name(file2).endswith(disk.get_file_name(file)[2:]):
+                            sure = True
+                            break
+                    if sure:
+                        try:
+                            disk.delete_a_file(file)
+                            print(f"file deleted: {file}")
+                        except Exception as e:
+                            print(e)
 
     def sync_with_remote_git_repo(self, repo_url: str):
         t.run(f"""
@@ -146,19 +159,38 @@ git checkout main && git merge upstream/main  --allow-unrelated-histories
 git remote set-url --add --push origin {repo_url}
         """)
 
-    def abort(self):
+    def git_abort(self):
         t.run(f"""
         git merge --abort
         """)
 
-    def reset_permission(self, path: str):
+    def delete_sub_git_folder(self, path: str = "."):
+        files = disk.get_folder_and_files(folder=path, recursive=True)
+        files = [file.path for file in files if file.path.endswith("/.git")]
+        files.sort(key=len)
+        if len(files) > 0:
+            files = files[1:]
+        for file in files:
+            file = disk.get_absolute_path(file)
+            try:
+                disk.delete_a_folder(file)
+            except Exception as e:
+                print(f"{file}: ", e)
+                try:
+                    disk.delete_a_file(file)
+                except Exception as e2:
+                    print(f"{file}: ", e2)
+            print(f"Folder got deleted: {file}")
+        print("done")
+
+    def reset_storage_permission(self, path: str):
         if path != "/":
             t.run(f"""
             sudo chown -R $(whoami):$(whoami) {path}
             sudo chmod g+rw {path}
             """)
 
-    def check(self, port:str | None=None):
+    def check_port(self, port:str | None=None):
         if port == None:
             t.run(f"sudo ss -antpl")
         else:
@@ -190,28 +222,16 @@ git remote set-url --add --push origin {repo_url}
             sudo ss -lptn 'sport = :{port}'
         """)
 
-    def find(self, regex_expression: str):
+    def find_a_file_by_name(self, regex_expression: str):
         pwd = t.run_command('pwd') #print working directory
         t.run(f"find '{pwd}' -type f | grep '{regex_expression}'")
 
-    def find_string(self, regex_expression: str):
+    def find_a_file_by_content_string(self, regex_expression: str):
         pwd = t.run_command('pwd')
         t.run(f"grep -r -e '{regex_expression}' '{pwd}'")
 
-    def sync(self, source: str, target: str):
+    def sync_folder_or_file(self, source: str, target: str):
         t.run(f"rsync -v --info=progress2 --partial '{source}' '{target}'")
-
-    def get_non_app_launch_items(self):
-        items = t.run_command("launchctl list").split("\n")
-        new_items: list[str] = []
-        for item in items:
-            if "\tcom.apple." not in item:
-                new_items.append(item.strip().replace("\t", "    "))
-        pprint(new_items)
-
-    def remove_the_stupid_macos_launch_item(self, service_name: str):
-        print("yeah, macos is stupid!")
-        t.run(f"launchctl bootout gui/501/{service_name}")
 
     def show_space_usage(self, path: str | None):
         if path == None:
@@ -280,55 +300,10 @@ git remote set-url --add --push origin {repo_url}
         # files = disk.get_folder_and_files(folder=".")
         # pprint(list(files))
 
-    def stop_unnecessary_ubuntu_service(self):
-        """
-        sudo systemctl list-unit-files --type=service
-        """
-        service_name_list: list[str] = [
-            "bluetooth",
-            "com.system76.SystemUpdater",
-            "apt-daily-upgrade",
-            "apt-daily",
-            "apt-news",
-            "configure-printer",
-            "ModemManager",
-            "openvpn",
-            "openvpn@",
-            "openvpn-server@",
-            "openvpn-client@",
-            "packagekit-offline-update",
-            "packagekit-offline-update",
-        ]
-        script = ""
-        for service_name in service_name_list:
-            script += f"""
-            systemctl stop {service_name}
-            """
-        t.run(script)
-
     def find_big_file(self, path: str = "."):
         t.run(f"""
         du -a -h --max-depth=1 {path} | sort -h
         """)
-
-    def delete_sub_git_folder(self, path: str = "."):
-        files = disk.get_folder_and_files(folder=path, recursive=True)
-        files = [file.path for file in files if file.path.endswith("/.git")]
-        files.sort(key=len)
-        if len(files) > 0:
-            files = files[1:]
-        for file in files:
-            file = disk.get_absolute_path(file)
-            try:
-                disk.delete_a_folder(file)
-            except Exception as e:
-                print(f"{file}: ", e)
-                try:
-                    disk.delete_a_file(file)
-                except Exception as e2:
-                    print(f"{file}: ", e2)
-            print(f"Folder got deleted: {file}")
-        print("done")
 
     def start_vnc_service(self, password: str="aaaaaaAAAAAA123456!!!!!!"):
         t.run(f"""
