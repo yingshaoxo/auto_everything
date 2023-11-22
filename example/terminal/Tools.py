@@ -127,12 +127,8 @@ bfg --delete-files {filename}
                     print(e)
             else:
                 if disk.get_file_name(file).startswith("._"):
-                    sure = False
-                    for file2 in files:
-                        if disk.get_file_name(file2).endswith(disk.get_file_name(file)[2:]):
-                            sure = True
-                            break
-                    if sure:
+                    the_real_file_path = disk.join_paths(disk.get_directory_path(file), disk.get_file_name(file)[2:])
+                    if disk.exists(the_real_file_path):
                         try:
                             disk.delete_a_file(file)
                             print(f"file deleted: {file}")
