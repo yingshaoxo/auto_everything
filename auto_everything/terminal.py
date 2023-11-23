@@ -902,7 +902,7 @@ class Terminal_User_Interface:
             if terminal.software_exists("vi"):
                 terminal.run(f"vi {file_path}")
             elif terminal.software_exists("vim"):
-                terminal.run(f"vim {file_path}")
+                terminal.run(f"vim -u NONE {file_path}")
             elif terminal.software_exists("gedit"):
                 terminal.run(f"gedit {file_path}")
             else:
