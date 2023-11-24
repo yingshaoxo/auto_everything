@@ -5,8 +5,12 @@ ml = ML()
 disk = Disk()
 terminal = Terminal()
 
+
+#offline_question_and_answer_bot_dataset_path = "~/.yppm/offline_yingshaoxo_bot/dataset_txt_files"
+offline_question_and_answer_bot_dataset_path = "/home/yingshaoxo/CS/ML/18.fake_ai_asistant/input_txt_files"
+offline_question_and_answer_bot_dataset_path = disk._expand_user(offline_question_and_answer_bot_dataset_path)
 text_generator = ml.Yingshaoxo_Text_Generator(
-    input_txt_folder_path="/home/yingshaoxo/CS/ML/18.fake_ai_asistant/input_txt_files",
+    input_txt_folder_path=offline_question_and_answer_bot_dataset_path,
     use_machine_learning=False
 )
 text_data_source = text_generator.text_source_data

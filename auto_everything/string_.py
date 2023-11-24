@@ -54,7 +54,7 @@ class String:
 
         return new_text
 
-    def compare_two_sentences(self, sentence1: str, sentence2: str) -> float:
+    def compare_two_sentences(self, sentence1: str, sentence2: str, using_yingshaoxo_method: bool = True) -> float:
         """
         return similarity, from `0.0` to `1.0`, 1 means equal, 0 means no relate.
 
@@ -64,8 +64,11 @@ class String:
 
         sentence2: string
         """
-        ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
-        return ratio
+        if using_yingshaoxo_method == True:
+            return self.get_string_match_rating_level(input_text = sentence1, text = sentence2)
+        else:
+            ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
+            return ratio
 
     def is_keywords_in_text(self, keywords: list[str], text: str, lower_case: bool = True) -> bool:
         if lower_case == False:
@@ -91,6 +94,8 @@ class String:
     def get_string_match_rating_level(self, input_text: str, text: str, lower_case: bool = True) -> float:
         """
         The higher, the more likely two string are equal
+
+        Made by yingshaoxo
         """
         if lower_case == True:
             input_text = input_text.lower()
