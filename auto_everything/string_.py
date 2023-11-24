@@ -110,7 +110,7 @@ class String:
 
         return counting/(negative_counting+counting)
 
-    def get_fuzz_match_text_from_text_list(self, input_text: str, text_list: list[str], target_score: float | None = None, quick_mode: bool = False) -> tuple[str, str, str]:
+    def get_fuzz_match_text_from_text_list(self, input_text: str, text_list: list[str], target_score: float | None = None, quick_mode: bool = False, input_sub_string_list: list[str] | None = None) -> tuple[str, str, str]:
         """
         It returns [previous_text, matched_text, next_text]
         """
@@ -133,7 +133,10 @@ class String:
 
             return "", "", ""
 
-        all_sub_string = self.get_all_sub_string(input_text)
+        if input_sub_string_list == None:
+            all_sub_string = self.get_all_sub_string(input_text)
+        else:
+            all_sub_string = input_sub_string_list
 
         top_score = 0
         top_index = 0
