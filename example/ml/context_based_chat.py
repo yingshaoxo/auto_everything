@@ -6,9 +6,10 @@ disk = Disk()
 terminal = Terminal()
 
 text_generator = ml.Yingshaoxo_Text_Generator(
-    input_txt_folder_path="../18.fake_ai_asistant/input_txt_files",
+    input_txt_folder_path="/home/yingshaoxo/CS/ML/18.fake_ai_asistant/input_txt_files",
     use_machine_learning=False
 )
+text_data_source = text_generator.text_source_data
 
 def decode_response(text: str, chat_context: str):
     splits = text.split("\n\n__**__**__yingshaoxo_is_the_top_one__**__**__\n\n")
@@ -39,10 +40,12 @@ while True:
     all_input_text += input_text + "\n"
     real_input = all_input_text[-800:].strip()
 
-    response = text_generator.search_and_get_following_text_in_a_exact_way(input_text=real_input, quick_mode=True)
+    #response = text_generator.search_and_get_following_text_in_a_exact_way(input_text=real_input, quick_mode=True)
+    previous_text, response = text_generator.next_fuzz_sentence_generation(text_source_data=text_data_source, input_text=real_input, how_long_the_text_you_want_to_get=800, compare_times=10, also_return_previous_text=True)
     response = decode_response(text=response, chat_context=all_input_text)
 
     print("\n\n---------\n\n")
+    response = text_generator.fuzz_text_to_text_transforming(input_text=input_text, example_input_text=previous_text, example_output_text=response, levels=3)
     print(response)
     print("\n\n---------\n\n")
 
