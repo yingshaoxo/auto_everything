@@ -1175,7 +1175,7 @@ class Yingshaoxo_Text_Generator():
 
         return fuzz_search(a_input_text=input_text, how_long_the_context_is=how_long_the_text_you_want_to_get, compare_times=compare_times)
 
-    def fuzz_text_to_text_transforming(self, input_text: str, example_input_text: str, example_output_text: str, levels: int = 3) -> str:
+    def fuzz_text_to_text_transforming(self, input_text: str, example_input_text: str, example_output_text: str, levels: int = 4) -> str:
         """
         input_text: My name is god.
         example_input_text: My name is yingshaoxo.
