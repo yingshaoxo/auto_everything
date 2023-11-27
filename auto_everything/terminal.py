@@ -10,6 +10,7 @@ import time
 from datetime import datetime
 import shlex
 import subprocess
+import shutil
 # from multiprocessing import Manager; share_dict = Manager().dict()
 
 
@@ -136,6 +137,8 @@ class Terminal:
         software_name : string
             for example, "wget", "curl", "git", "python3", "node"
         """
+        return shutil.which(software_name) != None
+        '''
         has_which = False
         if "exists" in self.run_command(f"""
             if which version >/dev/null; then
@@ -166,6 +169,14 @@ class Terminal:
                 return True
 
         return False
+        '''
+
+    def _get_bash_software(self) -> str:
+        if self.software_exists("bash"):
+            return "bash"
+        elif self.software_exists("sh"):
+            return "sh"
+        return "bash"
 
     def __text_to_sh(self, text: str, wait: bool=False) -> Tuple[str, str]:
         m = hashlib.sha256()
@@ -174,11 +185,13 @@ class Terminal:
         temp_sh = os.path.join(self.temp_dir, m.hexdigest()[:10] + ".sh")
         # pre_line = f"cd {self.current_dir}\n\n"
         # text = pre_line + text
+        if self.software_exists("sleep"):
+            text = text + "\n\n" + "sleep 0.01"
         self._io.write(temp_sh, text)
         if wait == False:
-            return "bash {path} &".format(path=temp_sh), temp_sh
+            return "{shell} {path} &".format(shell=self._get_bash_software(), path=temp_sh), temp_sh
         else:
-            return "bash {path}".format(path=temp_sh), temp_sh
+            return "{shell} {path}".format(shell=self._get_bash_software(), path=temp_sh), temp_sh
 
     def __text_to_py(self, text: str) -> Tuple[str, str]:
         m = hashlib.sha256()
@@ -532,7 +545,7 @@ class Terminal:
         """
         path, args = self.__split_args(file_path_with_command)
         path = self.fix_path(path)
-        command = "bash {path} {args}".format(path=path, args=args)
+        command = "{shell} {path} {args}".format(shell=self._get_bash_software(), path=path, args=args)
 
         if cwd is None:
             cwd = os.path.dirname(path)
