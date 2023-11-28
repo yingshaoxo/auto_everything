@@ -322,7 +322,9 @@ class Disk:
             the file path
         """
         path = self._expand_user(path)
-        return Path(path).exists()
+        return os.path.exists(path)
+        #return Path(path).exists()
+        #Path("").exists() will return True, which is not correct
 
     def is_directory(self, path: str) -> bool:
         """
