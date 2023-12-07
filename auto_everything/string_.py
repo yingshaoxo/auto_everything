@@ -132,6 +132,7 @@ class String:
             for keyword in keywords:
                 new_keywords += keyword.split(" ")
             keywords = [one.strip() for one in new_keywords if one.strip() != ""]
+            keywords = list(set(keywords))
 
             for index, value in enumerate(text_list):
                 if self.is_keywords_in_text(keywords, text=value) == True:
@@ -146,7 +147,7 @@ class String:
             return "", "", ""
 
         if input_sub_string_list == None:
-            all_sub_string = self.get_all_sub_string(input_text)
+            all_sub_string = list(set(self.get_all_sub_string(input_text)))
         else:
             all_sub_string = input_sub_string_list
 
@@ -182,6 +183,26 @@ class String:
         if top_index < len(text_list) - 1:
             next_text = text_list[top_index+1]
         return previous_text, text_list[top_index], next_text
+
+    def search_text_in_text_list(self, input_text: str, text_list: list[str], page_size: int = 10, page_number: int = 0) -> list[str]:
+        """
+        It returns all matched text as a list
+        """
+        keywords = input_text.split()
+        new_keywords = []
+        for keyword in keywords:
+            new_keywords += keyword.split(" ")
+        keywords = [one.strip() for one in new_keywords if one.strip() != ""]
+        keywords = list(set(keywords))
+
+        result_list = []
+        for index, value in enumerate(text_list):
+            if self.is_keywords_in_text(keywords, text=value) == True:
+                result_list.append(value)
+
+        start_index = page_number*page_size
+        end_index = start_index + page_size
+        return result_list[start_index:end_index]
 
 
 if __name__ == "__main__":
