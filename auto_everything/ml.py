@@ -322,6 +322,16 @@ class Yingshaoxo_Text_Transformer():
 
     And later when you meet new input, if it full matchs any regex expression, you return following sentence with related content formated. In other words, you are returning a reactive answer than fixed answer.
     """
+
+    """
+    Source Text: Did you see AA?\nI see AA.
+
+    Generalized Text: Did you {see} {AA}?\n I {see} {AA}.
+
+    So next time when you meet "Did you attack that monster?", you will get "\n I attack that monster." because of "Did you {attack} {that monster}\n I {attack} {that monster}."
+
+    #ai #idea #yingshaoxo
+    """
     def get_regex_expression_from_current_text_and_following_text(self, current_text: str, following_text: str) -> tuple[str, str]:
         sub_string_list = string_.get_all_sub_string(text=current_text)
         sub_string_list.sort(key=len, reverse=True)
@@ -1641,4 +1651,14 @@ when you use it, use it from bottom to top, use longest sequence to predict the 
 
 > This method was created by yingshaoxo. it only need cpu than gpu. it can beat gpt4 with an old computer if you have big dataset (30GB) and big memory to hold the dict.
 
+### For general AI
+```
+General AI algorithm:
+
+Natural language -> Python programming language -> Go through CPU -> If it is working, add that sentence to database to add weights to that sentence, if it is not working, minus weights for that sentence -> use words or long sub_string weights to generate more following natural language sentences -> it is a never end loop, but if the storage is about to blow, we need to find a way to do compression and find more way to store data.
+
+Those code are generated in real time. For each response, it generate different algorithm or code. It adopts to any situation.
+
+#yingshaoxo
+```
 '''

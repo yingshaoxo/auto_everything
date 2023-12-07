@@ -439,3 +439,56 @@ when you use it, use it from bottom to top, use longest sequence to predict the 
 
 > This method was created by yingshaoxo. it only need cpu than gpu. it can beat gpt4 with an old computer if you have big dataset (30GB) and big memory to hold the dict.
 
+
+### For general AI
+```
+General AI algorithm:
+
+Natural language -> Python programming language -> Go through CPU -> If it is working, add that sentence to database to add weights to that sentence, if it is not working, minus weights for that sentence -> use words or long sub_string weights to generate more following natural language sentences -> it is a never end loop, but if the storage is about to blow, we need to find a way to do compression and find more way to store data.
+
+Those code are generated in real time. For each response, it generate different algorithm or code. It adopts to any situation.
+
+#yingshaoxo
+```
+
+```python
+#yingshaoxo: I could give you a template for general AI
+
+import json
+from auto_everything.terminal import Terminal
+
+terminal = Terminal()
+
+global_dict = {}
+
+def update_global_dict_based_on_new_information(input_text):
+    global global_dict
+    pass
+
+def natual_language_to_task_code(input_text):
+    # This code will only use global_dict as data source
+    global global_dict
+    raw_data = json.dumps(global_dict)
+    previous_code = f'''
+import json
+global_dict = json.loads('{raw_data}')\n
+'''
+    code = previous_code + f"print('{input_text}')"
+    return code
+
+def execute_code(code):
+    # For example, execute python code. 
+    result = terminal.run_python_code(code)
+    return result
+
+previous_context = ""
+while True:
+    input_text = input("What you want to say? ")
+    code = natual_language_to_task_code(input_text)
+    result = execute_code(code)
+    print(result)
+
+    new_information = input_text + "\n\n\n" + result
+    previous_context += new_information
+    update_global_dict_based_on_new_information(new_information)
+```
