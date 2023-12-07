@@ -103,9 +103,16 @@ class String:
 
         counting = 0
         negative_counting = 0
+        sub_string_set = set()
         for index in range(len(input_text)):
             for index2 in range(len(input_text[index:])):
                 sub_string = input_text[index:index+index2+1]
+
+                if sub_string not in sub_string_set:
+                    sub_string_set.add(sub_string)
+                else:
+                    continue
+
                 length = index2+1
                 if sub_string in text:
                     counting += length

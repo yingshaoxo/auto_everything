@@ -53,10 +53,6 @@ while True:
     print(response)
     print("\n\n---------\n\n")
 
-    #global_string_corrector_dict = text_generator.get_global_string_word_based_corrector_dict_by_using_yingshaoxo_method(all_input_text, levels=2)
-    #new_response = text_generator.correct_sentence_based_on_word_by_using_yingshaoxo_method(response, global_string_corrector_dict=global_string_corrector_dict)
-    #print("\n**********\n", new_response,"\n************\n")
-
 
 
 #######
@@ -74,7 +70,7 @@ terminal = Terminal()
 
 text_generator =  ml.Yingshaoxo_Text_Generator()
 
-text = text_generator.get_source_text_data_by_using_yingshaoxo_method(input_txt_folder_path="../18.fake_ai_asistant/input_txt_files")
+text = text_generator.get_source_text_data_by_using_yingshaoxo_method(input_txt_folder_path="/home/yingshaoxo/CS/ML/18.fake_ai_asistant/input_txt_files")
 text = text.replace("\n\n__**__**__yingshaoxo_is_the_top_one__**__**__\n\n", "\n\n\n") # You have to replace this seperator with your own dataset seperator
 global_string_dict = text_generator.get_global_string_dict_by_using_yingshaoxo_method(source_text_data=text, levels=50)
 

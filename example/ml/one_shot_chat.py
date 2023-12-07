@@ -25,6 +25,7 @@ else:
 while True:
     input_text = input("What you want to say? ")
     response1, response, response2 = text_generator.do_text_search(input_text, the_text_list, quick_mode=False)
+    #response = response + "\n\n-------\n\n" + response2
     if response2 != "":
         if string_.compare_two_sentences(input_text, response) >= 0.5:
             response = response2
