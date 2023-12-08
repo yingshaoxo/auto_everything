@@ -427,7 +427,7 @@ class Yingshaoxo_Text_Transformer():
 
         return existing_dict
 
-    def pure_string_dict_based_sequence_transformer(self, input_text: str, the_dict: dict[str, str]) -> str:
+    def pure_string_dict_based_sequence_transformer(self, input_text: str, the_dict: dict[str, str], add_space: bool = False) -> str:
         """
         no regex is allowed in here
         """
@@ -437,14 +437,16 @@ class Yingshaoxo_Text_Transformer():
         while True:
             did_change = False
             for key, value in dict_items:
-                if input_text.startswith(key):
+                if input_text.startswith(key) and key != "":
                     result += value
+                    if add_space == True:
+                        result += " "
                     input_text = input_text[len(key):]
                     did_change = True
                     break
             if did_change == False:
-                break
-        return result
+                result += input_text
+                return result
 
     def yingshaoxo_regex_expression_based_transformer(self, input_text: str, regex_expression_dict: dict[str, str]) -> str:
         """
@@ -492,7 +494,7 @@ class Yingshaoxo_Text_Transformer():
             result = ""
             did_change = False
             for key in regex_keys:
-                if input_text.startswith(key):
+                if input_text.startswith(key) and key != "":
                     result += regex_expression_dict[key]
                     input_text = input_text[len(key):]
                     did_change = True
