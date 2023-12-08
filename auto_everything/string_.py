@@ -319,9 +319,9 @@ class String:
         for key in list(global_dict.keys()).copy():
             if len(key) == 1:
                 del global_dict[key]
-            else:
-                if global_dict[key] <= 1:
-                    del global_dict[key]
+            #else:
+            #    if global_dict[key] <= 1:
+            #        del global_dict[key]
 
         return global_dict
 
