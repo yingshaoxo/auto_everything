@@ -277,6 +277,8 @@ class Yingshaoxo_Text_Preprocessor():
                 if without_number == True:
                     if segment["text"].isdigit():
                         continue
+                    else:
+                        new_list.append(segment["text"])
                 else:
                     if segment["text"].isdigit():
                         new_list += list(segment["text"])
@@ -472,7 +474,7 @@ class Yingshaoxo_Text_Transformer():
             for key in regex_keys:
                 result = re.search(key, input_text, flags=re.DOTALL)
                 if result != None:
-                    if len(result.groups()) < 2:
+                    if len(result.groups()) < 1:
                         # no regex inside of that dict
                         #return regex_expression_dict[key]
                         continue

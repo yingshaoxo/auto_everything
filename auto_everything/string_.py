@@ -3,6 +3,7 @@ from typing import Any
 
 import string as built_in_string_module
 from difflib import SequenceMatcher
+import re
 
 jieba = None
 
@@ -256,6 +257,73 @@ class String:
                 if counting >= frequency:
                     final_dict.update({sub_string: {"counting": counting, "index_list": index_list}})
         return final_dict
+
+    def get_meaning_group_dict_in_text_list(self, text_list: list[str], get_less: bool = False) -> dict[str, int]:
+        """
+        text_list = ["How are you A.", "How are you B."]
+        It returns ["How are you"]
+        """
+        def get_common_beginning(a_list: list[str]) -> str:
+            length_list = [len(one) for one in a_list]
+            common_part = ""
+            for index in range(min(length_list)):
+                the_char = a_list[0][index]
+                if all([one[index]==the_char for one in a_list]):
+                    common_part += the_char
+                else:
+                    break
+            return common_part
+
+        def get_common_endding(a_list: list[str]) -> str:
+            a_list = [one[::-1] for one in a_list]
+            return get_common_beginning(a_list)[::-1]
+
+        from auto_everything.ml import ML
+        ml = ML()
+        preprocessor = ml.Yingshaoxo_Text_Preprocessor()
+
+        new_text_list = []
+        for one in text_list:
+            new_text_list += preprocessor.string_split_to_pure_sub_sentence_segment_list(one)
+        text_list = new_text_list
+
+        global_dict = {}
+        window_size = 2
+        for _ in range(2):
+            for index in range(len(text_list)):
+                if index < window_size:
+                    continue
+                sub_input_list = text_list[index-window_size:index]
+                result_list = []
+                if get_less == True:
+                    key1 = get_common_beginning(sub_input_list)
+                    key2 = get_common_endding(sub_input_list)
+                    result_list += [key1, key2]
+                else:
+                    key1 = get_common_beginning(sub_input_list)
+                    if key1.strip() != "":
+                        result_list += [one[len(key1):] for one in sub_input_list]
+                    key2 = get_common_endding(sub_input_list)
+                    if key2.strip() != "":
+                        result_list += [one[:-len(key2)] for one in sub_input_list]
+                for key in result_list:
+                    if key not in global_dict.keys():
+                        global_dict[key] = 1
+                        #print(result)
+                    else:
+                        global_dict[key] += 1
+
+            text_list = list(global_dict.keys())
+            text_list.sort()
+
+        for key in list(global_dict.keys()).copy():
+            if len(key) == 1:
+                del global_dict[key]
+            else:
+                if global_dict[key] <= 1:
+                    del global_dict[key]
+
+        return global_dict
 
 
 if __name__ == "__main__":
