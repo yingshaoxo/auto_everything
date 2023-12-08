@@ -2,8 +2,9 @@ from typing import Any
 import random
 import os
 import re
+import json
 
-from auto_everything.terminal import Terminal
+from auto_everything.terminal import Terminal, Terminal_User_Interface
 from auto_everything.disk import Disk, Store
 from auto_everything.io import IO
 from auto_everything.language import Language
@@ -13,6 +14,7 @@ disk = Disk()
 io_ = IO()
 language = Language()
 terminal = Terminal()
+terminal_user_interface = Terminal_User_Interface()
 time_ = Time()
 store = Store('auto_everything_ml_module')
 string_ = String()
@@ -371,6 +373,79 @@ class Yingshaoxo_Text_Transformer():
 
         return final_dict
 
+    def get_regex_expression_dict_from_input_and_output_list(self, input_text_list: list[str], output_text_list: list[str]) -> dict[str, str]:
+        the_dict = {}
+        for index in range(len(input_text_list)):
+            source_text = input_text_list[index]
+            target_text = output_text_list[index]
+            key, value = self.get_regex_expression_from_current_text_and_following_text(source_text, target_text)
+            the_dict[key] = value
+        return the_dict
+
+    def _get_complex_transforming_dict_for_translation(self, input_text_list: list[str], output_text_list: list[str], window_size: int = 100) -> dict[str, str]:
+        if len(input_text_list) != len(output_text_list):
+            raise Exception("The input_text_list should have the same length of output_text_list")
+
+        """
+        You have to get the recursive version of data manually.
+        For example, analyze the input_text_list, get common words or substring.
+        Then find common words or substring in output_text_list.
+        Then do a loop for input common substring list, let user choose what output common sub_string is linked to that input substring, after user do 100 times of choose, it can be very accurate. (This process can be simplifyed by using all output substring to match the current input output, to limit or scale down the choice for the output substring
+        """
+        existing_dict = {}
+
+        for char in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ',.:":
+            if char not in existing_dict.keys():
+                existing_dict[char] = char
+
+        for index in range(len(input_text_list)):
+            if index < window_size:
+                continue
+            sub_input_list = input_text_list[index-window_size:index]
+            sub_output_list = output_text_list[index-window_size:index]
+            input_dict = string_.get_common_text_in_text_list(sub_input_list, frequency=3, keywords_mode=True)
+            output_dict = string_.get_common_text_in_text_list(sub_output_list, frequency=3, keywords_mode=True)
+            for sub_string in sorted(input_dict.keys(), key=len, reverse=False):
+                if sub_string in existing_dict.keys():
+                    continue
+                output_source_list = []
+                for target_index in input_dict[sub_string]["index_list"]:
+                    output_source_list.append(sub_output_list[target_index])
+                for one in output_dict.keys():
+                    if input_dict[sub_string] == output_dict[one]:
+                        value = one
+                        data_piece = {sub_string: value}
+                        print(data_piece)
+                        existing_dict.update(data_piece)
+                        break
+
+        for index in range(len(input_text_list)):
+            source_text = input_text_list[index]
+            target_text = output_text_list[index]
+            key, value = self.get_regex_expression_from_current_text_and_following_text(source_text, target_text)
+            existing_dict[key] = value
+
+        return existing_dict
+
+    def pure_string_dict_based_sequence_transformer(self, input_text: str, the_dict: dict[str, str]) -> str:
+        """
+        no regex is allowed in here
+        """
+        dict_items = list(the_dict.items())
+        dict_items.sort(key=lambda item: len(item[0]), reverse=True)
+        result = ""
+        while True:
+            did_change = False
+            for key, value in dict_items:
+                if input_text.startswith(key):
+                    result += value
+                    input_text = input_text[len(key):]
+                    did_change = True
+                    break
+            if did_change == False:
+                break
+        return result
+
     def yingshaoxo_regex_expression_based_transformer(self, input_text: str, regex_expression_dict: dict[str, str]) -> str:
         """
         If you want to let it smarter or equal than google bard chat ai, you have to use recursive function
@@ -390,10 +465,16 @@ class Yingshaoxo_Text_Transformer():
         """
         This is good for 1:1 transformer, for example, translation dataset, but should also doing fine in email replying dataset.
         """
+        regex_keys = sorted(list(regex_expression_dict.keys()), key=len, reverse=True)
         def the_transformer(input_text: str) -> str:
-            for key in sorted(list(regex_expression_dict.keys()), key=len, reverse=True):
+            for key in regex_keys:
                 result = re.search(key, input_text, flags=re.DOTALL)
                 if result != None:
+                    if len(result.groups()) < 2:
+                        # no regex inside of that dict
+                        #return regex_expression_dict[key]
+                        continue
+
                     value = result.group(1)
 
                     dict_value = regex_expression_dict[key]
@@ -404,7 +485,25 @@ class Yingshaoxo_Text_Transformer():
                         return next_level_value.join(dict_value_splits)
                     else:
                         return value.join(dict_value_splits)
-            return ""
+
+            if input_text.strip() == "":
+                return ""
+
+            result = ""
+            did_change = False
+            for key in regex_keys:
+                if input_text.startswith(key):
+                    result += regex_expression_dict[key]
+                    input_text = input_text[len(key):]
+                    did_change = True
+                    break
+            if did_change == False:
+                # can't do anything here
+                return ""
+            else:
+                result += the_transformer(input_text)
+                return result
+
         return the_transformer(input_text)
 
 
@@ -1226,18 +1325,8 @@ class Yingshaoxo_Text_Generator():
         return example_output_text.strip()
 
     def get_text_to_text_hard_coding_transforming_dict(self, input_text_list: list[str], output_text_list: list[str]) -> dict[str, str]:
-        if len(input_text_list) != len(output_text_list):
-            raise Exception("The input_text_list should have the same length of output_text_list")
-
-        the_dict = {}
         yingshaoxo_text_transformer = Yingshaoxo_Text_Transformer()
-        for index in range(len(input_text_list)):
-            source_text = input_text_list[index]
-            target_text = output_text_list[index]
-            key, value = yingshaoxo_text_transformer.get_regex_expression_from_current_text_and_following_text(source_text, target_text)
-            the_dict[key] = value
-
-        return the_dict
+        return yingshaoxo_text_transformer.get_regex_expression_dict_from_input_and_output_list(input_text_list, output_text_list)
 
     def text_to_text_hard_coding_transforming(self, input_text: str, the_string_dict: dict[str, str], recursive: bool = False):
         """
@@ -1590,6 +1679,7 @@ class ML():
         self.Yingshaoxo_Text_Preprocessor = Yingshaoxo_Text_Preprocessor
         self.Yingshaoxo_Text_Transformer = Yingshaoxo_Text_Transformer
         self.Yingshaoxo_Text_Generator = Yingshaoxo_Text_Generator
+        self.Yingshaoxo_Translator = Yingshaoxo_Translator
 
 
 if __name__ == "__main__":

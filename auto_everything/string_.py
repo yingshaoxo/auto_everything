@@ -1,7 +1,10 @@
 from __future__ import annotations
+from typing import Any
 
 import string as built_in_string_module
 from difflib import SequenceMatcher
+
+jieba = None
 
 
 class String:
@@ -203,6 +206,56 @@ class String:
         start_index = page_number*page_size
         end_index = start_index + page_size
         return result_list[start_index:end_index]
+
+    def get_common_text_in_text_list(self, text_list: list[str], frequency: int = 7, keywords_mode: bool = False) -> dict[str, dict[str, Any]]:
+        """
+        It will return a dict, where common part string is key, index list is value
+        """
+        global jieba
+        if jieba == None:
+            import jieba as jieba_
+            jieba = jieba_
+
+        final_dict = {}
+        for current_index, current_text in enumerate(text_list):
+            if keywords_mode == True:
+                # it is for general natual language process
+                all_sub_string_list = list(set(current_text.split()))
+
+                new_list = []
+                for one in all_sub_string_list:
+                    if not one.isascii():
+                        # for chinese
+                        temp_list = [one.replace("。", "").replace("，", "").replace("？", "") for one in list(jieba.cut(one))]
+                        temp_list = [one for one in temp_list if one.strip() != ""]
+                        new_list += temp_list
+                    else:
+                        element = one.replace(".", "").replace(",", "").replace("?", "").strip()
+                        if element != "":
+                            new_list.append(element)
+                all_sub_string_list = new_list
+
+                all_sub_string_list = [one.strip() for one in all_sub_string_list]
+                all_sub_string_list = list(set(all_sub_string_list))
+            else:
+                # accurate mode
+                all_sub_string_list = list(set(self.get_all_sub_string(current_text)))
+
+            for sub_string in all_sub_string_list:
+                if sub_string in final_dict.keys():
+                    continue
+                counting = 0
+                index_list = []
+                for index, text in enumerate(text_list):
+                    if index == current_index:
+                        continue
+                    if sub_string in text:
+                        counting += 1
+                        index_list.append(index)
+                counting += 1
+                if counting >= frequency:
+                    final_dict.update({sub_string: {"counting": counting, "index_list": index_list}})
+        return final_dict
 
 
 if __name__ == "__main__":
