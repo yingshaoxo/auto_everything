@@ -274,7 +274,7 @@ class String:
                     final_dict.update({sub_string: {"counting": counting, "index_list": index_list}})
         return final_dict
 
-    def get_meaning_group_dict_in_text_list(self, text_list: list[str], get_less: bool = True, level: int = 2, cut_half: bool = False, accurate_frequency: bool = False) -> dict[str, int]:
+    def get_meaning_group_dict_in_text_list(self, text_list: list[str], get_less: bool = True, level: int = 2, cut_half: bool = False, accurate_frequency: bool = False, code_parse_mode: bool = False) -> dict[str, int]:
         """
         text_list = ["How are you A.", "How are you B."]
         It returns ["How are you"]
@@ -294,14 +294,15 @@ class String:
             a_list = [one[::-1] for one in a_list]
             return get_common_beginning(a_list)[::-1]
 
-        from auto_everything.ml import ML
-        ml = ML()
-        preprocessor = ml.Yingshaoxo_Text_Preprocessor()
+        if code_parse_mode == False:
+            from auto_everything.ml import ML
+            ml = ML()
+            preprocessor = ml.Yingshaoxo_Text_Preprocessor()
 
-        new_text_list = []
-        for one in text_list:
-            new_text_list += preprocessor.string_split_to_pure_sub_sentence_segment_list(one)
-        text_list = new_text_list
+            new_text_list = []
+            for one in text_list:
+                new_text_list += preprocessor.string_split_to_pure_sub_sentence_segment_list(one)
+            text_list = new_text_list
 
         global_dict = {}
         window_size = 2
