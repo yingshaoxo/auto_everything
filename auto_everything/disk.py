@@ -919,6 +919,10 @@ class Disk:
         ----------
         path: string
             the file path
+        bytes_data: bytes
+            the file bytes
+        level: int
+            how accurate it should be, only work for bytes_data. The higher the better.
         """
         """
         You could change it to "fuzz hash" by do the check for n parts of the file, then "".join() those result as a longer string
