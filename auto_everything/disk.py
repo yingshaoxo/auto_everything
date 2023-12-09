@@ -911,7 +911,7 @@ class Disk:
                 file_hash.update(data)
         return file_hash.hexdigest()
 
-    def get_hash_of_a_file_by_using_yingshaoxo_method(self, path: str) -> str:
+    def get_hash_of_a_file_by_using_yingshaoxo_method(self, path: str, bytes_data: bytes | None = None) -> str:
         """
         get hash string based on the bytes of a file by using yingshaoxo method.
 
@@ -920,6 +920,20 @@ class Disk:
         path: string
             the file path
         """
+        if bytes_data != None:
+            file_hash = 0
+            operator_flag = True
+            for one_byte in bytes_data:
+                if operator_flag == True:
+                    file_hash += one_byte
+                    operator_flag = False
+                else:
+                    file_hash -= one_byte
+                    operator_flag = True
+            file_hash = file_hash % 100000000
+            file_hash = str(file_hash)
+            return file_hash
+
         segment_size = 1024 * 1024 * 1
         path = self._expand_user(path)
         file_hash = 0

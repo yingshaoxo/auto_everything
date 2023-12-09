@@ -204,7 +204,7 @@ class String:
             next_text = text_list[top_index+1]
         return previous_text, text_list[top_index], next_text
 
-    def search_text_in_text_list(self, input_text: str, text_list: list[str], page_size: int = 10, page_number: int = 0) -> list[str]:
+    def search_text_in_text_list(self, input_text: str, text_list: list[str], page_size: int = 10, page_number: int = 0, block_keyword_list: list[str] = []) -> list[str]:
         """
         It returns all matched text as a list
         """
@@ -215,9 +215,14 @@ class String:
         keywords = [one.strip() for one in new_keywords if one.strip() != ""]
         keywords = list(set(keywords))
 
+        if len(keywords) == 0:
+            return []
+
         result_list = []
         for index, value in enumerate(text_list):
             if self.is_keywords_in_text(keywords, text=value) == True:
+                if len(block_keyword_list) != 0 and self.is_keywords_in_text(block_keyword_list, text=value) == True:
+                    continue
                 result_list.append(value)
 
         start_index = page_number*page_size
@@ -372,3 +377,4 @@ class String:
 if __name__ == "__main__":
     string_ = String()
     print(string_.get_fuzz_match_text_from_text_list("d", ["dd", "c", "ab", "k"], quick_mode=True))
+    #print(string_.search_text_in_text_list("d", ["dd", "c", "ab", "k"], block_keyword_list=["a"]))
