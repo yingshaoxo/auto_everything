@@ -911,7 +911,7 @@ class Disk:
                 file_hash.update(data)
         return file_hash.hexdigest()
 
-    def get_hash_of_a_file_by_using_yingshaoxo_method(self, path: str, bytes_data: bytes | None = None) -> str:
+    def get_hash_of_a_file_by_using_yingshaoxo_method(self, path: str, bytes_data: bytes | None = None, level: int = 1) -> str:
         """
         get hash string based on the bytes of a file by using yingshaoxo method.
 
@@ -920,28 +920,40 @@ class Disk:
         path: string
             the file path
         """
+        """
+        You could change it to "fuzz hash" by do the check for n parts of the file, then "".join() those result as a longer string
+        """
         if bytes_data != None:
-            file_hash = 0
-            operator_flag = True
-            for one_byte in bytes_data:
-                if operator_flag == True:
-                    file_hash += one_byte
-                    operator_flag = False
-                else:
-                    file_hash -= one_byte
-                    operator_flag = True
-            file_hash = file_hash % 100000000
-            file_hash = str(file_hash)
-            return file_hash
+            all_size = len(bytes_data)
+            part_size = all_size // level
+            result_string = str(all_size) + "_"
+            for level_i in range(level):
+                start_index = level_i * part_size
+                end_index = start_index + part_size
+                file_hash = 0
+                operator_flag = True
+                for one_byte in bytes_data[start_index: end_index]:
+                    if operator_flag == True:
+                        file_hash += one_byte
+                        operator_flag = False
+                    else:
+                        file_hash -= one_byte
+                        operator_flag = True
+                file_hash = file_hash % 100000000
+                file_hash = str(file_hash)
+                result_string += file_hash + "_"
+            return result_string[:-1]
 
         segment_size = 1024 * 1024 * 1
         path = self._expand_user(path)
         file_hash = 0
+        all_size = 0
         with open(path, "rb") as f:
             operator_flag = True
             while True:
                 #data = f.read(8192)
                 data = f.read(segment_size)
+                all_size += len(data)
                 if not data:
                     break
                 for one_byte in data:
@@ -953,7 +965,7 @@ class Disk:
                         operator_flag = True
         file_hash = file_hash % 100000000
         file_hash = str(file_hash)
-        return file_hash
+        return str(all_size) + "_" + file_hash
 
     def get_hash_of_a_file_by_using_sha1(self, path: str) -> str:
         """
