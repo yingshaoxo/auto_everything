@@ -74,6 +74,22 @@ class String:
             ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
             return ratio
 
+    def get_similarity_score_of_two_sentence_by_position_match(self, sentence1: str, sentence2: str) -> float:
+        """
+        It returns a float in range of [0, 1], 1 means equal.
+        This is a extreamly quick method.
+        """
+        sentence1_length = len(sentence1)
+        sentence2_length = len(sentence2)
+        counting = 0
+        min_length = min(sentence1_length, sentence2_length)
+        for index in range(min_length):
+            char = sentence1[index]
+            another_sentence_char = sentence2[index]
+            if char == another_sentence_char:
+                counting += 1
+        return counting / min_length
+
     def is_keywords_in_text(self, keywords: list[str], text: str, lower_case: bool = True) -> bool:
         if lower_case == False:
             for key in keywords:
@@ -258,7 +274,7 @@ class String:
                     final_dict.update({sub_string: {"counting": counting, "index_list": index_list}})
         return final_dict
 
-    def get_meaning_group_dict_in_text_list(self, text_list: list[str], get_less: bool = False) -> dict[str, int]:
+    def get_meaning_group_dict_in_text_list(self, text_list: list[str], get_less: bool = True, level: int = 2, cut_half: bool = False, accurate_frequency: bool = False) -> dict[str, int]:
         """
         text_list = ["How are you A.", "How are you B."]
         It returns ["How are you"]
@@ -289,23 +305,32 @@ class String:
 
         global_dict = {}
         window_size = 2
-        for _ in range(2):
+        i = 0
+        while True:
+            i += 1
+            the_end = True
             for index in range(len(text_list)):
                 if index < window_size:
                     continue
                 sub_input_list = text_list[index-window_size:index]
+
                 result_list = []
-                if get_less == True:
-                    key1 = get_common_beginning(sub_input_list)
-                    key2 = get_common_endding(sub_input_list)
-                    result_list += [key1, key2]
-                else:
-                    key1 = get_common_beginning(sub_input_list)
+                key1 = get_common_beginning(sub_input_list)
+                key2 = get_common_endding(sub_input_list)
+                if key1.strip() != "":
+                    result_list.append(key1)
+                    the_end = False
+                if key2.strip() != "":
+                    result_list.append(key2)
+                    the_end = False
+
+                if get_less == False:
+                    # get center text
                     if key1.strip() != "":
                         result_list += [one[len(key1):] for one in sub_input_list]
-                    key2 = get_common_endding(sub_input_list)
                     if key2.strip() != "":
                         result_list += [one[:-len(key2)] for one in sub_input_list]
+
                 for key in result_list:
                     if key not in global_dict.keys():
                         global_dict[key] = 1
@@ -313,15 +338,32 @@ class String:
                     else:
                         global_dict[key] += 1
 
+            if the_end == True:
+                # no more common data to seperate
+                break
+
+            if get_less == False:
+                # only in get_more mode, the level has meaning, it could do more parsing there
+                if i >= level:
+                    break
+            else:
+                break
+
             text_list = list(global_dict.keys())
             text_list.sort()
 
-        for key in list(global_dict.keys()).copy():
-            if len(key) == 1:
-                del global_dict[key]
-            #else:
-            #    if global_dict[key] <= 1:
-            #        del global_dict[key]
+        # recount frequency
+        if accurate_frequency == True:
+            all_text = "".join(text_list)
+            for key in global_dict.keys():
+                global_dict[key] = all_text.count(key)
+
+        # cut in half
+        if cut_half == True:
+            items = list(global_dict.items())
+            items.sort(key=lambda x: (x[1], len(x[0])), reverse=True)
+            items = items[:len(items)//2]
+            global_dict = dict(items)
 
         return global_dict
 
