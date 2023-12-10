@@ -911,7 +911,7 @@ class Disk:
                 file_hash.update(data)
         return file_hash.hexdigest()
 
-    def get_hash_of_a_file_by_using_yingshaoxo_method(self, path: str, bytes_data: bytes | None = None, level: int = 1) -> str:
+    def get_hash_of_a_file_by_using_yingshaoxo_method(self, path: str, bytes_data: bytes | None = None, level: int = 1, length: int = 100000000, seperator: str = "_") -> str:
         """
         get hash string based on the bytes of a file by using yingshaoxo method.
 
@@ -923,14 +923,21 @@ class Disk:
             the file bytes
         level: int
             how accurate it should be, only work for bytes_data. The higher the better.
+        length: int
+            default value is 100000000, but 10 would also be fine
         """
         """
-        You could change it to "fuzz hash" by do the check for n parts of the file, then "".join() those result as a longer string
+        You could use it as "fuzz hash" by do the check for n parts of the file, then "".join() those result as a longer string
+        For example:
+
+        hash_code = disk.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=128, length=10, seperator="")
         """
         if bytes_data != None:
             all_size = len(bytes_data)
             part_size = all_size // level
-            result_string = str(all_size) + "_"
+            if part_size == 0:
+                raise Exception("The level is too high but the bytes_data is too small")
+            result_string = str(all_size) + seperator
             for level_i in range(level):
                 start_index = level_i * part_size
                 end_index = start_index + part_size
@@ -943,9 +950,9 @@ class Disk:
                     else:
                         file_hash -= one_byte
                         operator_flag = True
-                file_hash = file_hash % 100000000
+                file_hash = file_hash % length
                 file_hash = str(file_hash)
-                result_string += file_hash + "_"
+                result_string += file_hash + seperator
             return result_string[:-1]
 
         segment_size = 1024 * 1024 * 1
@@ -967,9 +974,13 @@ class Disk:
                     else:
                         file_hash -= one_byte
                         operator_flag = True
-        file_hash = file_hash % 100000000
+        file_hash = file_hash % length
         file_hash = str(file_hash)
         return str(all_size) + "_" + file_hash
+
+    def get_fuzz_hash_by_using_yingshaoxo_method(self, bytes_data: bytes, level: int = 256) -> str:
+        hash_code = self.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=bytes_data, level=level, length=10, seperator="")
+        return hash_code
 
     def get_hash_of_a_file_by_using_sha1(self, path: str) -> str:
         """

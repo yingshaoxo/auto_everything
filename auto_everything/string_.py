@@ -7,6 +7,9 @@ import re
 
 jieba = None
 
+from auto_everything.disk import Disk
+disk = Disk()
+
 
 class String:
     def __init__(self):
@@ -73,6 +76,14 @@ class String:
         else:
             ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
             return ratio
+
+    def get_fuzz_hash(self, text: str, level: int = 128) -> str:
+        """
+        Compress long text into 128 char long text, so that you could use it to compare similarity.
+        It works better with get_similarity_score_of_two_sentence_by_position_match(hash1, hash2)
+        """
+        hash_code = disk.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=level, length=10, seperator="")
+        return hash_code
 
     def get_similarity_score_of_two_sentence_by_position_match(self, sentence1: str, sentence2: str) -> float:
         """
