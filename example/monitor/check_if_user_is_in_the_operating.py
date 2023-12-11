@@ -1,9 +1,9 @@
-from auto_everything.monitor import KeyboardAndMouseMonitor
+from auto_everything.monitor import Keyboard_And_Mouse_Monitor
 from collections import deque
 import time
 from threading import Timer
 
-keyboardAndMouseMonitor = KeyboardAndMouseMonitor()
+keyboardAndMouseMonitor = Keyboard_And_Mouse_Monitor()
 
 mouse = keyboardAndMouseMonitor.mouse
 keyboard = keyboardAndMouseMonitor.keyboard

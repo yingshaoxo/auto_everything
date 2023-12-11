@@ -6,22 +6,31 @@ from auto_everything.base import Terminal
 t = Terminal(debug=True)
 
 
-class KeyboardAndMouseMonitor:
-    def __init__(self):
-        try:
-            from pynput import mouse, keyboard
-            self.mouse = mouse
-            self.keyboard = keyboard
-        except Exception as e:
-            print("python3 -m pip install pynput")
-            raise e
-        #
-        # self.keyboard_callback_function = None
-        # self.mouse_callback_function = None
+class Keyboard_And_Mouse_Monitor:
+    """
+    In the end, you may found. You have to make your own hardware and operating system to stabilize the automation process.
+    """
+    def __init__(self, pure_python: bool = False):
+        if pure_python == False:
+            try:
+                from pynput import mouse, keyboard
+                self.mouse = mouse
+                self.keyboard = keyboard
+            except Exception as e:
+                raise Exception("No pynput installed. \n\npython3 -m pip install pynput")
+        else:
+            try:
+                import keyboard
+                self.keyboard = keyboard
+                import mouse
+                self.mouse = mouse
+            except Exception as e:
+                raise Exception("No keyboard and mouse installed. \n\npython3 -m pip install keyboard\n\npython3 -m pip install mouse")
+
 
 if __name__ == "__main__":
     pass
-    # keyboardAndMouseMonitor = KeyboardAndMouseMonitor()
+    # keyboardAndMouseMonitor = Keyboard_And_Mouse_Monitor()
     #
     # mouse = keyboardAndMouseMonitor.mouse
     # keyboard = keyboardAndMouseMonitor.keyboard

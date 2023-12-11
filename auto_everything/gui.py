@@ -1,3 +1,6 @@
+"""
+yingshaoxo: In the end, you may found. You have to make your own hardware and operating system to stabilize the automation process.
+"""
 import os
 import platform
 import time
