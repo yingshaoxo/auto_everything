@@ -77,12 +77,12 @@ class String:
             ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
             return ratio
 
-    def get_fuzz_hash(self, text: str, level: int = 128) -> str:
+    def get_fuzz_hash(self, text: str, level: int = 128, seperator="_") -> str:
         """
         Compress long text into 128 char long text, so that you could use it to compare similarity.
         It works better with get_similarity_score_of_two_sentence_by_position_match(hash1, hash2)
         """
-        hash_code = disk.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=level, length=10, seperator="")
+        hash_code = disk.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=level, length=1, seperator=seperator, with_size=False)
         return hash_code
 
     def get_similarity_score_of_two_sentence_by_position_match(self, sentence1: str, sentence2: str) -> float:
@@ -100,6 +100,19 @@ class String:
             if char == another_sentence_char:
                 counting += 1
         return counting / min_length
+
+    def get_changed_part_of_a_text(self, before_text: str, after_text: str, no_change_position_placeholder: str=" ") -> str:
+        length = len(before_text)
+        after_text = after_text[:length]
+        result = ""
+        for index in range(length):
+            char = before_text[index]
+            another_sentence_char = after_text[index]
+            if char == another_sentence_char:
+                result += no_change_position_placeholder
+            else:
+                result += another_sentence_char
+        return result
 
     def is_keywords_in_text(self, keywords: list[str], text: str, lower_case: bool = True) -> bool:
         if lower_case == False:
