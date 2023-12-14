@@ -372,6 +372,12 @@ git remote set-url --add --push origin {repo_url}
             except Exception as e:
                 print(e)
 
+    def wake_up_the_light(self):
+        from time import sleep
+        while True:
+            t.run(f'vlc --vout none /home/yingshaoxo/Documents/WakeUp.mp3 vlc://quit')
+            sleep(15)
+
     def hi(self):
         self.help()
 
