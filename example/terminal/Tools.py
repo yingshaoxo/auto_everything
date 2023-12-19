@@ -376,7 +376,7 @@ git remote set-url --add --push origin {repo_url}
         from time import sleep
         while True:
             t.run(f'vlc --vout none /home/yingshaoxo/Documents/WakeUp.mp3 vlc://quit')
-            sleep(15)
+            sleep(21)
 
     def hi(self):
         self.help()

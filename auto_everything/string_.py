@@ -127,13 +127,27 @@ class String:
                     return False
             return True
 
-    def get_all_sub_string(self, text: str) -> list[str]:
-        all_substring = []
-        for index in range(len(text)):
-            for index2 in range(len(text[index:])):
-                sub_string = text[index:index+index2+1]
-                all_substring.append(sub_string)
-        return all_substring
+    def get_all_sub_string(self, text: str, get_less: bool = False) -> list[str]:
+        if get_less == False:
+            all_substring = []
+            for index in range(len(text)):
+                for index2 in range(len(text[index:])):
+                    sub_string = text[index:index+index2+1]
+                    all_substring.append(sub_string)
+            return all_substring
+        else:
+            all_substring = set()
+            lines = text.split("\n")
+            for line in lines:
+                words = line.split(" ")
+                words_length = len(words)
+                for index in range(words_length):
+                    for index2 in range(words_length - index):
+                        sub_string_list = words[index:index+index2+1]
+                        the_sub_string = " ".join(sub_string_list).strip()
+                        if the_sub_string != "":
+                            all_substring.add(the_sub_string)
+            return list(all_substring)
 
     def get_string_match_rating_level(self, input_text: str, text: str, lower_case: bool = True) -> float:
         """
@@ -400,5 +414,9 @@ class String:
 
 if __name__ == "__main__":
     string_ = String()
-    print(string_.get_fuzz_match_text_from_text_list("d", ["dd", "c", "ab", "k"], quick_mode=True))
+    #print(string_.get_fuzz_match_text_from_text_list("d", ["dd", "c", "ab", "k"], quick_mode=True))
     #print(string_.search_text_in_text_list("d", ["dd", "c", "ab", "k"], block_keyword_list=["a"]))
+    print(string_.get_all_sub_string("""
+        fuck you, anny.
+        because you are so honny.
+    """, get_less=True))
