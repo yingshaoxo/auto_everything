@@ -933,6 +933,7 @@ class Disk:
         hash_code = disk.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=128, length=10, seperator="")
         """
         dividor = (10 ** length) - 1
+        seperator_length = len(seperator)
 
         if bytes_data != None:
             all_size = len(bytes_data)
@@ -959,7 +960,10 @@ class Disk:
                 file_hash = str(file_hash)
                 file_hash = ('0' * (length - len(file_hash))) + file_hash
                 result_string += file_hash + seperator
-            return result_string[:-1]
+            if seperator_length == 0:
+                return result_string
+            else:
+                return result_string[:-seperator_length]
 
         segment_size = 1024 * 1024 * 1
         path = self._expand_user(path)
