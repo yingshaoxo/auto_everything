@@ -1,4 +1,4 @@
-from auto_everything.gui import AndroidGUI
+from auto_everything.gui_operator import AndroidGUI
 
 scrcpy_window_name, project_name = "pixel", "test"
 gui = AndroidGUI(scrcpy_window_name, project_name)

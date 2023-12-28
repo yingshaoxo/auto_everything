@@ -1,4 +1,4 @@
-from auto_everything.gui import GUI, Controller
+from auto_everything.gui_operator import GUI, Controller
 gui = GUI()
 controller = Controller()
 

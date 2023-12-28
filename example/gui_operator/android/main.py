@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from auto_everything.gui import AndroidGUI
+from auto_everything.gui_operator import AndroidGUI
 from pprint import pprint
 
 scrcpy_window_name, project_name = "pixel", "test"

@@ -5,7 +5,152 @@
 
 
 from typing import Any
-from decimal import Decimal
+
+
+class Simple_Digital_Money_System():
+    def __init__(self, data_saving_path):
+        """
+        designed by @yingshaoxo
+
+        wallet_dict:
+            {
+                id: {
+                        password: "",
+                        money: 0,
+                    }
+            }
+
+        transaction_list:
+            [
+                {
+                    id: "",
+                    from: "",
+                    to: "",
+                    value: 0,
+                    comment: "",
+                }
+            ]
+        """
+        from auto_everything.io import IO
+        from auto_everything.disk import Disk
+        from auto_everything.time import Time
+        import json
+        self._disk = Disk()
+        self._io_ = IO()
+        self._json = json
+        self._time_ = Time()
+
+        self._data_saving_path = data_saving_path
+
+        try:
+            if not self._disk.exists(self._data_saving_path):
+                self.wallet_dict = dict()
+                self.transaction_list = list()
+            else:
+                json_text = self._io_.read(self._data_saving_path)
+                data = self._json.loads(json_text)
+                self.wallet_dict = data["wallet_dict"]
+                self.transaction_list = data["transaction_list"]
+        except Exception as e:
+            print(e)
+            self.wallet_dict = dict()
+            self.transaction_list = list()
+
+    def create_an_account(self, id_, password):
+        if id_ in self.wallet_dict.keys():
+            raise Exception(f"id_ '{id_}' is already in our database, try other username.")
+
+        self.wallet_dict[id_] = {
+            "password": password,
+            "money": 0
+        }
+
+    def get_wallet_info(self, id_):
+        if id_ not in self.wallet_dict.keys():
+            return None
+        else:
+            item = self.wallet_dict[id_].copy()
+            del item["password"]
+            return item
+
+    def save_money(self, id_, money_value):
+        if id_ not in self.wallet_dict.keys():
+            raise Exception(f"id_ '{id_}' is not exists in our database, try other username.")
+
+        if type(money_value) != int and type(money_value) != float:
+            raise Exception(f"money_value '{money_value}' should be a number.")
+
+        if money_value < 0:
+            raise Exception(f"money_value '{money_value}' should greater than 0.")
+
+        self.wallet_dict[id_]["money"] += money_value
+
+    def send_money(self, id_, password, to_id, money_value, comment=""):
+        if id_ not in self.wallet_dict.keys():
+            raise Exception(f"id_ '{id_}' not in our database, try other username.")
+
+        user = self.wallet_dict[id_]
+        if user["password"] != password:
+            raise Exception(f"password '{password}' is not right.")
+
+        if to_id not in self.wallet_dict.keys():
+            raise Exception(f"to_id '{to_id}' not in our database, try other username.")
+
+        if money_value < 0:
+            raise Exception(f"money_value '{money_value}' should greater than 0.")
+
+        self.wallet_dict[id_]["money"] -= money_value
+        self.wallet_dict[to_id]["money"] += money_value
+
+        #transaction_id = id_ + "_" + to_id + "_" + str(self._time_.get_current_timestamp_in_10_digits_format())
+        transaction_id = str(self._time_.get_current_timestamp_in_10_digits_format())
+        self.transaction_list.insert(
+            0,
+            {
+                "id": transaction_id,
+                "from": id_,
+                "to": to_id,
+                "value": money_value,
+                "comment": comment
+            }
+        )
+
+    def get_transaction_info(self, transaction_id=None, from_id=None, to_id=None, page_size=1000, page_number=0):
+        start_index = page_size * page_number
+        end_index = start_index + page_size
+
+        if from_id != None:
+            temp_list = []
+            counting = 0
+            for one in self.transaction_list:
+                if one["from"] == from_id:
+                    if start_index <= counting < end_index:
+                        temp_list.append(one)
+                    if counting >= end_index:
+                        break
+                    counting += 1
+            return temp_list
+
+        if to_id != None:
+            temp_list = []
+            for one in self.transaction_list:
+                if one["to"] == to_id:
+                    if start_index <= counting < end_index:
+                        temp_list.append(one)
+                    if counting >= end_index:
+                        break
+            return temp_list
+
+        if transaction_id != None:
+            for one in self.transaction_list:
+                if one["id"] == transaction_id:
+                    return one
+
+    def save_data(self):
+        data = {}
+        data["wallet_dict"] = self.wallet_dict
+        data["transaction_list"] = self.transaction_list
+        self._io_.write(self._data_saving_path, self._json.dumps(data))
 
 
 class Ethereum_Ecosystem():
@@ -101,10 +246,10 @@ class Ethereum_Ecosystem():
         """
         raw_number = self.web3.eth.get_balance(from_address) #type: ignore
         return self._value_to_human_readble(value=raw_number) #type:ignore
-    
+
     def _value_to_human_readble(self, value: str) -> str:
         return str(self.web3.from_wei(int(value), 'ether'))
-    
+
     def _decode_input_data(self, contract_address: str, value: str) -> str:
         from web3_input_decoder import decode_constructor, decode_function #type:ignore
         import json
@@ -114,12 +259,12 @@ class Ethereum_Ecosystem():
         return decode_function(#type:ignore
             TETHER_ABI, value,#type:ignore
         )#type:ignore
-    
+
     def get_x_to_usdt_ratio(self, x: str) -> str | None:
         """
         x: string
             a token name, something like ETH, BNB, TRX and so on
-        
+
         For example, if you set x to BNB, you may get 300 as a result, it means '1BNB == 300USDT'
         """
         import json
@@ -149,8 +294,11 @@ class Tron_Network():
         from tronpy import Tron
         from tronpy.providers import HTTPProvider
 
+        from decimal import Decimal
+        self.Decimal = Decimal
+
         self.client = Tron(HTTPProvider(network_url))  # Use private network as HTTP API endpoint
-    
+
     def get_deposit(self, from_address: str) -> str | None:
         """
         Check how many money left in your pocket
@@ -160,7 +308,7 @@ class Tron_Network():
         except Exception as e:
             print(f"error: {e}")
             return None
-    
+
     def get_transaction_detail(self, transaction_hash: str, only_return_value: bool = False) -> dict[str, Any] | str | None:
         """
         transaction_hash: string
@@ -170,7 +318,7 @@ class Tron_Network():
             data = self.client.get_transaction(txn_id=transaction_hash) #type: ignore
             try:
                 amount = str(data["raw_data"]["contract"][0]["parameter"]["value"]["amount"]) #type: ignore
-                amount = str(Decimal(amount) / Decimal(1000000))
+                amount = str(self.Decimal(amount) / self.Decimal(1000000))
                 if only_return_value == False:
                     data["raw_data"]["contract"][0]["parameter"]["value"]["amount"] = amount
                     return {**data}
@@ -197,7 +345,7 @@ class Tron_Network():
         from tronpy.keys import PrivateKey
 
         try:
-            quantity = str(Decimal(quantity)*Decimal(1000000))
+            quantity = str(self.Decimal(quantity)*self.Decimal(1000000))
             txn = (
                 self.client.trx.transfer(from_address, to_address, quantity) #type: ignore
                 .memo(comments) #type: ignore
@@ -215,7 +363,7 @@ class Tron_Network():
         """
         x: string
             a token name, something like ETH, BNB, TRX and so on
-        
+
         For example, if you set x to BNB, you may get 300 as a result, it means '1BNB == 300USDT'
         """
         import json
@@ -230,6 +378,18 @@ class Tron_Network():
 
 
 if __name__ == '__main__':
+    money_system = Simple_Digital_Money_System("/tmp/hi.json")
+    print(money_system.wallet_dict)
+    print(money_system.transaction_list)
+    #money_system.create_an_account("yingshaoxo", "123")
+    #money_system.save_money("yingshaoxo", 123)
+    #print(money_system.get_wallet_info("yingshaoxo"))
+    #money_system.create_an_account("another_person", "321")
+    #money_system.send_money("yingshaoxo", "123", "another_person", 100, comment="ok")
+    #print(money_system.get_transaction_info(from_id="yingshaoxo"))
+    money_system.save_data()
+
+    '''
     def test_bsc():
         bsc_test_network_url = "https://data-seed-prebsc-1-s1.binance.org:8545"
         eth = Ethereum_Ecosystem(network_url=bsc_test_network_url)
@@ -271,3 +431,4 @@ if __name__ == '__main__':
     # print(tron.get_transaction_detail(transaction_hash="98b1b43f664de25674ea49b8ed7a57e2949990973488e4b21ff5d152d1a6f89d", only_return_value=True))
     # print(tron.send_money(private_key_for_account_a, from_address=account_a_address, to_address=account_b_address, quantity="20", comments="yingshaoxo2"))
     print(tron.get_x_to_usdt_ratio(x="trx"))
+    '''
