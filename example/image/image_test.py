@@ -4,7 +4,7 @@ from auto_everything.disk import Disk
 mypillow = MyPillow()
 disk = Disk()
 
-source_image_path = "/home/yingshaoxo/Downloads/test_product.jpg"
+source_image_path = "/home/yingshaoxo/Downloads/atlantis_space.png"
 an_image = mypillow.read_image_from_file(file_path=source_image_path)
 bytes_io_image = mypillow.force_decrease_image_file_size(an_image, limit_in_kb=50)
 
