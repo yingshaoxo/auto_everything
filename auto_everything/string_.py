@@ -451,8 +451,10 @@ class String:
 
         return global_dict
 
-    def compress_text_by_using_yingshaoxo_method(self, text, common_part_list=[]):
+    def compress_text_by_using_yingshaoxo_method(self, text, common_part_list=[]) -> str:
         """
+        Example: (the real output is a more compact string)
+
         Input:
             ("How are you? yingshaoxo.", common_part_list=["How are you", "yingshaoxo."])
 
@@ -516,6 +518,7 @@ class String:
                     if temp_text != "":
                         result_list.append(temp_text)
                         temp_text = ""
+
                     result_list.append(common_dict[part])
                     #print(index, part, part_length)
                     matched = True
@@ -533,9 +536,11 @@ class String:
                 temp_text += single_char
                 #raise Exception(f"single char '{single_char}' not found in common_dict, which should not happen.")
                 #result_list.append(single_char)
+
             index += 1
             if index >= text_length:
                 break
+
         if temp_text != "":
             result_list.append(temp_text)
 
@@ -547,15 +552,24 @@ class String:
         for one in result_list:
             if type(one) == str:
                 # pure text
-                new_data_list.append(special_char_2 + one.replace(special_char_1, "#"))
+                text_part = one.replace(special_char_1, "#")
+                if len(new_data_list) > 0:
+                    if new_data_list[-1].startswith(special_char_2):
+                        new_data_list[-1] += text_part
+                    else:
+                        new_data_list.append(special_char_2 + text_part)
+                else:
+                    new_data_list.append(special_char_2 + text_part)
             else:
                 # index
                 new_data_list.append(str(one))
 
         return new_dict_text + "_____777_____yingshaoxo_____777_____" + special_char_1.join(new_data_list)
 
-    def uncompress_text_by_using_yingshaoxo_method(self, text):
+    def uncompress_text_by_using_yingshaoxo_method(self, text) -> str:
         """
+        Example: (the real input is a more compact string)
+
         Input:
             {"dict": {"1": "How are you", "-1": " ", "2": "yingshaoxo."}, "data_list": [1, -1, 2]}
 
@@ -582,4 +596,3 @@ class String:
 
 if __name__ == "__main__":
     string_ = String()
-    print(string_.get_common_string_list_in_text("What the fuck? What the hell?", only_return_longest=True))
