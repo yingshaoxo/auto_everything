@@ -1,12 +1,6 @@
 from __future__ import annotations
 from typing import Any
 
-import string as built_in_string_module
-from difflib import SequenceMatcher
-import re
-
-jieba = None
-
 from auto_everything.disk import Disk
 disk = Disk()
 
@@ -29,6 +23,8 @@ class String:
         allow_punctuation: bool = False,
         white_list_characters: str = ''
     ) -> str:
+        import string as built_in_string_module
+
         new_text = ""
         for char in text:
             added = False
@@ -61,6 +57,19 @@ class String:
 
         return new_text
 
+    def is_keywords_in_text(self, keywords: list[str], text: str, lower_case: bool = True) -> bool:
+        if lower_case == False:
+            for key in keywords:
+                if key not in text:
+                    return False
+            return True
+        else:
+            text = text.lower()
+            for key in keywords:
+                if key.lower() not in text:
+                    return False
+            return True
+
     def compare_two_sentences(self, sentence1: str, sentence2: str, using_yingshaoxo_method: bool = True) -> float:
         """
         return similarity, from `0.0` to `1.0`, 1 means equal, 0 means no relate.
@@ -74,16 +83,9 @@ class String:
         if using_yingshaoxo_method == True:
             return self.get_string_match_rating_level(input_text = sentence1, text = sentence2)
         else:
+            from difflib import SequenceMatcher
             ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
             return ratio
-
-    def get_fuzz_hash(self, text: str, level: int = 128, seperator="_") -> str:
-        """
-        Compress long text into 128 char long text, so that you could use it to compare similarity.
-        It works better with get_similarity_score_of_two_sentence_by_position_match(hash1, hash2)
-        """
-        hash_code = disk.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=level, length=1, seperator=seperator, with_size=False)
-        return hash_code
 
     def get_similarity_score_of_two_sentence_by_position_match(self, sentence1: str, sentence2: str) -> float:
         """
@@ -100,54 +102,6 @@ class String:
             if char == another_sentence_char:
                 counting += 1
         return counting / min_length
-
-    def get_changed_part_of_a_text(self, before_text: str, after_text: str, no_change_position_placeholder: str=" ") -> str:
-        length = len(before_text)
-        after_text = after_text[:length]
-        result = ""
-        for index in range(length):
-            char = before_text[index]
-            another_sentence_char = after_text[index]
-            if char == another_sentence_char:
-                result += no_change_position_placeholder
-            else:
-                result += another_sentence_char
-        return result
-
-    def is_keywords_in_text(self, keywords: list[str], text: str, lower_case: bool = True) -> bool:
-        if lower_case == False:
-            for key in keywords:
-                if key not in text:
-                    return False
-            return True
-        else:
-            text = text.lower()
-            for key in keywords:
-                if key.lower() not in text:
-                    return False
-            return True
-
-    def get_all_sub_string(self, text: str, get_less: bool = False) -> list[str]:
-        if get_less == False:
-            all_substring = []
-            for index in range(len(text)):
-                for index2 in range(len(text[index:])):
-                    sub_string = text[index:index+index2+1]
-                    all_substring.append(sub_string)
-            return all_substring
-        else:
-            all_substring = set()
-            lines = text.split("\n")
-            for line in lines:
-                words = line.split(" ")
-                words_length = len(words)
-                for index in range(words_length):
-                    for index2 in range(words_length - index):
-                        sub_string_list = words[index:index+index2+1]
-                        the_sub_string = " ".join(sub_string_list).strip()
-                        if the_sub_string != "":
-                            all_substring.add(the_sub_string)
-            return list(all_substring)
 
     def get_string_match_rating_level(self, input_text: str, text: str, lower_case: bool = True) -> float:
         """
@@ -179,6 +133,128 @@ class String:
                 #print(sub_string, length)
 
         return counting/(negative_counting+counting)
+
+    def get_fuzz_hash(self, text: str, level: int = 128, seperator="_") -> str:
+        """
+        Compress long text into 128 char long text, so that you could use it to compare similarity.
+        It works better with get_similarity_score_of_two_sentence_by_position_match(hash1, hash2)
+        """
+        hash_code = disk.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=level, length=1, seperator=seperator, with_size=False)
+        return hash_code
+
+    def get_all_sub_string(self, text: str, get_less: bool = False) -> list[str]:
+        if get_less == False:
+            all_substring = []
+            for index in range(len(text)):
+                for index2 in range(len(text[index:])):
+                    sub_string = text[index:index+index2+1]
+                    all_substring.append(sub_string)
+            return all_substring
+        else:
+            all_substring = set()
+            lines = text.split("\n")
+            for line in lines:
+                words = line.split(" ")
+                words_length = len(words)
+                for index in range(words_length):
+                    for index2 in range(words_length - index):
+                        sub_string_list = words[index:index+index2+1]
+                        the_sub_string = " ".join(sub_string_list).strip()
+                        if the_sub_string != "":
+                            all_substring.add(the_sub_string)
+            return list(all_substring)
+
+    def get_common_string_list_in_text(self, text, get_less: bool = True, only_return_longest: bool = False) -> list[str]:
+        all_sub_string_list = list(set(self.get_all_sub_string(text, get_less=get_less)))
+        repeated_text_list = []
+        for one in all_sub_string_list:
+            check_index = text.find(one)
+            if check_index != -1:
+                if text.find(one, check_index + len(one)) != -1:
+                    repeated_text_list.append(one)
+
+        if only_return_longest:
+            kill_list = []
+            for index1, one1 in enumerate(repeated_text_list):
+                for index2, one2 in enumerate(repeated_text_list):
+                    if index1 != index2:
+                        if one2 in one1:
+                            kill_list.append(one2)
+
+            final_list = []
+            for one in repeated_text_list:
+                if one not in kill_list:
+                    final_list.append(one)
+
+            return final_list
+        else:
+            return repeated_text_list
+
+    def get_repeated_string_in_text_by_using_sub_window(self, text, window_length=4) -> dict[str, int]:
+        text_length = len(text)
+
+        cache_dict = dict()
+        the_dict = dict()
+        index = 0
+        increasing_index = 0
+        while True:
+            sub_string = text[index: index+window_length]
+            if sub_string != "":
+                if sub_string not in cache_dict:
+                    cache_dict[sub_string] = 1
+                else:
+                    cache_dict[sub_string] += 1
+                    if cache_dict[sub_string] == 2:
+                        the_dict[sub_string] = increasing_index
+                        increasing_index += 1
+                    index += window_length - 1
+            index += 1
+            if index >= text_length:
+                break
+
+        new_dict = {}
+        for key in the_dict.keys():
+            new_dict[key] = cache_dict[key]
+
+        return new_dict
+
+    def get_changed_part_of_a_text(self, before_text: str, after_text: str, no_change_position_placeholder: str=" ") -> str:
+        length = len(before_text)
+        after_text = after_text[:length]
+        result = ""
+        for index in range(length):
+            char = before_text[index]
+            another_sentence_char = after_text[index]
+            if char == another_sentence_char:
+                result += no_change_position_placeholder
+            else:
+                result += another_sentence_char
+        return result
+
+    def search_text_in_text_list(self, input_text: str, text_list: list[str], page_size: int = 10, page_number: int = 0, block_keyword_list: list[str] = []) -> list[str]:
+        """
+        It returns all matched text as a list
+        """
+        keywords = input_text.split()
+        new_keywords = []
+        for keyword in keywords:
+            new_keywords += keyword.split(" ")
+        keywords = [one.strip() for one in new_keywords if one.strip() != ""]
+        keywords = list(set(keywords))
+
+        if len(keywords) == 0:
+            return []
+
+        result_list = []
+        for index, value in enumerate(text_list):
+            if self.is_keywords_in_text(keywords, text=value) == True:
+                if len(block_keyword_list) != 0 and self.is_keywords_in_text(block_keyword_list, text=value) == True:
+                    continue
+                result_list.append(value)
+
+        start_index = page_number*page_size
+        end_index = start_index + page_size
+        return result_list[start_index:end_index]
 
     def get_fuzz_match_text_from_text_list(self, input_text: str, text_list: list[str], target_score: float | None = None, quick_mode: bool = False, input_sub_string_list: list[str] | None = None) -> tuple[str, str, str]:
         """
@@ -242,64 +318,37 @@ class String:
             next_text = text_list[top_index+1]
         return previous_text, text_list[top_index], next_text
 
-    def search_text_in_text_list(self, input_text: str, text_list: list[str], page_size: int = 10, page_number: int = 0, block_keyword_list: list[str] = []) -> list[str]:
-        """
-        It returns all matched text as a list
-        """
-        keywords = input_text.split()
-        new_keywords = []
-        for keyword in keywords:
-            new_keywords += keyword.split(" ")
-        keywords = [one.strip() for one in new_keywords if one.strip() != ""]
-        keywords = list(set(keywords))
-
-        if len(keywords) == 0:
-            return []
-
-        result_list = []
-        for index, value in enumerate(text_list):
-            if self.is_keywords_in_text(keywords, text=value) == True:
-                if len(block_keyword_list) != 0 and self.is_keywords_in_text(block_keyword_list, text=value) == True:
-                    continue
-                result_list.append(value)
-
-        start_index = page_number*page_size
-        end_index = start_index + page_size
-        return result_list[start_index:end_index]
-
-    def get_common_text_in_text_list(self, text_list: list[str], frequency: int = 7, keywords_mode: bool = False) -> dict[str, dict[str, Any]]:
+    def get_common_text_in_text_list(self, text_list: list[str], frequency: int = 7, keywords_mode: bool = False, get_less: bool = True) -> dict[str, dict[str, Any]]:
         """
         It will return a dict, where common part string is key, index list is value
         """
-        global jieba
-        if jieba == None:
-            import jieba as jieba_
-            jieba = jieba_
-
         final_dict = {}
         for current_index, current_text in enumerate(text_list):
             if keywords_mode == True:
                 # it is for general natual language process
                 all_sub_string_list = list(set(current_text.split()))
 
+                chinese_stuff = ""
                 new_list = []
                 for one in all_sub_string_list:
                     if not one.isascii():
                         # for chinese
-                        temp_list = [one.replace("。", "").replace("，", "").replace("？", "") for one in list(jieba.cut(one))]
-                        temp_list = [one for one in temp_list if one.strip() != ""]
-                        new_list += temp_list
+                        some_string = one.replace("。", "").replace("，", "").replace("？", "").strip()
+                        if some_string != "":
+                            chinese_stuff += some_string + " "
                     else:
                         element = one.replace(".", "").replace(",", "").replace("?", "").strip()
                         if element != "":
                             new_list.append(element)
                 all_sub_string_list = new_list
 
+                all_sub_string_list += self.get_common_string_list_in_text(chinese_stuff, get_less=True)
+
                 all_sub_string_list = [one.strip() for one in all_sub_string_list]
                 all_sub_string_list = list(set(all_sub_string_list))
             else:
                 # accurate mode
-                all_sub_string_list = list(set(self.get_all_sub_string(current_text)))
+                all_sub_string_list = list(set(self.get_all_sub_string(current_text, get_less=True)))
 
             for sub_string in all_sub_string_list:
                 if sub_string in final_dict.keys():
@@ -317,7 +366,7 @@ class String:
                     final_dict.update({sub_string: {"counting": counting, "index_list": index_list}})
         return final_dict
 
-    def get_meaning_group_dict_in_text_list(self, text_list: list[str], get_less: bool = True, level: int = 2, cut_half: bool = False, accurate_frequency: bool = False, code_parse_mode: bool = False) -> dict[str, int]:
+    def get_meaning_group_dict_in_text_list(self, text_list: list[str], get_less: bool = True, level: int = 2, code_parse_mode: bool = False) -> dict[str, int]:
         """
         text_list = ["How are you A.", "How are you B."]
         It returns ["How are you"]
@@ -338,13 +387,9 @@ class String:
             return get_common_beginning(a_list)[::-1]
 
         if code_parse_mode == False:
-            from auto_everything.ml import ML
-            ml = ML()
-            preprocessor = ml.Yingshaoxo_Text_Preprocessor()
-
             new_text_list = []
             for one in text_list:
-                new_text_list += preprocessor.string_split_to_pure_sub_sentence_segment_list(one)
+                new_text_list += one.split("\n")
             text_list = new_text_list
 
         global_dict = {}
@@ -397,26 +442,144 @@ class String:
             text_list.sort()
 
         # recount frequency
-        if accurate_frequency == True:
-            all_text = "".join(text_list)
-            for key in global_dict.keys():
-                global_dict[key] = all_text.count(key)
+        all_text = "".join(text_list)
+        for key in global_dict.keys():
+            global_dict[key] = all_text.count(key)
 
-        # cut in half
-        if cut_half == True:
-            items = list(global_dict.items())
-            items.sort(key=lambda x: (x[1], len(x[0])), reverse=True)
-            items = items[:len(items)//2]
-            global_dict = dict(items)
+        if "" in global_dict.keys():
+            del global_dict[""]
 
         return global_dict
+
+    def compress_text_by_using_yingshaoxo_method(self, text, common_part_list=[]):
+        """
+        Input:
+            ("How are you? yingshaoxo.", common_part_list=["How are you", "yingshaoxo."])
+
+        Returns:
+            {"dict": {"1": "How are you", "-1": " ", "2": "yingshaoxo."}, "data_list": [1, -1, 2]}
+        """
+        """
+        The method is simple,
+            the first line contains a dict of {key, index}, for example, {ab:2, c:1}.
+            the second line is pure text of index sequence, seperated by '_', for example "2_1_2", the real information is "abcab"
+        The common string finding logic is: divide and conquer. We first split the big file into 7 parts. To see if it got two part equal, then we go on split smaller part into another 7 parts, to see if there has any common parts or not. If there has common part, we add it to index dict. We do this until cover all content, make it pure number index. Then we do a reverse sort, let small index represent big file part, big index represent small file part. the sort logic should be [length_bigger, frequency_more_appearence]
+
+        Another way to find common stuff is to use the sub_string and count, when you find a string that apears twice, you make a index. After the first loop, you get a pure index list. Then you do the process to the pure index again to further compress. you stop until you can't find duplicate text. The key for this method is to use a small text to do the compression first, for example, 1 to 3 character permutation in set(all_text), so you would get sub_string quicker.
+
+        Another way is to just use sub_string, but whenever you got a new substring, you replace it in old text to empty string. And you do this process to new index list until you find no repeat.
+        """
+        """
+        Or return dict{1: "how are you", 2: " "} list[1,2,[1,0,3],2,[1,8,3]] to represent "how are you how you"
+        The element format in list is [sub_sentence_id, start_index, length]
+        The dict could get loaded in real time, the whole output data could use be a list, it contains either string or index
+        """
+        """
+        Or you simply encode word or meaning group by split text using space
+        """
+        def get_common_keyword_dict(text):
+            all_substring = self.get_common_string_list_in_text(text, get_less=True, only_return_longest=True)
+            the_dict = {}
+            for one in all_substring:
+                one = one.strip()
+                if one not in the_dict.keys():
+                    the_dict[one] = text.count(one)
+            return the_dict
+
+        frequency_dict = {}
+        if common_part_list == None or common_part_list == []:
+            frequency_dict = get_common_keyword_dict(text)
+            for key, value in list(frequency_dict.items()):
+                if len(key)-11 < 0:# or value < 10: # if use index will increase the size, we do nothing
+                    del frequency_dict[key]
+            common_part_list = list(frequency_dict.keys())
+        else:
+            if type(common_part_list) == dict:
+                frequency_dict = common_part_list
+            else:
+                for one in common_part_list:
+                    frequency_dict[one] = text.count(one)
+
+        common_part_list = [one for one in common_part_list if one != ""]
+        common_part_list.sort(key=lambda item: (frequency_dict[item], len(item)), reverse=True) # string from longest to shortest
+        common_part_list_backup = common_part_list.copy()
+        common_dict = {value: index+1 for index, value in enumerate(common_part_list)}
+        result_list = []
+        index = 0
+        text_length = len(text)
+        temp_text = ""
+        while True:
+            matched = False
+            for part_index, part in enumerate(common_part_list.copy()):
+                part_length = len(part)
+                if text[index: index+part_length] == part:
+                    if temp_text != "":
+                        result_list.append(temp_text)
+                        temp_text = ""
+                    result_list.append(common_dict[part])
+                    #print(index, part, part_length)
+                    matched = True
+                    index += part_length-1
+
+                    # do deletion for those key that does not exists in following text any more
+                    frequency_dict[part] -= 1
+                    if frequency_dict[part] == 0:
+                        del frequency_dict[part]
+                        del common_part_list[part_index]
+
+                    break
+            if matched == False:
+                single_char = text[index]
+                temp_text += single_char
+                #raise Exception(f"single char '{single_char}' not found in common_dict, which should not happen.")
+                #result_list.append(single_char)
+            index += 1
+            if index >= text_length:
+                break
+        if temp_text != "":
+            result_list.append(temp_text)
+
+        special_char_1 = chr(1)
+        special_char_2 = chr(2)
+
+        new_dict_text = special_char_1.join([one.replace(special_char_1, "#") for one in common_part_list_backup])
+        new_data_list = []
+        for one in result_list:
+            if type(one) == str:
+                # pure text
+                new_data_list.append(special_char_2 + one.replace(special_char_1, "#"))
+            else:
+                # index
+                new_data_list.append(str(one))
+
+        return new_dict_text + "_____777_____yingshaoxo_____777_____" + special_char_1.join(new_data_list)
+
+    def uncompress_text_by_using_yingshaoxo_method(self, text):
+        """
+        Input:
+            {"dict": {"1": "How are you", "-1": " ", "2": "yingshaoxo."}, "data_list": [1, -1, 2]}
+
+        Returns:
+            "How are you? yingshaoxo."
+        """
+        special_char_1 = chr(1)
+        special_char_2 = chr(2)
+
+        dict_string, data_list_string = text.split("_____777_____yingshaoxo_____777_____")
+
+        dict_ = {str(index+1):one for index, one in enumerate(dict_string.split(special_char_1))}
+        data_list = data_list_string.split(special_char_1)
+
+        result = ""
+        for one in data_list:
+            if one.startswith(special_char_2):
+                result += one[1:]
+            else:
+                result += dict_[one]
+
+        return result
 
 
 if __name__ == "__main__":
     string_ = String()
-    #print(string_.get_fuzz_match_text_from_text_list("d", ["dd", "c", "ab", "k"], quick_mode=True))
-    #print(string_.search_text_in_text_list("d", ["dd", "c", "ab", "k"], block_keyword_list=["a"]))
-    print(string_.get_all_sub_string("""
-        fuck you, anny.
-        because you are so honny.
-    """, get_less=True))
+    print(string_.get_common_string_list_in_text("What the fuck? What the hell?", only_return_longest=True))

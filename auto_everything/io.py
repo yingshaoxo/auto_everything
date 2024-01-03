@@ -26,7 +26,7 @@ class IO():
             print("\n I only got my super power if you run me with sudo!")
             exit()
 
-    def read(self, file_path: str, auto_detect_encoding=False) -> str:
+    def read(self, file_path: str, auto_detect_encoding=False, encoding="utf-8") -> str:
         """
         read text from txt file
 
@@ -34,9 +34,9 @@ class IO():
         ----------
         file_path
             txt file path
+        encoding
+            utf-8 or ascii, ascii would be smaller for text storage
         """
-        encoding = 'utf-8'
-
         if (auto_detect_encoding == True):
             import chardet
             rawdata = open(file_path, "rb").read()
@@ -52,7 +52,7 @@ class IO():
             print(f"File '{file_path}' does not exists.")
             return ""
 
-    def write(self, file_path: str, content: str):
+    def write(self, file_path: str, content: str, encoding="utf-8"):
         """
         write text into txt file
 
@@ -62,8 +62,10 @@ class IO():
             target txt file path
         content
             text string
+        encoding
+            utf-8 or ascii, ascii would be smaller for text storage
         """
-        with open(file_path, 'w', encoding="utf-8", errors="ignore") as f:
+        with open(file_path, 'w', encoding=encoding, errors="ignore") as f:
             f.write(content)
 
     def append(self, file_path: str, content: str):

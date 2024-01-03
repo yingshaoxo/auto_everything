@@ -284,7 +284,8 @@ class Yingshaoxo_Text_Preprocessor():
                         new_list += list(segment["text"])
                     else:
                         new_list.append(segment["text"])
-        return new_list
+
+        return [one for one in new_list if one != ""]
 
     def is_english_string(self, text: str) -> bool:
         return text.isascii()

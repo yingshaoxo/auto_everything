@@ -82,8 +82,12 @@ class Image:
             the_image = _Image.fromarray(numpy.uint8(self.raw_data))
             the_image.save(file_path)
         else:
+            """
+            For image, maybe convert it to ascii is a good compression idea
+            """
+            raw_data = json.dumps(self.raw_data, ensure_ascii=False)
             with open(file_path, "w", encoding="utf-8") as f:
-                f.write(json.dumps(self.raw_data))
+                f.write(raw_data)
 
 
 class Animation:

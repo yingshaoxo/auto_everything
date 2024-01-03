@@ -1485,6 +1485,78 @@ class Disk:
                         new_file = file[:-len(end)] + end.lower()
                         disk.move_a_file(source_file_path=file, target_file_path=new_file)
 
+    def compress_bytes_by_using_yingshaoxo_method(self, bytes_data, window_length=1024) -> bytes:
+        text = self.bytes_to_base64(bytes_data)
+
+        text_length = len(text)
+
+        special_char_1 = chr(1)
+
+        index = 0
+        increasing_index = 0
+        sub_string_hash_dict = {}
+        data_list = []
+        while True:
+            sub_string = text[index: index+window_length]
+
+            if sub_string in sub_string_hash_dict:
+                data_list.append(sub_string_hash_dict[sub_string])
+            else:
+                sub_string_hash_dict[sub_string] = special_char_1 + str(increasing_index) + special_char_1
+                increasing_index += 1
+                data_list.append(sub_string)
+
+            index += window_length
+            if index >= text_length:
+                break
+
+        final_result = "".join(data_list)
+        return final_result.encode("ascii")
+
+    def uncompress_bytes_by_using_yingshaoxo_method(self, bytes_data, window_length=1024):
+        data_list_string = bytes_data.decode("ascii")
+
+        special_char_1 = chr(1)
+        data_text_length = len(data_list_string)
+
+        the_dict = {}
+        the_list = []
+        increasing_index = 0
+        index = 0
+        while True:
+            if index >= data_text_length:
+                break
+
+            if data_list_string[index] == special_char_1:
+                index_chars = ""
+                temp_index = index + 1
+                while True:
+                    char = data_list_string[temp_index]
+                    if char == special_char_1:
+                        index = temp_index + 1
+                        break
+                    else:
+                        index_chars += char
+                    temp_index += 1
+                the_list.append(int(index_chars))
+                continue
+            else:
+                the_dict[increasing_index] = data_list_string[index: index+window_length]
+                the_list.append(increasing_index)
+                increasing_index += 1
+
+            index += window_length
+            if index >= data_text_length:
+                break
+
+        result_text = ""
+        for one in the_list:
+            result_text += the_dict[one]
+
+        final_data = self.base64_to_bytes(result_text)
+        return final_data
+
+
 
 class Store:
     """
