@@ -14,7 +14,8 @@ class Image:
         self.raw_data = None
 
         if data == None:
-            self.raw_data = self.create_an_image(1, 1)
+            new_image = self.create_an_image(1, 1)
+            self.raw_data = new_image.raw_data
         else:
             self.raw_data = data
 
@@ -48,6 +49,112 @@ class Image:
         else:
             return [rows, len(self.raw_data[0])]
 
+    def copy(self):
+        data = []
+        for row in self.raw_data:
+            data.append(row.copy())
+        return Image(data)
+
+    def _resize_an_list(self, a_list, old_length, new_length):
+        # for downscale, you use "sub_window_length == int(old_size/new_size)", for each sub_window pixels, you only take the first pixel
+        # for upscale, you use "it == int(new_size/old_size)", for each old pixel, you times that pixel by it, if the final pixels data is not meet the required length, we add transparent black color at the bottom
+        new_list = []
+
+        if old_length == new_length:
+            return a_list
+        if old_length > new_length:
+            # downscale
+            sub_window_length = int(old_length/new_length)
+            index = 0
+            counting = 0
+            while True:
+                first_element = a_list[index]
+                new_list.append(first_element)
+                counting += 1
+                if counting >= new_length:
+                    break
+                index += sub_window_length
+                if index >= old_length:
+                    break
+        else:
+            # upscale
+            sub_window_length = int(new_length/old_length)
+            for one in a_list:
+                new_list += [one] * sub_window_length
+            new_list = new_list[:new_length]
+
+            # add missing pixels at the bottom
+            counting = sub_window_length * old_length
+            new_list += [[0,0,0,0]] * (new_length - counting)
+
+        return new_list
+
+    def resize(self, height, width):
+        if type(height) != int or type(width) != int:
+            raise Exception("The height and width should be integer.")
+
+        old_height, old_width = self.get_shape()
+        if old_height == height and old_width == width:
+            return
+
+        # handle width
+        data = []
+        for row in self.raw_data:
+            data.append(self._resize_an_list(row, old_width, width))
+
+        # handle height
+        data_2 = []
+        old_width = len(data[0])
+        initialized = False
+        for column_index in range(old_width):
+            temp_column_list = []
+            for row_index in range(old_height):
+                element = data[row_index][column_index]
+                temp_column_list.append(element)
+            column_list = self._resize_an_list(temp_column_list, old_height, height)
+            if initialized == False:
+                data_2 += [[one] for one in column_list]
+                initialized = True
+            else:
+                for index, one in enumerate(column_list):
+                    data_2[index].append(one)
+
+        self.raw_data = data_2
+
+    def paste_image_on_top_of_this_image(self, another_image, top, right, height, width):
+        """
+        paste another image to current image based on (top, right, height, width) position in current image
+        """
+        base_image_height, base_image_width = self.get_shape()
+        another_image_height, another_image_width = another_image.get_shape()
+        if another_image_height > base_image_height or another_image_width > base_image_width:
+            raise Exception("The another image height and width should smaller to base image.")
+
+        another_image = another_image.copy()
+        another_image.resize(height, width)
+
+        y_start = top
+        y_end = top + height
+        x_start = right
+        x_end = right + width
+        for y_index in range(y_start, y_end):
+            #row = self.raw_data[y_index]
+            #first_part = row[0:x_start]
+            #second_part = row[x_end:]
+            #new_row = first_part + another_image[y_index] + second_part
+            #self.raw_data[y_index] = new_row
+
+            #self.raw_data[y_index][x_start: x_end] = another_image[y_index-y_start]
+
+            old_data = self.raw_data[y_index][x_start: x_end]
+            new_data = []
+            for index, one in enumerate(another_image[y_index-y_start]):
+                if one[3] == 0:
+                    new_data.append(old_data[index])
+                else:
+                    new_data.append(one)
+            self.raw_data[y_index][x_start: x_end] = new_data
+
     def read_image_from_file(self, file_path):
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
             print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
@@ -76,7 +183,7 @@ class Image:
 
     def save_image_to_file_path(self, file_path):
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
-            print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
+            #print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
             from PIL import Image as _Image
             import numpy
             the_image = _Image.fromarray(numpy.uint8(self.raw_data))
@@ -95,6 +202,7 @@ class Animation:
     This class will play Image list as Video, or export them as video file.
     For example, play 20 images per second.
     """
+    pass
 
 
 class GUI:
@@ -177,8 +285,16 @@ if __name__ == "__main__":
     from auto_everything.disk import Disk
     disk = Disk()
     image = Image()
-    a_image = image.read_image_from_file(disk._expand_user("~/Downloads/cat.jpg"))
-    print(a_image.get_shape())
-    print(a_image[0][0])
-    print(a_image)
-    a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/ok111.png.json")
+
+    #a_image = image.read_image_from_file(disk._expand_user("~/Downloads/cat.jpg"))
+    #print(a_image.get_shape())
+    #print(a_image[0][0])
+    #print(a_image)
+    #a_image.resize(96, 128)
+    ##a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/cat2.png.json")
+    #a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/cat2.png")
+
+    a_image = image.read_image_from_file(disk._expand_user("~/Downloads/hero.png"))
+    a_image.resize(512, 512)
+    a_image.paste_image_on_top_of_this_image(a_image, 100, 27, 100, 100)
+    a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2.png")
