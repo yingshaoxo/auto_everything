@@ -209,6 +209,12 @@ class GUI:
     """
     This class will use Image class to represent graphic user interface, and also provide a top componet infomation list
     Which contains the touchable area for each component. For example, it has a function called "touch(y,x) -> image_id"
+
+    We have to render the graph whenever the widget/component tree get changed
+
+    The component tree is not a tree, it is a 2d array (matrix), it was combined with rows and columns. Normally row width got change according to parent window change, but height is fixed. It is similar to flutter or web broswer. Those elements inside those list is components. You can call self.render() to render that component matrix.
+
+    In here, for User Interface, the parent big window would always a rectangle, for example, 54*99 (1080*1980).
     """
     pass
 
