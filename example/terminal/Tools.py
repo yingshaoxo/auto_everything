@@ -183,15 +183,15 @@ git remote set-url --add --push origin {repo_url}
     def reset_storage_permission(self, path: str):
         if path != "/":
             t.run(f"""
-            sudo chown -R $(whoami):$(whoami) {path}
-            sudo chmod g+rw {path}
+            sudo -S chown -R $(whoami):$(whoami) {path}
+            sudo -S chmod g+rw {path}
             """)
 
     def check_port(self, port:str | None=None):
         if port == None:
-            t.run(f"sudo ss -antpl")
+            t.run(f"sudo -S ss -antpl")
         else:
-            t.run(f"sudo netstat -nlp | grep :{port}")
+            t.run(f"sudo -S netstat -nlp | grep :{port}")
 
     '''
     def image_compress(self, image=""):
@@ -203,8 +203,8 @@ git remote set-url --add --push origin {repo_url}
 
     def repair_disk(self, disk_name: str=""):
         if disk_name != "":
-            t.run(f"sudo umount {disk_name}")
-            t.run(f"sudo fsck -p {disk_name}")
+            t.run(f"sudo -S umount {disk_name}")
+            t.run(f"sudo -S fsck -p {disk_name}")
             print(f"\n\nsudo fsck {disk_name}")
         else:
             t.run(f"lsblk -p")
@@ -215,8 +215,8 @@ git remote set-url --add --push origin {repo_url}
 
     def find_port(self, port: str):
         t.run(f"""
-            sudo lsof -i:{port}
-            sudo ss -lptn 'sport = :{port}'
+            sudo -S lsof -i:{port}
+            sudo -S ss -lptn 'sport = :{port}'
         """)
 
     def find_a_file_by_name(self, regex_expression: str):
@@ -304,7 +304,7 @@ git remote set-url --add --push origin {repo_url}
 
     def start_vnc_service(self, password: str="aaaaaaAAAAAA123456!!!!!!"):
         t.run(f"""
-        sudo apt-get install x11vnc net-tools
+        sudo -S apt-get install x11vnc net-tools
         /usr/bin/x11vnc -passwd "{password}" -forever -rfbport 5900
         #sudo snap install novnc
         #novnc
@@ -312,9 +312,9 @@ git remote set-url --add --push origin {repo_url}
 
     def clean_docker_garbage(self):
         t.run(f"""
-        sudo docker container prune
-        sudo docker image prune
-        sudo docker system prune -a
+        sudo -S docker container prune
+        sudo -S docker image prune
+        sudo -S docker system prune -a
         """)
 
     def fake_storage_backup(self, backup_file_path: str | None=None):
@@ -392,6 +392,11 @@ git remote set-url --add --push origin {repo_url}
     def compress_audio(self, audio_path, target_path, kbps=128):
         t.run(f"""
             ffmpeg -i '{audio_path}' -b:a {kbps}k '{target_path}'
+        """)
+
+    def check_battery_power(self):
+        t.run(f"""
+        cat /sys/class/power_supply/BAT0/capacity
         """)
 
     def hi(self):
