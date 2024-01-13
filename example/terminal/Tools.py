@@ -1,6 +1,4 @@
-#!/usr/bin/env /usr/bin/python3
 #!/usr/bin/env /home/yingshaoxo/anaconda3/bin/python3
-
 # Run this to generate bash auto complete script: Tools -- --completion
 
 import os, re
@@ -23,10 +21,21 @@ def itIsWindows():
 
 class Tools():
     def push(self, comment: str):
+        urls = t.run_command("git remote -v")
+        if "git@gitlab.com:" not in urls:
+            print("You should also transfer your project to gitlab")
+            print("You can do it by using: ")
+            print("    git remote set-url --add --push origin {gitlab_repo_url}")
+            ok = input("\n\nIgnore and go on?(y/n)").strip()
+            if ok == 'y' or ok == None or ok == "":
+                pass
+            else:
+                exit()
+
         if "/Work/" in t.run_command("pwd"):
             t.run(f"""
             git config --global user.name "leo.wooyj"
-            git config --global user.email "leo.wooyj@finpoints.com" 
+            git config --global user.email "leo.wooyj@finpoints.com"
             #"yingjie.hu@fargowealth.com.hk"
 
             git add .
