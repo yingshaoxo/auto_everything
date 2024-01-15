@@ -182,6 +182,12 @@ class Image:
                 return Image(json.loads(f.read()))
 
     def save_image_to_file_path(self, file_path):
+        """
+        I have a new idea about image representation:
+            1. For lines, for example, circuits, you can only use stright line and two_point_with_radius_arc_line to define everything.
+            2. For other colorful image, you can only use rectangle to define everything. Square is a special rectangle, especially 1x1 square, which normally means a point.
+            3. For 3D world, is can also combined with basic shapes, for example, cube, cuboid, sphere.
+        """
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
             #print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
             from PIL import Image as _Image
