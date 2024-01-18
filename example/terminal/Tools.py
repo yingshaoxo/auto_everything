@@ -389,9 +389,9 @@ git remote set-url --add --push origin {repo_url}
 
     def compress_video(self, video_path, target_path, use_720p=None, use_1080p=None):
         resolution = "640:360"
-        if use_720p == True:
+        if use_720p == "True":
             resolution = "1280:720"
-        elif use_1080p == True:
+        elif use_1080p == "True":
             resolution = "1920:1080"
         t.run(f"""
             ffmpeg -i '{video_path}' -c:v libx264 -vf scale={resolution} -r 23.98 -b:v 498k -c:a copy '{target_path}'
