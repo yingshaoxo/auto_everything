@@ -4,11 +4,12 @@
 import os, re
 import random
 import json
+from time import sleep
+from pprint import pprint
+
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 from auto_everything.disk import Disk
-
-from pprint import pprint
 
 py = Python()
 t = Terminal(debug=True)
@@ -382,7 +383,6 @@ git remote set-url --add --push origin {repo_url}
                 print(e)
 
     def wake_up_the_light(self):
-        from time import sleep
         while True:
             t.run(f'vlc --vout none /home/yingshaoxo/Documents/WakeUp.mp3 vlc://quit')
             sleep(21)
@@ -409,6 +409,42 @@ git remote set-url --add --push origin {repo_url}
     def check_battery_power(self):
         t.run(f"""
         cat /sys/class/power_supply/BAT0/capacity
+        """)
+
+    def check_cpu_frequency(self):
+        t.run(f"""
+        watch -n.1 "grep \"^[c]pu MHz\" /proc/cpuinfo"
+        """)
+        #apt install tlp
+        #systemctl enable tlp
+
+    def change_brightness(self, value="400"):
+        t.run(f"""
+        echo {value} | tee /sys/class/backlight/intel_backlight/brightness
+        """)
+
+    def connect_wifi(self):
+        info = t.run_command("iwconfig")
+        print(info)
+        interface = "wlan0"
+        for one in [one.strip() for one in info.split("\n") if one.strip()!=""]:
+            if one.startswith("w"):
+                interface = one.split()[0]
+                break
+        print("\n\nDo the following yourself:\n\n")
+        sleep(3)
+        print(f"""
+sudo vi /etc/network/interfaces
+# add following code to the bottom
+
+    allow-hotplug {interface}
+    iface {interface} inet dhcp
+    wpa-ssid <wifi_name>
+    wpa-psk <password>
+
+
+# execute another command
+ifdown -v {interface}; ifup -v {interface}
         """)
 
     def hi(self):
