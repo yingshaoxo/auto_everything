@@ -413,7 +413,7 @@ git remote set-url --add --push origin {repo_url}
 
     def check_cpu_frequency(self):
         t.run(f"""
-        watch -n.1 "grep \"^[c]pu MHz\" /proc/cpuinfo"
+        watch -n.1 "grep 'MHz' /proc/cpuinfo"
         """)
         #apt install tlp
         #systemctl enable tlp
