@@ -30,12 +30,12 @@ class Image:
         text += str(self.raw_data[0][0])
         return text
 
-    def create_an_image(self, height, width):
+    def create_an_image(self, height, width, color=[255,255,255,255]):
         data = []
         for row_index in range(0, height):
             one_row = []
             for column_index in range(0, width):
-                one_row.append([255, 255, 255, 255])
+                one_row.append(color)
             data.append(one_row)
         return Image(data=data)
 
@@ -211,7 +211,191 @@ class Animation:
     pass
 
 
-class GUI:
+class Container:
+    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", parent_height=None, parent_width=None, on_click_function=None):
+        """
+        height: "8" means "8px", "0.5" means "50% of its parent container"
+        width: "20" means "20px", "0.2" means "20%"
+        children: [Container(), ]
+        rows: True
+        columns: False
+        color: [255,255,255,255]
+        image: Image()
+        """
+        if (type(height) != int and type(height) != float) or (type(width) != int and type(width) != float):
+            raise Exception("Height and width for root window must be integer. For example, '20' or '100'")
+
+        self.height = height
+        self.width = width
+        self.children = children
+        self.rows = rows
+        self.columns = columns
+        self.color = color
+        self.image = image
+        self.text = text
+        self.parent_height = parent_height
+        self.parent_width = parent_width
+
+        self.real_property_dict = {}
+        """
+        self.real_property_dict["left_top_y"] = 0
+        self.real_property_dict["left_top_x"] = 0
+        self.real_property_dict["right_bottom_y"] = height
+        self.real_property_dict["right_bottom_x"] = width
+        """
+
+        self.old_propertys = []
+        self.cache_image = None
+
+        if on_click_function != None:
+            self.on_click_function = on_click_function
+        else:
+            def on_click(*arg):
+                print("Default click hander:")
+                print(f"Click at {str(arg)}")
+                info = {"height": self.height, "width": self.width, "color": self.color}
+                print(json.dumps(info, indent=4))
+
+            self.on_click_function = on_click
+
+    def render(self):
+        """
+        returns a real container that uses fixed pixel values
+        """
+        new_propertys = [self.height, self.width, self.children, self.rows, self.columns, self.color, self.image, self.parent_height, self.parent_width]
+        if new_propertys != self.old_propertys:
+            self.old_propertys = new_propertys
+        else:
+            return self.cache_image
+
+        real_image = None
+
+        if self.image != None:
+            temp_image = image.copy()
+            real_image = temp_image.resize(self.height, self.width)
+        else:
+            if (type(self.height) != int and type(self.height) != float) or (type(self.width) != int and type(self.width) != float):
+                raise Exception("Height and width must be numbers. For example, 0.2 or 20. (0.2 means 20% of its parent)")
+
+            real_height = None
+            real_width = None
+
+            if type(self.height) == float:
+                if self.parent_height == None:
+                    raise Exception("parent_height shoudn't be None")
+                real_height = int(self.parent_height * self.height)
+            else:
+                real_height = self.height
+
+            if type(self.width) == float:
+                if self.parent_width == None:
+                    raise Exception("parent_width shoudn't be None")
+                real_width = int(self.parent_width * self.width)
+            else:
+                real_width = self.width
+
+            real_image = Image()
+            real_image = real_image.create_an_image(real_height, real_width, self.color)
+
+        real_height, real_width = real_image.get_shape()
+        self.real_property_dict["height"] = real_height
+        self.real_property_dict["width"] = real_width
+
+        if self.rows == None and self.columns == None:
+            self.rows = True
+        if self.rows != True and self.columns != True:
+            self.rows = True
+        if self.rows == self.columns:
+            raise Exception("You can either set rows to True or set columns to True, but not both.")
+
+        if self.rows == True:
+            top = 0
+            for one_row_container in self.children:
+                one_row_container.parent_height = self.real_property_dict["height"]
+                one_row_container.parent_width = self.real_property_dict["width"]
+                real_one_row_image = one_row_container.render()
+
+                one_row_height, one_row_width = real_one_row_image.get_shape()
+                real_image.paste_image_on_top_of_this_image(real_one_row_image, top=top, right=0, height=one_row_height, width=one_row_width)
+                one_row_container.real_property_dict["left_top_y"] = top
+                one_row_container.real_property_dict["left_top_x"] = 0
+                one_row_container.real_property_dict["right_bottom_y"] = top + one_row_height
+                one_row_container.real_property_dict["right_bottom_x"] = one_row_width
+
+                top += one_row_height
+        elif self.columns == True:
+            right = 0
+            for one_column_container in self.children:
+                one_column_container.parent_height = self.real_property_dict["height"]
+                one_column_container.parent_width = self.real_property_dict["width"]
+                real_one_column_image = one_column_container.render()
+
+                one_column_height, one_column_width = real_one_column_image.get_shape()
+                real_image.paste_image_on_top_of_this_image(real_one_column_image, top=0, right=right, height=one_column_height, width=one_column_width)
+                one_column_container.real_property_dict["left_top_y"] = 0
+                one_column_container.real_property_dict["left_top_x"] = right
+                one_column_container.real_property_dict["right_bottom_y"] = one_column_height
+                one_column_container.real_property_dict["right_bottom_x"] = right+one_column_width
+
+                right += one_column_width
+
+        self.cache_image = real_image
+        return real_image
+
+    def click(self, y, x):
+        """
+        When user click a point, we find the root container they click, then we loop that root container to find out which child container that user click...
+        """
+        if len(self.children) == 0:
+            self.on_click_function(y, x)
+            return True
+
+        clicked = False
+        if self.rows == True:
+            top = 0
+            for one_row_container in self.children:
+                real_one_row_image = one_row_container.render()
+                one_row_height, one_row_width = real_one_row_image.get_shape()
+
+                left_top_y = one_row_container.real_property_dict.get("left_top_y")
+                left_top_x = one_row_container.real_property_dict.get("left_top_x")
+                right_bottom_y = one_row_container.real_property_dict.get("right_bottom_y")
+                right_bottom_x = one_row_container.real_property_dict.get("right_bottom_x")
+
+                if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
+                    clicked = clicked or one_row_container.click(y-top, x)
+
+                top += one_row_height
+        elif self.columns == True:
+            right = 0
+            for one_column_container in self.children:
+                real_one_column_image = one_column_container.render()
+                one_column_height, one_column_width = real_one_column_image.get_shape()
+
+                left_top_y = one_column_container.real_property_dict.get("left_top_y")
+                left_top_x = one_column_container.real_property_dict.get("left_top_x")
+                right_bottom_y = one_column_container.real_property_dict.get("right_bottom_y")
+                right_bottom_x = one_column_container.real_property_dict.get("right_bottom_x")
+
+                if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
+                    clicked = clicked or one_column_container.click(y, x-right)
+
+                right += one_column_width
+
+        if clicked == False:
+            left_top_y = self.real_property_dict.get("left_top_y")
+            left_top_x = self.real_property_dict.get("left_top_x")
+            right_bottom_y = self.real_property_dict.get("right_bottom_y")
+            right_bottom_x = self.real_property_dict.get("right_bottom_x")
+            if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
+                # clicked at this container, but no children matchs, the point is at background
+                self.on_click_function(y, x)
+                return True
+
+        return clicked
+
+
+class GUI(Container):
     """
     This class will use Image class to represent graphic user interface, and also provide a top componet infomation list
     Which contains the touchable area for each component. For example, it has a function called "touch(y,x) -> image_id"
@@ -220,9 +404,15 @@ class GUI:
 
     The component tree is not a tree, it is a 2d array (matrix), it was combined with rows and columns. Normally row width got change according to parent window change, but height is fixed. It is similar to flutter or web broswer. Those elements inside those list is components. You can call self.render() to render that component matrix.
 
-    In here, for User Interface, the parent big window would always a rectangle, for example, 54*99 (1080*1980).
+    In here, for User Interface, the parent big window would always be a rectangle, for example, 54*99 (1080*1980).
+
+    The core feature should be:
+    1. when children height or width beyound parent container, use a scroll bar automatically in either y or x direction. (in css, it is overflow-y or overflow-x)
+    2. auto re-render a child container when one of global variable they use got changed. and for other container that did not change, we use cached image. someone call this feature "hot reload when variable got changed"
+    3. when user click a point, the GUI class should know which container the user clicked. so we can call on_click_function in that container.
     """
-    pass
+    def __init__(self, *arguments, **key_arguments):
+        super().__init__(*arguments, **key_arguments)
 
 
 class MyPillow():
