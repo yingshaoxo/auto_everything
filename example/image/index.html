@@ -44,6 +44,14 @@ function handle_mouse_click(event) {
     location.reload(); 
 }
 document.addEventListener("click", handle_mouse_click);
+
+function handle_touch(event) {
+    //console.log(event)
+}
+window.addEventListener("touchstart", handle_touch, false);
+window.addEventListener("touchmove", handle_touch, false);
+window.addEventListener("touchcancel", handle_touch, false);
+window.addEventListener("touchend", handle_touch, false);
 </script> 
 
 <style>

@@ -1,5 +1,6 @@
 from typing import Any
 import json
+from auto_everything.font_ import get_ascii_8_times_16_points_data
 
 
 class Image:
@@ -128,7 +129,9 @@ class Image:
         base_image_height, base_image_width = self.get_shape()
         another_image_height, another_image_width = another_image.get_shape()
         if another_image_height > base_image_height or another_image_width > base_image_width:
-            raise Exception("The another image height and width should smaller to base image.")
+            # overflow_situation: another image bigger than original image
+            #raise Exception("The another image height and width should smaller than base image.")
+            pass
 
         another_image = another_image.copy()
         another_image.resize(height, width)
@@ -137,6 +140,13 @@ class Image:
         y_end = top + height
         x_start = right
         x_end = right + width
+
+        # overflow_situation: another image smaller than original image, but paste to outside
+        if y_end > base_image_height:
+            y_end = base_image_height
+        if x_end > base_image_width:
+            x_end = base_image_width
+
         for y_index in range(y_start, y_end):
             #row = self.raw_data[y_index]
             #first_part = row[0:x_start]
@@ -149,10 +159,11 @@ class Image:
             old_data = self.raw_data[y_index][x_start: x_end]
             new_data = []
             for index, one in enumerate(another_image[y_index-y_start]):
-                if one[3] == 0:
-                    new_data.append(old_data[index])
-                else:
-                    new_data.append(one)
+                if index < len(old_data):
+                    if one[3] == 0:
+                        new_data.append(old_data[index])
+                    else:
+                        new_data.append(one)
             self.raw_data[y_index][x_start: x_end] = new_data
 
     def read_image_from_file(self, file_path):
@@ -212,7 +223,7 @@ class Animation:
 
 
 class Container:
-    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", parent_height=None, parent_width=None, on_click_function=None):
+    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, parent_height=None, parent_width=None, on_click_function=None):
         """
         height: "8" means "8px", "0.5" means "50% of its parent container"
         width: "20" means "20px", "0.2" means "20%"
@@ -221,6 +232,9 @@ class Container:
         columns: False
         color: [255,255,255,255]
         image: Image()
+        text: ""
+        text_color: [0,0,0,255]
+        text_size: 1
         """
         if (type(height) != int and type(height) != float) or (type(width) != int and type(width) != float):
             raise Exception("Height and width for root window must be integer. For example, '20' or '100'")
@@ -233,6 +247,8 @@ class Container:
         self.color = color
         self.image = image
         self.text = text
+        self.text_color = text_color
+        self.text_size = text_size
         self.parent_height = parent_height
         self.parent_width = parent_width
 
@@ -258,11 +274,56 @@ class Container:
 
             self.on_click_function = on_click
 
+    def _convert_text_to_container_list(self, text, parent_height, parent_width):
+        children = []
+
+        the_height = 16 * self.text_size
+        the_width = 8 * self.text_size
+        maximum_character_number_per_row = int(parent_width / the_width)
+
+        # let the text fill the parent_container
+        new_text = ""
+        for line in text.split("\n"):
+            while len(line) > maximum_character_number_per_row:
+                new_text += line[:maximum_character_number_per_row]
+                new_text += "\n"
+                line = line[maximum_character_number_per_row:]
+            if len(line) != "":
+                new_text += line
+                new_text += "\n"
+            new_text += "\n"
+        text = new_text
+
+        for line_index, line in enumerate(text.split("\n")):
+            if line_index != 0:
+                children.append(Container(height=8, width=1.0)) # line sperator
+
+            text_row_container = Container(height=the_height, width=1.0, children=[], columns=True)
+
+            for char in line:
+                if not char.isascii():
+                    char = " "
+                char_points_data = get_ascii_8_times_16_points_data(char)
+                for row_index, row in enumerate(char_points_data):
+                    for column_index, element in enumerate(row):
+                        if element == 1:
+                            char_points_data[row_index][column_index] = self.text_color
+                        else:
+                            char_points_data[row_index][column_index] = self.color
+                char_image = Image().create_an_image(height=16, width=8, color=self.color)
+                char_image.raw_data = char_points_data
+                char_image.resize(height=the_height, width=the_width)
+                text_row_container.children.append(Container(image=char_image, height=the_height, width=the_width, columns=True))
+
+            children.append(text_row_container)
+
+        return children
+
     def render(self):
         """
         returns a real container that uses fixed pixel values
         """
-        new_propertys = [self.height, self.width, self.children, self.rows, self.columns, self.color, self.image, self.parent_height, self.parent_width]
+        new_propertys = [self.height, self.width, self.children, self.rows, self.columns, self.color, self.image, self.text, self.parent_height, self.parent_width, self.real_property_dict]
         if new_propertys != self.old_propertys:
             self.old_propertys = new_propertys
         else:
@@ -270,39 +331,48 @@ class Container:
 
         real_image = None
 
-        if self.image != None:
-            temp_image = image.copy()
-            real_image = temp_image.resize(self.height, self.width)
+        if (type(self.height) != int and type(self.height) != float) or (type(self.width) != int and type(self.width) != float):
+            raise Exception("Height and width must be numbers. For example, 0.2 or 20. (0.2 means 20% of its parent)")
+
+        real_height = None
+        real_width = None
+
+        if type(self.height) == float:
+            if self.parent_height == None:
+                raise Exception("parent_height shoudn't be None")
+            real_height = int(self.parent_height * self.height)
         else:
-            if (type(self.height) != int and type(self.height) != float) or (type(self.width) != int and type(self.width) != float):
-                raise Exception("Height and width must be numbers. For example, 0.2 or 20. (0.2 means 20% of its parent)")
+            real_height = self.height
 
-            real_height = None
-            real_width = None
+        if type(self.width) == float:
+            if self.parent_width == None:
+                raise Exception("parent_width shoudn't be None")
+            real_width = int(self.parent_width * self.width)
+        else:
+            real_width = self.width
 
-            if type(self.height) == float:
-                if self.parent_height == None:
-                    raise Exception("parent_height shoudn't be None")
-                real_height = int(self.parent_height * self.height)
-            else:
-                real_height = self.height
-
-            if type(self.width) == float:
-                if self.parent_width == None:
-                    raise Exception("parent_width shoudn't be None")
-                real_width = int(self.parent_width * self.width)
-            else:
-                real_width = self.width
-
+        if self.image != None:
+            temp_image = self.image.copy()
+            temp_image.resize(real_height, real_width)
+            real_image = temp_image
+        else:
             real_image = Image()
             real_image = real_image.create_an_image(real_height, real_width, self.color)
+
+        if self.text != "":
+            self.children = self._convert_text_to_container_list(self.text, parent_height=real_height, parent_width=real_width)
+            self.rows = True
+            #self.render().save_image_to_file_path(f"/home/yingshaoxo/Downloads/1.png")
 
         real_height, real_width = real_image.get_shape()
         self.real_property_dict["height"] = real_height
         self.real_property_dict["width"] = real_width
 
         if self.rows == None and self.columns == None:
-            self.rows = True
+            if self.text != "":
+                self.columns = True
+            else:
+                self.rows = True
         if self.rows != True and self.columns != True:
             self.rows = True
         if self.rows == self.columns:
@@ -310,29 +380,35 @@ class Container:
 
         if self.rows == True:
             top = 0
+            right = 0
             for one_row_container in self.children:
                 one_row_container.parent_height = self.real_property_dict["height"]
                 one_row_container.parent_width = self.real_property_dict["width"]
                 real_one_row_image = one_row_container.render()
 
                 one_row_height, one_row_width = real_one_row_image.get_shape()
-                real_image.paste_image_on_top_of_this_image(real_one_row_image, top=top, right=0, height=one_row_height, width=one_row_width)
+                #if (top + one_row_height) > real_height or (right + one_row_width) > real_width:
+                    #break
+                real_image.paste_image_on_top_of_this_image(real_one_row_image, top=top, right=right, height=one_row_height, width=one_row_width)
                 one_row_container.real_property_dict["left_top_y"] = top
-                one_row_container.real_property_dict["left_top_x"] = 0
+                one_row_container.real_property_dict["left_top_x"] = right
                 one_row_container.real_property_dict["right_bottom_y"] = top + one_row_height
                 one_row_container.real_property_dict["right_bottom_x"] = one_row_width
 
                 top += one_row_height
         elif self.columns == True:
             right = 0
+            top = 0
             for one_column_container in self.children:
                 one_column_container.parent_height = self.real_property_dict["height"]
                 one_column_container.parent_width = self.real_property_dict["width"]
                 real_one_column_image = one_column_container.render()
 
                 one_column_height, one_column_width = real_one_column_image.get_shape()
-                real_image.paste_image_on_top_of_this_image(real_one_column_image, top=0, right=right, height=one_column_height, width=one_column_width)
-                one_column_container.real_property_dict["left_top_y"] = 0
+                #if (top + one_column_height) > real_height or (right + one_column_width) > real_width:
+                    #break
+                real_image.paste_image_on_top_of_this_image(real_one_column_image, top=top, right=right, height=one_column_height, width=one_column_width)
+                one_column_container.real_property_dict["left_top_y"] = top
                 one_column_container.real_property_dict["left_top_x"] = right
                 one_column_container.real_property_dict["right_bottom_y"] = one_column_height
                 one_column_container.real_property_dict["right_bottom_x"] = right+one_column_width

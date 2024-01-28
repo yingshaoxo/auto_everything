@@ -392,10 +392,10 @@ git remote set-url --add --push origin {repo_url}
         kb_limit = "498k"
         if use_720p == "True":
             resolution = "1280:720"
-            kb_limit = "777k"
+            kb_limit = "747k"
         elif use_1080p == "True":
             resolution = "1920:1080"
-            kb_limit = "1277k"
+            kb_limit = "1120k"
         t.run(f"""
             ffmpeg -i '{video_path}' -c:v libx264 -vf scale={resolution} -r 23.98 -b:v {kb_limit} -c:a copy '{target_path}'
         """)

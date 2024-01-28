@@ -18,6 +18,10 @@ root_container = Container(
                     height=1.0,
                     width=0.5,
                     color=[255,0,255,255],
+                    rows=True,
+                    children=[
+                        Container(text="fuck it\nyou got everything you need right now, you don't have to worry about anything.", text_size=3)
+                    ]
                 ),
                 Container(
                     height=1.0,
