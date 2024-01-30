@@ -3,8 +3,7 @@
 <body>
 
 <div class="the_image">
-    <!--img src="./gui.png" width="100%" height="100%"-->
-    <img src="./gui.png">
+    <img src="./gui.png" width="100%" height="100%">
 </div>
 
 <script>
@@ -29,11 +28,11 @@ function send_window_size() {
     console.log(height, width);
 
     send_get_request(host + "/" + "change_resolution?"+"height="+height+"&width="+width);
-
-    location.reload(); 
 }
 window.addEventListener('resize', function(event) {
     send_window_size();
+
+    location.reload(); 
 }, true);
 
 function handle_mouse_click(event) {
@@ -52,6 +51,8 @@ window.addEventListener("touchstart", handle_touch, false);
 window.addEventListener("touchmove", handle_touch, false);
 window.addEventListener("touchcancel", handle_touch, false);
 window.addEventListener("touchend", handle_touch, false);
+
+send_window_size();
 </script> 
 
 <style>

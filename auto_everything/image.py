@@ -274,7 +274,7 @@ class Container:
 
             self.on_click_function = on_click
 
-    def _convert_text_to_container_list(self, text, parent_height, parent_width):
+    def _convert_text_to_container_list(self, text, parent_height, parent_width, on_click_function):
         children = []
 
         the_height = 16 * self.text_size
@@ -313,21 +313,36 @@ class Container:
                 char_image = Image().create_an_image(height=16, width=8, color=self.color)
                 char_image.raw_data = char_points_data
                 char_image.resize(height=the_height, width=the_width)
-                text_row_container.children.append(Container(image=char_image, height=the_height, width=the_width, columns=True))
+                text_row_container.children.append(Container(image=char_image, height=the_height, width=the_width, columns=True, on_click_function=on_click_function))
 
             children.append(text_row_container)
 
         return children
 
+    def _get_propertys_of_a_container(self, one_container):
+        return json.dumps([one_container.height, one_container.width, one_container.rows, one_container.columns, one_container.color, id(one_container.image), one_container.text, one_container.parent_height, one_container.parent_width, one_container.real_property_dict])
+
+    def _loop_all_components_in_tree_to_see_if_its_child_got_changed(self, root_container):
+        queue = [root_container]
+        while len(queue) > 0:
+            one_container = queue[0]
+            queue = queue[1:]
+            queue += one_container.children
+
+            new_propertys = self._get_propertys_of_a_container(one_container)
+            if new_propertys != one_container.old_propertys:
+                #one_container.old_propertys = new_propertys
+                return True
+        return False
+
     def render(self):
         """
         returns a real container that uses fixed pixel values
         """
-        new_propertys = [self.height, self.width, self.children, self.rows, self.columns, self.color, self.image, self.text, self.parent_height, self.parent_width, self.real_property_dict]
-        if new_propertys != self.old_propertys:
-            self.old_propertys = new_propertys
-        else:
+        if self._loop_all_components_in_tree_to_see_if_its_child_got_changed(self) == False:
             return self.cache_image
+        else:
+            self.old_propertys = self._get_propertys_of_a_container(self)
 
         real_image = None
 
@@ -360,9 +375,8 @@ class Container:
             real_image = real_image.create_an_image(real_height, real_width, self.color)
 
         if self.text != "":
-            self.children = self._convert_text_to_container_list(self.text, parent_height=real_height, parent_width=real_width)
+            self.children = self._convert_text_to_container_list(self.text, parent_height=real_height, parent_width=real_width, on_click_function=self.on_click_function)
             self.rows = True
-            #self.render().save_image_to_file_path(f"/home/yingshaoxo/Downloads/1.png")
 
         real_height, real_width = real_image.get_shape()
         self.real_property_dict["height"] = real_height
@@ -440,6 +454,7 @@ class Container:
 
                 if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
                     clicked = clicked or one_row_container.click(y-top, x)
+                    break
 
                 top += one_row_height
         elif self.columns == True:
@@ -455,6 +470,7 @@ class Container:
 
                 if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
                     clicked = clicked or one_column_container.click(y, x-right)
+                    break
 
                 right += one_column_width
 
@@ -484,7 +500,7 @@ class GUI(Container):
 
     The core feature should be:
     1. when children height or width beyound parent container, use a scroll bar automatically in either y or x direction. (in css, it is overflow-y or overflow-x)
-    2. auto re-render a child container when one of global variable they use got changed. and for other container that did not change, we use cached image. someone call this feature "hot reload when variable got changed"
+    2. auto re-render a child container when one of global variable they use got changed. and for other container that did not change, we use cached image. someone call this feature "hot reload when variable got changed" (Or when user make change on some variable, or if the user call render function, we loop the container tree, see which container's property got changed, if so, we do a re_render. starts from top containers, level down, if re_rendered, only render its children for once) (Or you could use __setattr__(self, name, value) hook in python class, when a property got changed, you call render. def __setattr__(self, name, value): self.__dict__[name] = value)
     3. when user click a point, the GUI class should know which container the user clicked. so we can call on_click_function in that container.
     """
     def __init__(self, *arguments, **key_arguments):

@@ -3,6 +3,16 @@ from auto_everything.image import GUI, Container
 
 disk = Disk()
 
+def change_it_back(*args):
+    the_text.text="never give up"
+    print("fuck2")
+
+the_text = Container(text="fuck it\nyou got everything you need right now, you don't have to worry about anything.", text_size=3, on_click_function=change_it_back)
+
+def change_it(*args):
+    the_text.text="yingshaoxo"
+    print("fuck")
+
 root_container = Container(
     height=1.0,
     width=1.0,
@@ -20,14 +30,20 @@ root_container = Container(
                     color=[255,0,255,255],
                     rows=True,
                     children=[
-                        Container(text="fuck it\nyou got everything you need right now, you don't have to worry about anything.", text_size=3)
-                    ]
+                        the_text
+                    ],
                 ),
                 Container(
                     height=1.0,
                     width=0.25,
                     color=[255,255,0,255],
                     on_click_function=lambda *x: print("hi you")
+                ),
+                Container(
+                    height=1.0,
+                    width=0.25,
+                    color=[0,255,255,255],
+                    on_click_function=change_it
                 )
             ]
         ),
@@ -35,8 +51,11 @@ root_container = Container(
 )
 
 def change_resolution(window_height=480, window_width=270):
+    if root_container.parent_height == window_height and root_container.parent_width == window_width:
+        return False
     root_container.parent_height=window_height
     root_container.parent_width=window_width
+    return True
 
 def click_it(y,x):
     root_container.click(y,x)
@@ -74,8 +93,8 @@ def change_resolution_handler(request: Yingshaoxo_Http_Request) -> str:
     height = int(height)
     width = int(width)
     # change the resolution
-    change_resolution(height, width)
-    refresh()
+    if change_resolution(height, width):
+        refresh()
 
 def click_handler(request: Yingshaoxo_Http_Request) -> str:
     if request.method != "GET":
