@@ -393,6 +393,7 @@ In GPU based machine learning algorithm, you will often do things with [23, 32, 
 But now, it becomes ['a', 'b', 'c', 'd']
 
 
+<!--
 ### For text summary
 For the self attention mechanism, it is using word apperance counting dict. You could think it as a dict, multiple key link to one same value, for all those multiple key string, if a word show up a lot of time, it is likely a important word.
 (You can think this as a TV show, for the same envirnoment, if a person only show once, it is not the main character, it is not important. But if a character show a lot times, you can almost see it at any eposide, then it is a important character)
@@ -400,6 +401,7 @@ For the self attention mechanism, it is using word apperance counting dict. You 
 For one sequence or list, If its importance number less than average(half of 'its sequence importance sum'), you remove it
 
 Or you could do this: if that word does not appear again in the following sentences of the input_text in your database, you treat it as not important text.
+-->
 
 
 ### For translation
@@ -444,7 +446,7 @@ when you use it, use it from bottom to top, use longest sequence to predict the 
 ```
 General AI algorithm:
 
-Natural language -> Python programming language -> Go through CPU -> If it is working, add that sentence to database to add weights to that sentence, if it is not working, minus weights for that sentence -> use words or long sub_string weights to generate more following natural language sentences -> it is a never end loop, but if the storage is about to blow, we need to find a way to do compression and find more way to store data.
+Natural language -> Python programming language -> Go through CPU -> If it is working, add weights to that sentence, if it is not working, minus weights for that sentence -> use long sub_string weights to generate more following natural language sentences -> execute more programming language that was translated from natural language -> it is a never end loop, but if the storage is about to blow, we need to find a way to do compression and find more way to store data.
 
 Those code are generated in real time. For each response, it generate different algorithm or code. It adopts to any situation.
 
@@ -474,6 +476,7 @@ import json
 global_dict = json.loads('{raw_data}')\n
 '''
     code = previous_code + f"print('{input_text}')"
+    # You have to let the machine generate different code or algorithm for different input_text, so that each time the reply is different.
     return code
 
 def execute_code(code):
