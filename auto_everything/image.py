@@ -1,6 +1,8 @@
-from typing import Any
 import json
-from auto_everything.font_ import get_ascii_8_times_16_points_data
+try:
+    from auto_everything.font_ import get_ascii_8_times_16_points_data
+except Exception as e:
+    from font_ import get_ascii_8_times_16_points_data
 
 
 class Image:
@@ -274,6 +276,10 @@ class Container:
 
             self.on_click_function = on_click
 
+    def _is_ascii(self, char):
+        #return all(ord(c) < 128 for c in s)
+        return ord(char) < 128
+
     def _convert_text_to_container_list(self, text, parent_height, parent_width, on_click_function):
         children = []
 
@@ -301,7 +307,7 @@ class Container:
             text_row_container = Container(height=the_height, width=1.0, children=[], columns=True)
 
             for char in line:
-                if not char.isascii():
+                if not self._is_ascii(char):
                     char = " "
                 char_points_data = get_ascii_8_times_16_points_data(char)
                 for row_index, row in enumerate(char_points_data):
@@ -507,72 +513,77 @@ class GUI(Container):
         super().__init__(*arguments, **key_arguments)
 
 
-class MyPillow():
-    """
-    python3 -m pip install --upgrade Pillow
-    """
-    def __init__(self):
-        from io import BytesIO
-        from PIL import Image
-        self._Image = Image
-        self._BytesIO = BytesIO
+try:
+    from typing import Any
 
-        from auto_everything.disk import Disk
-        self._disk = Disk()
-
-    def read_image_from_file(self, file_path: str):
-        return self._Image.open(file_path)
-
-    def read_image_from_bytes_io(self, bytes_io: Any):
-        return self._Image.open(bytes_io)
-
-    def read_image_from_base64_string(self, base64_string: str):
-        return self.read_image_from_bytes_io(self._disk.base64_to_bytesio(base64_string=base64_string))
-
-    def save_image_to_file_path(self, image: Any, file_path: str):
-        image.save(file_path)
-
-    def save_bytes_io_image_to_file_path(self, bytes_io_image: Any, file_path: str):
-        with open(file_path, "wb") as f:
-            f.write(bytes_io_image.getbuffer())
-
-    def get_image_bytes_size(self, image):
-        image = image.convert('RGB')
-        out = self._BytesIO()
-        image.save(out, format="jpeg")
-        return out.tell()
-
-    def decrease_the_size_of_an_image(self, image: Any, quality=None) -> Any:
-        image = image.convert('RGB')
-        out = self._BytesIO()
-        if quality is None:
-            image.save(out, format="jpeg")
-        else:
-            image.save(out, format="jpeg", optimize=True, quality=quality)
-        out.seek(0)
-        return out
-
-    def force_decrease_image_file_size(self, image: Any, limit_in_kb: int=1024) -> Any:
+    class MyPillow():
         """
-        :param image: PIL image
-        :param limit: kb
-        :return: bytes_io
+        python3 -m pip install --upgrade Pillow
         """
-        image = image.convert('RGB')
-        OK = False
-        quality = 100
-        out = self._BytesIO()
-        while (OK is False):
+        def __init__(self):
+            from io import BytesIO
+            from PIL import Image
+            self._Image = Image
+            self._BytesIO = BytesIO
+
+            from auto_everything.disk import Disk
+            self._disk = Disk()
+
+        def read_image_from_file(self, file_path: str):
+            return self._Image.open(file_path)
+
+        def read_image_from_bytes_io(self, bytes_io: Any):
+            return self._Image.open(bytes_io)
+
+        def read_image_from_base64_string(self, base64_string: str):
+            return self.read_image_from_bytes_io(self._disk.base64_to_bytesio(base64_string=base64_string))
+
+        def save_image_to_file_path(self, image: Any, file_path: str):
+            image.save(file_path)
+
+        def save_bytes_io_image_to_file_path(self, bytes_io_image: Any, file_path: str):
+            with open(file_path, "wb") as f:
+                f.write(bytes_io_image.getbuffer())
+
+        def get_image_bytes_size(self, image):
+            image = image.convert('RGB')
             out = self._BytesIO()
-            image.save(out, format="jpeg", optimize=True, quality=quality)
-            size = self._disk.get_file_size(path=None, bytes_size=out.tell(), level="KB")
-            if size is None:
-                break
-            quality -= 3
-            if size <= limit_in_kb or quality <= 3:
-                OK = True
-        out.seek(0)
-        return out
+            image.save(out, format="jpeg")
+            return out.tell()
+
+        def decrease_the_size_of_an_image(self, image: Any, quality=None) -> Any:
+            image = image.convert('RGB')
+            out = self._BytesIO()
+            if quality is None:
+                image.save(out, format="jpeg")
+            else:
+                image.save(out, format="jpeg", optimize=True, quality=quality)
+            out.seek(0)
+            return out
+
+        def force_decrease_image_file_size(self, image: Any, limit_in_kb: int=1024) -> Any:
+            """
+            :param image: PIL image
+            :param limit: kb
+            :return: bytes_io
+            """
+            image = image.convert('RGB')
+            OK = False
+            quality = 100
+            out = self._BytesIO()
+            while (OK is False):
+                out = self._BytesIO()
+                image.save(out, format="jpeg", optimize=True, quality=quality)
+                size = self._disk.get_file_size(path=None, bytes_size=out.tell(), level="KB")
+                if size is None:
+                    break
+                quality -= 3
+                if size <= limit_in_kb or quality <= 3:
+                    OK = True
+            out.seek(0)
+            return out
+except Exception as e:
+    pass
 
 
 if __name__ == "__main__":
