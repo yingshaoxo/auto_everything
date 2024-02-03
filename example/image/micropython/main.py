@@ -12,14 +12,43 @@ TFT_RST_PIN = const(25)
 TFT_DC_PIN = const(26)
 
 def create_display():
-    #spiTFT = SPI(2, baudrate=40000000, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN))
+    #spiTFT = SPI(1, baudrate=40000000, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN))
     spiTFT = SPI(2, baudrate=51200000, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN))
     display = Display(spiTFT, dc=Pin(TFT_DC_PIN), cs=Pin(TFT_CS_PIN), rst=Pin(TFT_RST_PIN))
     return display
-        
+
 display = create_display()
 #display.fill_hrect(0, 0, 50, 50, color565(255, 0, 0))
 print("Display ready.")
+
+
+"""
+from time import sleep
+while True:
+    sleep(3)
+"""
+
+from time import sleep
+from xpt2046 import Touch
+
+def handle_touchscreen_press(x, y):
+    """Process touchscreen press events."""
+    #y = (display.height - 1) - y
+    x = (display.width - 1) - x
+    # Display coordinates
+    print(y, x)
+    # Draw dot
+    display.draw_pixel(x, y, color565(255,0,255))
+
+spi2 = SPI(1, baudrate=1000000, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
+touch = Touch(spi2, cs=Pin(15), int_pin=Pin(33), int_handler=handle_touchscreen_press)
+
+while True:
+    result = touch.raw_touch()
+    if result != None:
+        x, y = touch.normalize(*result)
+        handle_touchscreen_press(x, y)
+    sleep(0.025)
 
 
 from image import GUI, Container
@@ -114,8 +143,8 @@ root_container = Container(
 #"""
 
 print("start rendering...")
-height = 128
-width = 96
+height = 128 #256
+width = 96 #192
 root_container.parent_height=height
 root_container.parent_width=width
 image = root_container.render()
@@ -124,10 +153,10 @@ print(image.get_shape())
 
 print("start_drawing...")
 #display.draw_image(image, height=height, width=width)
-display.draw_image_quick(image, height=height, width=width, step=50)
+display.draw_image_quick(image, height=height, width=width, step=height//5)
 print("drawing_done.")
 
-    
+
 '''
 # sd test, failed
 import machine
