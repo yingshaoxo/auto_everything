@@ -268,11 +268,8 @@ class Container:
         if on_click_function != None:
             self.on_click_function = on_click_function
         else:
-            def on_click(*arg):
-                print("Default click hander:")
-                print(f"Click at {str(arg)}")
-                info = {"height": self.height, "width": self.width, "color": self.color}
-                print(json.dumps(info, indent=4))
+            def on_click():
+                return
 
             self.on_click_function = on_click
 
@@ -443,7 +440,7 @@ class Container:
         When user click a point, we find the root container they click, then we loop that root container to find out which child container that user click...
         """
         if len(self.children) == 0:
-            self.on_click_function(y, x)
+            self.on_click_function()
             return True
 
         clicked = False
@@ -458,9 +455,10 @@ class Container:
                 right_bottom_y = one_row_container.real_property_dict.get("right_bottom_y")
                 right_bottom_x = one_row_container.real_property_dict.get("right_bottom_x")
 
-                if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
-                    clicked = clicked or one_row_container.click(y-top, x)
-                    break
+                if left_top_y != None and left_top_x != None and right_bottom_y != None and right_bottom_x != None:
+                    if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
+                        clicked = clicked or one_row_container.click(y-top, x)
+                        break
 
                 top += one_row_height
         elif self.columns == True:
@@ -474,9 +472,10 @@ class Container:
                 right_bottom_y = one_column_container.real_property_dict.get("right_bottom_y")
                 right_bottom_x = one_column_container.real_property_dict.get("right_bottom_x")
 
-                if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
-                    clicked = clicked or one_column_container.click(y, x-right)
-                    break
+                if left_top_y != None and left_top_x != None and right_bottom_y != None and right_bottom_x != None:
+                    if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
+                        clicked = clicked or one_column_container.click(y, x-right)
+                        break
 
                 right += one_column_width
 
@@ -485,12 +484,16 @@ class Container:
             left_top_x = self.real_property_dict.get("left_top_x")
             right_bottom_y = self.real_property_dict.get("right_bottom_y")
             right_bottom_x = self.real_property_dict.get("right_bottom_x")
-            if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
-                # clicked at this container, but no children matchs, the point is at background
-                self.on_click_function(y, x)
-                return True
+            if left_top_y != None and left_top_x != None and right_bottom_y != None and right_bottom_x != None:
+                if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
+                    # clicked at this container, but no children matchs, the point is at background
+                    self.on_click_function()
+                    return True
 
         return clicked
+
+    def advance_click(self, touch_start, touch_move, touch_end, y, x):
+        pass
 
 
 class GUI(Container):
