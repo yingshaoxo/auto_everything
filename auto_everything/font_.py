@@ -4629,4 +4629,5 @@ def get_ascii_8_times_16_points_data(char):
     target_char = " "
     if char in font_data_8x16_dict:
         target_char = char
-    return json.loads(json.dumps(font_data_8x16_dict[target_char]))
+    #return json.loads(json.dumps(font_data_8x16_dict[target_char]))
+    return list([list(one) for one in font_data_8x16_dict[target_char]])

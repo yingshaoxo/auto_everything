@@ -36,10 +36,10 @@ class Image:
     def create_an_image(self, height, width, color=[255,255,255,255]):
         data = []
         for row_index in range(0, height):
-            one_row = []
+            row = [None] * width
             for column_index in range(0, width):
-                one_row.append(color)
-            data.append(one_row)
+                row[column_index] = color
+            data.append(row)
         return Image(data=data)
 
     def get_shape(self):
@@ -55,7 +55,7 @@ class Image:
     def copy(self):
         data = []
         for row in self.raw_data:
-            data.append(row.copy())
+            data.append(list(row))
         return Image(data)
 
     def _resize_an_list(self, a_list, old_length, new_length):
@@ -67,12 +67,13 @@ class Image:
             return a_list
         if old_length > new_length:
             # downscale
+            new_list = [None] * new_length
             sub_window_length = int(old_length/new_length)
             index = 0
             counting = 0
             while True:
                 first_element = a_list[index]
-                new_list.append(first_element)
+                new_list[counting] = first_element
                 counting += 1
                 if counting >= new_length:
                     break
@@ -81,6 +82,7 @@ class Image:
                     break
         else:
             # upscale
+            new_list = []
             sub_window_length = int(new_length/old_length)
             for one in a_list:
                 new_list += [one] * sub_window_length
@@ -106,14 +108,20 @@ class Image:
             data.append(self._resize_an_list(row, old_width, width))
 
         # handle height
+        """
+        data_2 = []
+        for column in list(zip(*data)):
+            data_2.append(self._resize_an_list(column, old_height, height))
+        self.raw_data = list(zip(*data_2))
+        """
         data_2 = []
         old_width = len(data[0])
         initialized = False
         for column_index in range(old_width):
-            temp_column_list = []
+            temp_column_list = [None] * old_height
             for row_index in range(old_height):
                 element = data[row_index][column_index]
-                temp_column_list.append(element)
+                temp_column_list[row_index] = element
             column_list = self._resize_an_list(temp_column_list, old_height, height)
             if initialized == False:
                 data_2 += [[one] for one in column_list]
@@ -135,8 +143,9 @@ class Image:
             #raise Exception("The another image height and width should smaller than base image.")
             pass
 
-        another_image = another_image.copy()
-        another_image.resize(height, width)
+        if another_image_height != height or another_image_width != width:
+            another_image = another_image.copy()
+            another_image.resize(height, width)
 
         y_start = top
         y_end = top + height
@@ -159,13 +168,13 @@ class Image:
             #self.raw_data[y_index][x_start: x_end] = another_image[y_index-y_start]
 
             old_data = self.raw_data[y_index][x_start: x_end]
-            new_data = []
-            for index, one in enumerate(another_image[y_index-y_start]):
-                if index < len(old_data):
-                    if one[3] == 0:
-                        new_data.append(old_data[index])
-                    else:
-                        new_data.append(one)
+            old_data_length = len(old_data)
+            new_data = [None] * old_data_length
+            for index, one in enumerate(another_image[y_index-y_start][:old_data_length]):
+                if one[3] == 0:
+                    new_data[index] = old_data[index]
+                else:
+                    new_data[index] = one
             self.raw_data[y_index][x_start: x_end] = new_data
 
     def read_image_from_file(self, file_path):
@@ -224,6 +233,9 @@ class Animation:
     pass
 
 
+char_image_container_cache = {} # 'size+char' as key, image_container as value
+
+
 class Container:
     def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, parent_height=None, parent_width=None, on_click_function=None):
         """
@@ -260,6 +272,9 @@ class Container:
         self.real_property_dict["left_top_x"] = 0
         self.real_property_dict["right_bottom_y"] = height
         self.real_property_dict["right_bottom_x"] = width
+
+        self.real_property_dict["one_row_height"] = 0
+        self.real_property_dict["one_column_width"] = 0
         """
 
         self.old_propertys = []
@@ -299,9 +314,9 @@ class Container:
 
         for line_index, line in enumerate(text.split("\n")):
             if line_index != 0:
-                children.append(Container(height=8, width=1.0)) # line sperator
+                children.append(Container(height=8, width=parent_width)) # line sperator
 
-            text_row_container = Container(height=the_height, width=1.0, children=[], columns=True)
+            text_row_container = Container(height=the_height, width=parent_width, children=[], columns=True)
 
             for char in line:
                 if not self._is_ascii(char):
@@ -313,10 +328,19 @@ class Container:
                             char_points_data[row_index][column_index] = self.text_color
                         else:
                             char_points_data[row_index][column_index] = self.color
-                char_image = Image().create_an_image(height=16, width=8, color=self.color)
-                char_image.raw_data = char_points_data
-                char_image.resize(height=the_height, width=the_width)
-                text_row_container.children.append(Container(image=char_image, height=the_height, width=the_width, columns=True, on_click_function=on_click_function))
+
+                char_id = f"{self.text_size}+{char}"
+                if char_id not in char_image_container_cache:
+                    char_image = Image().create_an_image(height=16, width=8, color=self.color)
+                    char_image.raw_data = char_points_data
+                    char_image.resize(height=the_height, width=the_width)
+                    char_image_container = Container(image=char_image, height=the_height, width=the_width, columns=True)
+                    char_image_container_cache[char_id] = char_image_container
+                else:
+                    char_image_container = char_image_container_cache[char_id]
+
+                char_image_container.on_click_function = on_click_function
+                text_row_container.children.append(char_image_container)
 
             children.append(text_row_container)
 
@@ -371,7 +395,9 @@ class Container:
 
         if self.image != None:
             temp_image = self.image.copy()
-            temp_image.resize(real_height, real_width)
+            image_height, image_width = temp_image.get_shape()
+            if image_height != real_height or image_width != real_width:
+                temp_image.resize(real_height, real_width)
             real_image = temp_image
         else:
             real_image = Image()
@@ -404,13 +430,14 @@ class Container:
                 real_one_row_image = one_row_container.render()
 
                 one_row_height, one_row_width = real_one_row_image.get_shape()
-                #if (top + one_row_height) > real_height or (right + one_row_width) > real_width:
-                    #break
                 real_image.paste_image_on_top_of_this_image(real_one_row_image, top=top, right=right, height=one_row_height, width=one_row_width)
                 one_row_container.real_property_dict["left_top_y"] = top
                 one_row_container.real_property_dict["left_top_x"] = right
                 one_row_container.real_property_dict["right_bottom_y"] = top + one_row_height
                 one_row_container.real_property_dict["right_bottom_x"] = one_row_width
+
+                self.real_property_dict["one_row_height"] = one_row_height
+                self.real_property_dict["one_column_width"] = 0
 
                 top += one_row_height
         elif self.columns == True:
@@ -422,13 +449,14 @@ class Container:
                 real_one_column_image = one_column_container.render()
 
                 one_column_height, one_column_width = real_one_column_image.get_shape()
-                #if (top + one_column_height) > real_height or (right + one_column_width) > real_width:
-                    #break
                 real_image.paste_image_on_top_of_this_image(real_one_column_image, top=top, right=right, height=one_column_height, width=one_column_width)
                 one_column_container.real_property_dict["left_top_y"] = top
                 one_column_container.real_property_dict["left_top_x"] = right
                 one_column_container.real_property_dict["right_bottom_y"] = one_column_height
                 one_column_container.real_property_dict["right_bottom_x"] = right+one_column_width
+
+                self.real_property_dict["one_row_height"] = 0
+                self.real_property_dict["one_column_width"] = one_column_width
 
                 right += one_column_width
 
@@ -447,9 +475,6 @@ class Container:
         if self.rows == True:
             top = 0
             for one_row_container in self.children:
-                real_one_row_image = one_row_container.render()
-                one_row_height, one_row_width = real_one_row_image.get_shape()
-
                 left_top_y = one_row_container.real_property_dict.get("left_top_y")
                 left_top_x = one_row_container.real_property_dict.get("left_top_x")
                 right_bottom_y = one_row_container.real_property_dict.get("right_bottom_y")
@@ -460,13 +485,10 @@ class Container:
                         clicked = clicked or one_row_container.click(y-top, x)
                         break
 
-                top += one_row_height
+                top += self.real_property_dict["one_row_height"]
         elif self.columns == True:
             right = 0
             for one_column_container in self.children:
-                real_one_column_image = one_column_container.render()
-                one_column_height, one_column_width = real_one_column_image.get_shape()
-
                 left_top_y = one_column_container.real_property_dict.get("left_top_y")
                 left_top_x = one_column_container.real_property_dict.get("left_top_x")
                 right_bottom_y = one_column_container.real_property_dict.get("right_bottom_y")
@@ -477,7 +499,7 @@ class Container:
                         clicked = clicked or one_column_container.click(y, x-right)
                         break
 
-                right += one_column_width
+                right += self.real_property_dict["one_column_width"]
 
         if clicked == False:
             left_top_y = self.real_property_dict.get("left_top_y")
