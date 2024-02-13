@@ -313,8 +313,8 @@ class Container:
         text = new_text
 
         for line_index, line in enumerate(text.split("\n")):
-            if line_index != 0:
-                children.append(Container(height=8, width=parent_width)) # line sperator
+            #if line_index != 0:
+            #    children.append(Container(height=8, width=parent_width)) # line sperator
 
             text_row_container = Container(height=the_height, width=parent_width, children=[], columns=True)
 
@@ -421,6 +421,7 @@ class Container:
         if self.rows == self.columns:
             raise Exception("You can either set rows to True or set columns to True, but not both.")
 
+        # try to get global absolute position of those components, so that we could simply return those components as a list, let the lcd render those things directly will speed up the process. use 'paste_image_on_top_of_this_image' is kind of slow
         if self.rows == True:
             top = 0
             right = 0
