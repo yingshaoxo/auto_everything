@@ -179,18 +179,17 @@ class Image:
 
     def read_image_from_file(self, file_path):
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
-            print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
-            from PIL import Image as _Image
+            try:
+                from PIL import Image as _Image
+            except Exception as e:
+                print(e)
+                print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
+
             the_image = _Image.open(file_path)
             height, width = the_image.size[1], the_image.size[0]
 
             new_image = self.create_an_image(height=height, width=width)
 
-            """
-            data = []
-            for pixel in the_image.convert('RGBA').getdata():
-                data.append(list(pixel))
-            """
             data = the_image.convert('RGBA').getdata()
 
             for row_index in range(0, height):
@@ -211,11 +210,14 @@ class Image:
             3. For 3D world, is can also combined with basic shapes, for example, cube, cuboid, sphere.
         """
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
-            #print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
-            from PIL import Image as _Image
-            import numpy
-            the_image = _Image.fromarray(numpy.uint8(self.raw_data))
-            the_image.save(file_path)
+            try:
+                from PIL import Image as _Image
+                import numpy
+                the_image = _Image.fromarray(numpy.uint8(self.raw_data))
+                the_image.save(file_path)
+            except Exception as e:
+                print(e)
+                print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
         else:
             """
             For image, maybe convert it to ascii is a good compression idea
@@ -421,7 +423,6 @@ class Container:
         if self.rows == self.columns:
             raise Exception("You can either set rows to True or set columns to True, but not both.")
 
-        # try to get global absolute position of those components, so that we could simply return those components as a list, let the lcd render those things directly will speed up the process. use 'paste_image_on_top_of_this_image' is kind of slow
         if self.rows == True:
             top = 0
             right = 0
@@ -463,6 +464,13 @@ class Container:
 
         self.cache_image = real_image
         return real_image
+
+    def render_as_component_list(self):
+        """
+        try to get global absolute position of those components by only doing resize. (do not use paste_image_on_top_of_this_image function.)
+        so that we could simply return those components as a list, let the lcd render those things directly will speed up the process. use 'paste_image_on_top_of_this_image' is kind of slow
+        """
+        pass
 
     def click(self, y, x):
         """
@@ -538,6 +546,18 @@ class GUI(Container):
     """
     def __init__(self, *arguments, **key_arguments):
         super().__init__(*arguments, **key_arguments)
+
+
+#class TerminalGUI():
+#    """
+#    Now, think about this: a character will take 8*16 pixels. 320*240 screen could show 40 * 15 = 600 characters. You can treat characters as pixels. Then you only have to handle 600 rectangles. So in your memory, you should have a 600 elements 2d list as graphic buffer.
+#    For a terminal, it only has to have print_char function. So it you have LCD char buffer, for each time, you just have to move the top_left, top_right point of those char buffers. Just treat it like a one stream display flow (Don't forget the new line).
+#    """
+#    def __init__(self, height, width):
+#        char_number_in_one_row = width // 8
+#        rows_number = height // 16
+#
+#        self.raw_data = [[" "] * char_number_in_one_row] * rows_number
 
 
 try:
