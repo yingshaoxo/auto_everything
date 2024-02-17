@@ -159,6 +159,9 @@ class Display(object):
         sleep(.1)
         self.clear()
 
+        self.get_ascii_8_times_16_points_data = None
+        self.font_cache = {}
+
     def draw_buffer(self, x0, y0, x1, y1, data):
         """Write a block of data to display.
 
@@ -275,6 +278,63 @@ class Display(object):
             index += step_length
             data.seek(0)
             self.draw_buffer(0, row_index, width-1, row_index+step_length-1, data.read())
+
+    def cache_font_at_boot_time(self):
+        if self.get_ascii_8_times_16_points_data == None:
+            try:
+                from auto_everything.font_ import get_ascii_8_times_16_points_data
+            except Exception as e:
+                from font_ import get_ascii_8_times_16_points_data
+            self.get_ascii_8_times_16_points_data = get_ascii_8_times_16_points_data
+
+        r, g, b = 255,255,255
+        white = ((r & 0xf8) << 8 | (g & 0xfc) << 3 | b >> 3).to_bytes(2, "big")
+        r, g, b = 0,0,0
+        black = ((r & 0xf8) << 8 | (g & 0xfc) << 3 | b >> 3).to_bytes(2, "big")
+
+        all_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ \t\n\r\x0b\x0c'
+        for char in all_chars:
+            char_points_data = self.get_ascii_8_times_16_points_data(char)
+            data = BytesIO(b'')
+            for row_index, row in enumerate(char_points_data):
+                for column_index, element in enumerate(row):
+                    if element == 1:
+                        data.write(white)
+                    else:
+                        data.write(black)
+            data.seek(0)
+            self.font_cache[char] = data.read()
+
+    def draw_2d_text(self, text_2d_array, height=None, width=None):
+        #call self.cache_font_at_boot_time() first
+        #text_2d_array = root_container.render_as_text()
+
+        if height == None:
+            height = self.height
+        if width == None:
+            width = self.width
+
+        text_list = []
+        for row in text_2d_array:
+            text_list += row
+
+        rows_number = int(height // 16)
+        columns_number = int(width // 8)
+
+        for row_index in range(rows_number):
+            top = row_index * 16
+            for column_index in range(columns_number):
+                left = column_index * 8
+
+                char = text_list[0]
+                text_list = text_list[1:]
+
+                if char == "\n":
+                    char = " "
+                if char not in self.font_cache:
+                    char = " "
+
+                self.draw_buffer(left, top, left+8-1, top+16-1, self.font_cache[char])
 
     def is_off_grid(self, xmin, ymin, xmax, ymax):
         """Check if coordinates extend past display boundaries.

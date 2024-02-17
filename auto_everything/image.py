@@ -132,9 +132,9 @@ class Image:
 
         self.raw_data = data_2
 
-    def paste_image_on_top_of_this_image(self, another_image, top, right, height, width):
+    def paste_image_on_top_of_this_image(self, another_image, top, left, height, width):
         """
-        paste another image to current image based on (top, right, height, width) position in current image
+        paste another image to current image based on (top, left, height, width) position in current image
         """
         base_image_height, base_image_width = self.get_shape()
         another_image_height, another_image_width = another_image.get_shape()
@@ -149,8 +149,8 @@ class Image:
 
         y_start = top
         y_end = top + height
-        x_start = right
-        x_end = right + width
+        x_start = left
+        x_end = left + width
 
         # overflow_situation: another image smaller than original image, but paste to outside
         if y_end > base_image_height:
@@ -409,7 +409,7 @@ class Container:
             self.children = self._convert_text_to_container_list(self.text, parent_height=real_height, parent_width=real_width, on_click_function=self.on_click_function)
             self.rows = True
 
-        real_height, real_width = real_image.get_shape()
+        #real_height, real_width = real_image.get_shape()
         self.real_property_dict["height"] = real_height
         self.real_property_dict["width"] = real_width
 
@@ -425,16 +425,16 @@ class Container:
 
         if self.rows == True:
             top = 0
-            right = 0
+            left = 0
             for one_row_container in self.children:
                 one_row_container.parent_height = self.real_property_dict["height"]
                 one_row_container.parent_width = self.real_property_dict["width"]
                 real_one_row_image = one_row_container.render()
 
                 one_row_height, one_row_width = real_one_row_image.get_shape()
-                real_image.paste_image_on_top_of_this_image(real_one_row_image, top=top, right=right, height=one_row_height, width=one_row_width)
+                real_image.paste_image_on_top_of_this_image(real_one_row_image, top=top, left=left, height=one_row_height, width=one_row_width)
                 one_row_container.real_property_dict["left_top_y"] = top
-                one_row_container.real_property_dict["left_top_x"] = right
+                one_row_container.real_property_dict["left_top_x"] = left
                 one_row_container.real_property_dict["right_bottom_y"] = top + one_row_height
                 one_row_container.real_property_dict["right_bottom_x"] = one_row_width
 
@@ -443,7 +443,7 @@ class Container:
 
                 top += one_row_height
         elif self.columns == True:
-            right = 0
+            left = 0
             top = 0
             for one_column_container in self.children:
                 one_column_container.parent_height = self.real_property_dict["height"]
@@ -451,26 +451,183 @@ class Container:
                 real_one_column_image = one_column_container.render()
 
                 one_column_height, one_column_width = real_one_column_image.get_shape()
-                real_image.paste_image_on_top_of_this_image(real_one_column_image, top=top, right=right, height=one_column_height, width=one_column_width)
+                real_image.paste_image_on_top_of_this_image(real_one_column_image, top=top, left=left, height=one_column_height, width=one_column_width)
                 one_column_container.real_property_dict["left_top_y"] = top
-                one_column_container.real_property_dict["left_top_x"] = right
+                one_column_container.real_property_dict["left_top_x"] = left
                 one_column_container.real_property_dict["right_bottom_y"] = one_column_height
-                one_column_container.real_property_dict["right_bottom_x"] = right+one_column_width
+                one_column_container.real_property_dict["right_bottom_x"] = left+one_column_width
 
                 self.real_property_dict["one_row_height"] = 0
                 self.real_property_dict["one_column_width"] = one_column_width
 
-                right += one_column_width
+                left += one_column_width
 
         self.cache_image = real_image
         return real_image
 
-    def render_as_component_list(self):
+    def _render_as_text_component_list(self, top_=0, left_=0):
         """
         try to get global absolute position of those components by only doing resize. (do not use paste_image_on_top_of_this_image function.)
         so that we could simply return those components as a list, let the lcd render those things directly will speed up the process. use 'paste_image_on_top_of_this_image' is kind of slow
         """
-        pass
+        data_list = []
+
+        if (type(self.height) != int and type(self.height) != float) or (type(self.width) != int and type(self.width) != float):
+            raise Exception("Height and width must be numbers. For example, 0.2 or 20. (0.2 means 20% of its parent)")
+
+        real_height = None
+        real_width = None
+
+        if type(self.height) == float:
+            if self.parent_height == None:
+                raise Exception("parent_height shoudn't be None")
+            real_height = int(self.parent_height * self.height)
+        else:
+            real_height = self.height
+
+        if type(self.width) == float:
+            if self.parent_width == None:
+                raise Exception("parent_width shoudn't be None")
+            real_width = int(self.parent_width * self.width)
+        else:
+            real_width = self.width
+
+        if self.image != None:
+            data_list.append({
+                "top": top_,
+                "left": left_,
+                "height": real_height,
+                "width": real_width,
+                "image": self.image.copy(),
+            })
+        else:
+            data_list.append({
+                "top": top_,
+                "left": left_,
+                "height": real_height,
+                "width": real_width,
+                "text": self.text,
+            })
+
+        self.real_property_dict["height"] = real_height
+        self.real_property_dict["width"] = real_width
+
+        if self.rows == None and self.columns == None:
+            if self.text != "":
+                self.columns = True
+            else:
+                self.rows = True
+        if self.rows != True and self.columns != True:
+            self.rows = True
+        if self.rows == self.columns:
+            raise Exception("You can either set rows to True or set columns to True, but not both.")
+
+        if self.rows == True:
+            top = 0
+            left = 0
+            for one_row_container in self.children:
+                one_row_container.parent_height = self.real_property_dict["height"]
+                one_row_container.parent_width = self.real_property_dict["width"]
+                temp_list = one_row_container._render_as_text_component_list(top_ + top, left_ + left)
+
+                one_row_height = temp_list[0]["height"]
+                one_row_width = temp_list[0]["width"]
+                one_row_container.real_property_dict["left_top_y"] = top
+                one_row_container.real_property_dict["left_top_x"] = left
+                one_row_container.real_property_dict["right_bottom_y"] = top + one_row_height
+                one_row_container.real_property_dict["right_bottom_x"] = one_row_width
+
+                self.real_property_dict["one_row_height"] = one_row_height
+                self.real_property_dict["one_column_width"] = 0
+
+                data_list += temp_list
+
+                top += one_row_height
+        elif self.columns == True:
+            left = 0
+            top = 0
+            for one_column_container in self.children:
+                one_column_container.parent_height = self.real_property_dict["height"]
+                one_column_container.parent_width = self.real_property_dict["width"]
+                temp_list = one_column_container._render_as_text_component_list(top_ + top, left_ + left)
+
+                one_column_height = temp_list[0]["height"]
+                one_column_width = temp_list[0]["width"]
+                one_column_container.real_property_dict["left_top_y"] = top
+                one_column_container.real_property_dict["left_top_x"] = left
+                one_column_container.real_property_dict["right_bottom_y"] = one_column_height
+                one_column_container.real_property_dict["right_bottom_x"] = left + one_column_width
+
+                self.real_property_dict["one_row_height"] = 0
+                self.real_property_dict["one_column_width"] = one_column_width
+
+                data_list += temp_list
+
+                left += one_column_width
+
+        return data_list
+
+    def render_as_text(self, text_height=16, text_width=8, pure_text=False):
+        component_list = self._render_as_text_component_list()
+
+        char_number_in_one_row = int(self.real_property_dict["width"] // 8)
+        rows_number = int(self.real_property_dict["height"] // 16)
+
+        # raw_data = [[" "] * char_number_in_one_row] * rows_number # this will make bugs, if you change one row, every row will get changed
+        raw_data = []
+        for row_index in range(rows_number):
+            one_row = [" "] * char_number_in_one_row
+            raw_data.append(one_row)
+
+        for component in component_list:
+            top = component["top"]
+            left = component["left"]
+            height = component["height"]
+            width = component["width"]
+
+            real_top = int(top // text_height)
+            real_height = int(height // text_height)
+
+            real_left = int(left // text_width)
+            real_width = int(width // text_width)
+
+            if "image" in component:
+                # image
+                image = component["image"]
+            else:
+                # text
+                text = component["text"]
+                if text == "":
+                    continue
+                char_list = list(text)
+                for row_index in range(real_top, real_top+real_height):
+                    for column_index in range(real_left, real_left+real_width):
+                        if len(char_list) == 0:
+                            break
+                        char = char_list[0]
+                        char_list = char_list[1:]
+                        if char == "\n":
+                            break
+                        raw_data[row_index][column_index] = char
+
+        if pure_text == False:
+            return raw_data
+        else:
+            text = ""
+            for row in raw_data:
+                text += "".join(row) + "\n"
+            return text
+
+    def _convert_2d_text_to_image(self, text):
+        if type(text) == list:
+            text = ""
+            for row in text_2d_array:
+                text += "".join(row) + "\n"
+        root_container = Container(text=text)
+        root_container.parent_height=self.real_property_dict["height"]
+        root_container.parent_width=self.real_property_dict["width"]
+        image = root_container.render()
+        return image
 
     def click(self, y, x):
         """
@@ -496,7 +653,7 @@ class Container:
 
                 top += self.real_property_dict["one_row_height"]
         elif self.columns == True:
-            right = 0
+            left = 0
             for one_column_container in self.children:
                 left_top_y = one_column_container.real_property_dict.get("left_top_y")
                 left_top_x = one_column_container.real_property_dict.get("left_top_x")
@@ -505,10 +662,10 @@ class Container:
 
                 if left_top_y != None and left_top_x != None and right_bottom_y != None and right_bottom_x != None:
                     if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
-                        clicked = clicked or one_column_container.click(y, x-right)
+                        clicked = clicked or one_column_container.click(y, x-left)
                         break
 
-                right += self.real_property_dict["one_column_width"]
+                left += self.real_property_dict["one_column_width"]
 
         if clicked == False:
             left_top_y = self.real_property_dict.get("left_top_y")
@@ -548,14 +705,14 @@ class GUI(Container):
         super().__init__(*arguments, **key_arguments)
 
 
-#class TerminalGUI():
+#class TextGUI():
 #    """
 #    Now, think about this: a character will take 8*16 pixels. 320*240 screen could show 40 * 15 = 600 characters. You can treat characters as pixels. Then you only have to handle 600 rectangles. So in your memory, you should have a 600 elements 2d list as graphic buffer.
-#    For a terminal, it only has to have print_char function. So it you have LCD char buffer, for each time, you just have to move the top_left, top_right point of those char buffers. Just treat it like a one stream display flow (Don't forget the new line).
+#    For a terminal, it only has to have print_char function. So it you have LCD char buffer, for each time, you just have to move the top_left point of those char buffers. Just treat it like a one stream display flow (Don't forget the new line).
 #    """
 #    def __init__(self, height, width):
-#        char_number_in_one_row = width // 8
-#        rows_number = height // 16
+#        char_number_in_one_row = int(width // 8)
+#        rows_number = int(height // 16)
 #
 #        self.raw_data = [[" "] * char_number_in_one_row] * rows_number
 

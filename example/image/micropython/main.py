@@ -28,7 +28,7 @@ while True:
     sleep(3)
 """
 
-from time import sleep
+from time import sleep, time
 from xpt2046 import Touch
 
 def handle_touchscreen_press(x, y):
@@ -40,30 +40,34 @@ def handle_touchscreen_press(x, y):
     # Draw dot
     display.draw_pixel(x, y, color565(255,0,255))
 
+    root_container.click(y, x)
+    the_rendering()
+
 spi2 = SPI(1, baudrate=1000000, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
 touch = Touch(spi2, cs=Pin(15), int_pin=Pin(33), int_handler=handle_touchscreen_press)
 
+"""
 while True:
     result = touch.raw_touch()
     if result != None:
         x, y = touch.normalize(*result)
         handle_touchscreen_press(x, y)
     sleep(0.025)
+"""
 
 
 from image import GUI, Container
 
 
-"""
-def change_it_back(*args):
+def next_page_click():
     the_text.text="never give up"
-    print("fuck2")
+    print("next page click")
 
-the_text = Container(text="fuck it\nyou got everything you need right now, you don't have to worry about anything.", text_size=1, on_click_function=change_it_back)
+the_text = Container(text="Hello everyone! \nThis micropython mobile phone example was made by yingshaoxo.\nYingshaoxo is the god, will you believe it?", text_size=1)
 
-def change_it(*args):
+def previous_page_click():
     the_text.text="yingshaoxo"
-    print("fuck")
+    print("previous page click")
 
 root_container = Container(
     height=1.0,
@@ -71,90 +75,79 @@ root_container = Container(
     rows=True,
     children=[
         Container(
-            height=0.5,
+            height=0.2,
             width=1.0,
-            color=[0,255,255,255],
+            columns=True,
+            children=[
+                Container(
+                    width=0.2,
+                    text="Menu"
+                ),
+                Container(
+                    width=0.6,
+                ),
+                Container(
+                    width=0.2,
+                    text="Back"
+                ),
+            ]
+        ),
+        Container(
+            height=0.6,
+            width=1.0,
+            children=[
+                the_text
+            ]
+        ),
+        Container(
+            height=0.2,
+            width=1.0,
             columns=True,
             children=[
                 Container(
                     height=1.0,
-                    width=0.5,
-                    color=[255,0,255,255],
-                    rows=True,
-                    children=[
-                        the_text
-                    ],
+                    width=0.25,
+                    text="Previous Page",
+                    on_click_function=previous_page_click
                 ),
                 Container(
                     height=1.0,
                     width=0.25,
-                    color=[255,255,0,255],
-                    on_click_function=lambda *x: print("hi you")
                 ),
                 Container(
                     height=1.0,
                     width=0.25,
-                    color=[0,255,255,255],
-                    on_click_function=change_it
+                    text="Next Page",
+                    on_click_function=next_page_click
                 )
             ]
         ),
     ]
 )
-"""
 
 
-#"""
-root_container = Container(
-    height=1.0,
-    width=1.0,
-    rows=True,
-    color=[0,0,0,255],
-    children=[
-        Container(
-            height=0.2,
-            width=1.0,
-            color=[255,255,0,255]
-        ),
-        Container(
-            height=0.2,
-            width=1.0,
-            color=[255,0,255,255]
-        ),
-        Container(
-            height=0.6,
-            width=1.0,
-            columns=True,
-            children=[
-                Container(
-                    height=1.0,
-                    width=0.5,
-                    color=[255,0,0,255]
-                ),
-                Container(
-                    height=1.0,
-                    width=0.5,
-                    color=[0,0,255,255]
-                ),
-            ]
-        ),
-    ]
-)
-#"""
-
-print("start rendering...")
-height = 128 #256
-width = 96 #192
+height = 320 #128 #256
+width = 240 #96 #192
 root_container.parent_height=height
 root_container.parent_width=width
-image = root_container.render()
-print("rendering finished...")
-print(image.get_shape())
 
-print("start_drawing...")
-#display.draw_image(image, height=height, width=width)
-display.draw_image_quick(image, height=height, width=width, step=height//5)
-print("drawing_done.")
+def the_rendering():
+    print("start rendering...")
+    start_point = time()
+    text_2d_array = root_container.render_as_text()
+    end_point = time()
+    print("time use: ", (end_point-start_point)*1000)
+    print("rendering finished...")
+
+    print("start_drawing...")
+    display.draw_2d_text(text_2d_array)
+    print("drawing_done.")
+
+print("start boot")
+display.cache_font_at_boot_time()
+print("end boot")
+
+the_rendering()
 
 
 '''
