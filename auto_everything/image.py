@@ -438,9 +438,6 @@ class Container:
                 one_row_container.real_property_dict["right_bottom_y"] = top + one_row_height
                 one_row_container.real_property_dict["right_bottom_x"] = one_row_width
 
-                self.real_property_dict["one_row_height"] = one_row_height
-                self.real_property_dict["one_column_width"] = 0
-
                 top += one_row_height
         elif self.columns == True:
             left = 0
@@ -456,9 +453,6 @@ class Container:
                 one_column_container.real_property_dict["left_top_x"] = left
                 one_column_container.real_property_dict["right_bottom_y"] = one_column_height
                 one_column_container.real_property_dict["right_bottom_x"] = left+one_column_width
-
-                self.real_property_dict["one_row_height"] = 0
-                self.real_property_dict["one_column_width"] = one_column_width
 
                 left += one_column_width
 
@@ -537,9 +531,6 @@ class Container:
                 one_row_container.real_property_dict["right_bottom_y"] = top + one_row_height
                 one_row_container.real_property_dict["right_bottom_x"] = one_row_width
 
-                self.real_property_dict["one_row_height"] = one_row_height
-                self.real_property_dict["one_column_width"] = 0
-
                 data_list += temp_list
 
                 top += one_row_height
@@ -557,9 +548,6 @@ class Container:
                 one_column_container.real_property_dict["left_top_x"] = left
                 one_column_container.real_property_dict["right_bottom_y"] = one_column_height
                 one_column_container.real_property_dict["right_bottom_x"] = left + one_column_width
-
-                self.real_property_dict["one_row_height"] = 0
-                self.real_property_dict["one_column_width"] = one_column_width
 
                 data_list += temp_list
 
@@ -634,6 +622,7 @@ class Container:
         When user click a point, we find the root container they click, then we loop that root container to find out which child container that user click...
         """
         if len(self.children) == 0:
+            print(self.text)
             self.on_click_function()
             return True
 
@@ -651,7 +640,7 @@ class Container:
                         clicked = clicked or one_row_container.click(y-top, x)
                         break
 
-                top += self.real_property_dict["one_row_height"]
+                top += one_row_container.real_property_dict["height"]
         elif self.columns == True:
             left = 0
             for one_column_container in self.children:
@@ -665,7 +654,7 @@ class Container:
                         clicked = clicked or one_column_container.click(y, x-left)
                         break
 
-                left += self.real_property_dict["one_column_width"]
+                left += one_column_container.real_property_dict["width"]
 
         if clicked == False:
             left_top_y = self.real_property_dict.get("left_top_y")

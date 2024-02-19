@@ -336,6 +336,65 @@ class Display(object):
 
                 self.draw_buffer(left, top, left+8-1, top+16-1, self.font_cache[char])
 
+    def draw_ellipse(self, x0, y0, a, b, color):
+        """Draw an ellipse.
+
+        Args:
+            x0, y0 (int): Coordinates of center point.
+            a (int): Semi axis horizontal.
+            b (int): Semi axis vertical.
+            color (int): RGB565 color value.
+        Note:
+            The center point is the center of the x0,y0 pixel.
+            Since pixels are not divisible, the axes are integer rounded
+            up to complete on a full pixel.  Therefore the major and
+            minor axes are increased by 1.
+        """
+        a2 = a * a
+        b2 = b * b
+        twoa2 = a2 + a2
+        twob2 = b2 + b2
+        x = 0
+        y = b
+        px = 0
+        py = twoa2 * y
+        # Plot initial points
+        self.draw_pixel(x0 + x, y0 + y, color)
+        self.draw_pixel(x0 - x, y0 + y, color)
+        self.draw_pixel(x0 + x, y0 - y, color)
+        self.draw_pixel(x0 - x, y0 - y, color)
+        # Region 1
+        p = round(b2 - (a2 * b) + (0.25 * a2))
+        while px < py:
+            x += 1
+            px += twob2
+            if p < 0:
+                p += b2 + px
+            else:
+                y -= 1
+                py -= twoa2
+                p += b2 + px - py
+            self.draw_pixel(x0 + x, y0 + y, color)
+            self.draw_pixel(x0 - x, y0 + y, color)
+            self.draw_pixel(x0 + x, y0 - y, color)
+            self.draw_pixel(x0 - x, y0 - y, color)
+        # Region 2
+        p = round(b2 * (x + 0.5) * (x + 0.5) +
+                  a2 * (y - 1) * (y - 1) - a2 * b2)
+        while y > 0:
+            y -= 1
+            py -= twoa2
+            if p > 0:
+                p += a2 - py
+            else:
+                x += 1
+                px += twob2
+                p += a2 - py + px
+            self.draw_pixel(x0 + x, y0 + y, color)
+            self.draw_pixel(x0 - x, y0 + y, color)
+            self.draw_pixel(x0 + x, y0 - y, color)
+            self.draw_pixel(x0 - x, y0 - y, color)
+
     def is_off_grid(self, xmin, ymin, xmax, ymax):
         """Check if coordinates extend past display boundaries.
 

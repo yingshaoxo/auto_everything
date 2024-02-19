@@ -36,10 +36,13 @@ def handle_touchscreen_press(x, y):
     #y = (display.height - 1) - y
     x = (display.width - 1) - x
     # Display coordinates
-    print(y, x)
+    print("clicked: ", y, x)
+    
     # Draw dot
     display.draw_pixel(x, y, color565(255,0,255))
+    display.draw_ellipse(x, y, 10, 10, color565(255,0,255))
 
+    # Click and rendering
     root_container.click(y, x)
     the_rendering()
 
@@ -61,13 +64,11 @@ from image import GUI, Container
 
 def next_page_click():
     the_text.text="never give up"
-    print("next page click")
 
 the_text = Container(text="Hello everyone! \nThis micropython mobile phone example was made by yingshaoxo.\nYingshaoxo is the god, will you believe it?", text_size=1)
 
 def previous_page_click():
     the_text.text="yingshaoxo"
-    print("previous page click")
 
 root_container = Container(
     height=1.0,
@@ -95,6 +96,7 @@ root_container = Container(
         Container(
             height=0.6,
             width=1.0,
+            columns=True,
             children=[
                 the_text
             ]
@@ -112,7 +114,7 @@ root_container = Container(
                 ),
                 Container(
                     height=1.0,
-                    width=0.25,
+                    width=0.5,
                 ),
                 Container(
                     height=1.0,
@@ -132,20 +134,29 @@ root_container.parent_height=height
 root_container.parent_width=width
 
 def the_rendering():
+    print()
     print("start rendering...")
     start_point = time()
     text_2d_array = root_container.render_as_text()
+    #image = root_container.render()
     end_point = time()
-    print("time use: ", (end_point-start_point)*1000)
+    print("time use: ", (end_point-start_point), "seconds")
     print("rendering finished...")
+    print()
 
     print("start_drawing...")
+    start_point = time()
+    #display.clear()
     display.draw_2d_text(text_2d_array)
+    #display.draw_image(image)
+    end_point = time()
+    print("time use: ", (end_point-start_point), "seconds")
     print("drawing_done.")
 
 print("start boot")
 display.cache_font_at_boot_time()
 print("end boot")
+print()
 
 the_rendering()
 
