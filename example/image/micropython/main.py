@@ -1,5 +1,32 @@
 print("Booted.")
+from time import sleep
+sleep(5)
+print("Ready")
 
+
+"""
+# Setup the SD card
+"""
+from machine import Pin, SPI
+p32 = Pin(32, Pin.OUT, value=1) # light up a pin to power sd card module with 3.3V
+
+import os
+import sdcard # use 'from machine import SDCard; import vfs' will raise problems. the SD card I am using is a 2GB one with fat16 format.
+
+spi = SPI(1, baudrate=1000000, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
+try:
+    sd = sdcard.SDCard(spi,Pin(21))
+    print("mounting...")
+    os.mount(sd,"/sda")
+    print(os.listdir("/sda"))
+    print("Done")
+except Exception as e:
+    print(e)
+
+
+"""
+# Setup the LCD Display module
+"""
 from ili9341 import Display, color565
 from machine import Pin, SPI
 
@@ -12,22 +39,17 @@ TFT_RST_PIN = const(25)
 TFT_DC_PIN = const(26)
 
 def create_display():
-    #spiTFT = SPI(1, baudrate=40000000, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN))
     spiTFT = SPI(2, baudrate=51200000, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN))
     display = Display(spiTFT, dc=Pin(TFT_DC_PIN), cs=Pin(TFT_CS_PIN), rst=Pin(TFT_RST_PIN))
     return display
 
 display = create_display()
-#display.fill_hrect(0, 0, 50, 50, color565(255, 0, 0))
 print("Display ready.")
 
 
 """
-from time import sleep
-while True:
-    sleep(3)
+# Set up the TFT touch module, which normally a built_in feature of the LCD (ili9341) you buy
 """
-
 from time import sleep, time
 from xpt2046 import Touch
 
@@ -59,8 +81,10 @@ while True:
 """
 
 
+"""
+# Setup the GUI module that comes from python package 'auto_everything', the author is yingshaoxo
+"""
 from image import GUI, Container
-
 
 def next_page_click():
     the_text.text="never give up"
@@ -162,23 +186,20 @@ the_rendering()
 
 
 '''
-# sd test, failed
-import machine
-from time import sleep
+# sd test
+
+from machine import Pin, SPI
+p32 = Pin(32, Pin.OUT, value=1) # light up a pin to power sd card module with 3.3V
+
 import os
+import sdcard # use 'from machine import SDCard; import vfs' will raise problems
 
-print("waiting")
-sleep(3)
-print("start")
-
-# Slot 2 uses pins sck=18, cs=5, miso=19, mosi=23
-# Slot 3 uses pins sck=14, cs=15, miso=12, mosi=13
-sd = machine.SDCard(slot=2)#, sck=machine.Pin(14), mosi=machine.Pin(13), miso=machine.Pin(12), cs=machine.Pin(15))
-os.mount(sd, "/sd")  # mount
-
-print(os.listdir('/sd'))    # list directory contents
-
-os.umount('/sd')     # eject
+spi = SPI(1, baudrate=1000000, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
+sd = sdcard.SDCard(spi,Pin(21))
+print("mounting...")
+os.mount(sd,"/sda")
+print(os.listdir("/sda"))
+print("Done")
 '''
 
 '''
