@@ -1,3 +1,4 @@
+#!/usr/bin/env /usr/bin/python3
 #!/usr/bin/env /home/yingshaoxo/anaconda3/bin/python3
 # Run this to generate bash auto complete script: Tools -- --completion
 

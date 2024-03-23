@@ -11,7 +11,11 @@ I lost my job for almost 2 years. If you wish to see me alive, please buy me som
 
 <!-- [<img src="https://github.com/yingshaoxo/yingshaoxo/raw/master/become_a_patron_button.png" width="200">](https://www.patreon.com/bePatron?u=45200693) -->
 
-#### Installation (For Python >= 3.10)
+> My package dependence is not stable yet, I am considering switch the base python version back to static python2.7 or tinypy or micropython. (The current one is python3.10, I have a statically amd64 build in: https://gitlab.com/yingshaoxo/use_docker_to_build_static_python3_binary_executable)
+
+> But it is hard to make sure everything working fine 20 years later. Because I can't make sure 20 years later you can still buy a hardware that could allow you to run python2.7 or tinypy or old version of micropython. (Maybe you simply can't download a python2.7 binary or source code, or can't compile it since you don't have an old GCC.)
+
+#### Installation (For Python == 3.10)
 
 ```bash
 python3 -m pip install "git+https://github.com/yingshaoxo/auto_everything.git@dev" --break-system-packages
@@ -26,7 +30,20 @@ or
 python3 -m pip install auto_everything --break-system-packages
 ```
 
-> What the fuck the `debian` or `pip` is thinking of? Why we can't use pip to directly install a package anymore? **debian/ubuntu linux branch** want to force people to let their package go through **a strict censorship process** so that they can decide which software is good, which is not?
+or
+
+```bash
+Just copy the 'auto_everything' sub_folder, then put it into the root folder of your project, so that you can directly import it.
+```
+
+```bash
+# For amd64 linux machine, you can get a statically compiled python3.10 by doing following.
+
+sudo su
+curl -sSL https://gitlab.com/yingshaoxo/use_docker_to_build_static_python3_binary_executable/-/raw/master/install.sh?ref_type=heads | bash
+```
+
+> What the fuck the `debian` is thinking of? Why we can't use pip to directly install a package anymore? **debian/ubuntu linux branch** want to force people to let their package go through **a strict censorship process** so that they can decide which software is good, which is not?
 
 > npx 'npm install -g *' still working fine, 'export PATH=$PATH:/**/bin/' still working fine.
 
@@ -44,6 +61,7 @@ sudo pip3 install auto_everything==3.9
 or
 
 poetry add auto_everything==3.9
+# use poetry on care, it won't tell you the path where your package installed
 ```
 
 <!-- #### Magic
