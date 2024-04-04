@@ -532,7 +532,8 @@ class Disk:
         folder: str,
         recursive: bool = True,
         type_limiter: List[str] | None = None,
-        gitignore_text: str|None = None
+        gitignore_text: str|None = None,
+        ignore_symbolic_link: bool = True
     ) -> Iterable[_FileInfo]:
         """
         Get files recursively under a folder.
@@ -569,6 +570,10 @@ class Disk:
                     ):
                         continue
 
+                if ignore_symbolic_link == True:
+                    if os.path.islink(abs_folder_path):
+                        continue
+
                 yield _FileInfo(
                     level=level,
                     path=abs_folder_path,
@@ -601,6 +606,10 @@ class Disk:
                     ):
                         continue
 
+                if ignore_symbolic_link == True:
+                    if os.path.islink(abs_folder_path):
+                        continue
+
                 if os.path.isfile(abs_folder_path):
                     yield _FileInfo(
                     level=level,
@@ -631,6 +640,7 @@ class Disk:
         reverse: bool = False,
         type_limiter: List[str] | None = None,
         gitignore_text: str|None = None,
+        ignore_symbolic_link: bool = True
     ) -> _FileInfo:
         """
         Get files and folders recursively under a folder.
@@ -696,6 +706,10 @@ class Disk:
                         ):
                             continue
 
+                    if ignore_symbolic_link == True:
+                        if os.path.islink(file_path):
+                            continue
+
                     new_node = _FileInfo(
                         path=file_path,
                         is_folder=os.path.isdir(file_path),
@@ -725,6 +739,7 @@ class Disk:
         recursive: bool = True,
         include_docker_ignore_file: bool = False,
         return_list_than_tree: bool = False,
+        ignore_symbolic_link: bool = True
     ) -> _FileInfo | list[_FileInfo]:
         """
         Get files and folders recursively under a folder.
@@ -794,6 +809,10 @@ class Disk:
                     ignore_pattern_list=ignore_pattern_list,
                 ):
                     continue
+
+                if ignore_symbolic_link == True:
+                    if os.path.islink(file_path):
+                        continue
 
                 new_node = _FileInfo(
                     path=file_path,
