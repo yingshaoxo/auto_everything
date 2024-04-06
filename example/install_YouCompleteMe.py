@@ -136,6 +136,8 @@ set fileformat=unix
 set number
 
 set clipboard=unnamedplus
+vnoremap <silent><Leader>y "yy <Bar> :call system('xclip -sel clipboard', @y)<CR>
+"select, then use \y to copy it into clipboard
 
 "hide thing on gvim
 set guioptions-=m  "menu bar

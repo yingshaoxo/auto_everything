@@ -1,5 +1,4 @@
-#!/usr/bin/env /home/yingshaoxo/anaconda3/bin/python3
-#!/usr/bin/env /opt/homebrew/opt/python@3.10/bin/python3.10
+#!/usr/bin/env /bin/python3
 from typing import Any
 
 import os, tty, termios, sys
