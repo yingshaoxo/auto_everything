@@ -2,7 +2,6 @@ import signal
 import sys
 import os
 import platform
-import tempfile
 import hashlib
 from datetime import datetime
 import shlex
@@ -50,15 +49,20 @@ class Terminal:
         _2or3 = sys.version_info[0]
         _second_version_number = sys.version_info[1]
         if float(_2or3) <= 2:
-            my_print("We only support Python3")
-            exit()
+            my_print("We support better in python3")
+            #my_print("We only support Python3")
+            #exit()
         if (int(_2or3) == 3) and (int(_second_version_number) < 5):
-            my_print("We only support Python >= 3.5")
-            exit()
+            my_print("We support better in python >= 3.5")
+            #my_print("We only support Python >= 3.5")
+            #exit()
 
         self.current_dir = os.getcwd()
         self.__current_file_path = os.path.join(self.current_dir, sys.argv[0])
-        self.temp_dir = tempfile.gettempdir()
+        if self.exists("/tmp"):
+            self.temp_dir = "/tmp"
+        else:
+            self.temp_dir = "./"
 
         if os.path.exists(os.path.join(self.current_dir, "nohup.out")):
             os.remove(os.path.join(self.current_dir, "nohup.out"))
@@ -131,7 +135,7 @@ class Terminal:
         path = self.fix_path(path)
         return os.path.exists(path)
 
-    def software_exists(self, software_name):
+    def software_exists(self, software_name, core_function=False):
         """
         cheack if a software exists
         return true is it exists
@@ -141,39 +145,48 @@ class Terminal:
         software_name : string
             for example, "wget", "curl", "git", "python3", "node"
         """
-        return shutil.which(software_name) != None
-        '''
-        has_which = False
-        if "exists" in self.run_command(f"""
-            if which version >/dev/null; then
-                echo "exists"
-            else
-                exit 0
-            fi
-        """):
-            has_which = True
+        if core_function == True:
+            if self.exists("/bin/" + software_name) or self.exists("/usr/bin/" + software_name):
+                return True
+            else:
+                return False
 
-        if has_which:
-            if "exists" in self.run_command(f"""
-                if which {software_name} >/dev/null; then
+        try:
+            return shutil.which(software_name) != None
+        except Exception as e:
+            has_which = False
+            if "exists" in self.run_command("""
+                if which version >/dev/null; then
                     echo "exists"
                 else
                     exit 0
                 fi
             """):
-                return True
-        else:
-            if "exists" in self.run_command(f"""
-                if {software_name} --version >/dev/null; then
-                    echo "exists"
-                else
-                    exit 0
-                fi
-            """):
-                return True
+                has_which = True
 
-        return False
-        '''
+            if has_which:
+                if "exists" in self.run_command("""
+                    if which {} >/dev/null; then
+                        echo "exists"
+                    else
+                        exit 0
+                    fi
+                """.format(software_name)):
+                    return True
+            else:
+                if "exists" in self.run_command("""
+                    if {} --version >/dev/null; then
+                        echo "exists"
+                    else
+                        exit 0
+                    fi
+                """.format(software_name)):
+                    return True
+                else:
+                    if self.exists("/bin/" + software_name) or self.exists("/usr/bin/" + software_name):
+                        return True
+
+            return False
 
     def _get_bash_software(self):
         if self.software_exists("bash"):
@@ -189,7 +202,7 @@ class Terminal:
         temp_sh = os.path.join(self.temp_dir, m.hexdigest()[:10] + ".sh")
         # pre_line = f"cd {self.current_dir}\n\n"
         # text = pre_line + text
-        if self.software_exists("sleep"):
+        if self.software_exists("sleep", core_function=True):
             text = text + "\n\n" + "sleep 0.01"
         self._io.write(temp_sh, text)
         if wait == False:
@@ -1016,7 +1029,7 @@ class Advanced_Terminal_User_Interface:
 #Instead of using type in function, you can directly put the type after variable name, so that python2 could run it, for example:
 #
 #def hi(greeting_str):
-#    result_str = f"yingshaoxo: {greeting_str}"
+#    result_str = "yingshaoxo: " + greeting_str
 #    return result_str
 #
 #Normally, all we need is function_name_complete, variable_name_complete, class_function_name_complete, it can be done with regex expression, so no need for using type hint.

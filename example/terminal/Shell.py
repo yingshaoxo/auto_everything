@@ -70,9 +70,9 @@ def refine_history():
             index -= 1
             continue
         index += 1
-    
+
     store.set(history_command_list_store_key, list(reversed(history_command_list)))
-        
+
 def get_char():
     #https://www.physics.udel.edu/~watson/scen103/ascii.html
 

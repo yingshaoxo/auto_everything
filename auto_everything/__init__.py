@@ -1,10 +1,38 @@
-from auto_everything.io import IO
-from auto_everything.terminal import Terminal, Terminal_User_Interface
-from auto_everything.disk import Disk
-from auto_everything.python import Python
-from auto_everything.network import Network
-from auto_everything.cryptography import Encryption_And_Decryption
-from auto_everything.develop import YRPC
+try:
+    from auto_everything.io import IO
+except Exception as e:
+    print(e)
+
+try:
+    from auto_everything.terminal import Terminal, Terminal_User_Interface
+except Exception as e:
+    print(e)
+
+try:
+    from auto_everything.disk import Disk
+except Exception as e:
+    print(e)
+
+try:
+    from auto_everything.python import Python
+except Exception as e:
+    print(e)
+
+try:
+    from auto_everything.network import Network
+except Exception as e:
+    print(e)
+
+try:
+    from auto_everything.cryptography import Encryption_And_Decryption
+except Exception as e:
+    print(e)
+
+try:
+    from auto_everything.develop import YRPC
+except Exception as e:
+    print(e)
+
 
 __all__ = [
     'IO',
