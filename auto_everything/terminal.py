@@ -1028,9 +1028,9 @@ class Advanced_Terminal_User_Interface:
 
 #Instead of using type in function, you can directly put the type after variable name, so that python2 could run it, for example:
 #
-#def hi(greeting_str):
-#    result_str = "yingshaoxo: " + greeting_str
-#    return result_str
+#def hi(greeting_string):
+#    result_string = "yingshaoxo: " + greeting_string
+#    return result_string
 #
 #Normally, all we need is function_name_complete, variable_name_complete, class_function_name_complete, it can be done with regex expression, so no need for using type hint.
 
