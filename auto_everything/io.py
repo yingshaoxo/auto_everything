@@ -1,12 +1,9 @@
 import json
 import os
-import time
 
 import io
 import hashlib
 import base64
-
-from typing import Any
 
 
 class IO():
@@ -15,8 +12,8 @@ class IO():
     """
 
     def __init__(self):
-        self.current_dir: str = os.getcwd()
-        self.__log_path: str = os.path.join(self.current_dir, '.log')
+        self.current_dir = os.getcwd()
+        self.__log_path = os.path.join(self.current_dir, '.log')
 
     def make_sure_sudo_permission(self):
         """
@@ -26,7 +23,7 @@ class IO():
             print("\n I only got my super power if you run me with sudo!")
             exit()
 
-    def read(self, file_path: str, auto_detect_encoding=False, encoding="utf-8") -> str:
+    def read(self, file_path, auto_detect_encoding=False, encoding="utf-8"):
         """
         read text from txt file
 
@@ -49,10 +46,10 @@ class IO():
                 result = f.read()
             return result
         else:
-            print(f"File '{file_path}' does not exists.")
+            print("File '" + file_path + "' does not exists.")
             return ""
 
-    def write(self, file_path: str, content: str, encoding="utf-8"):
+    def write(self, file_path, content, encoding="utf-8"):
         """
         write text into txt file
 
@@ -68,7 +65,7 @@ class IO():
         with open(file_path, 'w', encoding=encoding, errors="ignore") as f:
             f.write(content)
 
-    def append(self, file_path: str, content: str):
+    def append(self, file_path, content):
         """
         append text at the end of a txt file
 
@@ -82,17 +79,17 @@ class IO():
         with open(file_path, 'a', encoding="utf-8", errors="ignore") as f:
             f.write(content)
 
-    def string_to_hex(self, utf_8_string: str) -> str:
+    def string_to_hex(self, utf_8_string):
         return utf_8_string.encode("utf-8", errors="ignore").hex()
 
-    def hex_to_string(self, hex_string: str) -> str:
+    def hex_to_string(self, hex_string):
         return bytes.fromhex(hex_string).decode("utf-8", errors="ignore")
 
-    def __make_sure_txt_exist(self, path: str):
+    def __make_sure_txt_exist(self, path):
         if not os.path.exists(path):
             self.write(path, "")
 
-    def read_settings(self, key: str, defult: str) -> str:
+    def read_settings(self, key, defult):
         try:
             settings_path = os.path.join(self.current_dir, 'settings.ini')
             self.__make_sure_txt_exist(settings_path)
@@ -103,7 +100,7 @@ class IO():
             print(e)
             return defult
 
-    def write_settings(self, key: str, value: str) -> bool:
+    def write_settings(self, key, value):
         try:
             settings_path = os.path.join(self.current_dir, 'settings.ini')
             self.__make_sure_txt_exist(settings_path)
@@ -112,7 +109,7 @@ class IO():
                 data = json.loads(text)
             except Exception as e:
                 print(e)
-                data: dict[Any, Any] = dict()
+                data = dict()
             data.update({key: value})
             text = json.dumps(data)
             self.write(settings_path, text)
@@ -129,7 +126,8 @@ class IO():
         except Exception as e:
             print(e)
 
-    def log(self, text: str):
+    def log(self, text):
+        import time
         text = str(text)
         now = time.asctime(time.localtime(time.time()))
         text = '\n' * 2 + text + '   ' + '({})'.format(now)
@@ -140,21 +138,27 @@ class IO():
 
 
 class MyIO():
-    def string_to_md5(self, text: str):
+    def string_to_md5(self, text):
         result = hashlib.md5(text.encode())
         return result.hexdigest()
 
-    def base64_to_bytesio(self, base64_string: str):
+    def base64_to_bytesio(self, base64_string):
         img_data = base64.b64decode(base64_string)
         return io.BytesIO(img_data)
 
-    def bytesio_to_base64(self, bytes_io: io.BytesIO):
+    def bytesio_to_base64(self, bytes_io):
+        """
+        bytes_io: io.BytesIO()
+        """
         bytes_io.seek(0)
         return base64.b64encode(bytes_io.getvalue()).decode()
 
-    def hex_to_bytes(self, hex_string: str):
+    def hex_to_bytes(self, hex_string):
         return bytes.fromhex(hex_string)
 
-    def bytes_to_hex(self, bytes_data: bytes):
+    def bytes_to_hex(self, bytes_data):
+        """
+        bytes_data: bytes()
+        """
         return bytes_data.hex()
 

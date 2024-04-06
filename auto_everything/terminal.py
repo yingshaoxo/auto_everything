@@ -4,7 +4,6 @@ import os
 import platform
 import tempfile
 import hashlib
-import time
 from datetime import datetime
 import shlex
 import subprocess
@@ -655,6 +654,9 @@ class Terminal:
         timeout: int
             wait until timeout, use second unit
         """
+        # There might have a bug, by importing this time, it will import './time.py', which is my module than system built_in module
+        import time
+
         if force:
             try:
                 os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
@@ -695,6 +697,8 @@ class Terminal:
         timeout: int
             wait until timeout, use second unit
         """
+        import time
+
         pids = self._get_pids(name)
         for pid in pids:
             if force:
@@ -788,6 +792,8 @@ class Terminal_User_Interface:
             index = page_size * current_page
             return all_elements[index: index + page_size]
         """
+        import time
+
         if seperate_page_loading_function == None:
             # single selection, no real time list
             while True:

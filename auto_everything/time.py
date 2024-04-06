@@ -16,19 +16,19 @@ class Time:
 
     def convert_timestamp_to_string(self, timestamp: int, format: str="%Y-%m-%d %H:%M:%S") -> str:
         return datetime.fromtimestamp(timestamp).strftime(format)
-    
+
     def convert_string_to_timestamp(self, time_string: str, format: str="%Y-%m-%d %H:%M:%S") -> int:
         return int(datetime.strptime(time_string, format).timestamp())
-    
+
     def get_timestamp_from_datetime_object(self, datetime_object: datetime) -> int:
         return int(datetime_object.timestamp())
-    
+
     def get_datetime_object_from_timestamp(self, timestamp: int) -> datetime:
         return datetime.fromtimestamp(timestamp)
-    
+
     def convert_datetime_object_to_string(self, datetime_object: datetime, format: str="%Y-%m-%d %H:%M:%S") -> str:
         return datetime_object.strftime(format)
-    
+
     def run_a_function_at_a_certain_time(self, the_function: Any, the_time: str, format: str="%Y-%m-%d %H:%M:%S", wait=True) -> Process | None:
         def run_a_function_when_time_arrive():
             target_time = self.convert_datetime_object_to_string(
@@ -68,7 +68,7 @@ class Time:
             new_process = Process(target=run_a_function)
             new_process.start()
             return new_process
-    
+
     def run_a_function_every_x_seconds(self, the_function: Any, seconds: int | float, wait=True) -> Process | None:
         def run_it():
             while True:
