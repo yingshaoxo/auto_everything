@@ -19,7 +19,7 @@ class Terminal:
     Terminal simulator for execute bash commands
     """
 
-    def __init__(self, debug: bool = False):
+    def __init__(self, debug = False):
         """
         Parameters
 
@@ -29,19 +29,19 @@ class Terminal:
         """
         from auto_everything.io import IO
 
-        self.debug: bool = debug
+        self.debug = debug
 
-        self.py_version: str = "{major}.{minor}".format(
+        self.py_version = "{major}.{minor}".format(
             major=str(sys.version_info[0]), minor=str(sys.version_info[1])
         )
-        self.py_executable: str = sys.executable.replace("\\", "/")
+        self.py_executable = sys.executable.replace("\\", "/")
         if os.name == "posix":
-            self.system_type: str = "linux"
+            self.system_type = "linux"
         elif os.name == "nt":
-            self.system_type: str = "win"
+            self.system_type = "win"
         else:
-            self.system_type: str = "none"
-        self.machine_type: str = platform.machine()
+            self.system_type = "none"
+        self.machine_type = platform.machine()
 
         _2or3 = sys.version_info[0]
         _second_version_number = sys.version_info[1]
@@ -52,16 +52,16 @@ class Terminal:
             print("We only support Python >= 3.5")
             exit()
 
-        self.current_dir: str = os.getcwd()
-        self.__current_file_path: str = os.path.join(self.current_dir, sys.argv[0])
-        self.temp_dir: str = tempfile.gettempdir()
+        self.current_dir = os.getcwd()
+        self.__current_file_path = os.path.join(self.current_dir, sys.argv[0])
+        self.temp_dir = tempfile.gettempdir()
 
         if os.path.exists(os.path.join(self.current_dir, "nohup.out")):
             os.remove(os.path.join(self.current_dir, "nohup.out"))
 
         self._io = IO()
 
-    def fix_path(self, path: str, username: str | None = None, startswith: bool = False) -> str:
+    def fix_path(self, path, username = None, startswith = False):
         # """
         # replace ~ with system username
         # // depressed, please use expanduser_in_path
@@ -101,7 +101,7 @@ class Terminal:
             print(path)
         return path.replace("\\", "/")
 
-    def expanduser_in_path(self, path: str, username: str | None = None) -> str:
+    def expanduser_in_path(self, path, username = None):
         # """
         # replace ~ with system username
 
@@ -114,7 +114,7 @@ class Terminal:
         # """
         return self.fix_path(path, username)
 
-    def exists(self, path: str) -> bool:
+    def exists(self, path):
         """
         cheack if a file or directory exists
         return true is it exists
@@ -127,7 +127,7 @@ class Terminal:
         path = self.fix_path(path)
         return os.path.exists(path)
 
-    def software_exists(self, software_name: str) -> bool:
+    def software_exists(self, software_name):
         """
         cheack if a software exists
         return true is it exists
@@ -171,14 +171,14 @@ class Terminal:
         return False
         '''
 
-    def _get_bash_software(self) -> str:
+    def _get_bash_software(self):
         if self.software_exists("bash"):
             return "bash"
         elif self.software_exists("sh"):
             return "sh"
         return "bash"
 
-    def __text_to_sh(self, text: str, wait: bool=False) -> Tuple[str, str]:
+    def __text_to_sh(self, text, wait=False):
         m = hashlib.sha256()
         m.update(str(datetime.now()).encode("utf-8"))
         m.update(text.encode("utf-8"))
@@ -193,21 +193,21 @@ class Terminal:
         else:
             return "{shell} {path}".format(shell=self._get_bash_software(), path=temp_sh), temp_sh
 
-    def __text_to_py(self, text: str) -> Tuple[str, str]:
+    def __text_to_py(self, text):
         m = hashlib.sha256()
         m.update(str(datetime.now()).encode("utf-8"))
         m.update(text.encode("utf-8"))
         temp_py = os.path.join(self.temp_dir, m.hexdigest()[:10] + ".py")
         self._io.write(temp_py, text)
-        return f"{self.py_executable} {temp_py} &", temp_py
+        return self.py_executable + " " + temp_py + " &", temp_py
 
-    def __remove_temp_sh(self, path: str):
+    def __remove_temp_sh(self, path):
         try:
             os.remove(path)
         except Exception:
             pass
 
-    def run(self, c: str, cwd: str | None = None, wait: bool = True, use_os_system: bool = False):
+    def run(self, c, cwd = None, wait = True, use_os_system = False):
         """
         run shell commands without value returning
 
@@ -366,7 +366,7 @@ class Terminal:
     #     else:
     #         return p
 
-    def run_command(self, c: str, timeout: int = 15, cwd: str | None = None) -> str:
+    def run_command(self, c, timeout = 15, cwd = None):
         """
         run shell commands with return value
 
@@ -413,7 +413,7 @@ class Terminal:
             self.__remove_temp_sh(temp_sh)
             return str(e)
 
-    def run_python_code(self, code: str, timeout: int = 15, cwd: str | None = None) -> str:
+    def run_python_code(self, code, timeout = 15, cwd = None):
         """
         run python code with return value
 
@@ -462,7 +462,7 @@ class Terminal:
             self.__remove_temp_sh(temp_sh)
             return str(e)
 
-    def run_program(self, name: str, cwd: str | None = None):
+    def run_program(self, name, cwd = None):
         """
         run shell commands, especially programs which can be started from terminal.
         This function will not wait program to be finished.
@@ -487,7 +487,7 @@ class Terminal:
 
         return subprocess.Popen(args_list, cwd=cwd)  # it return a process
 
-    def __split_args(self, file_path_with_command: str) -> Tuple[str, str]:
+    def __split_args(self, file_path_with_command):
         file_path_with_command = file_path_with_command.replace("\\", "/")
         args_list = shlex.split(file_path_with_command)
         file_path = args_list[0]
@@ -500,7 +500,7 @@ class Terminal:
         return file_path, args
 
     def run_py(
-        self, file_path_with_command: str, cwd: str | None = None, wait: bool = False
+        self, file_path_with_command, cwd = None, wait = False
     ):
         """
         run py_file
@@ -528,7 +528,7 @@ class Terminal:
             self.run(command, cwd=cwd, wait=True)
 
     def run_sh(
-        self, file_path_with_command: str, cwd: str | None = None, wait: bool = False
+        self, file_path_with_command, cwd = None, wait = False
     ):
         """
         run sh_file
@@ -555,12 +555,13 @@ class Terminal:
         elif wait is True:
             self.run(command, cwd=cwd, wait=True)
 
-    def _get_pids(self, name: str) -> List[str]:
+    def _get_pids(self, name):
         """
         name: what's the name of that program ; string
 
         get a list of pids, only available in Linux ; [string, ...]
         """
+        name = str(name)
         if self.machine_type == "darwin":
             # it is mac os
             lines = self.run_command(f"pgrep {name}").strip("\n ").split("\n")
@@ -591,7 +592,7 @@ class Terminal:
         #         pass
         # return pids
 
-    def _get_all_running_pids(self) -> List[str]:
+    def _get_all_running_pids(self):
         if self.machine_type == "darwin":
             # it is mac os
             lines = self.run_command(f'pgrep ""').strip("\n ").split("\n")
@@ -603,7 +604,7 @@ class Terminal:
             pids = [i for i in pids if i.isdigit()]
             return pids
 
-    def is_running(self, name: str) -> bool:
+    def is_running(self, name):
         """
         cheack if a program is running
 
@@ -618,7 +619,7 @@ class Terminal:
         else:
             return False
 
-    def is_running_by_pid(self, pid: int | str) -> bool:
+    def is_running_by_pid(self, pid):
         """
         cheack if a program is running by pid
 
@@ -633,7 +634,7 @@ class Terminal:
         else:
             return False
 
-    def kill_a_process_by_pid(self, pid: int | str, force: bool = True, wait: bool = False, timeout: int = 30):
+    def kill_a_process_by_pid(self, pid, force = True, wait = False, timeout = 30):
         """
         kill a program by its pid(process id)
 
@@ -672,7 +673,7 @@ class Terminal:
                 print(e)
 
     def kill(
-        self, name: str, force: bool = True, wait: bool = False, timeout: int = 30
+        self, name, force = True, wait = False, timeout = 30
     ):
         """
         kill a program by its name, depends on `kill pid`
@@ -722,7 +723,7 @@ class Terminal_User_Interface:
             # for windows platfrom
             os.system('cls')
 
-    def confirm_box(self, text: str, yes_callback_function: Callable[[], None] | None = None, no_callback_function: Callable[[], None] | None = None) -> str:
+    def confirm_box(self, text, yes_callback_function = None, no_callback_function = None):
         """
         terminal_user_interface.confirm_box(
             "Are you sure to delete it?",
@@ -751,7 +752,7 @@ class Terminal_User_Interface:
                     yes_callback_function()
                 return "y"
 
-    def selection_box(self, text: str, selections: list[Tuple[str, Callable[[],None] | None]], seperate_page_loading_function: Callable[[int, int], list[Tuple[str, Callable[[],None] | None]]] | None = None) -> str:
+    def selection_box(self, text, selections, seperate_page_loading_function):
         """
         terminal_user_interface.selection_box(
             "Please do a choice:",
@@ -840,7 +841,7 @@ class Terminal_User_Interface:
                     time.sleep(3)
                     pass
 
-    def input_box(self, text: str, default_value: str = "", handle_function: Callable[[str], None] | None = None, with_new_line: bool = False) -> str:
+    def input_box(self, text, default_value = "", handle_function = None, with_new_line = False):
         """
         your_name = terminal_user_interface.input_box(
             "Please input your name:",
@@ -899,7 +900,11 @@ class Terminal_User_Interface:
 
         return user_response
 
-    def edit_box(self, text: str, handle_function: Callable[[str], None] | None = None, editor: str | None = None) -> str:
+    def edit_box(self, text, handle_function = None, editor = None):
+        """
+        editor: str
+            vi or vim or gedit
+        """
         from auto_everything.disk import Disk
         from auto_everything.io import IO
         disk = Disk()
@@ -939,7 +944,7 @@ class Advanced_Terminal_User_Interface:
         self.termios = termios
         self.tty = tty
 
-    def get_char_input_in_blocking_way(self) -> str:
+    def get_char_input_in_blocking_way(self):
         #https://www.physics.udel.edu/~watson/scen103/ascii.html
 
         fd = self.sys.stdin.fileno()
@@ -953,7 +958,10 @@ class Advanced_Terminal_User_Interface:
 
         return char
 
-    def get_char_id(self, char: str) -> int:
+    def get_char_id(self, char):
+        """
+        return int
+        """
         char_id = ord(char)
         return char_id
 
@@ -982,20 +990,32 @@ class Advanced_Terminal_User_Interface:
         def __exit__(self, type, value, traceback):
             self.termios.tcsetattr(self.sys.stdin, self.termios.TCSADRAIN, self.old_settings)
 
-        def get_char(self) -> str:
+        def get_char(self):
             if self.select.select([self.sys.stdin], [], [], 0) == ([self.sys.stdin], [], []):
                 return self.sys.stdin.read(1)
             return None
 
-        def is_esc_pressed(self) -> bool:
+        def is_esc_pressed(self):
             if self.get_char() == '\x1b':  # x1b is ESC
                 return True
             else:
                 return False
 
 
+#Instead of using type in function, you can directly put the type after variable name, so that python2 could run it, for example:
+#
+#def hi(greeting_str):
+#    result_str = f"yingshaoxo: {greeting_str}"
+#    return result_str
+#
+#Normally, all we need is function_name_complete, variable_name_complete, class_function_name_complete, it can be done with regex expression, so no need for using type hint.
+
+
 if __name__ ==  "__main__":
+    terminal = Terminal()
+    print(terminal.software_exists("vi"))
+
     terminal_user_interface = Terminal_User_Interface()
     #result = terminal_user_interface.input_box("Please do the input: ", with_new_line=True)
-    result = terminal_user_interface.edit_box("You can do edit of this text\n\nIt is fun.", editor="gedit")
+    result = terminal_user_interface.edit_box("You can do edit of this text\n\nIt is fun.", editor="vim")
     print(result)
