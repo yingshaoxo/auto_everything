@@ -1,6 +1,4 @@
 import signal
-from typing import Tuple, List, Callable
-
 import sys
 import os
 import platform
@@ -12,6 +10,13 @@ import shlex
 import subprocess
 import shutil
 # from multiprocessing import Manager; share_dict = Manager().dict()
+
+
+def my_print(message, end="\n", flush=False):
+    sys.stdout.write(str(message))
+    sys.stdout.write(end)
+    if flush == True:
+        sys.stdout.flush()
 
 
 class Terminal:
@@ -46,10 +51,10 @@ class Terminal:
         _2or3 = sys.version_info[0]
         _second_version_number = sys.version_info[1]
         if float(_2or3) <= 2:
-            print("We only support Python3")
+            my_print("We only support Python3")
             exit()
         if (int(_2or3) == 3) and (int(_second_version_number) < 5):
-            print("We only support Python >= 3.5")
+            my_print("We only support Python >= 3.5")
             exit()
 
         self.current_dir = os.getcwd()
@@ -98,7 +103,7 @@ class Terminal:
             path = path.replace(
                 "~", "/".join(os.path.expanduser("~").split("/")[:-1]) + "/" + username
             )
-            print(path)
+            my_print(path)
         return path.replace("\\", "/")
 
     def expanduser_in_path(self, path, username = None):
@@ -231,12 +236,12 @@ class Terminal:
         # if '\n' in c:
         c = self.fix_path(c)
         if self.debug:
-            print("\n" + "-" * 20 + "\n")
-            print(c)
-            print("\n" + "-" * 20 + "\n")
+            my_print("\n" + "-" * 20 + "\n")
+            my_print(c)
+            my_print("\n" + "-" * 20 + "\n")
 
         if (use_os_system == True):
-            c = f'cd "{os.path.abspath(cwd)}"' + "\n\n" + c
+            c = 'cd "{}"'.format(os.path.abspath(cwd)) + "\n\n" + c
             c, temp_sh = self.__text_to_sh(c, wait=True)
         else:
             c, temp_sh = self.__text_to_sh(c, wait=False)
@@ -261,7 +266,7 @@ class Terminal:
                 preexec_fn= None if self.system_type == "win" else os.setsid
             )
         except Exception as e:
-            print(e)
+            my_print(e)
             c = self.fix_path(c)
             args_list = shlex.split(c)
             p = subprocess.Popen(
@@ -280,9 +285,9 @@ class Terminal:
                         break
                     if p.stdout.readable():
                         char = p.stdout.read(1)
-                        print(char, end="", flush=True)
+                        my_print(char, end="", flush=True)
                     #line = p.stdout.readline()
-                    #print(line, end="", flush=True)
+                    #my_print(line, end="", flush=True)
             except KeyboardInterrupt:
                 self.__remove_temp_sh(temp_sh)
                 self.kill_a_process_by_pid(p.pid)
@@ -317,9 +322,9 @@ class Terminal:
     #     # if '\n' in c:
     #     command = self.fix_path(command)
     #     if self.debug:
-    #         print("\n" + "-" * 20 + "\n")
-    #         print(command)
-    #         print("\n" + "-" * 20 + "\n")
+    #         my_print("\n" + "-" * 20 + "\n")
+    #         my_print(command)
+    #         my_print("\n" + "-" * 20 + "\n")
     #     command, temp_sh = self.__text_to_sh(command)
 
     #     try:
@@ -334,7 +339,7 @@ class Terminal:
     #             preexec_fn=os.setsid
     #         )
     #     except Exception as e:
-    #         print(e)
+    #         my_print(e)
     #         command = self.fix_path(command)
     #         args_list = shlex.split(command)
     #         p = subprocess.Popen(
@@ -357,7 +362,7 @@ class Terminal:
     #                 if p.stdout is None:
     #                     break
     #                 line = p.stdout.readline()  # strip(' \n')
-    #                 print(line, end="")
+    #                 my_print(line, end="")
     #         except KeyboardInterrupt:
     #             self.kill_a_process_by_pid(p.pid)
     #             self.__remove_temp_sh(temp_sh)
@@ -387,9 +392,9 @@ class Terminal:
         # if '\n' in c:
         c = self.fix_path(c)
         if self.debug:
-            print("\n" + "-" * 20 + "\n")
-            print(c)
-            print("\n" + "-" * 20 + "\n")
+            my_print("\n" + "-" * 20 + "\n")
+            my_print(c)
+            my_print("\n" + "-" * 20 + "\n")
         c, temp_sh = self.__text_to_sh(c)
 
         args_list = shlex.split(c)
@@ -434,13 +439,13 @@ class Terminal:
             cwd = self.fix_path(cwd)
 
         if self.debug:
-            print("\n" + "-" * 20 + "\n")
-            print(c)
-            print("\n" + "-" * 20 + "\n")
+            my_print("\n" + "-" * 20 + "\n")
+            my_print(c)
+            my_print("\n" + "-" * 20 + "\n")
         c, temp_sh = self.__text_to_py(c)
 
         args_list = shlex.split(c)
-        # print(args_list)
+        # my_print(args_list)
         # input("Go on?")
         try:
             try:
@@ -564,14 +569,14 @@ class Terminal:
         name = str(name)
         if self.machine_type == "darwin":
             # it is mac os
-            lines = self.run_command(f"pgrep {name}").strip("\n ").split("\n")
+            lines = self.run_command("pgrep " + name).strip("\n ").split("\n")
             pids = [i.strip("\n ") for i in lines]
             return pids
         else:
             # it is Linux
             pids = os.listdir("/proc")
             pids = [i for i in pids if i.isdigit()]
-            command_lines = [self._io.read(f"/proc/{i}/cmdline") for i in pids]
+            command_lines = [self._io.read("/proc/" + i + "/cmdline") for i in pids]
             target_pids = []
             for pid, command in zip(pids, command_lines):
                 if name in command:
@@ -595,7 +600,7 @@ class Terminal:
     def _get_all_running_pids(self):
         if self.machine_type == "darwin":
             # it is mac os
-            lines = self.run_command(f'pgrep ""').strip("\n ").split("\n")
+            lines = self.run_command('pgrep ""').strip("\n ").split("\n")
             pids = [i.strip("\n ") for i in lines]
             return pids
         else:
@@ -655,12 +660,12 @@ class Terminal:
                 os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
                 os.killpg(os.getpgid(int(pid)), signal.SIGKILL)
             except Exception as e:
-                print(e)
+                my_print(e)
         else:
             try:
                 os.killpg(os.getpgid(int(pid)), signal.SIGINT)  # This is typically initiated by pressing Ctrl+C
             except Exception as e:
-                print(e)
+                my_print(e)
 
         if wait is True:
             while self.is_running_by_pid(pid) and timeout > 0:
@@ -670,7 +675,7 @@ class Terminal:
             try:
                 os.killpg(os.getpgid(int(pid)), signal.SIGQUIT)  # Send the signal to all the process groups
             except Exception as e:
-                print(e)
+                my_print(e)
 
     def kill(
         self, name, force = True, wait = False, timeout = 30
@@ -741,7 +746,7 @@ class Terminal_User_Interface:
         """
         while True:
             self.clear_screen()
-            user_response = input(f"{text}(y/n) ").strip().lower()
+            user_response = input(text + "(y/n) ").strip().lower()
 
             if user_response.lower() == "n":
                 if (no_callback_function != None):
@@ -787,10 +792,10 @@ class Terminal_User_Interface:
             # single selection, no real time list
             while True:
                 self.clear_screen()
-                print(text)
-                print("\n".join([f"    {index}. {one[0]}" for index, one in enumerate(selections)]))
+                my_print(text)
+                my_print("\n".join(["    {}. {}".format(index, one[0]) for index, one in enumerate(selections)]))
                 max_index = len(selections)-1
-                user_response = input(f"What do you choose? (0-{str(max_index)}) ").strip()
+                user_response = input("What do you choose? (0-{}) ".format(str(max_index))).strip()
                 try:
                     select_index = int(user_response)
                     if 0 <= select_index <= max_index:
@@ -804,15 +809,15 @@ class Terminal_User_Interface:
             current_page = 0
             while True:
                 self.clear_screen()
-                print(text)
+                my_print(text)
                 try:
                     selections = seperate_page_loading_function(page_size, current_page)
 
-                    print("\n".join([f"    {index}. {one[0]}" for index, one in enumerate(selections)]))
-                    print()
-                    print(f"(n for next_page, p for previous_page, j+number for page_jump)")
+                    my_print("\n".join(["    {}. {}".format(index, one[0]) for index, one in enumerate(selections)]))
+                    my_print()
+                    my_print("(n for next_page, p for previous_page, j+number for page_jump)")
                     max_index = len(selections)-1
-                    user_response = input(f"What do you choose? (0-{str(max_index)}) ").strip().lower()
+                    user_response = input("What do you choose? (0-{}) ".format(str(max_index))).strip().lower()
 
                     if user_response == "n":
                         current_page += 1
@@ -837,7 +842,7 @@ class Terminal_User_Interface:
                         if final_result != None:
                             return final_result
                 except Exception as e:
-                    print(e)
+                    my_print(e)
                     time.sleep(3)
                     pass
 
@@ -859,8 +864,8 @@ class Terminal_User_Interface:
                 sys.stdout.flush()
 
             self.clear_screen()
-            print(text)
-            print("(press ESC(:ZZ) to end the input)")
+            my_print(text)
+            my_print("(press ESC(:ZZ) to end the input)")
             advanced_terminal_user_interface = Advanced_Terminal_User_Interface()
             user_response = ""
             while True:
@@ -868,7 +873,7 @@ class Terminal_User_Interface:
                 char_id = advanced_terminal_user_interface.get_char_id(char)
                 if char_id == 27:
                     # exit
-                    print("\n", end="", flush=True)
+                    my_print("\n", end="", flush=True)
                     break
                 elif char_id == 10 or char_id == 13:
                     # newline or enter key
@@ -882,12 +887,12 @@ class Terminal_User_Interface:
                         user_response += char
                 self.clear_screen()
                 advanced_terminal_user_interface.sys.stdout.write(user_response)
-                print("", end="", flush=True)
+                my_print("", end="", flush=True)
                 #advanced_terminal_user_interface.sys.stdout.flush()
 
                 if user_response.endswith(":ZZ"):
                     user_response = user_response[:-3]
-                    print("\n", end="", flush=True)
+                    my_print("\n", end="", flush=True)
                     break
 
             user_response = user_response.strip()
@@ -915,14 +920,14 @@ class Terminal_User_Interface:
         io_.write(file_path, text)
 
         if editor != None:
-            terminal.run(f"{editor} {file_path}")
+            terminal.run(editor + " " + file_path)
         else:
             if terminal.software_exists("vi"):
-                terminal.run(f"vi {file_path}")
+                terminal.run("vi " + file_path)
             elif terminal.software_exists("vim"):
-                terminal.run(f"vim -u NONE {file_path}")
+                terminal.run("vim -u NONE " + file_path)
             elif terminal.software_exists("gedit"):
-                terminal.run(f"gedit {file_path}")
+                terminal.run("gedit " + file_path)
             else:
                 raise Exception("You should specify the editor, for example, 'vim'")
 
@@ -1013,9 +1018,9 @@ class Advanced_Terminal_User_Interface:
 
 if __name__ ==  "__main__":
     terminal = Terminal()
-    print(terminal.software_exists("vi"))
+    my_print(terminal.software_exists("vi"))
 
     terminal_user_interface = Terminal_User_Interface()
     #result = terminal_user_interface.input_box("Please do the input: ", with_new_line=True)
     result = terminal_user_interface.edit_box("You can do edit of this text\n\nIt is fun.", editor="vim")
-    print(result)
+    my_print(result)
