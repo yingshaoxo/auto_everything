@@ -63,6 +63,7 @@ def click_it(y,x):
 target_image_path = "./gui.png"
 def refresh():
     image = root_container.render()
+    image.print()
     image.save_image_to_file_path(target_image_path)
 
 change_resolution()

@@ -5,6 +5,43 @@ except Exception as e:
     from font_ import get_ascii_8_times_16_points_data
 
 
+
+#terminal_color_dict = {
+#    "black": {"value": '\033[98mo\033[00m', "rgb": [0,0,0]},
+#    "red": {"value": '\033[91mo\033[00m', "rgb": [255,0,0]},
+#    "green": {"value": '\033[92mo\033[00m', "rgb": [0,255,0]},
+#    "yellow": {"value": '\033[93mo\033[00m', "rgb": [255,255,0]},
+#    "blue": {"value": '\033[44mo\033[00m', "rgb": [0,0,255]},
+#    "purple": {"value": '\033[95mo\033[00m', "rgb": [255,0,255]},
+#    "cyan": {"value": '\033[33mo\033[00m', "rgb": [0,255,255]},
+#    "lightgrey": {"value": '\033[97mo\033[00m', "rgb": [128,128,128]}
+#}
+terminal_color_dict = {
+    "black": {"value": '\033[40m \033[00m', "rgb": [0,0,0]},
+    "red": {"value": '\033[41m \033[00m', "rgb": [255,0,0]},
+    "green": {"value": '\033[42m \033[00m', "rgb": [0,255,0]},
+    "yellow": {"value": '\033[43m \033[00m', "rgb": [255,255,0]},
+    "blue": {"value": '\033[44m \033[00m', "rgb": [0,0,255]},
+    "purple": {"value": '\033[45m \033[00m', "rgb": [255,0,255]},
+    "cyan": {"value": '\033[46m \033[00m', "rgb": [0,255,255]},
+    "lightgrey": {"value": '\033[47m \033[00m', "rgb": [128,128,128]}
+}
+
+
+def choose_a_color_from_base_color(r,g,b):
+    min_distance = 10000
+    the_similar_one = terminal_color_dict["black"]
+    for color in terminal_color_dict.values():
+        the_color_rgb = color["rgb"]
+        r2, g2, b2 = the_color_rgb
+        distance = ((r2-r)**2 + (g2-g)**2 + (b2-b)**2)**0.5
+        if distance < min_distance:
+            min_distance = distance
+            the_similar_one = color
+    return the_similar_one
+
+
+
 class Image:
     """
     This class will represent image as 2D list. For example [[r,g,b,a], [r,g,b,a]] means two RGBA point.
@@ -177,27 +214,61 @@ class Image:
                     new_data[index] = one
             self.raw_data[y_index][x_start: x_end] = new_data
 
+    def print(self, width=70, height_scale=0.5):
+        """
+        print current graph to the console/shell/terminal without numpy or PIL or mathplotlib or ...
+        """
+        new_image = self.copy()
+        old_height, old_width = new_image.get_shape()
+        height = int(((width/old_width) * old_height) * height_scale)
+
+        new_image.resize(height, width)
+        final_image = self.create_an_image(height=height, width=width)
+
+        for row_index, row in enumerate(new_image.raw_data):
+            for column_index, the_color in enumerate(row):
+                new_color_raw = choose_a_color_from_base_color(the_color[0], the_color[1], the_color[2])
+                new_color = new_color_raw["rgb"]
+                new_color = [new_color[0], new_color[1], new_color[2], the_color[3]]
+                final_image.raw_data[row_index][column_index] = new_color
+                print(new_color_raw["value"], end="")
+            print("\n", end="", flush=True)
+
+        print("", end="", flush=True)
+        return final_image
+
     def read_image_from_file(self, file_path):
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
             try:
                 from PIL import Image as _Image
+
+                the_image = _Image.open(file_path)
+                height, width = the_image.size[1], the_image.size[0]
+
+                new_image = self.create_an_image(height=height, width=width)
+
+                data = the_image.convert('RGBA').getdata()
+
+                for row_index in range(0, height):
+                    base_index = row_index * width
+                    for column_index in range(0, width):
+                        new_image.raw_data[row_index][column_index] = list(data[base_index + column_index])
+
+                return new_image
             except Exception as e:
-                print(e)
-                print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
+                e1 = e
+                try:
+                    import auto_everything.additional.pypng as pypng
 
-            the_image = _Image.open(file_path)
-            height, width = the_image.size[1], the_image.size[0]
+                    height, width, raw_data = pypng.read_png_from_file(file_path)
 
-            new_image = self.create_an_image(height=height, width=width)
-
-            data = the_image.convert('RGBA').getdata()
-
-            for row_index in range(0, height):
-                base_index = row_index * width
-                for column_index in range(0, width):
-                    new_image.raw_data[row_index][column_index] = list(data[base_index + column_index])
-
-            return new_image
+                    a_image = self.create_an_image(height, width)
+                    a_image.raw_data = raw_data
+                    return a_image
+                except Exception as e:
+                    print(e1)
+                    print(e)
+                    print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
         else:
             with open(file_path, "r", encoding="utf-8") as f:
                 return Image(json.loads(f.read()))
@@ -216,8 +287,15 @@ class Image:
                 the_image = _Image.fromarray(numpy.uint8(self.raw_data))
                 the_image.save(file_path)
             except Exception as e:
-                print(e)
-                print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
+                e1 = e
+                try:
+                    import auto_everything.additional.pypng as pypng
+
+                    pypng.save_png_to_file(self, file_path)
+                except Exception as e:
+                    print(e1)
+                    print(e)
+                    print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
         else:
             """
             For image, maybe convert it to ascii is a good compression idea
