@@ -43,6 +43,14 @@ except Exception as e:
 
     a_image.resize(512, 512)
     pypng.save_png_to_file(a_image, target_image_path)
+    a_image.save_image_to_file_path(target_image_path+".txt")
+    a_image.save_image_to_file_path(target_image_path+".json")
+
+    input("Want to load them back?")
+    a_image = image.read_image_from_file(target_image_path+".json")
+    a_image.print()
+    a_image = image.read_image_from_file(target_image_path+".txt")
+    a_image.print()
 
     #import matplotlib.pyplot as plt
     #import numpy as np

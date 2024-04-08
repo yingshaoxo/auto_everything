@@ -268,7 +268,42 @@ class Image:
                 except Exception as e:
                     print(e1)
                     print(e)
-                    print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
+                    print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.txt', then do a text level compression.")
+        elif file_path.endswith(".json") or file_path.endswith(".txt"):
+            with open(file_path, "r", encoding="utf-8") as f:
+                raw_text = f.read()
+
+            if file_path.endswith(".json"):
+                #json_data = {"height": height, "width": width, "color_dict": the_real_color_dict, "data": []}
+                json_data = json.loads(raw_text)
+                height, width, the_color_dict, data = json_data["height"], json_data["width"], json_data["color_dict"], json_data["data"]
+
+                a_image = Image().create_an_image(height=height, width=width)
+                for row_index, line in enumerate(data):
+                    for column_index, id_ in enumerate(line):
+                        a_image.raw_data[row_index][column_index] = the_color_dict[str(id_)]
+
+                return a_image
+            elif file_path.endswith(".txt"):
+                splits = raw_text.split("\n_______\n")
+                size_info = splits[0].strip()
+                dict_text = splits[1].strip()
+                the_text_data = splits[2].strip()
+
+                the_color_dict = dict()
+                for index, line in enumerate(dict_text.split("\n")):
+                    the_color_dict[str(index)] = [int(one) for one in line.strip().split(",")]
+
+                info_splits = size_info.split(",")
+                height = int(info_splits[1])
+                width = int(info_splits[3])
+
+                a_image = Image().create_an_image(height=height, width=width)
+                for row_index, line in enumerate(the_text_data.split("\n")):
+                    for column_index, id_ in enumerate(line.strip().split(" ")):
+                        a_image.raw_data[row_index][column_index] = the_color_dict[id_]
+
+                return a_image
         else:
             with open(file_path, "r", encoding="utf-8") as f:
                 return Image(json.loads(f.read()))
@@ -295,7 +330,58 @@ class Image:
                 except Exception as e:
                     print(e1)
                     print(e)
-                    print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
+                    print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.txt', then do a text level compression.")
+        elif file_path.endswith(".json") or file_path.endswith(".txt"):
+            height, width = self.get_shape()
+
+            the_color_dict = dict()
+            for row_index, row in enumerate(self.raw_data):
+                for column_index, color in enumerate(row):
+                    color = tuple(color)
+                    if color in the_color_dict.keys():
+                        the_color_dict[color] += 1
+                    else:
+                        the_color_dict[color] = 1
+            the_color_dict_list = [(key,value) for key, value in the_color_dict.items()]
+            the_color_dict_list.sort(key=lambda x: -x[1])
+
+            the_real_color_dict = dict()
+            index = 0
+            for key,value in the_color_dict_list:
+                key = ",".join([str(one) for one in key])
+                the_real_color_dict[key] = index
+                index += 1
+
+            if file_path.endswith(".json"):
+                reverse_dict = dict()
+                for key, value in the_real_color_dict.items():
+                    reverse_dict[int(value)] = [int(one) for one in key.split(",")]
+                json_data = {"height": height, "width": width, "color_dict": reverse_dict, "data": []}
+                data = []
+                for row_index, row in enumerate(self.raw_data):
+                    data.append([])
+                    for column_index, color in enumerate(row):
+                        color = ",".join([str(one) for one in color])
+                        data[-1].append(the_real_color_dict[color])
+                json_data["data"] = data
+
+                text_data = json.dumps(json_data, ensure_ascii=False)
+            elif file_path.endswith(".txt"):
+                text_data = ""
+                text_data += "height,"+str(height)+","+"width,"+str(width)
+                text_data += "\n_______\n\n"
+                for key in the_real_color_dict.keys():
+                    text_data += key + "\n"
+                text_data += "_______\n\n"
+                for row_index, row in enumerate(self.raw_data):
+                    for column_index, color in enumerate(row):
+                        color = ",".join([str(one) for one in color])
+                        text_data += str(the_real_color_dict[color]) + " "
+                    text_data += "\n"
+
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(text_data)
+            print("Use 7z compression software if you want to have a smaller size image. It matchs the size of png. Because png secretly use zlib to do the compression.")
         else:
             """
             For image, maybe convert it to ascii is a good compression idea
