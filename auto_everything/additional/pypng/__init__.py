@@ -6,7 +6,11 @@ def read_png_from_file(path):
     return (height, width, raw_data)
     """
     reader = png.Reader(path)
-    width, height, rows, info = reader.read()
+    try:
+        width, height, rows, info = reader.read()
+    except Exception as e:
+        print("The python bytearray has bug, it can't handle big file. You may need to read a smaller png file. For example, 800*600 image.")
+        raise e
 
     rows = list(rows)
 

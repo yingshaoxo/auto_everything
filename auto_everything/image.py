@@ -14,7 +14,7 @@ except Exception as e:
 #    "blue": {"value": '\033[44mo\033[00m', "rgb": [0,0,255]},
 #    "purple": {"value": '\033[95mo\033[00m', "rgb": [255,0,255]},
 #    "cyan": {"value": '\033[33mo\033[00m', "rgb": [0,255,255]},
-#    "lightgrey": {"value": '\033[97mo\033[00m', "rgb": [128,128,128]}
+#    "lightgrey": {"value": '\033[97mo\033[00m', "rgb": [128,128,128]},
 #}
 terminal_color_dict = {
     "black": {"value": '\033[40m \033[00m', "rgb": [0,0,0]},
@@ -24,7 +24,8 @@ terminal_color_dict = {
     "blue": {"value": '\033[44m \033[00m', "rgb": [0,0,255]},
     "purple": {"value": '\033[45m \033[00m', "rgb": [255,0,255]},
     "cyan": {"value": '\033[46m \033[00m', "rgb": [0,255,255]},
-    "lightgrey": {"value": '\033[47m \033[00m', "rgb": [128,128,128]}
+    "lightgrey": {"value": '\033[47m \033[00m', "rgb": [128,128,128]},
+    #"white": {"value": '\033[107m \033[00m', "rgb": [255,255,255]},
 }
 
 
@@ -38,6 +39,50 @@ def choose_a_color_from_base_color(r,g,b):
         if distance < min_distance:
             min_distance = distance
             the_similar_one = color
+    return the_similar_one
+
+
+def get_main_color_list_from_an_image(a_image, ratio=0.8):
+    ratio = 1 - ratio
+    counting_dict = {}
+
+    a_image = a_image.copy()
+    a_image.resize(30,30)
+    height, width = a_image.get_shape()
+    for row_index in range(height):
+        for column_index in range(width):
+            color = [str(one) for one in a_image[row_index][column_index]]
+            if color[-1] == 0:
+                continue
+            color = ",".join(color)
+            if color in counting_dict.keys():
+                counting_dict[color] += 1
+            else:
+                counting_dict[color] = 1
+    sort_items = list(counting_dict.items())
+    sort_items.sort(key=lambda x: -x[1])
+
+    main_color_list = sort_items[:max(int(len(sort_items)*ratio), 3)]
+    main_color_list = [[int(each) for each in one[0].split(",")] for one in main_color_list]
+    return main_color_list
+
+
+color_cache_dict = dict()
+def get_a_color_from_base_color(r,g,b,a,color_list):
+    id_ = str(r) + "," + str(g) + "," + str(a) + str(color_list)
+    if id_ in color_cache_dict:
+        return color_cache_dict[id_]
+
+    min_distance = 10000
+    the_similar_one = color_list[0]
+    for color in color_list:
+        r2, g2, b2, _ = color
+        distance = ((r2-r)**2 + (g2-g)**2 + (b2-b)**2)**0.5
+        if distance < min_distance:
+            min_distance = distance
+            the_similar_one = color
+
+    color_cache_dict[id_] = the_similar_one
     return the_similar_one
 
 
@@ -236,6 +281,26 @@ class Image:
 
         print("", end="", flush=True)
         return final_image
+
+    def get_simplified_image(self, ratio=0.8):
+        """
+        ratio: 0 to 1, more close to 1, more simplified
+
+        This is also how to compress png file in a way that human could not notice. Similar to https://tinypng.com
+        Created by yingshaoxo
+        """
+        new_image = self.copy()
+        color_list = get_main_color_list_from_an_image(new_image, ratio)
+
+        for row_index, row in enumerate(new_image.raw_data):
+            for column_index, the_color in enumerate(row):
+                if the_color[-1] == 0:
+                    new_color = [0,0,0,0]
+                else:
+                    new_color = get_a_color_from_base_color(the_color[0], the_color[1], the_color[2], the_color[3], color_list)
+                new_image.raw_data[row_index][column_index] = new_color
+
+        return new_image
 
     def read_image_from_file(self, file_path):
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
