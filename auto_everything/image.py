@@ -52,7 +52,7 @@ def get_main_color_list_from_an_image(a_image, ratio=0.8):
     for row_index in range(height):
         for column_index in range(width):
             color = [str(one) for one in a_image[row_index][column_index]]
-            if color[-1] == 0:
+            if color[-1] != '255':
                 continue
             color = ",".join(color)
             if color in counting_dict.keys():
@@ -213,6 +213,7 @@ class Image:
                     data_2[index].append(one)
 
         self.raw_data = data_2
+        return self
 
     def paste_image_on_top_of_this_image(self, another_image, top, left, height, width):
         """
@@ -258,6 +259,8 @@ class Image:
                 else:
                     new_data[index] = one
             self.raw_data[y_index][x_start: x_end] = new_data
+
+        return self
 
     def print(self, width=70, height_scale=0.5):
         """

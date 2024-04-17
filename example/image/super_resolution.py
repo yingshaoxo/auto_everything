@@ -5,14 +5,10 @@ image = Image()
 source_image_path = "/home/yingshaoxo/Downloads/hero.png"
 an_image = image.read_image_from_file(source_image_path)
 height, width = an_image.get_shape()
-#an_image.resize(height*4, width*4)
-#an_image.resize(70, 70)
-
 an_image.print()
-
 an_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero1.png")
 
-an_image = an_image.get_simplified_image()
+an_image = an_image.get_simplified_image(ratio=0.9)
 an_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2.png")
 
 import auto_everything.additional.hqx as hqx

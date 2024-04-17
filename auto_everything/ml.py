@@ -1585,6 +1585,9 @@ class Yingshaoxo_Speech_Recognizer():
     If you have a text_to_speech dataset, you could make a reverse coding.
     Use voice similarity to get target voice, then use 1:1 speech_to_text dataset to get the target text.
     """
+    """
+    Actually, you can think it as a translator. Just use yingshaoxo hash function to compare raw audio data, then translate from long segment to short segment, it should simply work. At least for one person's voice.
+    """
     def __init__(self, language: str = 'en'):
         # pip install vosk
         # pip install sounddevice
@@ -1849,12 +1852,206 @@ class Yingshaoxo_Text_to_Speech():
             self._speak_it(language=one["language"], text=one["text"])
 
 
+class Yingshaoxo_Image_Transformer():
+    def __init__(self):
+        self.scale_up_cache_dict = {}
+
+    def get_edge_lines_of_a_image(self, image, spread=False, use_only_one_color=False):
+        """
+        import numpy as np
+        import cv2
+        from PIL import Image, ImageFilter
+
+        image = image.copy()
+        height, width = image.get_shape()
+        new_image = image.create_an_image(height, width, color=[255,255,255,0])
+        empty_image = np.uint8(np.array(new_image.raw_data))
+
+        cv2_image = np.uint8(np.array(image.raw_data))
+        # Convert the img to grayscale
+        gray = cv2.cvtColor(cv2_image, cv2.COLOR_RGB2GRAY)
+        # Apply edge detection method on the image
+        edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+        # This returns an array of r and theta values
+        lines = cv2.HoughLinesP(edges, 3, np.pi/180, 30)
+        if "None" in str(type(lines)):
+            lines = []
+        # The below for loop runs till r and theta values
+        # are in the range of the 2d array
+        for points in lines:
+            # Extracted points nested in the list
+            x1,y1,x2,y2=points[0]
+            # Draw the lines joing the points
+            # On the original image
+            cv2.line(empty_image, (x1, y1), (x2, y2), (255, 255, 255, 255), 1)
+        image_data = empty_image.tolist()
+        image.raw_data = image_data
+        return image
+        """
+        from PIL import Image, ImageFilter
+        import numpy as np
+        import cv2
+        image = image.copy()
+        height, width = image.get_shape()
+
+        cv2_image = np.uint8(np.array(image.raw_data))
+        #a_image = Image.fromarray(cv2_image)
+        #a_image.show()
+
+        gray = cv2.cvtColor(cv2_image, cv2.COLOR_RGB2GRAY)
+        edge_image_array = cv2.Canny(gray, 50, 150, apertureSize=3)
+
+        if spread == True:
+            edge_image = Image.fromarray(edge_image_array)
+            edge_image = edge_image.effect_spread(2)
+            edge_image_array = np.array(edge_image)
+
+        #kernel = np.ones((2,2), np.uint8)
+        #edge_image_array = cv2.erode(edge_image_array, kernel, iterations=1)
+        #edge_image_array = cv2.dilate(edge_image_array, kernel, iterations=1)
+
+        grey_image_data = edge_image_array.tolist()
+        data = []
+        one_color_data = [0, 0, 0, 0]
+        color_counting = 0
+        for row_index, row in enumerate(grey_image_data):
+            row_data = []
+            for column_index, one in enumerate(row):
+                if one == 0:
+                    row_data.append([0,0,0,0])
+                else:
+                    color = image.raw_data[row_index][column_index]
+                    row_data.append(color)
+                    one_color_data[0] += color[0]
+                    one_color_data[1] += color[1]
+                    one_color_data[2] += color[2]
+                    color_counting += 1
+            data.append(row_data)
+
+        one_color = [one_color_data[0]//color_counting, one_color_data[1]//color_counting, one_color_data[2]//color_counting, 255]
+
+        if use_only_one_color == True:
+            for row_index, row in enumerate(data):
+                row_data = []
+                for column_index, one in enumerate(row):
+                    if one[3] == 0:
+                        pass
+                    else:
+                        data[row_index][column_index]=one_color
+
+        image.raw_data = data
+
+        return image
+
+    def scale_up_pixel_art_image(self, image, x4=False):
+        import auto_everything.additional.hqx as hqx
+        if x4 == True:
+            return hqx.yingshaoxo_image_scalling_up_by_using_hqx4(image)
+        else:
+            return hqx.yingshaoxo_image_scalling_up_by_using_hqx3(image)
+
+    def scale_up_animation_image(self, image, scale_x=3, speed_mode=False):
+        """
+        All you have to do is convert 'big aliasing' to 'small aliasing' or 'one pixel based aliasing'.
+        If you use 1 pixel pen to draw a slop line in any image, after you scale it down to 100% view, you will simply found it is a high resolution stright line.
+        Market FASS, MSAA algorithm is simply a lie. Instead of adding more stupid color into old image, you convert 'big aliasing' to 'small aliasing' without adding any new color.
+        If you can get edge line, just make sure all those line will only take 1 pixel, then add it to old image, problem solved.
+        --- author: yingshaoxo
+        """
+        """
+        有锯齿不可怕，可怕的是它是大锯齿、肉眼可见的锯齿。实际上你不需要抗锯齿，你需要把边界两色组成的大锯齿转化为小锯齿。如果你观察那些大图片的锯齿，在图像编辑软件里用size为1的画笔去涂一条最小锯齿线，你缩小图片后会发现，那就是你要的高清图，“没有锯齿”。
+        如果你可以得到edge line，直接把edge line变为最小像素，叠加到原图像上就可以了。
+        """
+        """
+        You can try to directly scally it up to 8x image, then use anti_aliasing(MASS8x) for the big image(gimp->magic select->grow->3;gimp->noise->spread->25), then scale it down directly to 2x image.
+        If you do not have anti_aliasing function, you can directly render 8x image to small screen, in thoery, it should work. Just put your eye away from screen, the image will become HD.
+        """
+        """
+        Or, if you have a game engine, you can render the view by using 1080p, then render it again with 320p. Create a dict, use 8x8 320p pixels as key, 48*48 1080p pixels as value. For each scene, you only rendering 1080p image for once, then use 320p for the rest. You only do HD convertion for 320p 2D image. If you can't find anything in dict, you do direct 6x scale up for that 8x8 pixel block.
+        """
+        import cv2
+        import numpy as np
+        height, width = image.get_shape()
+        new_height, new_width = height * scale_x, width * scale_x
+
+        cv2_image = np.uint8(np.array(image.raw_data))
+        cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
+        new_image_reference_data = cv2_image.tolist()
+        cubic_big_image_that_has_smooth_line = image.create_an_image(new_height, new_width)
+        cubic_big_image_that_has_smooth_line.raw_data = new_image_reference_data
+
+        try:
+            edge_line = self.get_edge_lines_of_a_image(cubic_big_image_that_has_smooth_line, spread=False, use_only_one_color=True)
+        except Exception as e:
+            edge_line = None
+
+        if edge_line != None:
+            for row_index in range(new_height):
+                for column_index in range(new_width):
+                    edge_pixel = edge_line.raw_data[row_index][column_index]
+                    if edge_pixel[3] != 0:
+                        edge_pixel[3] = 50
+                        cubic_big_image_that_has_smooth_line.raw_data[row_index][column_index] = edge_pixel
+                    else:
+                        pass
+
+        if speed_mode == False:
+            cubic_big_image_that_has_smooth_line = cubic_big_image_that_has_smooth_line.get_simplified_image(0.9)
+
+        return cubic_big_image_that_has_smooth_line
+
+    def scale_up_normal_image(self, image, scale_x=3, crazy=False):
+        """
+        You can simply convert that image to real path based svg, then do a resize.
+        """
+        """
+        Divide and conquire, you split image into 8x8 square, then use opencv to check if there has a line in center or not, if so, you simplify that image and draw a new line with one pixel width. If not, ignore it.
+        """
+        import cv2
+        import numpy as np
+        height, width = image.get_shape()
+        new_height, new_width = height * scale_x, width * scale_x
+        #image = image.get_simplified_image()
+
+        cv2_image = np.uint8(np.array(image.raw_data))
+        cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC) #cubic filter is the key here, it works like an anti-aliasing filter, for example, MSAA
+        new_image_reference_data = cv2_image.tolist()
+
+        try:
+            edge_line = self.get_edge_lines_of_a_image(image, spread=True, use_only_one_color=False)
+        except Exception as e:
+            edge_line = None
+
+        image.resize(new_height, new_width)
+        if edge_line != None:
+            cv2_image = np.uint8(np.array(edge_line.raw_data))
+            cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
+            edge_line.raw_data = cv2_image.tolist()
+
+            #image.paste_image_on_top_of_this_image(edge_line, top=0, left=0, height=new_height, width=new_width)
+            for row_index in range(new_height):
+                for column_index in range(new_width):
+                    edge_pixel = edge_line.raw_data[row_index][column_index]
+                    if edge_pixel[3] != 0:
+                        if crazy == True:
+                            image.raw_data[row_index][column_index] = [255,255,255,0]
+                        else:
+                            new_pixel = new_image_reference_data[row_index][column_index]
+                            image.raw_data[row_index][column_index] = new_pixel
+                    else:
+                        pass
+
+        image = image.get_simplified_image(0.7)
+        return image
+
+
 class ML():
     def __init__(self):
         self.Yingshaoxo_Text_Preprocessor = Yingshaoxo_Text_Preprocessor
         self.Yingshaoxo_Text_Transformer = Yingshaoxo_Text_Transformer
         self.Yingshaoxo_Text_Generator = Yingshaoxo_Text_Generator
         self.Yingshaoxo_Translator = Yingshaoxo_Translator
+        self.Yingshaoxo_Image_Transformer = Yingshaoxo_Image_Transformer
 
 
 if __name__ == "__main__":
