@@ -3,6 +3,7 @@ import random
 import os
 import re
 import json
+import random
 
 from auto_everything.terminal import Terminal, Terminal_User_Interface
 from auto_everything.disk import Disk, Store
@@ -1855,6 +1856,152 @@ class Yingshaoxo_Text_to_Speech():
 class Yingshaoxo_Image_Transformer():
     def __init__(self):
         self.scale_up_cache_dict = {}
+
+    def get_edge_lines_of_a_image_by_using_yingshaoxo_method(self, image, use_only_one_color=True, min_color_distance=120, smooth_value=0):
+        """
+        yingshaoxo: You can use Canny method, but I think it is hard to understand and implement
+        """
+        image = image.copy()
+        old_height, old_width = image.get_shape()
+        new_image = image.create_an_image(old_height, old_width, [0,0,0,0])
+
+        how_many_pixel_distance_between_two_pixel_would_get_considered_as_a_line = 3
+
+        height, width = image.get_shape()
+        line_list = []
+        for row_index in range(height):
+            previous_pixel = None
+            for column_index in range(width):
+                pixel = image.raw_data[row_index][column_index]
+                if previous_pixel != None:
+                    color_distance = ((previous_pixel[0]-pixel[0])**2 + (previous_pixel[1]-pixel[1])**2 + (previous_pixel[2]-pixel[2])**2 + (previous_pixel[3]-pixel[3])**2) ** 0.5
+                    if color_distance >= min_color_distance:
+                    #if pixel != previous_pixel:
+                        line_point = [row_index, column_index]
+                        found_previous_line = False
+                        found_index = 0
+                        for index, line in enumerate(line_list):
+                            previous_line_point = line[-1]
+                            distance = ((previous_line_point[1] - line_point[1])**2 + (previous_line_point[0] - line_point[0])**2)**0.5
+                            if distance <= how_many_pixel_distance_between_two_pixel_would_get_considered_as_a_line:
+                                found_previous_line = True
+                                found_index = index
+                                break
+                        if found_previous_line == True:
+                            line_list[found_index].append(line_point)
+                        else:
+                            line_list.append([line_point])
+                previous_pixel = pixel
+
+        new_line_list = []
+        for line in line_list:
+            if len(line) >= 2:
+                new_line_list.append(line)
+        line_list = new_line_list
+
+        if smooth_value != 0:
+            # You do smooth for those lines by using mean function
+            kernel_size = smooth_value
+            new_line_list = []
+            for line in line_list:
+                if len(line) < kernel_size:
+                    new_line_list.append(line)
+                else:
+                    more_points = []
+                    index = 0
+                    while True:
+                        a_list = []
+                        for i in range(kernel_size):
+                            a_list.append(line[index+i][1])
+                        x_mean_value = sum(a_list)//kernel_size
+                        for i in range(kernel_size):
+                            line[index+i][1] = x_mean_value
+
+                        a_list = []
+                        for i in range(kernel_size):
+                            a_list.append(line[index+i][0])
+                        y_mean_value = sum(a_list)//kernel_size
+                        for i in range(kernel_size):
+                            line[index+i][0] = y_mean_value
+
+                        for _ in range(11):
+                            the_x = random.randint(x_mean_value - kernel_size, x_mean_value + kernel_size)
+                            the_y = random.randint(y_mean_value - kernel_size, y_mean_value + kernel_size)
+                            more_points.append([the_y, the_x])
+
+                        index += kernel_size
+                        if index >= len(line)-1-kernel_size:
+                            break
+                    new_line_list.append(line + more_points)
+            line_list = new_line_list
+
+        for line in line_list:
+            if use_only_one_color == True:
+                r_list = []
+                g_list = []
+                b_list = []
+                alpha_list = []
+                counting = 0
+                for pixel_index_list in line:
+                    y,x = pixel_index_list[0],pixel_index_list[1]
+                    pixel = image[y][x]
+                    r_list.append(pixel[0])
+                    g_list.append(pixel[1])
+                    b_list.append(pixel[2])
+                    alpha_list.append(pixel[3])
+                    counting += 1
+                r_mean = sum(r_list)//counting
+                g_mean = sum(g_list)//counting
+                b_mean = sum(b_list)//counting
+                alpha_mean = sum(alpha_list)//counting
+
+                for pixel_index_list in line:
+                    y,x = pixel_index_list[0],pixel_index_list[1]
+                    new_image.raw_data[y][x] = [r_mean, g_mean, b_mean, alpha_mean]
+                """
+                for pixel_index_list in line:
+                    y,x = pixel_index_list[0],pixel_index_list[1]
+                    new_image.raw_data[y][x] = [0, 0, 0, 255]
+                """
+            else:
+                for pixel_index_list in line:
+                    y,x = pixel_index_list[0],pixel_index_list[1]
+                    new_image.raw_data[y][x] = image[y][x]
+
+        return new_image
+
+    def scale_up_image_by_using_yingshaoxo_method(self, image, scale_x=3):
+        height, width = image.get_shape()
+        new_height, new_width = height*scale_x, width*scale_x
+        image.resize(new_height, new_width)
+
+        edge_image = self.get_edge_lines_of_a_image_by_using_yingshaoxo_method(image, smooth_value=3)
+        # yingshaoxo: I still missing a way to use pure python to implement CUBIC_filter or MSAA_filter, otherwise, you will get a better result
+
+        one_color_data = [0, 0, 0, 0]
+        color_counting = 0
+        for row_index in range(new_height):
+            for column_index in range(new_width):
+                edge_color = edge_image.raw_data[row_index][column_index]
+                if edge_color[3] != 0:
+                    color = image.raw_data[row_index][column_index]
+                    one_color_data[0] += color[0]
+                    one_color_data[1] += color[1]
+                    one_color_data[2] += color[2]
+                    color_counting += 1
+        one_color = [one_color_data[0]//color_counting, one_color_data[1]//color_counting, one_color_data[2]//color_counting, 255]
+
+        for row_index in range(new_height):
+            for column_index in range(new_width):
+                edge_pixel = edge_image.raw_data[row_index][column_index]
+                if edge_pixel[3] != 0:
+                    edge_pixel[3] = 50
+                    #image.raw_data[row_index][column_index] = [0,0,0,255]
+                    image.raw_data[row_index][column_index] = edge_pixel
+                else:
+                    pass
+
+        return image
 
     def get_edge_lines_of_a_image(self, image, spread=False, use_only_one_color=False):
         """
