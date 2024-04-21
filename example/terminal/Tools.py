@@ -453,6 +453,54 @@ sudo vi /etc/network/interfaces
 ifdown -v {interface}; ifup -v {interface}
         """)
 
+    def serve(self, port):
+        from auto_everything.http_ import Yingshaoxo_Threading_Based_Http_Server, Yingshaoxo_Http_Request
+        from time import sleep
+
+        """
+        @dataclass()
+        class Yingshaoxo_Http_Request():
+            context: Any
+            host: str
+            method: str
+            url: str
+            url_arguments: dict[str, str]
+            headers: dict[str, str]
+            payload: str | None
+        """
+
+        wrote_index = False
+        if not os.path.exists("./index.html"):
+            files = os.listdir("./")
+            files = [f'<a href="/{file}">{file}</a>' for file in files]
+
+            folders = [file for file in files if "." not in file]
+            files = [file for file in files if "." in file]
+
+            folders.sort()
+            files.sort()
+
+            html_code = "<br>".join(folders + files)
+            with open("./index.html", "w") as f:
+                f.write(html_code)
+            wrote_index = True
+
+        def special_handler(request: Yingshaoxo_Http_Request):
+            return "Hello, world, fight for personal freedom."
+
+        router = {
+            r"/__yingshaoxo__": special_handler,
+            #r"(.*)": home_handler
+        }
+
+        try:
+            yingshaoxo_http_server = Yingshaoxo_Threading_Based_Http_Server(router=router)
+            yingshaoxo_http_server.start(host = "0.0.0.0", port = int(port), html_folder_path = "./", serve_html_under_which_url = "/")
+        except KeyboardInterrupt as e:
+            if wrote_index == True:
+                if os.path.exists("./index.html"):
+                    t.run_command("rm index.html")
+
     def hi(self):
         self.help()
 
