@@ -8,6 +8,10 @@ import re
 from time import sleep
 
 
+_The_Text_Encoding_ = "UTF-8"
+_The_Text_Encoding_Lower_ = "utf-8"
+
+
 @dataclass()
 class Yingshaoxo_Http_Request():
     context: Any
@@ -19,6 +23,19 @@ class Yingshaoxo_Http_Request():
     payload: str | None
 
 
+try:
+    from urllib import unquote
+except Exception as e:
+    try:
+        from urllib.parse import unquote
+    except Exception as e:
+        def unquote(text):
+            return text.replace("%20", " ")
+
+def _decode_url(text):
+    return unquote(text)
+
+
 def _handle_socket_request(socket_connection, context, router, handle_get_file_url):
     try:
         host = None
@@ -28,7 +45,7 @@ def _handle_socket_request(socket_connection, context, router, handle_get_file_u
         http_standards = None
 
         raw_http_request_bytes = socket_connection.recv(1024) # one utf-8 char is 0~4 bytes, that's why for the following code, I times the length by 4 to make sure we receive all data
-        raw_http_request = raw_http_request_bytes.decode("utf-8", errors="ignore")
+        raw_http_request = raw_http_request_bytes.decode(_The_Text_Encoding_Lower_, errors="ignore")
         #print(raw_http_request)
         #print(repr(raw_http_request))
 
@@ -46,12 +63,12 @@ def _handle_socket_request(socket_connection, context, router, handle_get_file_u
                     for one in url_arguments_splits:
                         if "=" in one:
                             argument_key, argument_value = one.split("=")
-                            url_arguments[argument_key] = argument_value
+                            url_arguments[unquote(argument_key)] = unquote(argument_value)
                 else:
                     pass
 
         if (method == None or url == None or http_standards == None):
-            print(f"Unkonw http request:\n{raw_http_request}")
+            print(f"Unkonw http request:\n{raw_http_request.strip()}")
             exit()
         else:
             pass
@@ -63,7 +80,7 @@ Access-Control-Allow-Origin: *
 Access-Control-Allow-Methods: *
 Access-Control-Allow-Headers: *\r\n\r\ndone
 """.strip()
-            response = response.encode("utf-8", errors="ignore")
+            response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
             socket_connection.sendall(response)
             socket_connection.shutdown(1)
             socket_connection.close()
@@ -95,13 +112,13 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                     pass
                 else:
                     payload += socket_connection.recv((content_length)*4-len(payload)+200)
-                    payload = payload.decode("utf-8", errors="ignore")
+                    payload = payload.decode(_The_Text_Encoding_Lower_, errors="ignore")
             else:
                 # missing some headers, need more data, including payload
                 raw_http_request_bytes += socket_connection.recv((content_length)*4+len(raw_http_request_bytes)+200)
-                raw_http_request = raw_http_request_bytes.decode("utf-8", errors="ignore")
+                raw_http_request = raw_http_request_bytes.decode(_The_Text_Encoding_Lower_, errors="ignore")
                 payload = raw_http_request_bytes.split(payload_seperator_bytes)[1]
-                payload = payload.decode("utf-8", errors="ignore")
+                payload = payload.decode(_The_Text_Encoding_Lower_, errors="ignore")
 
         # do the process directly
         splits = raw_http_request.split(payload_seperator)
@@ -115,6 +132,7 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
         if "Host" in headers_dict:
             host = headers_dict["Host"]
 
+        url = unquote(url)
         print(host, method, url)
         #print(f"headers:\n{headers_dict}")
         #print(f"payload:\n{payload}")
@@ -141,8 +159,13 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                     raw_response = route_function(the_request_object)
 
         if type(raw_response) == str:
+            if method == "POST":
+                text_type = "text/plain"
+            else:
+                text_type = "text/html"
             response = f"""
 HTTP/1.1 200 OK
+Content-Type: {text_type}; charset={_The_Text_Encoding_}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
 """.strip()
         elif type(raw_response) == dict:
@@ -150,7 +173,7 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
             json_length = len(raw_response)
             response = f"""
 HTTP/1.1 200 OK
-Content-Type: application/json
+Content-Type: application/json; charset={_The_Text_Encoding_}
 Content-Length: {json_length}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
             """.strip()
@@ -164,11 +187,13 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
                 the_content_type = "text/css"
             elif url.endswith(".js"):
                 the_content_type = "text/javascript"
+            elif url.endswith(".txt"):
+                the_content_type = "text/plain"
 
             if the_content_type != None:
                 response = f"""
 HTTP/1.1 200 OK
-Content-Type: {the_content_type}
+Content-Type: {the_content_type}; charset={_The_Text_Encoding_}
 Content-Length: {bytes_length}
 Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             else:
@@ -176,19 +201,19 @@ Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
 HTTP/1.1 200 OK
 Content-Length: {bytes_length}
 Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
-            response = response.encode("utf-8", errors="ignore")
+            response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
             response += raw_response
         else:
             response = f"HTTP/1.1 500 Server error\r\n\r\nNo router for {url}".strip()
 
         if type(response) == str:
-            response = response.encode("utf-8", errors="ignore")
+            response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
 
         socket_connection.sendall(response)
     except Exception as e:
         print(e)
         response = f"HTTP/1.1 200 OK\r\n\r\n{e}".strip()
-        response = response.encode("utf-8", errors="ignore")
+        response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
         socket_connection.sendall(response)
     finally:
         socket_connection.shutdown(1)
@@ -220,7 +245,7 @@ class Yingshaoxo_Http_Server():
         self.context = multiprocess_manager.dict()
         self.router = router
 
-    def start(self, host:str = "0.0.0.0", port:int = 80, html_folder_path: str="", serve_html_under_which_url: str="/"): 
+    def start(self, host:str = "0.0.0.0", port:int = 80, html_folder_path: str="", serve_html_under_which_url: str="/"):
         try:
             handle_get_file_url = None
             if (html_folder_path != ""):
@@ -337,6 +362,8 @@ class Yingshaoxo_Threading_Based_Http_Server():
 
             raw_response = None
 
+            sub_url = unquote(sub_url)
+
             if method == "GET":
                 raw_response = handle_file_request_url(sub_url)
 
@@ -349,7 +376,7 @@ class Yingshaoxo_Threading_Based_Http_Server():
                 for one in url_arguments_splits:
                     if "=" in one:
                         argument_key, argument_value = one.split("=")
-                        url_arguments[argument_key] = argument_value
+                        url_arguments[unquote(argument_key)] = unquote(argument_value)
 
             the_request_object = Yingshaoxo_Http_Request(
                 context=self.context,
@@ -369,10 +396,10 @@ class Yingshaoxo_Threading_Based_Http_Server():
 
             raw_type = str
             if type(raw_response) == str:
-                raw_response = raw_response.encode("utf-8", errors="ignore")
+                raw_response = raw_response.encode(_The_Text_Encoding_Lower_, errors="ignore")
                 raw_type = str
             elif type(raw_response) == dict:
-                raw_response = json.dumps(raw_response, indent=4).encode("utf-8", errors="ignore")
+                raw_response = json.dumps(raw_response, indent=4).encode(_The_Text_Encoding_Lower_, errors="ignore")
                 raw_type = dict
             elif type(raw_response) == bytes:
                 raw_type = bytes
@@ -401,8 +428,14 @@ class Yingshaoxo_Threading_Based_Http_Server():
                     self2.send_header("Content-Type", "text/css")
                 elif sub_url.endswith(".js"):
                     self2.send_header("Content-Type", "text/javascript")
+                elif sub_url.endswith(".txt"):
+                    self2.send_header("Content-Type", "text/plain")
 
                 response, raw_type = handle_any_url("GET", sub_url, headers, None)
+                if (raw_type == dict):
+                    self2.send_header("Content-Type", "application/json")
+                elif (raw_type == str):
+                    self2.send_header("Content-Type", "text/html")
 
                 self2.end_headers()
                 self2.wfile.write(response)
@@ -413,13 +446,13 @@ class Yingshaoxo_Threading_Based_Http_Server():
 
                 content_length = headers.get('Content-Length')
                 if content_length is None:
-                    self2.wfile.write("What you send is not json".encode("utf-8", errors="ignore"))
+                    self2.wfile.write("What you send is not json".encode(_The_Text_Encoding_Lower_, errors="ignore"))
                     return
                 else:
                     content_length = int(content_length)
 
                 if content_length == 0:
-                    self2.wfile.write("What you send is not json".encode("utf-8", errors="ignore"))
+                    self2.wfile.write("What you send is not json".encode(_The_Text_Encoding_Lower_, errors="ignore"))
                     return
 
                 request_json_dict = json.loads(self2.rfile.read(content_length))
@@ -430,6 +463,8 @@ class Yingshaoxo_Threading_Based_Http_Server():
                 response, raw_type = handle_any_url("POST", sub_url, headers, request_json_dict)
                 if raw_type == dict:
                     self2.send_header("Content-Type", "application/json")
+                elif (raw_type == str):
+                    self2.send_header("Content-Type", "text/plain")
 
                 self2.end_headers()
                 self2.wfile.write(response)

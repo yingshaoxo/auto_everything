@@ -28,7 +28,7 @@ class Network:
             It is something like this: 127.0.0.1:2222
         to_ip_port: string
             It is something like this: 127.0.0.1:22
-        
+
         After you excute this function, you can use `ssh root@127.0.0.1 -p 2222` to connect 22 port
         """
         import socket
@@ -92,7 +92,7 @@ class Network:
             a socket file like /tmp/message.socket
         to_ip_port: string
             It is something like this: 127.0.0.1:22
-        
+
         It is normally used to read wire socket from usb line, like '/dev/usb0'. 
         But you can also use it twice to forward data between two isolated container where file sharing is possible.
         """
@@ -221,7 +221,7 @@ class Network:
         result_list1 = [one.split(" ")[1] for one in result.strip().split("\n") if one.strip() != ""]
         result_list2 = [one.split(" ")[1]+url for one in result.strip().split("\n") if one.strip() != ""]
         return result_list1, result_list2
-    
+
     def get_domain_to_ip_record_by_using_domain_url(self, url: str) -> list[str]:
         """
         Get IP address list by using a domain url.
