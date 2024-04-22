@@ -1906,96 +1906,6 @@ def convert_image_to_grayscale(image):
 
     return gray_image
 
-def convolve2d(image, kernel):
-    kernel = kernel[::-1]  # Flip the kernel
-    output = [[0 for _ in range(len(image[0]))] for _ in range(len(image))]
-    for x in range(len(image)):
-        for y in range(len(image[0])):
-            for a in range(len(kernel)):
-                for b in range(len(kernel[0])):
-                    x_val = x + a - len(kernel) // 2
-                    y_val = y + b - len(kernel[0]) // 2
-                    if x_val >= 0 and x_val < len(image) and y_val >= 0 and y_val < len(image[0]):
-                        output[x][y] += image[x_val][y_val] * kernel[a][b]
-    return output
-
-def gaussian_blur(image, kernel_size=5, sigma=1.4):
-    kernel = [[0 for _ in range(kernel_size)] for _ in range(kernel_size)]
-    for i in range(kernel_size):
-        for j in range(kernel_size):
-            kernel[i][j] = (1 / (2 * 3.1416 * sigma ** 2)) * 2.71828 ** (-((i - kernel_size // 2) ** 2 + (j - kernel_size // 2) ** 2) / (2 * sigma ** 2))
-    return convolve2d(image, kernel)
-
-def sobel_filters(image):
-    sobel_x = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]
-    sobel_y = [[1, 2, 1], [0, 0, 0], [-1, -2, -1]]
-    G_x = convolve2d(image, sobel_x)
-    G_y = convolve2d(image, sobel_y)
-    return G_x, G_y
-
-def gradient_magnitude(G_x, G_y):
-    magnitude = [[0 for _ in range(len(G_x[0]))] for _ in range(len(G_x))]
-    for i in range(len(G_x)):
-        for j in range(len(G_x[0])):
-            magnitude[i][j] = ((G_x[i][j] ** 2) + (G_y[i][j] ** 2)) ** 0.5
-    return magnitude
-
-def non_maximum_suppression(magnitude, G_x, G_y):
-    suppressed = [[0 for _ in range(len(magnitude[0]))] for _ in range(len(magnitude))]
-    for i in range(1, len(magnitude) - 1):
-        for j in range(1, len(magnitude[0]) - 1):
-            angle = math.atan2(G_y[i][j], G_x[i][j]) * 180 / math.pi
-            if (0 <= angle < 22.5) or (157.5 <= angle <= 180) or (-22.5 <= angle < 0) or (-180 <= angle < -157.5):
-                if magnitude[i][j] > magnitude[i][j + 1] and magnitude[i][j] > magnitude[i][j - 1]:
-                    suppressed[i][j] = magnitude[i][j]
-            elif (22.5 <= angle < 67.5) or (-157.5 <= angle < -112.5):
-                if magnitude[i][j] > magnitude[i - 1][j + 1] and magnitude[i][j] > magnitude[i + 1][j - 1]:
-                    suppressed[i][j] = magnitude[i][j]
-            elif (67.5 <= angle < 112.5) or (-112.5 <= angle < -67.5):
-                if magnitude[i][j] > magnitude[i - 1][j] and magnitude[i][j] > magnitude[i + 1][j]:
-                    suppressed[i][j] = magnitude[i][j]
-            else:
-                if magnitude[i][j] > magnitude[i - 1][j - 1] and magnitude[i][j] > magnitude[i + 1][j + 1]:
-                    suppressed[i][j] = magnitude[i][j]
-    return suppressed
-
-def double_thresholding(image, low_threshold_ratio=0.05, high_threshold_ratio=0.09):
-    the_max = 0
-    for row in image:
-        for pixel in row:
-            if pixel > the_max:
-                the_max = pixel
-    high_threshold = the_max * high_threshold_ratio
-    low_threshold = high_threshold * low_threshold_ratio
-    output = [[0 for _ in range(len(image[0]))] for _ in range(len(image))]
-    for i in range(len(image)):
-        for j in range(len(image[0])):
-            if image[i][j] > high_threshold:
-                output[i][j] = 255
-            elif image[i][j] > low_threshold:
-                output[i][j] = 50
-    return output
-
-def canny_edge_detection(image_object):
-    height, width = image_object.get_shape()
-    image = convert_image_to_grayscale(image_object)
-
-    blurred = gaussian_blur(image)
-    G_x, G_y = sobel_filters(blurred)
-    magnitude = gradient_magnitude(G_x, G_y)
-    suppressed = non_maximum_suppression(magnitude, G_x, G_y)
-    edges = double_thresholding(suppressed, low_threshold_ratio=0.05, high_threshold_ratio=0.4)
-
-    binary_image = image_object.create_an_image(height, width, [0,0,0,0])
-    for y in range(height):
-        for x in range(width):
-            magnitude = edges[y][x]
-            #if 50 <= magnitude <= 150:
-            if magnitude == 255:
-                binary_image.raw_data[y][x] = [0,0,0,255]
-
-    return binary_image
-
 
 class Yingshaoxo_Image_Transformer():
     """
@@ -2023,8 +1933,13 @@ class Yingshaoxo_Image_Transformer():
             for column_index in range(width):
                 pixel = image.raw_data[row_index][column_index]
                 if previous_pixel != None:
-                    color_distance = ((previous_pixel[0]-pixel[0])**2 + (previous_pixel[1]-pixel[1])**2 + (previous_pixel[2]-pixel[2])**2 + (previous_pixel[3]-pixel[3])**2) ** 0.5
-                    if color_distance >= min_color_distance:
+                    color_distance_in_horizontal = ((previous_pixel[0]-pixel[0])**2 + (previous_pixel[1]-pixel[1])**2 + (previous_pixel[2]-pixel[2])**2 + (previous_pixel[3]-pixel[3])**2) ** 0.5
+                    if row_index > 0:
+                        upper_pixel = image.raw_data[row_index-1][column_index]
+                        color_distance_in_vertical = ((upper_pixel[0]-pixel[0])**2 + (upper_pixel[1]-pixel[1])**2 + (upper_pixel[2]-pixel[2])**2 + (upper_pixel[3]-pixel[3])**2) ** 0.5
+                    else:
+                        color_distance_in_vertical = 0
+                    if color_distance_in_horizontal >= min_color_distance or color_distance_in_vertical >= min_color_distance:
                     #if pixel != previous_pixel:
                         line_point = [row_index, column_index]
                         found_previous_line = False
@@ -2111,14 +2026,14 @@ class Yingshaoxo_Image_Transformer():
 
         return new_image
 
-    def scale_up_animation_image_by_using_yingshaoxo_method(self, image, scale_x=3):
+    def scale_up_animation_image_by_using_yingshaoxo_method(self, image, scale_x=3, min_color_distance=120):
         image = image.copy()
 
         height, width = image.get_shape()
         new_height, new_width = height*scale_x, width*scale_x
         image.resize(new_height, new_width)
 
-        edge_image = self.get_edge_lines_of_a_image_by_using_yingshaoxo_method(image, min_color_distance=120, smooth_value=3, spread=True, spread_value=11)
+        edge_image = self.get_edge_lines_of_a_image_by_using_yingshaoxo_method(image, min_color_distance=min_color_distance, smooth_value=3, spread=True, spread_value=11)
         # yingshaoxo: I still missing a way to use pure python to implement MSAA_filter, otherwise, you will get a better result
 
         for row_index in range(new_height):
@@ -2132,19 +2047,34 @@ class Yingshaoxo_Image_Transformer():
 
         return image
 
-    def scale_up_image_by_using_yingshaoxo_method(self, image, scale_x=3, quick_mode=True):
+    def scale_up_image_by_using_yingshaoxo_method(self, image, scale_x=3, speed_mode=True):
         image = image.copy()
-
-        scale_x = scale_x * 2
 
         height, width = image.get_shape()
         new_height, new_width = height*scale_x, width*scale_x
 
-        new_image = resize_image_with_cubic_interpolation(image, new_height, new_width)
-        new_image = resize_image_with_cubic_interpolation(new_image, new_height//2, new_width//2)
+        if speed_mode == True:
+            new_image = resize_image_with_cubic_interpolation(image, new_height, new_width)
 
-        new_image = new_image.get_simplified_image(0.9)
-        return new_image
+            new_image = new_image.get_simplified_image(0.9)
+            return new_image
+        else:
+            new_image = resize_image_with_cubic_interpolation(image, new_height, new_width)
+
+            edge_image = self.get_edge_lines_of_a_image_by_using_yingshaoxo_method(new_image, min_color_distance=30, smooth_value=9, spread=False, spread_value=11)
+
+            for row_index in range(new_height):
+                for column_index in range(new_width):
+                    edge_pixel = edge_image.raw_data[row_index][column_index]
+                    if edge_pixel[3] != 0:
+                        edge_pixel[3] = 10
+                        new_image.raw_data[row_index][column_index] = edge_pixel
+                    else:
+                        pass
+
+            new_image = new_image.get_simplified_image(0.9)
+
+            return new_image
 
     def get_edge_lines_of_a_image(self, image, spread=False, use_only_one_color=False):
         try:
@@ -2237,23 +2167,20 @@ class Yingshaoxo_Image_Transformer():
             import numpy as np
 
             if speed_mode == True:
-                scale_x *= 2
-
                 image = image.copy()
+
                 height, width = image.get_shape()
                 new_height, new_width = height * scale_x, width * scale_x
 
                 cv2_image = np.uint8(np.array(image.raw_data))
                 cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
-
-                cv2_image = cv2.resize(cv2_image, (new_width//2, new_height//2), interpolation=cv2.INTER_CUBIC)
                 image.raw_data = cv2_image.tolist()
 
                 image = image.get_simplified_image(0.9)
-
                 return image
             else:
                 image = image.copy()
+
                 height, width = image.get_shape()
                 new_height, new_width = height * scale_x, width * scale_x
 
