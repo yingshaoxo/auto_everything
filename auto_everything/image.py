@@ -262,6 +262,29 @@ class Image:
 
         return self
 
+    def rotate(self):
+        """
+        rotate 90 degree in clockwise
+        """
+        old_height, old_width = self.get_shape()
+        new_data = [None] * old_width
+        for x in range(old_width):
+            x = old_width - x - 1
+            one_row = [None] * old_height
+            for y in range(old_height):
+                one_row[y] = self.raw_data[y][x]
+            new_data[x] = one_row
+        self.raw_data = new_data
+        return self
+
+    def rotate_back(self):
+        """
+        rotate 90 degree in anti-clockwise to get original image
+        """
+        for _ in range(3):
+            self.rotate()
+        return self
+
     def print(self, width=70, height_scale=0.5):
         """
         print current graph to the console/shell/terminal without numpy or PIL or mathplotlib or ...

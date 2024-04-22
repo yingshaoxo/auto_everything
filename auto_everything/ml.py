@@ -4,6 +4,7 @@ import os
 import re
 import json
 import random
+import math
 
 from auto_everything.terminal import Terminal, Terminal_User_Interface
 from auto_everything.disk import Disk, Store
@@ -1853,11 +1854,159 @@ class Yingshaoxo_Text_to_Speech():
             self._speak_it(language=one["language"], text=one["text"])
 
 
-class Yingshaoxo_Image_Transformer():
-    def __init__(self):
-        self.scale_up_cache_dict = {}
+def resize_image_with_cubic_interpolation(image_object, new_height, new_width):
+    image_object = image_object.copy()
+    image = image_object.raw_data
 
-    def get_edge_lines_of_a_image_by_using_yingshaoxo_method(self, image, use_only_one_color=True, min_color_distance=120, smooth_value=0):
+    # Calculate new image size
+    old_height, old_width = image_object.get_shape()
+
+    # Initialize new image with zeros
+    new_image = image_object.copy()
+    new_image.resize(new_height, new_width)
+
+    for y in range(new_height):
+        for x in range(new_width):
+            sx = x / new_width * old_width
+            sy = y / new_height * old_height
+            x0 = int(sx)
+            y0 = int(sy)
+
+            x_ratio = sx - x0
+            y_ratio = sy - y0
+
+            x0 = min(old_width - 1, max(0, x0))
+            x1 = min(old_width - 1, x0 + 1)
+            y0 = min(old_height - 1, max(0, y0))
+            y1 = min(old_height - 1, y0 + 1)
+
+            rgba_list = []
+            for c in range(3):  # Assuming RGB image
+                p = image[y0][x0][c] * (1 - x_ratio) * (1 - y_ratio) + \
+                    image[y0][x1][c] * x_ratio * (1 - y_ratio) + \
+                    image[y1][x0][c] * (1 - x_ratio) * y_ratio + \
+                    image[y1][x1][c] * x_ratio * y_ratio
+                rgba_list.append(max(0, min(int(p), 255)))
+            rgba_list.append(new_image.raw_data[y][x][3])
+
+            new_image.raw_data[y][x] = rgba_list
+
+    return new_image
+
+def convert_image_to_grayscale(image):
+    height, width = image.get_shape()
+    gray_image = [[0 for _ in range(width)] for _ in range(height)]
+
+    for y in range(height):
+        for x in range(width):
+            r, g, b, a = image.raw_data[y][x]
+
+            gray = int(0.2989 * r + 0.5870 * g + 0.1140 * b)
+            gray_image[y][x] = gray
+
+    return gray_image
+
+def convolve2d(image, kernel):
+    kernel = kernel[::-1]  # Flip the kernel
+    output = [[0 for _ in range(len(image[0]))] for _ in range(len(image))]
+    for x in range(len(image)):
+        for y in range(len(image[0])):
+            for a in range(len(kernel)):
+                for b in range(len(kernel[0])):
+                    x_val = x + a - len(kernel) // 2
+                    y_val = y + b - len(kernel[0]) // 2
+                    if x_val >= 0 and x_val < len(image) and y_val >= 0 and y_val < len(image[0]):
+                        output[x][y] += image[x_val][y_val] * kernel[a][b]
+    return output
+
+def gaussian_blur(image, kernel_size=5, sigma=1.4):
+    kernel = [[0 for _ in range(kernel_size)] for _ in range(kernel_size)]
+    for i in range(kernel_size):
+        for j in range(kernel_size):
+            kernel[i][j] = (1 / (2 * 3.1416 * sigma ** 2)) * 2.71828 ** (-((i - kernel_size // 2) ** 2 + (j - kernel_size // 2) ** 2) / (2 * sigma ** 2))
+    return convolve2d(image, kernel)
+
+def sobel_filters(image):
+    sobel_x = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]
+    sobel_y = [[1, 2, 1], [0, 0, 0], [-1, -2, -1]]
+    G_x = convolve2d(image, sobel_x)
+    G_y = convolve2d(image, sobel_y)
+    return G_x, G_y
+
+def gradient_magnitude(G_x, G_y):
+    magnitude = [[0 for _ in range(len(G_x[0]))] for _ in range(len(G_x))]
+    for i in range(len(G_x)):
+        for j in range(len(G_x[0])):
+            magnitude[i][j] = ((G_x[i][j] ** 2) + (G_y[i][j] ** 2)) ** 0.5
+    return magnitude
+
+def non_maximum_suppression(magnitude, G_x, G_y):
+    suppressed = [[0 for _ in range(len(magnitude[0]))] for _ in range(len(magnitude))]
+    for i in range(1, len(magnitude) - 1):
+        for j in range(1, len(magnitude[0]) - 1):
+            angle = math.atan2(G_y[i][j], G_x[i][j]) * 180 / math.pi
+            if (0 <= angle < 22.5) or (157.5 <= angle <= 180) or (-22.5 <= angle < 0) or (-180 <= angle < -157.5):
+                if magnitude[i][j] > magnitude[i][j + 1] and magnitude[i][j] > magnitude[i][j - 1]:
+                    suppressed[i][j] = magnitude[i][j]
+            elif (22.5 <= angle < 67.5) or (-157.5 <= angle < -112.5):
+                if magnitude[i][j] > magnitude[i - 1][j + 1] and magnitude[i][j] > magnitude[i + 1][j - 1]:
+                    suppressed[i][j] = magnitude[i][j]
+            elif (67.5 <= angle < 112.5) or (-112.5 <= angle < -67.5):
+                if magnitude[i][j] > magnitude[i - 1][j] and magnitude[i][j] > magnitude[i + 1][j]:
+                    suppressed[i][j] = magnitude[i][j]
+            else:
+                if magnitude[i][j] > magnitude[i - 1][j - 1] and magnitude[i][j] > magnitude[i + 1][j + 1]:
+                    suppressed[i][j] = magnitude[i][j]
+    return suppressed
+
+def double_thresholding(image, low_threshold_ratio=0.05, high_threshold_ratio=0.09):
+    the_max = 0
+    for row in image:
+        for pixel in row:
+            if pixel > the_max:
+                the_max = pixel
+    high_threshold = the_max * high_threshold_ratio
+    low_threshold = high_threshold * low_threshold_ratio
+    output = [[0 for _ in range(len(image[0]))] for _ in range(len(image))]
+    for i in range(len(image)):
+        for j in range(len(image[0])):
+            if image[i][j] > high_threshold:
+                output[i][j] = 255
+            elif image[i][j] > low_threshold:
+                output[i][j] = 50
+    return output
+
+def canny_edge_detection(image_object):
+    height, width = image_object.get_shape()
+    image = convert_image_to_grayscale(image_object)
+
+    blurred = gaussian_blur(image)
+    G_x, G_y = sobel_filters(blurred)
+    magnitude = gradient_magnitude(G_x, G_y)
+    suppressed = non_maximum_suppression(magnitude, G_x, G_y)
+    edges = double_thresholding(suppressed, low_threshold_ratio=0.05, high_threshold_ratio=0.4)
+
+    binary_image = image_object.create_an_image(height, width, [0,0,0,0])
+    for y in range(height):
+        for x in range(width):
+            magnitude = edges[y][x]
+            #if 50 <= magnitude <= 150:
+            if magnitude == 255:
+                binary_image.raw_data[y][x] = [0,0,0,255]
+
+    return binary_image
+
+
+class Yingshaoxo_Image_Transformer():
+    """
+    def get_smooth_line_points_by_using_bezier_curve(self, points):
+        pass
+
+    def get_smooth_line_points_by_using_cubic_interpolation(self, points):
+        pass
+    """
+
+    def get_edge_lines_of_a_image_by_using_yingshaoxo_method(self, image, min_color_distance=120, smooth_value=0, spread=True, spread_value=11):
         """
         yingshaoxo: You can use Canny method, but I think it is hard to understand and implement
         """
@@ -1924,10 +2073,12 @@ class Yingshaoxo_Image_Transformer():
                         for i in range(kernel_size):
                             line[index+i][0] = y_mean_value
 
-                        for _ in range(11):
-                            the_x = random.randint(x_mean_value - kernel_size, x_mean_value + kernel_size)
-                            the_y = random.randint(y_mean_value - kernel_size, y_mean_value + kernel_size)
-                            more_points.append([the_y, the_x])
+                        if spread == True:
+                            for _ in range(spread_value):
+                                the_x = random.randint(x_mean_value - kernel_size, x_mean_value + kernel_size)
+                                the_y = random.randint(y_mean_value - kernel_size, y_mean_value + kernel_size)
+                                if the_x < width and the_y < height:
+                                    more_points.append([the_y, the_x])
 
                         index += kernel_size
                         if index >= len(line)-1-kernel_size:
@@ -1936,161 +2087,126 @@ class Yingshaoxo_Image_Transformer():
             line_list = new_line_list
 
         for line in line_list:
-            if use_only_one_color == True:
-                r_list = []
-                g_list = []
-                b_list = []
-                alpha_list = []
-                counting = 0
-                for pixel_index_list in line:
-                    y,x = pixel_index_list[0],pixel_index_list[1]
-                    pixel = image[y][x]
-                    r_list.append(pixel[0])
-                    g_list.append(pixel[1])
-                    b_list.append(pixel[2])
-                    alpha_list.append(pixel[3])
-                    counting += 1
-                r_mean = sum(r_list)//counting
-                g_mean = sum(g_list)//counting
-                b_mean = sum(b_list)//counting
-                alpha_mean = sum(alpha_list)//counting
+            r_list = []
+            g_list = []
+            b_list = []
+            alpha_list = []
+            counting = 0
+            for pixel_index_list in line:
+                y,x = pixel_index_list[0],pixel_index_list[1]
+                pixel = image[y][x]
+                r_list.append(pixel[0])
+                g_list.append(pixel[1])
+                b_list.append(pixel[2])
+                alpha_list.append(pixel[3])
+                counting += 1
+            r_mean = sum(r_list)//counting
+            g_mean = sum(g_list)//counting
+            b_mean = sum(b_list)//counting
+            alpha_mean = sum(alpha_list)//counting
 
-                for pixel_index_list in line:
-                    y,x = pixel_index_list[0],pixel_index_list[1]
-                    new_image.raw_data[y][x] = [r_mean, g_mean, b_mean, alpha_mean]
-                """
-                for pixel_index_list in line:
-                    y,x = pixel_index_list[0],pixel_index_list[1]
-                    new_image.raw_data[y][x] = [0, 0, 0, 255]
-                """
-            else:
-                for pixel_index_list in line:
-                    y,x = pixel_index_list[0],pixel_index_list[1]
-                    new_image.raw_data[y][x] = image[y][x]
+            for pixel_index_list in line:
+                y,x = pixel_index_list[0],pixel_index_list[1]
+                new_image.raw_data[y][x] = [r_mean, g_mean, b_mean, alpha_mean]
 
         return new_image
 
-    def scale_up_image_by_using_yingshaoxo_method(self, image, scale_x=3):
+    def scale_up_animation_image_by_using_yingshaoxo_method(self, image, scale_x=3):
+        image = image.copy()
+
         height, width = image.get_shape()
         new_height, new_width = height*scale_x, width*scale_x
         image.resize(new_height, new_width)
 
-        edge_image = self.get_edge_lines_of_a_image_by_using_yingshaoxo_method(image, smooth_value=3)
-        # yingshaoxo: I still missing a way to use pure python to implement CUBIC_filter or MSAA_filter, otherwise, you will get a better result
-
-        one_color_data = [0, 0, 0, 0]
-        color_counting = 0
-        for row_index in range(new_height):
-            for column_index in range(new_width):
-                edge_color = edge_image.raw_data[row_index][column_index]
-                if edge_color[3] != 0:
-                    color = image.raw_data[row_index][column_index]
-                    one_color_data[0] += color[0]
-                    one_color_data[1] += color[1]
-                    one_color_data[2] += color[2]
-                    color_counting += 1
-        one_color = [one_color_data[0]//color_counting, one_color_data[1]//color_counting, one_color_data[2]//color_counting, 255]
+        edge_image = self.get_edge_lines_of_a_image_by_using_yingshaoxo_method(image, min_color_distance=120, smooth_value=3, spread=True, spread_value=11)
+        # yingshaoxo: I still missing a way to use pure python to implement MSAA_filter, otherwise, you will get a better result
 
         for row_index in range(new_height):
             for column_index in range(new_width):
                 edge_pixel = edge_image.raw_data[row_index][column_index]
                 if edge_pixel[3] != 0:
                     edge_pixel[3] = 50
-                    #image.raw_data[row_index][column_index] = [0,0,0,255]
                     image.raw_data[row_index][column_index] = edge_pixel
                 else:
                     pass
 
         return image
 
+    def scale_up_image_by_using_yingshaoxo_method(self, image, scale_x=3, quick_mode=True):
+        image = image.copy()
+
+        scale_x = scale_x * 2
+
+        height, width = image.get_shape()
+        new_height, new_width = height*scale_x, width*scale_x
+
+        new_image = resize_image_with_cubic_interpolation(image, new_height, new_width)
+        new_image = resize_image_with_cubic_interpolation(new_image, new_height//2, new_width//2)
+
+        new_image = new_image.get_simplified_image(0.9)
+        return new_image
+
     def get_edge_lines_of_a_image(self, image, spread=False, use_only_one_color=False):
-        """
-        import numpy as np
-        import cv2
-        from PIL import Image, ImageFilter
+        try:
+            from PIL import Image, ImageFilter
+            import numpy as np
+            import cv2
+            image = image.copy()
+            height, width = image.get_shape()
 
-        image = image.copy()
-        height, width = image.get_shape()
-        new_image = image.create_an_image(height, width, color=[255,255,255,0])
-        empty_image = np.uint8(np.array(new_image.raw_data))
+            cv2_image = np.uint8(np.array(image.raw_data))
+            #a_image = Image.fromarray(cv2_image)
+            #a_image.show()
 
-        cv2_image = np.uint8(np.array(image.raw_data))
-        # Convert the img to grayscale
-        gray = cv2.cvtColor(cv2_image, cv2.COLOR_RGB2GRAY)
-        # Apply edge detection method on the image
-        edges = cv2.Canny(gray, 50, 150, apertureSize=3)
-        # This returns an array of r and theta values
-        lines = cv2.HoughLinesP(edges, 3, np.pi/180, 30)
-        if "None" in str(type(lines)):
-            lines = []
-        # The below for loop runs till r and theta values
-        # are in the range of the 2d array
-        for points in lines:
-            # Extracted points nested in the list
-            x1,y1,x2,y2=points[0]
-            # Draw the lines joing the points
-            # On the original image
-            cv2.line(empty_image, (x1, y1), (x2, y2), (255, 255, 255, 255), 1)
-        image_data = empty_image.tolist()
-        image.raw_data = image_data
-        return image
-        """
-        from PIL import Image, ImageFilter
-        import numpy as np
-        import cv2
-        image = image.copy()
-        height, width = image.get_shape()
+            gray = cv2.cvtColor(cv2_image, cv2.COLOR_RGB2GRAY)
+            edge_image_array = cv2.Canny(gray, 50, 150, apertureSize=3)
 
-        cv2_image = np.uint8(np.array(image.raw_data))
-        #a_image = Image.fromarray(cv2_image)
-        #a_image.show()
+            if spread == True:
+                edge_image = Image.fromarray(edge_image_array)
+                edge_image = edge_image.effect_spread(2)
+                edge_image_array = np.array(edge_image)
 
-        gray = cv2.cvtColor(cv2_image, cv2.COLOR_RGB2GRAY)
-        edge_image_array = cv2.Canny(gray, 50, 150, apertureSize=3)
+            #kernel = np.ones((2,2), np.uint8)
+            #edge_image_array = cv2.erode(edge_image_array, kernel, iterations=1)
+            #edge_image_array = cv2.dilate(edge_image_array, kernel, iterations=1)
 
-        if spread == True:
-            edge_image = Image.fromarray(edge_image_array)
-            edge_image = edge_image.effect_spread(2)
-            edge_image_array = np.array(edge_image)
-
-        #kernel = np.ones((2,2), np.uint8)
-        #edge_image_array = cv2.erode(edge_image_array, kernel, iterations=1)
-        #edge_image_array = cv2.dilate(edge_image_array, kernel, iterations=1)
-
-        grey_image_data = edge_image_array.tolist()
-        data = []
-        one_color_data = [0, 0, 0, 0]
-        color_counting = 0
-        for row_index, row in enumerate(grey_image_data):
-            row_data = []
-            for column_index, one in enumerate(row):
-                if one == 0:
-                    row_data.append([0,0,0,0])
-                else:
-                    color = image.raw_data[row_index][column_index]
-                    row_data.append(color)
-                    one_color_data[0] += color[0]
-                    one_color_data[1] += color[1]
-                    one_color_data[2] += color[2]
-                    color_counting += 1
-            data.append(row_data)
-
-        one_color = [one_color_data[0]//color_counting, one_color_data[1]//color_counting, one_color_data[2]//color_counting, 255]
-
-        if use_only_one_color == True:
-            for row_index, row in enumerate(data):
+            grey_image_data = edge_image_array.tolist()
+            data = []
+            one_color_data = [0, 0, 0, 0]
+            color_counting = 0
+            for row_index, row in enumerate(grey_image_data):
                 row_data = []
                 for column_index, one in enumerate(row):
-                    if one[3] == 0:
-                        pass
+                    if one == 0:
+                        row_data.append([0,0,0,0])
                     else:
-                        data[row_index][column_index]=one_color
+                        color = image.raw_data[row_index][column_index]
+                        row_data.append(color)
+                        one_color_data[0] += color[0]
+                        one_color_data[1] += color[1]
+                        one_color_data[2] += color[2]
+                        color_counting += 1
+                data.append(row_data)
 
-        image.raw_data = data
+            one_color = [one_color_data[0]//color_counting, one_color_data[1]//color_counting, one_color_data[2]//color_counting, 255]
 
-        return image
+            if use_only_one_color == True:
+                for row_index, row in enumerate(data):
+                    row_data = []
+                    for column_index, one in enumerate(row):
+                        if one[3] == 0:
+                            pass
+                        else:
+                            data[row_index][column_index]=one_color
+
+            image.raw_data = data
+
+            return image
+        except Exception as e:
+            return self.get_edge_lines_of_a_image_by_using_yingshaoxo_method(image, min_color_distance=120, smooth_value=0, spread=spread, spread_value=7)
 
     def scale_up_pixel_art_image(self, image, x4=False):
+        image = image.copy()
         import auto_everything.additional.hqx as hqx
         if x4 == True:
             return hqx.yingshaoxo_image_scalling_up_by_using_hqx4(image)
@@ -2116,80 +2232,102 @@ class Yingshaoxo_Image_Transformer():
         """
         Or, if you have a game engine, you can render the view by using 1080p, then render it again with 320p. Create a dict, use 8x8 320p pixels as key, 48*48 1080p pixels as value. For each scene, you only rendering 1080p image for once, then use 320p for the rest. You only do HD convertion for 320p 2D image. If you can't find anything in dict, you do direct 6x scale up for that 8x8 pixel block.
         """
-        import cv2
-        import numpy as np
-        height, width = image.get_shape()
-        new_height, new_width = height * scale_x, width * scale_x
-
-        cv2_image = np.uint8(np.array(image.raw_data))
-        cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
-        new_image_reference_data = cv2_image.tolist()
-        cubic_big_image_that_has_smooth_line = image.create_an_image(new_height, new_width)
-        cubic_big_image_that_has_smooth_line.raw_data = new_image_reference_data
-
         try:
-            edge_line = self.get_edge_lines_of_a_image(cubic_big_image_that_has_smooth_line, spread=False, use_only_one_color=True)
+            import cv2
+            import numpy as np
+
+            if speed_mode == True:
+                scale_x *= 2
+
+                image = image.copy()
+                height, width = image.get_shape()
+                new_height, new_width = height * scale_x, width * scale_x
+
+                cv2_image = np.uint8(np.array(image.raw_data))
+                cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
+
+                cv2_image = cv2.resize(cv2_image, (new_width//2, new_height//2), interpolation=cv2.INTER_CUBIC)
+                image.raw_data = cv2_image.tolist()
+
+                image = image.get_simplified_image(0.9)
+
+                return image
+            else:
+                image = image.copy()
+                height, width = image.get_shape()
+                new_height, new_width = height * scale_x, width * scale_x
+
+                cv2_image = np.uint8(np.array(image.raw_data))
+                cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
+                new_image_reference_data = cv2_image.tolist()
+                cubic_big_image_that_has_smooth_line = image.create_an_image(new_height, new_width)
+                cubic_big_image_that_has_smooth_line.raw_data = new_image_reference_data
+
+                try:
+                    edge_line = self.get_edge_lines_of_a_image(cubic_big_image_that_has_smooth_line, spread=False, use_only_one_color=True)
+                except Exception as e:
+                    edge_line = None
+
+                if edge_line != None:
+                    for row_index in range(new_height):
+                        for column_index in range(new_width):
+                            edge_pixel = edge_line.raw_data[row_index][column_index]
+                            if edge_pixel[3] != 0:
+                                edge_pixel[3] = 50
+                                cubic_big_image_that_has_smooth_line.raw_data[row_index][column_index] = edge_pixel
+                            else:
+                                pass
+
+                cubic_big_image_that_has_smooth_line = cubic_big_image_that_has_smooth_line.get_simplified_image(0.9)
+
+                return cubic_big_image_that_has_smooth_line
         except Exception as e:
-            edge_line = None
+            return self.scale_up_animation_image_by_using_yingshaoxo_method(image, scale_x=scale_x)
 
-        if edge_line != None:
-            for row_index in range(new_height):
-                for column_index in range(new_width):
-                    edge_pixel = edge_line.raw_data[row_index][column_index]
-                    if edge_pixel[3] != 0:
-                        edge_pixel[3] = 50
-                        cubic_big_image_that_has_smooth_line.raw_data[row_index][column_index] = edge_pixel
-                    else:
-                        pass
-
-        if speed_mode == False:
-            cubic_big_image_that_has_smooth_line = cubic_big_image_that_has_smooth_line.get_simplified_image(0.9)
-
-        return cubic_big_image_that_has_smooth_line
-
-    def scale_up_normal_image(self, image, scale_x=3, crazy=False):
+    def scale_up_image(self, image, scale_x=3):
         """
         You can simply convert that image to real path based svg, then do a resize.
         """
         """
         Divide and conquire, you split image into 8x8 square, then use opencv to check if there has a line in center or not, if so, you simplify that image and draw a new line with one pixel width. If not, ignore it.
         """
-        import cv2
-        import numpy as np
-        height, width = image.get_shape()
-        new_height, new_width = height * scale_x, width * scale_x
-        #image = image.get_simplified_image()
-
-        cv2_image = np.uint8(np.array(image.raw_data))
-        cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC) #cubic filter is the key here, it works like an anti-aliasing filter, for example, MSAA
-        new_image_reference_data = cv2_image.tolist()
-
         try:
-            edge_line = self.get_edge_lines_of_a_image(image, spread=True, use_only_one_color=False)
-        except Exception as e:
-            edge_line = None
+            import cv2
+            import numpy as np
 
-        image.resize(new_height, new_width)
-        if edge_line != None:
-            cv2_image = np.uint8(np.array(edge_line.raw_data))
-            cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
-            edge_line.raw_data = cv2_image.tolist()
+            image = image.copy()
+            height, width = image.get_shape()
+            new_height, new_width = height * scale_x, width * scale_x
 
-            #image.paste_image_on_top_of_this_image(edge_line, top=0, left=0, height=new_height, width=new_width)
-            for row_index in range(new_height):
-                for column_index in range(new_width):
-                    edge_pixel = edge_line.raw_data[row_index][column_index]
-                    if edge_pixel[3] != 0:
-                        if crazy == True:
-                            image.raw_data[row_index][column_index] = [255,255,255,0]
-                        else:
+            cv2_image = np.uint8(np.array(image.raw_data))
+            cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC) #cubic filter is the key here, it works like an anti-aliasing filter, for example, MSAA
+            new_image_reference_data = cv2_image.tolist()
+
+            try:
+                edge_line = self.get_edge_lines_of_a_image(image, spread=True, use_only_one_color=False)
+            except Exception as e:
+                edge_line = None
+
+            image.resize(new_height, new_width)
+            if edge_line != None:
+                cv2_image = np.uint8(np.array(edge_line.raw_data))
+                cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
+                edge_line.raw_data = cv2_image.tolist()
+
+                #image.paste_image_on_top_of_this_image(edge_line, top=0, left=0, height=new_height, width=new_width)
+                for row_index in range(new_height):
+                    for column_index in range(new_width):
+                        edge_pixel = edge_line.raw_data[row_index][column_index]
+                        if edge_pixel[3] != 0:
                             new_pixel = new_image_reference_data[row_index][column_index]
                             image.raw_data[row_index][column_index] = new_pixel
-                    else:
-                        pass
+                        else:
+                            pass
 
-        image = image.get_simplified_image(0.7)
-        return image
+            image = image.get_simplified_image(0.7)
+            return image
+        except Exception as e:
+            return self.scale_up_image_by_using_yingshaoxo_method(image, scale_x=scale_x)
 
 
 class ML():
