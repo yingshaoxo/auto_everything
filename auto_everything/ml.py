@@ -757,6 +757,10 @@ class Yingshaoxo_Text_Generator():
 
         self.text_preprocessor = Yingshaoxo_Text_Preprocessor()
 
+    def directly_set_text_source_data(self, text):
+        self.text_source_data = text
+        self.lower_case_text_source_data = self.text_source_data.lower()
+
     def get_source_text_data_by_using_yingshaoxo_method(self, input_txt_folder_path: str, type_limiter: list[str] = [".txt", ".md"]) -> str:
         text_source_data = ""
         if disk.exists(input_txt_folder_path):

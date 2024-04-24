@@ -508,6 +508,59 @@ ifdown -v {interface}; ifup -v {interface}
         yingshaoxo_http_server = Yingshaoxo_Http_Server(router=router)
         yingshaoxo_http_server.start(host = "0.0.0.0", port = int(port))
 
+    def find_string(self, search_string, start_from=0):
+        files = disk.get_files(folder="./", recursive=True, use_gitignore_file=True)
+        counting = 0
+        for file in files:
+            try:
+                with open(file, "r") as f:
+                    text = f.read()
+                lines = text.split("\n")
+                found_index = None
+                for index, line in enumerate(lines):
+                    if search_string in line and line.strip()[0] not in ["#", '"', "'", "/"]:
+                        found_index = index
+                        break
+                if found_index != None:
+                    if counting >= start_from:
+                        next_text = "\n".join(lines[found_index:found_index + 20])
+                        print("file path: " + file)
+                        print("content: \n\n" + next_text)
+                        return
+                    counting += 1
+            except Exception as e:
+                pass
+        print("not found")
+
+    def code_helper(self):
+        documentation = py.generate_documentation_for_a_python_project("./", "/tmp/doc.md", just_return_string=True)
+        parts = documentation.split("\n\n_______\n\n")
+
+        while True:
+            input_text = input("\n\n_______\n\nWhat you want to search?\n").strip()
+            os.system("clear")
+
+            found_index = None
+            the_lines = None
+            for part in parts:
+                if found_index != None:
+                    break
+                if input_text in part:
+                    lines = part.split("\n")
+                    for index, line in enumerate(lines):
+                        if input_text in line and line.strip()[0] not in ["#", '"', "'"]:
+                            found_index = index
+                            the_lines = lines
+                            break
+
+            if found_index != None:
+                next_text = "\n".join(the_lines[found_index:found_index + 20])
+                print("\n\n_______\n\n")
+                print(next_text)
+            else:
+                print("\n\n_______\n\n")
+                print("I can't find anything.")
+
     def hi(self):
         self.help()
 

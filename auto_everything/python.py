@@ -579,10 +579,11 @@ class Python():
     #     """
     #     pass
     
-    def generate_documentation_for_a_python_project(self, python_project_folder_path: str, markdown_file_output_folder_path: str, only_generate_those_functions_that_has_docstring: bool=True):
+    def generate_documentation_for_a_python_project(self, python_project_folder_path: str, markdown_file_output_folder_path: str, only_generate_those_functions_that_has_docstring: bool=True, just_return_string: bool=False):
+        all_data_string = ""
         # code_block_match_rule = r"""(?P<code_block>(?:[ \t]*)(?P<code_head>(?:(?:(?:@(?:.*)\s+)*)*(?:(?:class)|(?:(?:async\s+)*def)))[ \t]*(?:\w+)\s*\((?:.*?)\)(?:[ \t]*->[ \t]*(?:(.*)*))?:)(?P<code_body>(?:\n(?:)(?:[ \t]+[^\n]*)|\n)+))"""
         head_information_regex_rule = r"""(?P<class_or_function_top_defination>(?: *@(?:.*?)\n+)* *(?:\s+(?P<is_class>class)|(?P<is_function>def|async +def)) +(?:(?:\n|.)*?):\n+)(?P<documentation>(?:(?:\s+[\"\']{3}(?:(?:\s|.)*?)[\"|\']{3}\n+)?(?:[ \t]*?\#(?:.*?)\n+)*)*)?(?P<class_or_function_propertys>(?(is_class)((?![ \t]+(?:def|class) )(?:(?:.*?): *(?:.*?) *= *(?:.*?)\n)*)|(?:)))?"""
-        for file in self._disk.get_files(folder=python_project_folder_path, recursive=True, type_limiter=[".py"]):
+        for file in self._disk.get_files(folder=python_project_folder_path, recursive=True, type_limiter=[".py"], use_gitignore_file=True):
             file_name = self._disk.get_file_name(file)
             if file_name.startswith("_"):
                 continue
@@ -659,8 +660,13 @@ class Python():
 ```
             """
             
-            output_file_path = self._disk.join_paths(markdown_file_output_folder_path, file_name[:-len(".py")] + ".md") 
-            self._io.write(file_path=output_file_path, content=markdown_template)
+            if just_return_string == False:
+                output_file_path = self._disk.join_paths(markdown_file_output_folder_path, file_name[:-len(".py")] + ".md") 
+                self._io.write(file_path=output_file_path, content=markdown_template)
+
+            all_data_string += markdown_template.strip() + "\n\n_______\n\n"
+
+        return all_data_string
 
 if __name__ == "__main__":
     py = Python()
