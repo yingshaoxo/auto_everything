@@ -10,3 +10,12 @@ How to sync data in 3 disk storage?
 7. You re-manage diskC data.
 8. You copy diskC data into diskA and diskB directly by overwrite everything.
 """
+
+from auto_everything.disk import Disk
+disk = Disk()
+from auto_everything.terminal import Terminal_User_Interface
+terminal_user_interface = Terminal_User_Interface()
+
+result = terminal_user_interface.selection_box(text="Please select one:", selections=["a", "b"])
+print(result)
+

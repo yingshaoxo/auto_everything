@@ -10,7 +10,7 @@ import shutil
 # from multiprocessing import Manager; share_dict = Manager().dict()
 
 
-def my_print(message, end="\n", flush=False):
+def my_print(message="", end="\n", flush=False):
     sys.stdout.write(str(message))
     sys.stdout.write(end)
     if flush == True:
@@ -774,7 +774,7 @@ class Terminal_User_Interface:
                     yes_callback_function()
                 return "y"
 
-    def selection_box(self, text, selections, seperate_page_loading_function):
+    def selection_box(self, text, selections, seperate_page_loading_function = None):
         """
         terminal_user_interface.selection_box(
             "Please do a choice:",
@@ -818,6 +818,8 @@ class Terminal_User_Interface:
                 try:
                     select_index = int(user_response)
                     if 0 <= select_index <= max_index:
+                        if len(selections[select_index]) == 1:
+                            return selections[select_index]
                         if selections[select_index][1] != None:
                             selections[select_index][1]() # type: ignore
                         return selections[select_index][0]
@@ -854,6 +856,9 @@ class Terminal_User_Interface:
                         select_index = int(user_response)
                         final_result = None
                         if 0 <= select_index <= max_index:
+                            if len(selections[select_index]) == 1:
+                                return selections[select_index]
+
                             if selections[select_index][1] != None:
                                 selections[select_index][1]() # type: ignore
                             final_result = selections[select_index][0]
