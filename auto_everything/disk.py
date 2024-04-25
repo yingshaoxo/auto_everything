@@ -1361,6 +1361,8 @@ class Disk:
         target_file_path = self._expand_user(target_file_path)
         if source_file_path == target_file_path:
             return
+        if not self.exists(source_file_path):
+            return
         if self.exists(target_file_path):
             os.remove(target_file_path)
         os.rename(source_file_path, target_file_path)
@@ -1369,6 +1371,8 @@ class Disk:
         source_folder_path = self._expand_user(source_folder_path)
         target_folder_path = self._expand_user(target_folder_path)
         if source_folder_path == target_folder_path:
+            return
+        if not self.exists(source_folder_path):
             return
         if self.exists(target_folder_path):
             self.delete_a_folder(target_folder_path)

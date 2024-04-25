@@ -807,18 +807,25 @@ class Terminal_User_Interface:
         """
         import time
 
+        simple_mode = False
+        if len(selections) > 0 and type(selections[0]) == str:
+            simple_mode = True
+
         if seperate_page_loading_function == None:
             # single selection, no real time list
             while True:
                 self.clear_screen()
                 my_print(text)
-                my_print("\n".join(["    {}. {}".format(index, one[0]) for index, one in enumerate(selections)]))
+                if simple_mode == False:
+                    my_print("\n".join(["    {}. {}".format(index, one[0]) for index, one in enumerate(selections)]))
+                else:
+                    my_print("\n".join(["    {}. {}".format(index, one) for index, one in enumerate(selections)]))
                 max_index = len(selections)-1
                 user_response = input("What do you choose? (0-{}) ".format(str(max_index))).strip()
                 try:
                     select_index = int(user_response)
                     if 0 <= select_index <= max_index:
-                        if len(selections[select_index]) == 1:
+                        if simple_mode == True:
                             return selections[select_index]
                         if selections[select_index][1] != None:
                             selections[select_index][1]() # type: ignore
@@ -833,8 +840,13 @@ class Terminal_User_Interface:
                 my_print(text)
                 try:
                     selections = seperate_page_loading_function(page_size, current_page)
+                    if len(selections) > 0 and type(selections[0]) == str:
+                        simple_mode = True
 
-                    my_print("\n".join(["    {}. {}".format(index, one[0]) for index, one in enumerate(selections)]))
+                    if simple_mode == False:
+                        my_print("\n".join(["    {}. {}".format(index, one[0]) for index, one in enumerate(selections)]))
+                    else:
+                        my_print("\n".join(["    {}. {}".format(index, one) for index, one in enumerate(selections)]))
                     my_print()
                     my_print("(n for next_page, p for previous_page, j+number for page_jump)")
                     max_index = len(selections)-1
@@ -856,7 +868,7 @@ class Terminal_User_Interface:
                         select_index = int(user_response)
                         final_result = None
                         if 0 <= select_index <= max_index:
-                            if len(selections[select_index]) == 1:
+                            if simple_mode == True:
                                 return selections[select_index]
 
                             if selections[select_index][1] != None:
