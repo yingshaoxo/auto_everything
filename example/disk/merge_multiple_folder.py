@@ -85,41 +85,87 @@ if disk_b_file_or_folder_list == []:
 print("Disk A files number:", len(disk_a_file_or_folder_list))
 print("Disk B files number:", len(disk_b_file_or_folder_list))
 
-def handle_file_in_disk_b_but_not_in_disk_a():
-    def convert_to_text(a_list):
-        text = ""
-        for file in a_list:
-            text += file["sub_string"] + "\n"
-        return text
+def convert_to_text(a_list):
+    text = ""
+    for file in a_list:
+        text += file["sub_string"] + "\n"
+    return "\n"+text
 
-    disk_a_text = convert_to_text(disk_a_file_or_folder_list)
+disk_a_text_backup = convert_to_text(disk_a_file_or_folder_list)
+disk_b_text_backup = convert_to_text(disk_b_file_or_folder_list)
+
+def handle_file_in_disk_b_but_not_in_disk_a():
+    disk_a_text = disk_a_text_backup
+    disk_b_text = disk_b_text_backup
 
     folder_that_in_disk_b_but_not_in_disk_a = []
     file_that_in_disk_b_but_not_in_disk_a = []
     for file_b in disk_b_file_or_folder_list:
+        full_path = file_b["path"]
         file_b_sub_string = file_b["sub_string"]
-        if (file_b_sub_string + "\n") not in disk_a_text:
+
+        if ("\n"+file_b_sub_string + "\n") not in disk_a_text:
             if file_b["type"] == "folder":
                 folder_that_in_disk_b_but_not_in_disk_a.append(file_b)
                 target_path = disk.join_paths(temp_folder, file_b_sub_string)
                 disk.create_a_folder(target_path)
-                disk_a_text = disk_a_text.replace(file_b_sub_string + "\n", "")
             else:
                 file_that_in_disk_b_but_not_in_disk_a.append(file_b)
             print(file_b_sub_string)
 
+        disk_a_text = disk_a_text.replace("\n"+file_b_sub_string + "\n", "\n")
+
     for one in file_that_in_disk_b_but_not_in_disk_a:
-        full_path = one["path"]
-        sub_path = one["sub_string"]
-        target_path = disk.join_paths(temp_folder, sub_path)
+        try:
+            full_path = one["path"]
+            sub_path = one["sub_string"]
+            target_path = disk.join_paths(temp_folder, sub_path)
 
-        parent_folder = get_parent_directory_path(target_path)
-        disk.create_a_folder(parent_folder)
+            parent_folder = disk.get_parent_directory_path(target_path)
+            disk.create_a_folder(parent_folder)
 
-        disk.move_a_file(full_path, target_path)
+            disk.move_a_file(full_path, target_path)
+        except Exception as e:
+            print(e)
 
     print("done")
 
 reply = terminal_user_interface.selection_box(text="2. Do you want to handle_file_in_disk_b_but_not_in_disk_a:", selections=["no", "yes"])
 if "yes" in reply:
     handle_file_in_disk_b_but_not_in_disk_a()
+
+def copy_disk_a_data_into_disk_b_by_check_size():
+    disk_a_text = disk_a_text_backup
+    disk_b_text = disk_b_text_backup
+
+    for file_a in disk_a_file_or_folder_list:
+        file_a_sub_string = file_a["sub_string"]
+        full_path = file_a["path"]
+        sub_path = file_a["sub_string"]
+        target_path = disk.join_paths(disk_B_path, sub_path)
+
+        if ("\n" + file_a_sub_string + "\n") not in disk_b_text:
+            # directly copy
+            if file_a["type"] == "folder":
+                disk.create_a_folder(target_path)
+            else:
+                parent_folder = disk.get_parent_directory_path(target_path)
+                disk.create_a_folder(parent_folder)
+
+                disk.copy_a_file(full_path, target_path)
+        else:
+            # check size, if size not match, replace disk b with disk a data
+            if file_a["type"] != "folder":
+                if disk.get_file_size(full_path) != disk.get_file_size(target_path):
+                    parent_folder = disk.get_parent_directory_path(target_path)
+                    disk.create_a_folder(parent_folder)
+
+                    disk.copy_a_file(full_path, target_path)
+
+        disk_b_text = disk_b_text.replace("\n" + file_a_sub_string + "\n", "\n")
+
+    print("done")
+
+reply = terminal_user_interface.selection_box(text="3. Do you want to copy_disk_a_data_into_disk_b:", selections=["no", "yes"])
+if "yes" in reply:
+    copy_disk_a_data_into_disk_b_by_check_size()

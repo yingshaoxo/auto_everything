@@ -10,10 +10,11 @@ class Yingshaoxo_Http_Request():
     url: str
     url_arguments: dict[str, str]
     headers: dict[str, str]
-    payload: str | None
+    payload: dict[str, str] | None
 """
 
 def home_handler(request):
+    print(request)
     try:
         real_file_path = "." + request.url
         if os.path.isdir(real_file_path):

@@ -467,7 +467,7 @@ ifdown -v {interface}; ifup -v {interface}
             url: str
             url_arguments: dict[str, str]
             headers: dict[str, str]
-            payload: str | None
+            payload: dict[str, Any] | None
         """
 
         def home_handler(request):
