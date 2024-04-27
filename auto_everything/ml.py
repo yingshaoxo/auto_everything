@@ -1920,6 +1920,9 @@ class Yingshaoxo_Image_Transformer():
         pass
     """
 
+    def change_image_style(self, source_image, target_image):
+        return source_image.change_image_style(target_image)
+
     def get_edge_lines_of_a_image_by_using_yingshaoxo_method(self, image, min_color_distance=120, smooth_value=0, spread=True, spread_value=11):
         """
         yingshaoxo: You can use Canny method, but I think it is hard to understand and implement

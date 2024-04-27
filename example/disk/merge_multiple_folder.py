@@ -139,12 +139,11 @@ def copy_disk_a_data_into_disk_b_by_check_size():
     disk_b_text = disk_b_text_backup
 
     for file_a in disk_a_file_or_folder_list:
-        file_a_sub_string = file_a["sub_string"]
         full_path = file_a["path"]
         sub_path = file_a["sub_string"]
         target_path = disk.join_paths(disk_B_path, sub_path)
 
-        if ("\n" + file_a_sub_string + "\n") not in disk_b_text:
+        if ("\n" + sub_path + "\n") not in disk_b_text:
             # directly copy
             if file_a["type"] == "folder":
                 disk.create_a_folder(target_path)
@@ -162,7 +161,7 @@ def copy_disk_a_data_into_disk_b_by_check_size():
 
                     disk.copy_a_file(full_path, target_path)
 
-        disk_b_text = disk_b_text.replace("\n" + file_a_sub_string + "\n", "\n")
+        disk_b_text = disk_b_text.replace("\n" + sub_path + "\n", "\n")
 
     print("done")
 

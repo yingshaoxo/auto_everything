@@ -6,16 +6,6 @@ except Exception as e:
 
 
 
-#terminal_color_dict = {
-#    "black": {"value": '\033[98mo\033[00m', "rgb": [0,0,0]},
-#    "red": {"value": '\033[91mo\033[00m', "rgb": [255,0,0]},
-#    "green": {"value": '\033[92mo\033[00m', "rgb": [0,255,0]},
-#    "yellow": {"value": '\033[93mo\033[00m', "rgb": [255,255,0]},
-#    "blue": {"value": '\033[44mo\033[00m', "rgb": [0,0,255]},
-#    "purple": {"value": '\033[95mo\033[00m', "rgb": [255,0,255]},
-#    "cyan": {"value": '\033[33mo\033[00m', "rgb": [0,255,255]},
-#    "lightgrey": {"value": '\033[97mo\033[00m', "rgb": [128,128,128]},
-#}
 terminal_color_dict = {
     "black": {"value": '\033[40m \033[00m', "rgb": [0,0,0]},
     "red": {"value": '\033[41m \033[00m', "rgb": [255,0,0]},
@@ -84,6 +74,51 @@ def get_a_color_from_base_color(r,g,b,a,color_list):
 
     color_cache_dict[id_] = the_similar_one
     return the_similar_one
+
+
+def change_image_style_without_ai(source_image, target_image, simple_mode=True):
+    # yingshaoxo image style transformer algorithm:
+    # 1. get all colors in target_image
+    # 2. for each source image color, choose one that has minimum distance in target image colors
+    # 3. use cache result to speed up the processing
+    source_image = source_image.copy()
+
+    target_color_set = set()
+    target_image_color_list = []
+    for row in target_image.raw_data:
+        for color in row:
+            color_string = "_".join([str(one) for one in color])
+            if color_string in target_color_set:
+                continue
+            else:
+                target_color_set.add(color_string)
+                target_image_color_list.append(color)
+
+    image_style_color_dict = dict() #string as key, target_color_as_value
+    height, width = source_image.get_shape()
+    for y in range(height):
+        for x in range(width):
+            color = source_image[y][x]
+            color_string = "_".join([str(one) for one in color])
+            if color_string in image_style_color_dict:
+                source_image[y][x] = image_style_color_dict[color_string]
+            else:
+                min_distance = 99999
+                the_best_color = color
+                r2, g2, b2, c2 = color
+                for target_color in target_image_color_list:
+                    r, g, b, c = target_color
+                    if simple_mode == True:
+                        distance = ((r2-r)**2 + (g2-g)**2 + (b2-b)**2)**0.5
+                    else:
+                        distance = ((r2-r)**2 + (g2-g)**2 + (b2-b)**2 + (c2-c)**2)**0.5
+                    if distance < min_distance:
+                        min_distance = distance
+                        the_best_color = target_color
+                image_style_color_dict[color_string] = the_best_color
+                source_image[y][x] = image_style_color_dict[color_string]
+
+    return source_image
 
 
 
@@ -327,6 +362,9 @@ class Image:
                 new_image.raw_data[row_index][column_index] = new_color
 
         return new_image
+
+    def change_image_style(self, target_image, simple_mode=False):
+        return change_image_style_without_ai(self, target_image, simple_mode=simple_mode)
 
     def read_image_from_file(self, file_path):
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
