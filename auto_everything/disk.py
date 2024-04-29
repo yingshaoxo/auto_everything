@@ -441,6 +441,9 @@ class Disk:
         return ignored_files
 
     def get_gitignore_folders_and_files_by_using_yingshaoxo_method(self, folder: str, also_return_dot_git_folder: bool = False, include_docker_ignore_file: bool = False) -> list[str]:
+        """
+        Should not use it on top root folder, because it will use all gitignore for all sub_folders, which might have bugs.
+        """
         final_path_list = []
 
         return_list_than_tree = False

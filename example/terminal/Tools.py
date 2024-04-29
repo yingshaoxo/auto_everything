@@ -308,9 +308,9 @@ git remote set-url --add --push origin {repo_url}
         # files = disk.get_folder_and_files(folder=".")
         # pprint(list(files))
 
-    def find_big_file(self, path: str = "."):
+    def find_big_file_and_folders(self, path: str = ".", level=2):
         t.run(f"""
-        du -a -h --max-depth=1 {path} | sort -h
+        du -a -h --max-depth={level} {path} | sort -h
         """)
 
     def start_vnc_service(self, password: str="aaaaaaAAAAAA123456!!!!!!"):
@@ -371,8 +371,13 @@ git remote set-url --add --push origin {repo_url}
 
         print("\nfake recover is done, sir.")
 
-    def delete_git_and_gitignore_file(self):
-        files = disk.get_gitignore_folders_and_files(".", also_return_dot_git_folder=True)
+    def delete_git_and_gitignore_file(self, also_delete_git_folder=True):
+        """
+        Current git has problems with historical big data.
+        They should create a function that deletes everything that inside .gitignore in history record
+        So the final git folder could be very small
+        """
+        files = disk.get_gitignore_folders_and_files(".", also_return_dot_git_folder=also_delete_git_folder)
         for file in files:
             try:
                 if disk.is_directory(file):
@@ -385,7 +390,7 @@ git remote set-url --add --push origin {repo_url}
 
         answer = input("Done.\n\nWant to do a deeper scan and deletion to delete more? (y/n)")
         if "y" in answer:
-            files = disk.get_gitignore_folders_and_files_by_using_yingshaoxo_method(".", also_return_dot_git_folder=True)
+            files = disk.get_gitignore_folders_and_files_by_using_yingshaoxo_method(".", also_return_dot_git_folder=also_delete_git_folder)
             for file in files:
                 try:
                     if disk.is_directory(file):

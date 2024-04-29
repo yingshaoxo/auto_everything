@@ -446,10 +446,11 @@ class Python():
                         custom_arguments[argument_name] = argument_type(argument_value)
                     else:
                         # no type info
-                        if str(argument_value).replace('.','',1).isdigit():
-                            custom_arguments[argument_name] = float(str(argument_value))
-                        else:
-                            custom_arguments[argument_name] = str(argument_value)
+                        custom_arguments[argument_name] = str(argument_value)
+                        #if str(argument_value).replace('.','',1).isdigit():
+                        #    custom_arguments[argument_name] = float(str(argument_value))
+                        #else:
+                        #    custom_arguments[argument_name] = str(argument_value)
 
             # for argument that does have '--name=value'
             for one in named_arguments:
@@ -460,10 +461,11 @@ class Python():
                     custom_arguments[argument_name] = argument_type(argument_value)
                 else:
                     # no type info
-                    if str(argument_value).replace('.','',1).isdigit():
-                        custom_arguments[argument_name] = float(str(argument_value))
-                    else:
-                        custom_arguments[argument_name] = str(argument_value)
+                    custom_arguments[argument_name] = str(argument_value)
+                    #if str(argument_value).replace('.','',1).isdigit():
+                    #    custom_arguments[argument_name] = float(str(argument_value))
+                    #else:
+                    #    custom_arguments[argument_name] = str(argument_value)
 
             #print(f"{method_name} {' '.join(custom_arguments)}")
             method_instance(**custom_arguments)
