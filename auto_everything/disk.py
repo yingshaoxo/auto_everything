@@ -389,14 +389,15 @@ class Disk:
         if file_path.startswith("./"):
             file_path = file_path[2:]
 
-        # if file_path.endswith(".ipynb_checkpoints"):
-        #     pass
-
         match = False
         for pattern in ignore_pattern_list:
-            if fnmatch(file_path.removeprefix(start_folder), pattern.removeprefix("./")):
+            path_a = file_path.removeprefix(start_folder)
+            patten_b = pattern.removeprefix("./")
+            if fnmatch(path_a, patten_b):
+                #print(path_a + " | " + patten_b)
                 match = True
                 break
+
         return match
 
     def get_gitignore_folders_and_files(self, folder: str, also_return_dot_git_folder: bool = False) -> list[str]:
@@ -438,6 +439,87 @@ class Disk:
             ignored_files += dot_git_folder_files
 
         return ignored_files
+
+    def get_gitignore_folders_and_files_by_using_yingshaoxo_method(self, folder: str, also_return_dot_git_folder: bool = False, include_docker_ignore_file: bool = False) -> list[str]:
+        final_path_list = []
+
+        return_list_than_tree = False
+        ignore_symbolic_link = True
+
+        folder = self._expand_user(folder)
+
+        root = _FileInfo(
+            path=folder,
+            is_folder=True,
+            is_file=False,
+            folder=self.get_directory_name(folder),
+            name=self.get_file_name(folder),
+            level=0,
+            children=None
+        )
+
+        def dive(node, git_ignore_pattern_list = []):
+            folder = node.path
+
+            if not os.path.isdir(folder):
+                return
+
+            items = os.listdir(folder)
+            if len(items) == 0:
+                return
+
+            ignore_pattern_list = git_ignore_pattern_list
+            if ".gitignore" in items:
+                temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".gitignore")).decode("utf-8", errors="ignore")
+                temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
+                ignore_pattern_list += temp_git_ignore_pattern_list
+            if include_docker_ignore_file == True:
+                if ".dockerignore" in items:
+                    temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".dockerignore")).decode("utf-8", errors="ignore")
+                    temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
+                    ignore_pattern_list += temp_git_ignore_pattern_list
+            ignore_pattern_list.append(".git")
+            ignore_pattern_list = list(set(ignore_pattern_list))
+            #print(ignore_pattern_list)
+
+            files_and_folders: list[_FileInfo] = []
+            for filename in items:
+                file_path = os.path.join(folder, filename)
+
+                if self._file_match_the_gitignore_rule_list(
+                    start_folder=node.path,
+                    file_path=file_path,
+                    ignore_pattern_list=ignore_pattern_list,
+                ):
+                    final_path_list.append(file_path)
+                    continue
+
+                if ignore_symbolic_link == True:
+                    if os.path.islink(file_path):
+                        continue
+
+                new_node = _FileInfo(
+                    path=file_path,
+                    is_folder=os.path.isdir(file_path),
+                    is_file=os.path.isfile(file_path),
+                    folder=self.get_directory_name(file_path),
+                    name=self.get_file_name(file_path),
+                    level=node.level + 1,
+                    children=None
+                )
+                dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list)
+                files_and_folders.append(
+                    new_node
+                )
+
+            files_and_folders.sort(key=lambda node_: self._super_sort_key_function(node_.name))
+            node.children = files_and_folders
+
+        if also_return_dot_git_folder == True:
+            dive(root, [".git"])
+        else:
+            dive(root, [])
+        return final_path_list
 
     def get_files(
         self,

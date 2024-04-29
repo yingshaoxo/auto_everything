@@ -383,6 +383,19 @@ git remote set-url --add --push origin {repo_url}
             except Exception as e:
                 print(e)
 
+        answer = input("Done.\n\nWant to do a deeper scan and deletion to delete more? (y/n)")
+        if "y" in answer:
+            files = disk.get_gitignore_folders_and_files_by_using_yingshaoxo_method(".", also_return_dot_git_folder=True)
+            for file in files:
+                try:
+                    if disk.is_directory(file):
+                        disk.delete_a_folder(file)
+                    else:
+                        disk.delete_a_file(file)
+                    print(f"file/folder deleted: {file}")
+                except Exception as e:
+                    print(e)
+
     def wake_up_the_light(self):
         while True:
             t.run(f'vlc --vout none /home/yingshaoxo/Documents/WakeUp.mp3 vlc://quit')

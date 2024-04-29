@@ -25,13 +25,12 @@ class DeepAudio:
         # self._sepformer_wham16k_enhancement_model = SepformerSeparation.from_hparams(
         #     source="speechbrain/sepformer-wham16k-enhancement", 
         #     savedir='pretrained_models/sepformer-wham16k-enhancement')
-        
         self._mtl_mimic_voicebank = WaveformEnhancement.from_hparams(
             source="speechbrain/mtl-mimic-voicebank",
             savedir="pretrained_models/mtl-mimic-voicebank",
         )
 
-    def speech_enhancement_with_speechbrain(self, 
+    def speech_enhancement_with_speechbrain(self,
             source_audio_path,
             target_audio_path,
             sample_rate=16000
@@ -54,7 +53,7 @@ class DeepAudio:
             # output_filename=target_audio_path
         )
         torchaudio.save(target_audio_path, enhanced.unsqueeze(0).cpu(), sample_rate=sample_rate, channels_first=True) # type: ignore
-    
+
     def speech_enhancement_with_deepFilterNet(self,
         source_audio_path,
         target_audio_path,
@@ -162,13 +161,13 @@ class AudioMonitor:
 
 class AudioAnalyzer:
     def __init__(self):
-        try: 
+        try:
             import pydub
             self.pydub = pydub
         except Exception as e:
             print("python3 -m pip install pydub")
             raise e
-    
+
     def get_audio_loudness_per_x_millisecond(self, audio_file_path: str, x: int) -> List[float]:
         theWholeAudio = self.pydub.AudioSegment.from_file(audio_file_path)
 

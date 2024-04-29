@@ -9,6 +9,8 @@ How to sync data in 3 disk storage?
 6. You delete unwanted difference data in diskC.
 7. You re-manage diskC data.
 8. You copy diskC data into diskA and diskB directly by overwrite everything.
+
+Use pure dict(hash_table) will speed up process than use two list loop in a code block, maybe 1000 speed up.
 """
 
 from auto_everything.disk import Disk, Store
@@ -18,9 +20,9 @@ from auto_everything.terminal import Terminal_User_Interface
 terminal_user_interface = Terminal_User_Interface()
 
 disk_A_path = "/home/yingshaoxo/Disk/Sync_Folder/Yingshaoxo_Data"
-disk_B_path = "/media/yingshaoxo/yingshaoxo/Yingshaoxo_Data"
+disk_B_path = "/media/yingshaoxo/The Atlantis/Yingshaoxo_Data"
 common_part = "/Yingshaoxo_Data/"
-temp_folder = "/media/yingshaoxo/yingshaoxo/temp_folder"
+temp_folder = "/media/yingshaoxo/The Atlantis/temp_folder"
 
 def get_file_and_folder_with_gitignore(source_folder_path=None):
     files = disk.get_folder_and_files_with_gitignore(folder=source_folder_path, return_list_than_tree=True)
