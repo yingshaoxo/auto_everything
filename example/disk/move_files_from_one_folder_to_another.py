@@ -1,6 +1,5 @@
 from auto_everything.disk import Disk, Store
 disk = Disk()
-store = Store("disk_sync_example")
 from auto_everything.terminal import Terminal_User_Interface
 terminal_user_interface = Terminal_User_Interface()
 
