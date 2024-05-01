@@ -62,14 +62,16 @@ class Audio():
 
         return another_audio
 
-    def resize(self, x_size, y_size=None, adds=0):
+    def resize(self, x_size, y_size=None, adds=0, use_mean=True):
         if x_size != None:
             x_size = int(x_size)
 
         channels_number, one_channel_length = self.get_shape()
+        if (x_size >= one_channel_length):
+            return self
 
         ratio = one_channel_length / x_size
-        part_width = int(ratio)
+        part_width = int(round(ratio))
         #if ratio != part_width:
         #    print("We recommand you use a x_size that could make: " + str(one_channel_length) + " / x_size" + " == " + str(int(part_width)))
         sample_rate = int(round(self.sample_rate/ratio))
@@ -80,7 +82,15 @@ class Audio():
             index2 = 0
             #max_value = -32768
             while True:
-                signal = self.raw_data[channel_index][index]
+                if use_mean == True:
+                    last_index = index - part_width
+                    if last_index >= 0:
+                        signal_list = self.raw_data[channel_index][last_index:index]
+                        signal = int(round(sum(signal_list) / part_width))
+                    else:
+                        signal = self.raw_data[channel_index][index]
+                else:
+                    signal = self.raw_data[channel_index][index]
                 if index2 >= x_size:
                     break
                 new_list[index2] = signal
@@ -108,7 +118,7 @@ class Audio():
             for channel_index in range(channels_number):
                 value = a_audio.raw_data[channel_index][index]
                 a_list.append(value)
-            new_data[index] = int(sum(a_list)/channels_number)
+            new_data[index] = int(round(sum(a_list)/channels_number))
 
         a_audio.raw_data = [new_data]
 
@@ -119,7 +129,7 @@ class Audio():
         for channel_index in range(channels_number):
             for x in range(one_channel_length):
                 signal = self.raw_data[channel_index][x]
-                self.raw_data[channel_index][x] = int(self.raw_data[channel_index][x] * scale)
+                self.raw_data[channel_index][x] = int(round(self.raw_data[channel_index][x] * scale))
         return self
 
     def read_wav_file(self, wav_file_path):
@@ -253,7 +263,7 @@ class Audio():
         ratio = 1 - ratio
         audio = self.copy()
         channels_number, one_channel_length = audio.get_shape()
-        audio = audio.resize(one_channel_length * ratio, adds=6277)
+        audio = audio.resize(one_channel_length * ratio, adds=7277)
         audio = audio.merge_to_mono()
         #audio = audio.get_smooth_audio()
         audio = audio.change_volume(1.5)
