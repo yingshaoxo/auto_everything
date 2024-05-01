@@ -1914,6 +1914,8 @@ def convert_image_to_grayscale(image):
 class Yingshaoxo_Image_Transformer():
     """
     def get_smooth_line_points_by_using_bezier_curve(self, points):
+        # the numpy.linspace() can return evenly spaced numbers over a specified interval. maybe you can use it to smooth lines
+        # np.linspace(2.0, 3.0, num=5), result is array([2.  , 2.25, 2.5 , 2.75, 3.  ])
         pass
 
     def get_smooth_line_points_by_using_cubic_interpolation(self, points):
