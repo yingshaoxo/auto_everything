@@ -212,6 +212,9 @@ class Image:
         return new_list
 
     def resize(self, height, width):
+        """
+        May be for scaling down image, we can first scale it up, then scale it down to have a better whole image
+        """
         if type(height) != int or type(width) != int:
             raise Exception("The height and width should be integer.")
 

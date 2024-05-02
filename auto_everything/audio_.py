@@ -8,7 +8,7 @@ The positive line carrys the audio signal, while the negative line always keeps 
 Then, let's talk about sound data in your computers.
 A general sound file is end up with ".wav". Sound inside is saved as a sine wave. But it is not a perfect sine wave.
 Sometimes, if the sound volumn go up, the absolute height of the signal graph goes up, if the sound volumn go down, the absolute height of the signal graph goes down. When you meet silence of a sound, you will see a stright horizontal line in 0dB.
-As you know, in computer, a line is composed with points. Sound wave is also made by points. For example, in 8K Hz audio, there could have 8k points per second. If you use a 0~5V microcontroller to drive a speaker, each point would be a value between 0 and 5.
+As you know, in computer, a line is composed with points. Sound wave is also made by points. For example, in 8K Hz audio, there could have 8k points per second. If you use a 0~5V microcontroller to drive a speaker, each point would be a value between 0 and 5. (the speaker here can be the type that can put into your ear)
 But so far, what I have mentioned is mono audio, which just have one channel, one sound. You may also see people record two channels, one for left ear, another for right ear, they call it stereo. How to represente and play the two channel data?
 Just think about a list: [left_data_0, right_data_1, left_data_2, right_data_3, ...]
 When you hear a two channel audio, what the speaker really does is play right data after it play the left data, so on and so on. Because the switch speed is very quick, so you think the left and right channel is playing at the same time, but that's not true. It is just a sequence playing.
@@ -16,6 +16,11 @@ Maybe I was wrong, they can use two speakers to play different channels for bett
 
 Then let's talk about headphone audio jack data or the data that come from your old mp3 device audio output line, normally it is a green line.
 You can simplely connect the ground to your microcontroller ground, and connect the signal line to your microcontroller analog line, so you can get the audio data by using microcontroller.
+
+Here is an example I copied from internet that shows you how to use microcontroller to play music:
+    It plays 8-bit PCM audio on pin 11 using pulse-width modulation (PWM). It uses two timers. The first changes the sample value 8000 times a second. The second holds pin 11 high for 0-255 ticks out of a 256-tick cycle, depending on the sample value. The second timer repeats 62500 times per second (16000000 / 256), which is much faster than the playback rate (8000 Hz), so it almost sounds halfway decent.
+    https://docs.arduino.cc/learn/programming/audio
+In other words, it uses two line to connect speaker, one is ground, another is 0 to 5v analog line, the audio data will be converted into (0, 5)v, the change speed for the red line is 8000 times per second, which means 8kHz.
 """
 
 
@@ -62,47 +67,69 @@ class Audio():
 
         return another_audio
 
-    def resize(self, x_size, y_size=None, adds=0, use_mean=True):
-        if x_size != None:
-            x_size = int(x_size)
-
+    def change_sample_rate(self, sample_rate, speed_mode=False):
+        """
+        sample_rate: int
+            can be 8000, 16000, and so on
+        """
+        # we can scale it up first, then scale it down
+        old_sample_rate = self.sample_rate
         channels_number, one_channel_length = self.get_shape()
-        if (x_size >= one_channel_length):
+        if (sample_rate >= old_sample_rate):
             return self
 
-        ratio = one_channel_length / x_size
-        part_width = int(round(ratio))
-        #if ratio != part_width:
-        #    print("We recommand you use a x_size that could make: " + str(one_channel_length) + " / x_size" + " == " + str(int(part_width)))
-        sample_rate = int(round(self.sample_rate/ratio))
+        ratio = old_sample_rate / sample_rate
 
-        for channel_index in range(channels_number):
-            new_list = [None] * x_size
-            index = 0
-            index2 = 0
-            #max_value = -32768
-            while True:
-                if use_mean == True:
+        if speed_mode == True:
+            part_width = int(round(ratio))
+            x_size = int(round(one_channel_length / ratio))
+
+            for channel_index in range(channels_number):
+                new_list = [None] * x_size
+                index = 0
+                index2 = 0
+                while True:
                     last_index = index - part_width
                     if last_index >= 0:
                         signal_list = self.raw_data[channel_index][last_index:index]
                         signal = int(round(sum(signal_list) / part_width))
                     else:
                         signal = self.raw_data[channel_index][index]
-                else:
-                    signal = self.raw_data[channel_index][index]
-                if index2 >= x_size:
-                    break
-                new_list[index2] = signal
-                #if signal > max_value:
-                #    max_value = signal
-                index += part_width
-                index2 += 1
-                if index >= one_channel_length:
-                    break
-            for index in range(index2, x_size):
-                new_list[index] = 0
-            self.raw_data[channel_index] = new_list
+                    if index2 >= x_size:
+                        break
+                    new_list[index2] = signal
+                    index += part_width
+                    index2 += 1
+                    if index >= one_channel_length:
+                        break
+                for index in range(index2, x_size):
+                    new_list[index] = 0
+                self.raw_data[channel_index] = new_list
+        else:
+            part_width = ratio
+            x_size = int(round(one_channel_length / ratio))
+
+            for channel_index in range(channels_number):
+                new_list = [None] * x_size
+                index = 0
+                index2 = 0
+                while True:
+                    last_index = round(index - part_width)
+                    if last_index >= 0:
+                        signal_list = self.raw_data[channel_index][last_index:round(index)]
+                        signal = int(round(sum(signal_list) / part_width))
+                    else:
+                        signal = self.raw_data[channel_index][round(index)]
+                    if index2 >= x_size:
+                        break
+                    new_list[index2] = signal
+                    index += part_width
+                    index2 += 1
+                    if index >= one_channel_length:
+                        break
+                for index in range(index2, x_size):
+                    new_list[index] = 0
+                self.raw_data[channel_index] = new_list
 
         self.sample_rate = sample_rate
 
@@ -130,6 +157,295 @@ class Audio():
             for x in range(one_channel_length):
                 signal = self.raw_data[channel_index][x]
                 self.raw_data[channel_index][x] = int(round(self.raw_data[channel_index][x] * scale))
+        return self
+
+    def get_simplified_audio(self, ratio=0.7, extreme=False):
+        ratio = 1 - ratio
+        audio = self.copy()
+        channels_number, one_channel_length = audio.get_shape()
+        audio = audio.change_sample_rate(8000)
+        audio = audio.merge_to_mono()
+        audio = audio.reduce_noise_by_frequency(ratio)
+        audio = audio.change_volume(1.5)
+        if extreme == True:
+            audio = audio.range_map_with_bug(-32767, 32767, 0, 32767)
+            audio = audio.change_volume(1.5)
+        return audio
+
+    def reduce_noise_by_frequency(self, ratio=0.7):
+        """
+        One way is to count sound frequency, cut low frequency stuff, or save middle frequency stuff
+        Another way is to use OBS noise reducing tech, rnn noise
+        Maybe cubic smoothing splines also works
+        """
+        ratio = 1 - ratio
+        signal_dict = {}
+
+        channels_number, one_channel_length = self.get_shape()
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                if signal in signal_dict:
+                    signal_dict[signal] += 1
+                else:
+                    signal_dict[signal] = 1
+
+        signal_item_list = list(signal_dict.items())
+        signal_item_list.sort(key=lambda x: -x[1])
+        remain_number = int(ratio * len(signal_item_list))
+        remain_signal_item_list = signal_item_list[:remain_number]
+        new_signal_dict = {}
+        for key, value in remain_signal_item_list:
+            new_signal_dict[key] = 0
+
+        cache_dict = {}
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                if signal in new_signal_dict:
+                    pass
+                else:
+                    if signal not in cache_dict:
+                        min_distance = 999999
+                        target_signal = 0
+                        for one in new_signal_dict.keys():
+                            distance = abs(one - signal)
+                            if distance < min_distance:
+                                min_distance = distance
+                                target_signal = one
+                        cache_dict[signal] = target_signal
+                    else:
+                        target_signal = cache_dict[signal]
+                    self.raw_data[channel_index][index] = target_signal
+        return self
+
+    def range_map_with_bug(self, original_min_value, original_max_value, min_value, max_value, use_int=True):
+        """
+        use_int: bool
+            will make sure all result is integer
+        has_negative_number: bool
+            default True for wav, because it has negative numbers.
+            if you want to convert range from (0,255) to (-32767, 32767), you have to set this to False
+
+        You can use this function to convert self.raw_data into data that in range of (0, 3.3) or (0, 5) or (-32767, 32767), or (0, 1024) or (0, 255)
+        """
+        if original_min_value < 0:
+            has_negative_number=True
+        else:
+            has_negative_number=False
+
+        new_data_dict = {}
+        #original_max_value = -999999
+        #original_min_value = 999999
+        channels_number, one_channel_length = self.get_shape()
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                new_data_dict[signal] = signal
+                #if signal > original_max_value:
+                #    original_max_value = signal
+                #if signal < original_min_value:
+                #    original_min_value = signal
+
+        original_range = original_max_value - original_min_value
+        if original_range == 0:
+            return self
+        new_range = max_value - min_value
+        half_new_range = new_range/2
+        if new_range == 0:
+            return self
+        for key in new_data_dict.keys():
+            value = new_data_dict[key]
+            new_value = (value / original_range) * new_range
+            if has_negative_number == True:
+                if new_value >= 0:
+                    new_value += half_new_range
+                else:
+                    new_value = half_new_range + new_value
+            else:
+                new_data_dict[key] = new_value
+
+            if use_int == True:
+                new_data_dict[key] = int(round(new_value))
+            else:
+                new_data_dict[key] = new_value
+
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                self.raw_data[channel_index][index] = new_data_dict[signal]
+
+        return self
+
+    def range_map(self, original_min_value, original_max_value, min_value, max_value, use_int=True):
+        """
+        use_int: bool
+            will make sure all result is integer
+        has_negative_number: bool
+            default True for wav, because it has negative numbers.
+            if you want to convert range from (0,255) to (-32767, 32767), you have to set this to False
+
+        You can use this function to convert self.raw_data into data that in range of (0, 3.3) or (0, 5) or (-32767, 32767), or (0, 1024) or (0, 255)
+        """
+        if original_min_value < 0:
+            original_has_negative_number=True
+        else:
+            original_has_negative_number=False
+
+        if min_value < 0:
+            target_has_negative_number = True
+        else:
+            target_has_negative_number = False
+
+        new_data_dict = {}
+        #original_max_value = -999999
+        #original_min_value = 999999
+        channels_number, one_channel_length = self.get_shape()
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                new_data_dict[signal] = signal
+                #if signal > original_max_value:
+                #    original_max_value = signal
+                #if signal < original_min_value:
+                #    original_min_value = signal
+
+        original_range = original_max_value - original_min_value
+        half_original_range = original_range/2
+        if original_range == 0:
+            return self
+        new_range = max_value - min_value
+        half_new_range = new_range/2
+        if new_range == 0:
+            return self
+        for key in new_data_dict.keys():
+            value = new_data_dict[key]
+
+            if original_has_negative_number == True:
+                if value >= 0:
+                    value += half_original_range
+                else:
+                    value = half_original_range - abs(new_value)
+
+            new_value = (value / original_range) * new_range
+
+            if target_has_negative_number == True:
+                new_value = new_value - half_new_range
+
+            if use_int == True:
+                new_data_dict[key] = int(round(new_value))
+            else:
+                new_data_dict[key] = new_value
+
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                self.raw_data[channel_index][index] = new_data_dict[signal]
+
+        return self
+
+    def print(self, save_to_png_file_path=None):
+        from auto_everything.image import Image
+        a_image = Image()
+
+        a_audio = self.copy()
+        channels_number, one_channel_length = a_audio.get_shape()
+
+        one_audio_height = 480
+        half_of_one_audio_height = int(one_audio_height / 2)
+
+        height = one_audio_height * channels_number
+        width = 854
+        a_image = a_image.create_an_image(height, width)
+
+        line_length = 10
+        a_audio.resize(x_size=int(width/line_length))
+        channels_number, one_channel_length = a_audio.get_shape()
+
+        for channel_index in range(channels_number):
+            last_y = channel_index * one_audio_height
+            last_x = 0
+            for x in range(one_channel_length):
+                signal = a_audio.raw_data[channel_index][x]
+                small_signal_in_y = abs(signal / 32767) * half_of_one_audio_height
+                if signal > 0:
+                    y = small_signal_in_y + half_of_one_audio_height
+                elif signal <= 0:
+                    y = half_of_one_audio_height - small_signal_in_y
+                y = int(y)
+                if y >= one_audio_height:
+                    continue
+                y += channel_index * one_audio_height
+                x *= line_length
+
+                horizontal_line = False
+                vertical_line = False
+                normal_line = False
+                upper_part = y - last_y
+                lower_part = x - last_x
+                if upper_part == 0:
+                    horizontal_line = True
+                elif lower_part == 0:
+                    vertical_line = True
+                else:
+                    normal_line = True
+                    slop = upper_part / lower_part
+                    for x_index in range(last_x, x):
+                        y_index = int(slop*(x_index-last_x) + last_y)
+                        a_image.raw_data[y_index][x_index] = [0,255,0,255]
+                        try:
+                            a_image.raw_data[y_index][x_index+1] = [0,255,0,255]
+                            a_image.raw_data[y_index][x_index-1] = [0,255,0,255]
+                            a_image.raw_data[y_index+1][x_index] = [0,255,0,255]
+                            a_image.raw_data[y_index-1][x_index] = [0,255,0,255]
+                        except Exception as e:
+                            pass
+
+                last_y = y
+                last_x = x
+
+        a_image.print(100)
+        return a_image
+
+    def resize(self, x_size, y_size=None, adds=1327):
+        if x_size != None:
+            x_size = int(x_size)
+
+        channels_number, one_channel_length = self.get_shape()
+        if (x_size >= one_channel_length):
+            return self
+
+        ratio = one_channel_length / x_size
+        part_width = int(round(ratio))
+        sample_rate = int(round(self.sample_rate/ratio)) + adds
+
+        for channel_index in range(channels_number):
+            new_list = [None] * x_size
+            index = 0
+            index2 = 0
+            #max_value = -32768
+            while True:
+                last_index = index - part_width
+                if last_index >= 0:
+                    signal_list = self.raw_data[channel_index][last_index:index]
+                    signal = int(round(sum(signal_list) / part_width))
+                else:
+                    signal = self.raw_data[channel_index][index]
+                if index2 >= x_size:
+                    break
+                new_list[index2] = signal
+                #if signal > max_value:
+                #    max_value = signal
+                index += part_width
+                index2 += 1
+                if index >= one_channel_length:
+                    break
+            for index in range(index2, x_size):
+                new_list[index] = 0
+            self.raw_data[channel_index] = new_list
+
+        self.sample_rate = sample_rate
+
         return self
 
     def read_wav_file(self, wav_file_path):
@@ -197,152 +513,86 @@ class Audio():
         sample_rate = self.sample_rate
         channels_number, one_channel_length = self.get_shape()
 
-        text_data = "sample_rate," + str(sample_rate) + ",channels_number," + str(channels_number) + ",one_channel_length," + str(one_channel_length)
+        signal_dict = {}
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                if signal in signal_dict:
+                    signal_dict[signal] += 1
+                else:
+                    signal_dict[signal] = 1
+        signal_item_list = list(signal_dict.items())
+        signal_item_list.sort(key=lambda x: -x[1])
+
+        the_real_signal_dict = dict()
+        index = 0
+        for key, _ in signal_item_list:
+            the_real_signal_dict[key] = str(index)
+            index += 1
+
+        text_data = "format: yingshaoxo_audio; version: 2024; help: the third part contains a dict, you have to convert it into a dict where value is what you get by using space split, index start from 0. then start from part 4, they are real data, each one represent a channel, from left ear to right ear, you have to use the dict you got before to convert those index number into real signal."
+        text_data += "\n_______\n\n"
+        text_data += "sample_rate," + str(sample_rate) + ",channels_number," + str(channels_number) + ",one_channel_length," + str(one_channel_length)
+        text_data += "\n_______\n\n"
+        for key in the_real_signal_dict.keys():
+                text_data += str(key) + " "
         text_data += "\n_______\n\n"
         for channel_index in range(channels_number):
-            last_value = 0
             for index in range(one_channel_length):
-                real_value = self.raw_data[channel_index][index]
-                value = real_value - last_value
-                last_value = value
-                text_data += str(value) + ","
+                signal = self.raw_data[channel_index][index]
+                text_data += str(the_real_signal_dict[signal]) + " "
             text_data += "\n_______\n\n"
+
+        text_data = text_data[:-len("\n_______\n\n")]
 
         file = open(file_path, "w", encoding="utf-8")
         file.write(text_data)
         file.close()
 
-    def get_smooth_audio(self):
-        a_audio = self.copy()
-        channels_number, one_channel_length = a_audio.get_shape()
+    def read_from_file(self, file_path):
+        a_file = open(file_path, "r", encoding="utf-8")
+        raw_text = a_file.read()
+        a_file.close()
 
-        for channel_index in range(channels_number):
-            last_value = 0
-            for index in range(one_channel_length):
-                real_value = a_audio.raw_data[channel_index][index]
-                value = real_value - last_value
-                value = max(min(value, 32767), -32767)
-                last_value = value
-                a_audio.raw_data[channel_index][index] = value
+        splits = raw_text.split("\n_______\n")
+        head_line = splits[0].strip()
+        size_info = splits[1].strip()
+        dict_text = splits[2].strip()
+        the_text_data_list = [one.strip() for one in splits[3:]]
 
-        return a_audio
+        info_splits = size_info.split(",")
+        sample_rate = int(info_splits[1])
+        channels_number = int(info_splits[3])
+        one_channel_length = int(info_splits[5])
+        self.sample_rate = sample_rate
 
-    def get_simplified_audio(self, ratio=0.7):
-        """
-        a_audio = self.copy()
-        channels_number, one_channel_length = a_audio.get_shape()
+        the_signal_dict = dict()
+        for index, value in enumerate(dict_text.split(" ")):
+            the_signal_dict[str(index)] = int(value)
 
-        for channel_index in range(channels_number):
-            new_data_list = []
-            for index in range(one_channel_length):
-                signal = a_audio.raw_data[channel_index][index]
-                if signal >= 0:
-                    new_data_list.append(signal)
-            a_audio.raw_data[channel_index] = new_data_list
-        a_audio.sample_rate = int(a_audio.sample_rate/2)
+        raw_data = []
+        for channel_index, the_text_data in enumerate(the_text_data_list):
+            a_list = [None] * one_channel_length
+            for index, signal_index in enumerate(the_text_data.split(" ")):
+                real_value = the_signal_dict[signal_index]
+                a_list[index] = real_value
+            raw_data.append(a_list)
 
-        _, max_length = a_audio.get_shape()
-        for channel_index in range(channels_number):
-            length = len(a_audio.raw_data[channel_index])
-            if length > max_length:
-                max_length = length
-
-        for channel_index in range(channels_number):
-            new_data_list = [None] * max_length
-            old_length = len(a_audio.raw_data[channel_index])
-            for index in range(max_length):
-                if index >= old_length:
-                    signal = 0
-                else:
-                    signal = a_audio.raw_data[channel_index][index]
-                new_data_list[index] = signal
-            a_audio.raw_data[channel_index] = new_data_list
-
-        return a_audio
-        """
-        ratio = 1 - ratio
-        audio = self.copy()
-        channels_number, one_channel_length = audio.get_shape()
-        audio = audio.resize(one_channel_length * ratio, adds=7277)
-        audio = audio.merge_to_mono()
-        #audio = audio.get_smooth_audio()
-        audio = audio.change_volume(1.5)
-        return audio
-
-    def print(self, save_to_png_file_path=None):
-        from auto_everything.image import Image
-        a_image = Image()
-
-        a_audio = self.copy()
-        channels_number, one_channel_length = a_audio.get_shape()
-
-        one_audio_height = 480
-        half_of_one_audio_height = int(one_audio_height / 2)
-
-        height = one_audio_height * channels_number
-        width = 854
-        a_image = a_image.create_an_image(height, width)
-
-        line_length = 10
-        a_audio.resize(x_size=int(width/line_length))
-        channels_number, one_channel_length = a_audio.get_shape()
-
-        for channel_index in range(channels_number):
-            last_y = channel_index * one_audio_height
-            last_x = 0
-            for x in range(one_channel_length):
-                signal = a_audio.raw_data[channel_index][x]
-                small_signal_in_y = abs(signal / 32767) * half_of_one_audio_height
-                if signal > 0:
-                    y = small_signal_in_y + half_of_one_audio_height
-                elif signal <= 0:
-                    y = half_of_one_audio_height - small_signal_in_y
-                y = int(y)
-                if y >= one_audio_height:
-                    continue
-                y += channel_index * one_audio_height
-                x *= line_length
-
-                horizontal_line = False
-                vertical_line = False
-                normal_line = False
-                upper_part = y - last_y
-                lower_part = x - last_x
-                if upper_part == 0:
-                    horizontal_line = True
-                elif lower_part == 0:
-                    vertical_line = True
-                else:
-                    normal_line = True
-                    slop = upper_part / lower_part
-                    for x_index in range(last_x, x):
-                        y_index = int(slop*(x_index-last_x) + last_y)
-                        a_image.raw_data[y_index][x_index] = [0,255,0,255]
-                        try:
-                            a_image.raw_data[y_index][x_index+1] = [0,255,0,255]
-                            a_image.raw_data[y_index][x_index-1] = [0,255,0,255]
-                            a_image.raw_data[y_index+1][x_index] = [0,255,0,255]
-                            a_image.raw_data[y_index-1][x_index] = [0,255,0,255]
-                        except Exception as e:
-                            pass
-
-                last_y = y
-                last_x = x
-
-        a_image.print(100)
-        return a_image
+        self.raw_data = raw_data
 
 
 if __name__ == "__main__":
     audio = Audio()
-    audio = audio.read_wav_file("/home/yingshaoxo/Downloads/handclap.wav")
-    channels_number, one_channel_length = audio.get_shape()
+    #audio.read_from_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
+    audio = audio.read_wav_file("/home/yingshaoxo/Downloads/handclap2.wav")
+    #channels_number, one_channel_length = audio.get_shape()
+    audio = audio.get_simplified_audio(extreme=True)
+    #audio.save_to_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
+    #audio = audio.reduce_noise_by_frequency()
     #audio.resize(one_channel_length * 0.2)
-    audio = audio.get_simplified_audio()
+    #audio = audio.change_sample_rate(8000)
     #audio.change_volume(0.5)
     #audio = audio.merge_to_mono()
-    #audio = audio.get_smooth_audio()
     #a_image = audio.print()
     #a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/handclap2.png")
-    audio.write_wav_file("/home/yingshaoxo/Downloads/test_smooth.wav")
-    #audio.save_to_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
+    audio.write_wav_file("/home/yingshaoxo/Downloads/simplified_import_test.wav")

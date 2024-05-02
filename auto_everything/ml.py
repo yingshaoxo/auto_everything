@@ -1919,6 +1919,7 @@ class Yingshaoxo_Image_Transformer():
         pass
 
     def get_smooth_line_points_by_using_cubic_interpolation(self, points):
+        # cubic smoothing splines
         pass
     """
 
