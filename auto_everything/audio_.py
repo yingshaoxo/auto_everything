@@ -55,6 +55,10 @@ class Audio():
         else:
             return channel_number, len(self.raw_data[0])
 
+    def get_samples_number_per_second(self):
+        channels_number, one_channel_length = self.get_shape()
+        return one_channel_length / self.sample_rate
+
     def copy(self):
         another_audio = Audio()
 

@@ -185,11 +185,11 @@ class Image:
         if old_length > new_length:
             # downscale
             new_list = [None] * new_length
-            sub_window_length = int(old_length/new_length)
+            sub_window_length = old_length/new_length
             index = 0
             counting = 0
             while True:
-                first_element = a_list[index]
+                first_element = a_list[int(round(index))]
                 new_list[counting] = first_element
                 counting += 1
                 if counting >= new_length:

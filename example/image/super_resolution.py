@@ -10,6 +10,11 @@ an_image.print()
 an_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero1_original.png")
 print("original image output done")
 
+small_image = an_image.copy()
+small_image.resize(30, 30)
+small_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero1_30x30.png")
+print("30x30 image output done")
+
 an_image = an_image.get_simplified_image(ratio=0.9)
 an_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified.png")
 print("simplified image output done")
