@@ -21,6 +21,8 @@ Here is an example I copied from internet that shows you how to use microcontrol
     It plays 8-bit PCM audio on pin 11 using pulse-width modulation (PWM). It uses two timers. The first changes the sample value 8000 times a second. The second holds pin 11 high for 0-255 ticks out of a 256-tick cycle, depending on the sample value. The second timer repeats 62500 times per second (16000000 / 256), which is much faster than the playback rate (8000 Hz), so it almost sounds halfway decent.
     https://docs.arduino.cc/learn/programming/audio
 In other words, it uses two line to connect speaker, one is ground, another is 0 to 5v analog line, the audio data will be converted into (0, 5)v, the change speed for the red line is 8000 times per second, which means 8kHz.
+
+As for dB unit, 0dB means full volume and positive numbers means a boost in volume, while negative numbers mean a dedrease in volume. dB = 20*log10(abs(value)/32768). abs(value) = 10^(db/20)*32768.
 """
 
 
@@ -40,9 +42,9 @@ class Audio():
             normally, if it has 1 list inside, it is a mono audio, if it has 2 list inside, it is a stereo audio
             left ear first, right ear second
         sample_rate: int
-            (len(mono_raw_data) / sample_rate) == n_samples per second
+            (len(mono_raw_data) / sample_rate) == audio seconds
         """
-        self.sample_rate = sample_rate
+        self.sample_rate = sample_rate # one second play sample_rate number of data
         self.raw_data = raw_data
 
     def get_shape(self):
@@ -56,6 +58,9 @@ class Audio():
             return channel_number, len(self.raw_data[0])
 
     def get_samples_number_per_second(self):
+        return self.sample_rate
+
+    def get_audio_length_in_second(self):
         channels_number, one_channel_length = self.get_shape()
         return one_channel_length / self.sample_rate
 
@@ -221,6 +226,193 @@ class Audio():
                     else:
                         target_signal = cache_dict[signal]
                     self.raw_data[channel_index][index] = target_signal
+        return self
+
+    def reduce_noise_by_value(self, noise_audio=None, reducing_factor=0.5, kernel=1):
+        """
+        noise_audio: Audio
+            the audio that only contains noise
+
+        Just like adobe audition, you can filter out those noise by give a a list of noise sample data
+        """
+        a_audio = self.copy()
+
+        noise_raw_data = noise_audio.raw_data[0]
+        noise_data_dict = {}
+        for one in noise_raw_data:
+            noise_data_dict[one] = 0
+
+        channels_number, one_channel_length = a_audio.get_shape()
+        for channel_index in range(channels_number):
+            new_data_list = a_audio.raw_data[channel_index].copy()
+            for index in range(one_channel_length):
+                signal = a_audio.raw_data[channel_index][index]
+                if signal in noise_data_dict:
+                    new_value = round(signal * reducing_factor)
+                    a_audio.raw_data[channel_index][index] = new_value
+                    if kernel > 0:
+                        for i in range(index-kernel, index+kernel):
+                            if i>=0 and i < one_channel_length:
+                                new_data_list[i] = new_value
+            if kernel > 0:
+                a_audio.raw_data[channel_index] = new_data_list
+
+        self.raw_data = a_audio.raw_data
+        return self
+
+    def reduce_noise_by_gate(self, threshold=None, noise_audio=None, use_first_x_second_noise=0.048, kernel=105, top_noise_ratio=0.001, less_broken=True):
+        """
+        threshold: int
+            1424, the mean value of noise, just signal number, no dB need
+        noise_audio: Audio
+            the audio that only contains noise
+
+        This works better in pure human voice data.
+
+        Then I get the volume of noise, for each 0.2 second, if the volume of it less or equal to noise volume, we set it to 0. Some people call this method "noise gate"
+        When you use noise gate, if you think it is noise, you can get more noise data. for data you think is not noise by noise gate, you can still do volume decreseing on those noise inside by checking noise dict. then for those you think it is noise by using noise gate, you directly set it to 0.
+        """
+        a_audio = self.copy()
+
+        if threshold == None:
+            if noise_audio == None:
+                noise_numbers = round(a_audio.sample_rate*use_first_x_second_noise)
+                noise_audio = Audio()
+                noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
+            threshold = sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * 3
+
+        noise_dict = {}
+        channels_number, one_channel_length = a_audio.get_shape()
+        for channel_index in range(channels_number):
+            index = 0
+            while True:
+                signal = a_audio.raw_data[channel_index][index]
+                end_index = index + kernel
+                if end_index < one_channel_length:
+                    raw_range_data = a_audio.raw_data[channel_index][index: end_index]
+                    range_data = [abs(one) for one in raw_range_data]
+                    average_value = sum(range_data) / len(range_data)
+                    if average_value < threshold:
+                        # silent the range
+                        for i in range(index, end_index):
+                            a_audio.raw_data[channel_index][i] = 0
+                        index += kernel
+                        for one in raw_range_data:
+                            if one in noise_dict:
+                                noise_dict[one] += 1
+                            else:
+                                noise_dict[one] = 1
+                index += 1
+                if index >= one_channel_length:
+                    break
+
+        signal_item_list = list(noise_dict.items())
+        signal_item_list.sort(key=lambda x: -x[1])
+        remain_number = round(top_noise_ratio * len(signal_item_list))
+        remain_number = max(5, remain_number)
+        remain_signal_item_list = signal_item_list[:remain_number]
+        #print("It has " + str(remain_number) + " noise points.")
+        new_noise_dict = {}
+        for key, value in remain_signal_item_list:
+            new_noise_dict[key] = 0
+
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = a_audio.raw_data[channel_index][index]
+                if signal in new_noise_dict:
+                    a_audio.raw_data[channel_index][index] = round(signal/2)
+                    #a_audio.raw_data[channel_index][index] = 0
+
+        if less_broken == True:
+            self.change_volume(0.1)
+            a_audio.raw_data = a_audio.raw_data + self.raw_data
+            self = a_audio.merge_to_mono()
+        else:
+            self.raw_data = a_audio.raw_data
+
+        return self
+
+    def reduce_noise_by_using_yingshaoxo_method(self, threshold=None, noise_audio=None, use_first_x_second_noise=0.048, kernel=100, less_broken=True):
+        """
+        threshold: int
+            1424, the mean value of noise, just signal number, no dB need
+        noise_audio: Audio
+            the audio that only contains noise
+
+        This works better in pure human voice data.
+        """
+        a_audio = self.copy()
+
+        if threshold == None:
+            if noise_audio == None:
+                noise_numbers = round(a_audio.sample_rate*use_first_x_second_noise)
+                noise_audio = Audio()
+                noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
+            threshold = sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * 2.0
+
+        channels_number, one_channel_length = a_audio.get_shape()
+        for channel_index in range(channels_number):
+            new_signal_list = [None] * one_channel_length
+            index = 0
+            while True:
+                signal = a_audio.raw_data[channel_index][index]
+
+                start_index = index - kernel
+                end_index = index + kernel
+                if start_index < 0:
+                    start_index = 0
+                if end_index > one_channel_length:
+                    end_index = one_channel_length
+
+                raw_range_data = a_audio.raw_data[channel_index][start_index: end_index]
+                range_data = [abs(one) for one in raw_range_data]
+                average_value = sum(range_data) / len(range_data)
+
+                if average_value < threshold:
+                    # silent the range
+                    new_signal_list[index] = 0
+                else:
+                    # ignore sound
+                    if abs(signal) < threshold:
+                        new_signal_list[index] = round(signal / 2)
+                    else:
+                        new_signal_list[index] = signal
+                index += 1
+                if index >= one_channel_length:
+                    break
+            a_audio.raw_data[channel_index] = new_signal_list
+
+        #a_audio.reduce_noise_by_value(noise_audio, reducing_factor=0.5, kernel=1)
+        #need to find a way to mimic the audacity noise supression algorithm
+
+        if less_broken == True:
+            new_audio = self.copy()
+            new_audio.reduce_noise_by_gate()
+            self.change_volume(0.1)
+            a_audio.raw_data = a_audio.raw_data + new_audio.raw_data + self.raw_data
+            self.raw_data = a_audio.merge_to_mono().raw_data
+            self.change_volume(1.5)
+            self.volume_db_limiter(-11, 0.7)
+        else:
+            self.raw_data = a_audio.raw_data
+
+        return self
+
+    def volume_db_limiter(self, db=-13, reducing_factor=0.7):
+        """
+        db: int
+            -90 means silence, 0 means full volume, >0 means strong sound that should get limited
+        """
+        max_absolute_signal = 10**(db/20) * 32768
+
+        channels_number, one_channel_length = self.get_shape()
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                absolute_signal = abs(signal)
+                if absolute_signal > max_absolute_signal:
+                    self.raw_data[channel_index][index] = round(signal*reducing_factor)
+
         return self
 
     def range_map_with_bug(self, original_min_value, original_max_value, min_value, max_value, use_int=True):
@@ -588,15 +780,16 @@ class Audio():
 if __name__ == "__main__":
     audio = Audio()
     #audio.read_from_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
-    audio = audio.read_wav_file("/home/yingshaoxo/Downloads/handclap2.wav")
+    audio = audio.read_wav_file("/home/yingshaoxo/Downloads/noise.wav")
     #channels_number, one_channel_length = audio.get_shape()
-    audio = audio.get_simplified_audio(extreme=True)
+    #print(channels_number, one_channel_length)
+    #audio = audio.reduce_noise_by_gate()
+    audio = audio.reduce_noise_by_using_yingshaoxo_method()
+    #audio = audio.get_simplified_audio()
     #audio.save_to_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
-    #audio = audio.reduce_noise_by_frequency()
-    #audio.resize(one_channel_length * 0.2)
     #audio = audio.change_sample_rate(8000)
     #audio.change_volume(0.5)
     #audio = audio.merge_to_mono()
     #a_image = audio.print()
     #a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/handclap2.png")
-    audio.write_wav_file("/home/yingshaoxo/Downloads/simplified_import_test.wav")
+    audio.write_wav_file("/home/yingshaoxo/Downloads/no_noise_yingshaoxo.wav")
