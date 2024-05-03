@@ -23,6 +23,8 @@ Here is an example I copied from internet that shows you how to use microcontrol
 In other words, it uses two line to connect speaker, one is ground, another is 0 to 5v analog line, the audio data will be converted into (0, 5)v, the change speed for the red line is 8000 times per second, which means 8kHz.
 
 As for dB unit, 0dB means full volume and positive numbers means a boost in volume, while negative numbers mean a dedrease in volume. dB = 20*log10(abs(value)/32768). abs(value) = 10^(db/20)*32768.
+
+The funny part about audio is that for same volume, some sound may sounds like bass, another may sounds like gutar. The low_pass or high_pass audio filter is not simply rely on volume. It depends on repeating time and vibration frequency.
 """
 
 
@@ -174,14 +176,37 @@ class Audio():
         channels_number, one_channel_length = audio.get_shape()
         audio = audio.change_sample_rate(8000)
         audio = audio.merge_to_mono()
-        audio = audio.reduce_noise_by_frequency(ratio)
+        audio = audio.reduce_noise_by_counting(ratio)
         audio = audio.change_volume(1.5)
         if extreme == True:
             audio = audio.range_map_with_bug(-32767, 32767, 0, 32767)
             audio = audio.change_volume(1.5)
         return audio
 
-    def reduce_noise_by_frequency(self, ratio=0.7):
+    def reduce_noise_by_frequency(self):
+        """
+        garbage code, won't work
+        """
+        def high_pass_filter(data_list, sample_rate, high_pass_frequency):
+            import math
+            dt = 1/sample_rate
+            RC = 1/(2*3.14159265358979323846*high_pass_frequency)
+            alpha = RC / (RC + dt)
+
+            filtered_data = [0] * len(data_list)
+            for i in range(1, len(data_list)):
+                filtered_data[i] = round(alpha * filtered_data[i-1] + alpha * (data_list[i] - data_list[i-1]))
+
+            return filtered_data
+
+        channels_number, one_channel_length = self.get_shape()
+        for channel_index in range(channels_number):
+            new_data_list = high_pass_filter(self.raw_data[channel_index].copy(), self.sample_rate, 8500)
+            self.raw_data[channel_index] = new_data_list
+        self.change_volume(7)
+        return self
+
+    def reduce_noise_by_counting(self, ratio=0.7):
         """
         One way is to count sound frequency, cut low frequency stuff, or save middle frequency stuff
         Another way is to use OBS noise reducing tech, rnn noise
@@ -258,6 +283,35 @@ class Audio():
                 a_audio.raw_data[channel_index] = new_data_list
 
         self.raw_data = a_audio.raw_data
+        return self
+
+    def reduce_noise_by_subtraction(self, noise_audio=None, threshold=None, use_first_x_second_noise=0.048, ratio=6):
+        """
+        useless
+        """
+        a_audio = self.copy()
+
+        if threshold == None:
+            if noise_audio == None:
+                noise_numbers = round(a_audio.sample_rate*use_first_x_second_noise)
+                noise_audio = Audio()
+                noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
+            threshold = round(sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * ratio)
+        threshold = round(threshold)
+
+        channels_number, one_channel_length = self.get_shape()
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                absolute_signal = abs(signal)
+                new_absolute_signal = absolute_signal - threshold
+                if new_absolute_signal < 0:
+                    new_absolute_signal = 0
+                if signal >= 0:
+                    self.raw_data[channel_index][index] = new_absolute_signal
+                else:
+                    self.raw_data[channel_index][index] = -new_absolute_signal
+
         return self
 
     def reduce_noise_by_gate(self, threshold=None, noise_audio=None, use_first_x_second_noise=0.048, kernel=105, top_noise_ratio=0.001, less_broken=True):
@@ -341,6 +395,7 @@ class Audio():
 
         This works better in pure human voice data.
         """
+        a_audio_backup = self.copy()
         a_audio = self.copy()
 
         if threshold == None:
@@ -386,6 +441,7 @@ class Audio():
         #need to find a way to mimic the audacity noise supression algorithm
 
         if less_broken == True:
+            """
             new_audio = self.copy()
             new_audio.reduce_noise_by_gate()
             self.change_volume(0.1)
@@ -393,6 +449,22 @@ class Audio():
             self.raw_data = a_audio.merge_to_mono().raw_data
             self.change_volume(1.5)
             self.volume_db_limiter(-11, 0.7)
+            """
+            new_audio2 = self.copy()
+            new_audio2.reduce_noise_by_subtraction()
+            new_audio = self.copy()
+            new_audio.reduce_noise_by_gate()
+            self.change_volume(0.1)
+            a_audio.raw_data = a_audio.raw_data + new_audio.raw_data + self.raw_data + new_audio2.raw_data
+            self.raw_data = a_audio.merge_to_mono().raw_data
+            self.change_volume(1.5)
+            self.volume_db_limiter(-11, 0.7)
+
+            a_audio_backup.change_volume(0.1)
+            a_audio_backup.raw_data = a_audio_backup.raw_data + self.raw_data
+            self.raw_data = a_audio_backup.merge_to_mono().raw_data
+            self.change_volume(1.5)
+            self.reduce_noise_by_subtraction(ratio=2)
         else:
             self.raw_data = a_audio.raw_data
 
@@ -785,6 +857,8 @@ if __name__ == "__main__":
     #print(channels_number, one_channel_length)
     #audio = audio.reduce_noise_by_gate()
     audio = audio.reduce_noise_by_using_yingshaoxo_method()
+    #audio = audio.reduce_noise_by_frequency()
+    #audio = audio.reduce_noise_by_subtraction()
     #audio = audio.get_simplified_audio()
     #audio.save_to_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
     #audio = audio.change_sample_rate(8000)
@@ -792,4 +866,4 @@ if __name__ == "__main__":
     #audio = audio.merge_to_mono()
     #a_image = audio.print()
     #a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/handclap2.png")
-    audio.write_wav_file("/home/yingshaoxo/Downloads/no_noise_yingshaoxo.wav")
+    audio.write_wav_file("/home/yingshaoxo/Downloads/no_noise.wav")
