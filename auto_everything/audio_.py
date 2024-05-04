@@ -718,11 +718,11 @@ class Audio():
         int_width = wav_object.getsampwidth() #they save int differently, maybe two int as one int
         channels = wav_object.getnchannels()
         frame_rate = wav_object.getframerate() #44100
-        number_of_frames = wav_object.getnframes() * 2 * channels
+        number_of_frames = wav_object.getnframes() * int_width * channels
         signal_list = wav_object.readframes(number_of_frames)
 
         raw_data = []
-        one_channel_number = int(number_of_frames/channels/2)
+        one_channel_number = int(number_of_frames/channels/int_width)
         for _ in range(channels):
             raw_data.append([None] * one_channel_number)
         second_index_list = []
@@ -752,14 +752,14 @@ class Audio():
         wav_object.close()
         return self
 
-    def write_wav_file(self, wav_file_path):
+    def write_wav_file(self, wav_file_path, sample_width=2):
         import struct
         sample_rate = self.sample_rate
         channels_number, one_channel_length = self.get_shape()
 
         wav_object = self.wave_module.open(wav_file_path, 'w')
         wav_object.setnchannels(channels_number)
-        wav_object.setsampwidth(2)
+        wav_object.setsampwidth(sample_width) # can be 1 for small value
         wav_object.setframerate(sample_rate)
 
         for index in range(one_channel_length):
@@ -847,16 +847,16 @@ if __name__ == "__main__":
     audio = Audio()
     #audio.read_from_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
     audio = audio.read_wav_file("/home/yingshaoxo/Downloads/simplified.wav")
-    audio = audio.range_map(-32767, 32767, 0, 1023, loudness_match=True)
+    #audio = audio.range_map(-32767, 32767, 0, 1023, loudness_match=True)
     #channels_number, one_channel_length = audio.get_shape()
     #print(channels_number, one_channel_length)
     #audio = audio.reduce_noise_by_gate()
     #audio = audio.reduce_noise_by_using_yingshaoxo_method(less_broken=True)
     #audio = audio.reduce_noise_by_frequency()
     #audio = audio.reduce_noise_by_subtraction()
-    #audio = audio.get_simplified_audio(sample_rate=8000)
+    audio = audio.get_simplified_audio(sample_rate=4000)
     #audio = audio.to_stereo()
-    audio.save_to_file("/home/yingshaoxo/Downloads/song_small.wav.txt")
+    #audio.save_to_file("/home/yingshaoxo/Downloads/song_small.wav.txt")
     #audio = audio.change_sample_rate(8000)
     #audio.change_volume(0.5)
     #audio = audio.merge_to_mono()
