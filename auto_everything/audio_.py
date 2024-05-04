@@ -29,6 +29,12 @@ The funny part about audio is that for same volume, some sound may sounds like b
 
 
 class Audio():
+    """
+    author: yingshaoxo
+
+    normally, wav file value is in range of (-32768, 32768), but you can convert it into (0, 1023) to let micropython to use two analog pin to drive a speaker to play sound.
+    the convertion function is self.range_map(-32767, 32767, 0, 1023, loudness_match=True)
+    """
     def __init__(self):
         try:
             import wave
@@ -162,6 +168,15 @@ class Audio():
 
         return a_audio
 
+    def to_stereo(self):
+        a_audio = self.copy()
+        channels_number, one_channel_length = a_audio.get_shape()
+
+        if channels_number == 1:
+            a_audio.raw_data = [a_audio.raw_data[0], a_audio.raw_data[0].copy()]
+
+        return a_audio
+
     def change_volume(self, scale=1.0):
         channels_number, one_channel_length = self.get_shape()
         for channel_index in range(channels_number):
@@ -170,17 +185,17 @@ class Audio():
                 self.raw_data[channel_index][x] = int(round(self.raw_data[channel_index][x] * scale))
         return self
 
-    def get_simplified_audio(self, ratio=0.7, extreme=False):
+    def get_simplified_audio(self, ratio=0.7, sample_rate=8000, extreme=False):
         ratio = 1 - ratio
         audio = self.copy()
         channels_number, one_channel_length = audio.get_shape()
-        audio = audio.change_sample_rate(8000)
+        audio = audio.change_sample_rate(sample_rate)
         audio = audio.merge_to_mono()
         audio = audio.reduce_noise_by_counting(ratio)
         audio = audio.change_volume(1.5)
         if extreme == True:
-            audio = audio.range_map_with_bug(-32767, 32767, 0, 32767)
-            audio = audio.change_volume(1.5)
+            audio = audio.range_map(-32767, 32767, 0, 1024)
+            #audio = audio.change_volume(1.5)
         return audio
 
     def reduce_noise_by_frequency(self):
@@ -470,6 +485,29 @@ class Audio():
 
         return self
 
+    def smooth_audio(self, kernel=3):
+        kernel = int(kernel / 2)
+        a_audio = self.copy()
+
+        channels_number, one_channel_length = a_audio.get_shape()
+        for channel_index in range(channels_number):
+            new_data_list = a_audio.raw_data[channel_index].copy()
+            for index in range(one_channel_length):
+                start_index = index - kernel
+                end_index = index + kernel
+                if start_index <= 0:
+                    start_index = 0
+                if end_index >= one_channel_length:
+                    end_index = one_channel_length
+                signal_range = new_data_list[start_index: end_index]
+                signal = new_data_list[index]
+
+                average_value = round(sum(signal_range)/len(signal_range))
+                a_audio.raw_data[channel_index][index] = average_value
+
+        self.raw_data = a_audio.raw_data
+        return self
+
     def volume_db_limiter(self, db=-13, reducing_factor=0.7):
         """
         db: int
@@ -487,73 +525,21 @@ class Audio():
 
         return self
 
-    def range_map_with_bug(self, original_min_value, original_max_value, min_value, max_value, use_int=True):
+    def range_map(self, original_min_value, original_max_value, min_value, max_value, use_int=True, loudness_match=True):
         """
+        original_min_value, original_max_value, min_value, max_value: int
+            -32767, 32767, 0, 1023 for micropython
+            -32767, 32767, 0, 254 for arduino
         use_int: bool
             will make sure all result is integer
-        has_negative_number: bool
-            default True for wav, because it has negative numbers.
-            if you want to convert range from (0,255) to (-32767, 32767), you have to set this to False
+        loudness_match: bool
+            will make sure the sound has a volume you can hear
 
-        You can use this function to convert self.raw_data into data that in range of (0, 3.3) or (0, 5) or (-32767, 32767), or (0, 1024) or (0, 255)
-        """
-        if original_min_value < 0:
-            has_negative_number=True
-        else:
-            has_negative_number=False
+        By default wav audio has negative numbers. It is in range of (-32767, 32767)
 
-        new_data_dict = {}
-        #original_max_value = -999999
-        #original_min_value = 999999
-        channels_number, one_channel_length = self.get_shape()
-        for channel_index in range(channels_number):
-            for index in range(one_channel_length):
-                signal = self.raw_data[channel_index][index]
-                new_data_dict[signal] = signal
-                #if signal > original_max_value:
-                #    original_max_value = signal
-                #if signal < original_min_value:
-                #    original_min_value = signal
+        You can use this function to do convertion between (0, 3.3) and (0, 5) and (-32767, 32767) and (0, 1024) and (0, 255)
 
-        original_range = original_max_value - original_min_value
-        if original_range == 0:
-            return self
-        new_range = max_value - min_value
-        half_new_range = new_range/2
-        if new_range == 0:
-            return self
-        for key in new_data_dict.keys():
-            value = new_data_dict[key]
-            new_value = (value / original_range) * new_range
-            if has_negative_number == True:
-                if new_value >= 0:
-                    new_value += half_new_range
-                else:
-                    new_value = half_new_range + new_value
-            else:
-                new_data_dict[key] = new_value
-
-            if use_int == True:
-                new_data_dict[key] = int(round(new_value))
-            else:
-                new_data_dict[key] = new_value
-
-        for channel_index in range(channels_number):
-            for index in range(one_channel_length):
-                signal = self.raw_data[channel_index][index]
-                self.raw_data[channel_index][index] = new_data_dict[signal]
-
-        return self
-
-    def range_map(self, original_min_value, original_max_value, min_value, max_value, use_int=True):
-        """
-        use_int: bool
-            will make sure all result is integer
-        has_negative_number: bool
-            default True for wav, because it has negative numbers.
-            if you want to convert range from (0,255) to (-32767, 32767), you have to set this to False
-
-        You can use this function to convert self.raw_data into data that in range of (0, 3.3) or (0, 5) or (-32767, 32767), or (0, 1024) or (0, 255)
+        If you want float number, you have to set use_int==False
         """
         if original_min_value < 0:
             original_has_negative_number=True
@@ -566,26 +552,32 @@ class Audio():
             target_has_negative_number = False
 
         new_data_dict = {}
-        #original_max_value = -999999
-        #original_min_value = 999999
+        real_original_max_value = -999999
+        real_original_min_value = 999999
         channels_number, one_channel_length = self.get_shape()
         for channel_index in range(channels_number):
             for index in range(one_channel_length):
                 signal = self.raw_data[channel_index][index]
                 new_data_dict[signal] = signal
-                #if signal > original_max_value:
-                #    original_max_value = signal
-                #if signal < original_min_value:
-                #    original_min_value = signal
 
-        original_range = original_max_value - original_min_value
+                if signal > real_original_max_value:
+                    real_original_max_value = signal
+                if signal < real_original_min_value:
+                    real_original_min_value = signal
+
+        if loudness_match == True:
+            original_range = real_original_max_value - real_original_min_value
+        else:
+            original_range = original_max_value - original_min_value
         half_original_range = original_range/2
         if original_range == 0:
             return self
+
         new_range = max_value - min_value
         half_new_range = new_range/2
         if new_range == 0:
             return self
+
         for key in new_data_dict.keys():
             value = new_data_dict[key]
 
@@ -593,12 +585,14 @@ class Audio():
                 if value >= 0:
                     value += half_original_range
                 else:
-                    value = half_original_range - abs(new_value)
+                    value = half_original_range - abs(value)
 
             new_value = (value / original_range) * new_range
 
             if target_has_negative_number == True:
                 new_value = new_value - half_new_range
+            else:
+                pass
 
             if use_int == True:
                 new_data_dict[key] = int(round(new_value))
@@ -852,18 +846,20 @@ class Audio():
 if __name__ == "__main__":
     audio = Audio()
     #audio.read_from_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
-    audio = audio.read_wav_file("/home/yingshaoxo/Downloads/noise.wav")
+    audio = audio.read_wav_file("/home/yingshaoxo/Downloads/simplified.wav")
+    audio = audio.range_map(-32767, 32767, 0, 1023, loudness_match=True)
     #channels_number, one_channel_length = audio.get_shape()
     #print(channels_number, one_channel_length)
     #audio = audio.reduce_noise_by_gate()
-    audio = audio.reduce_noise_by_using_yingshaoxo_method()
+    #audio = audio.reduce_noise_by_using_yingshaoxo_method(less_broken=True)
     #audio = audio.reduce_noise_by_frequency()
     #audio = audio.reduce_noise_by_subtraction()
-    #audio = audio.get_simplified_audio()
-    #audio.save_to_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
+    #audio = audio.get_simplified_audio(sample_rate=8000)
+    #audio = audio.to_stereo()
+    audio.save_to_file("/home/yingshaoxo/Downloads/song_small.wav.txt")
     #audio = audio.change_sample_rate(8000)
     #audio.change_volume(0.5)
     #audio = audio.merge_to_mono()
     #a_image = audio.print()
     #a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/handclap2.png")
-    audio.write_wav_file("/home/yingshaoxo/Downloads/no_noise.wav")
+    audio.write_wav_file("/home/yingshaoxo/Downloads/song_small.wav")
