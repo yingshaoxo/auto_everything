@@ -329,7 +329,7 @@ class Audio():
 
         return self
 
-    def reduce_noise_by_gate(self, threshold=None, noise_audio=None, use_first_x_second_noise=0.048, kernel=105, top_noise_ratio=0.001, less_broken=True):
+    def reduce_noise_by_gate(self, threshold=None, noise_audio=None, use_first_x_second_noise=0.048, kernel=105, top_noise_ratio=0.001, less_broken=True, ratio=3):
         """
         threshold: int
             1424, the mean value of noise, just signal number, no dB need
@@ -348,7 +348,7 @@ class Audio():
                 noise_numbers = round(a_audio.sample_rate*use_first_x_second_noise)
                 noise_audio = Audio()
                 noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
-            threshold = sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * 3
+            threshold = sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * ratio
 
         noise_dict = {}
         channels_number, one_channel_length = a_audio.get_shape()
@@ -401,7 +401,7 @@ class Audio():
 
         return self
 
-    def reduce_noise_by_using_yingshaoxo_method(self, threshold=None, noise_audio=None, use_first_x_second_noise=0.048, kernel=100, less_broken=True):
+    def reduce_noise_by_using_yingshaoxo_method(self, threshold=None, noise_audio=None, use_first_x_second_noise=0.048, kernel=100, less_broken=True, ratio=2.0, smooth=False):
         """
         threshold: int
             1424, the mean value of noise, just signal number, no dB need
@@ -418,7 +418,7 @@ class Audio():
                 noise_numbers = round(a_audio.sample_rate*use_first_x_second_noise)
                 noise_audio = Audio()
                 noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
-            threshold = sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * 2.0
+            threshold = sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * ratio
 
         channels_number, one_channel_length = a_audio.get_shape()
         for channel_index in range(channels_number):
@@ -456,7 +456,6 @@ class Audio():
         #need to find a way to mimic the audacity noise supression algorithm
 
         if less_broken == True:
-            """
             new_audio = self.copy()
             new_audio.reduce_noise_by_gate()
             self.change_volume(0.1)
@@ -464,44 +463,55 @@ class Audio():
             self.raw_data = a_audio.merge_to_mono().raw_data
             self.change_volume(1.5)
             self.volume_db_limiter(-11, 0.7)
-            """
-            new_audio2 = self.copy()
-            new_audio2.reduce_noise_by_subtraction()
-            new_audio = self.copy()
-            new_audio.reduce_noise_by_gate()
-            self.change_volume(0.1)
-            a_audio.raw_data = a_audio.raw_data + new_audio.raw_data + self.raw_data + new_audio2.raw_data
-            self.raw_data = a_audio.merge_to_mono().raw_data
-            self.change_volume(1.5)
-            self.volume_db_limiter(-11, 0.7)
-
-            a_audio_backup.change_volume(0.1)
-            a_audio_backup.raw_data = a_audio_backup.raw_data + self.raw_data
-            self.raw_data = a_audio_backup.merge_to_mono().raw_data
-            self.change_volume(1.5)
-            self.reduce_noise_by_subtraction(ratio=2)
+            if smooth == True:
+                self.smooth_audio(kernel=1)
         else:
             self.raw_data = a_audio.raw_data
 
         return self
 
-    def smooth_audio(self, kernel=3):
-        kernel = int(kernel / 2)
+    def reduce_noise(self):
+        """
+        Two place to improve:
+        1. find a way to reduce noise in voice just like audacity noise supression algorithm did, they use FFT
+        2. find a better way to smooth audio
+        """
         a_audio = self.copy()
 
+        a_audio_1 = a_audio.copy().reduce_noise_by_using_yingshaoxo_method(less_broken=True, smooth=True)
+
+        use_first_x_second_noise=0.048
+        noise_numbers = round(a_audio.sample_rate*use_first_x_second_noise)
+        noise_audio = Audio()
+        noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
+
+        a_audio = a_audio.reduce_noise_by_subtraction(ratio=3)
+        a_audio = a_audio.reduce_noise_by_using_yingshaoxo_method(noise_audio=noise_audio, less_broken=False, ratio=1.5, kernel=50)
+
+        a_audio = a_audio.reduce_noise_by_counting(0.7)
+        a_audio = a_audio.smooth_audio(kernel=1)
+
+        a_audio.raw_data = a_audio.raw_data + a_audio_1.raw_data
+        a_audio = a_audio.merge_to_mono()
+
+        self = a_audio
+        return self
+
+    def smooth_audio(self, kernel=3):
+        a_audio = self.copy()
+
+        kernel = int(kernel)
         channels_number, one_channel_length = a_audio.get_shape()
         for channel_index in range(channels_number):
-            new_data_list = a_audio.raw_data[channel_index].copy()
             for index in range(one_channel_length):
-                start_index = index - kernel
+                #signal = a_audio.raw_data[channel_index][index]
+                start_index = index - 1
                 end_index = index + kernel
                 if start_index <= 0:
                     start_index = 0
                 if end_index >= one_channel_length:
                     end_index = one_channel_length
-                signal_range = new_data_list[start_index: end_index]
-                signal = new_data_list[index]
-
+                signal_range = a_audio.raw_data[channel_index][start_index: end_index]
                 average_value = round(sum(signal_range)/len(signal_range))
                 a_audio.raw_data[channel_index][index] = average_value
 
@@ -846,15 +856,18 @@ class Audio():
 if __name__ == "__main__":
     audio = Audio()
     #audio.read_from_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
-    audio = audio.read_wav_file("/home/yingshaoxo/Downloads/simplified.wav")
+    audio = audio.read_wav_file("/home/yingshaoxo/Downloads/noise.wav")
+    audio = audio.reduce_noise()
+    #audio = audio.reduce_noise_by_subtraction(ratio=3)
+    #audio = audio.reduce_noise_by_using_yingshaoxo_method(less_broken=True)
+    #audio = audio.smooth_audio(kernel=1)
     #audio = audio.range_map(-32767, 32767, 0, 1023, loudness_match=True)
     #channels_number, one_channel_length = audio.get_shape()
     #print(channels_number, one_channel_length)
     #audio = audio.reduce_noise_by_gate()
-    #audio = audio.reduce_noise_by_using_yingshaoxo_method(less_broken=True)
     #audio = audio.reduce_noise_by_frequency()
     #audio = audio.reduce_noise_by_subtraction()
-    audio = audio.get_simplified_audio(sample_rate=4000)
+    #audio = audio.get_simplified_audio(sample_rate=4000)
     #audio = audio.to_stereo()
     #audio.save_to_file("/home/yingshaoxo/Downloads/song_small.wav.txt")
     #audio = audio.change_sample_rate(8000)
@@ -862,4 +875,4 @@ if __name__ == "__main__":
     #audio = audio.merge_to_mono()
     #a_image = audio.print()
     #a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/handclap2.png")
-    audio.write_wav_file("/home/yingshaoxo/Downloads/song_small.wav")
+    audio.write_wav_file("/home/yingshaoxo/Downloads/no_noise.wav")

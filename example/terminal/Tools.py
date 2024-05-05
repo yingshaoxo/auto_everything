@@ -425,6 +425,11 @@ git remote set-url --add --push origin {repo_url}
         """)
         #ffmpeg -i input.mp4 -c:v libx264 -vf scale=640:360 -r 23.98 -b:v 498k -c:a aac -b:a 128k output.mp4
 
+    def compress_video2(self, video_path, target_path):
+        t.run(f"""
+            ffmpeg -i '{video_path}' -c:v libx264 -vf scale=320:180 -r 23.98 -b:v 100k -c:a copy '{target_path}'
+        """)
+
     def compress_audio(self, audio_path, target_path, kbps=128):
         t.run(f"""
             ffmpeg -i '{audio_path}' -b:a {kbps}k '{target_path}'
