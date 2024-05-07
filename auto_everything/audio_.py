@@ -602,7 +602,7 @@ class Audio():
             if target_has_negative_number == True:
                 new_value = new_value - half_new_range
             else:
-                pass
+                new_value = abs(new_value) # may have a bug in here, there should not have a negative number
 
             if use_int == True:
                 new_data_dict[key] = int(round(new_value))
@@ -678,6 +678,24 @@ class Audio():
 
         a_image.print(100)
         return a_image
+
+    def to_hash(self, samples_per_second=2):
+        a_audio = self.copy()
+        a_audio = a_audio.change_sample_rate(samples_per_second)
+        a_audio = a_audio.range_map(-32767, 32767, 0, 99, use_int=True, loudness_match=True)
+        the_data = a_audio.raw_data[0]
+        change_rate_list = []
+        previous_signal = None
+        for one in the_data:
+            signal = abs(one)
+            if previous_signal != None:
+                if previous_signal == 0:
+                    previous_signal = 1
+                the_change_rate = str(round((signal / previous_signal) * 10))
+                the_change_rate = "0"*(3-len(the_change_rate)) + the_change_rate
+                change_rate_list.append(the_change_rate)
+            previous_signal = signal
+        return "".join(change_rate_list)
 
     def resize(self, x_size, y_size=None, adds=1327):
         if x_size != None:
