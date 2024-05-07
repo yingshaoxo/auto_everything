@@ -1,6 +1,3 @@
-from typing import Any
-
-
 class Calculator():
     """
     A class for advanced mathematics
