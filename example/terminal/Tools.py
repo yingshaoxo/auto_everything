@@ -427,7 +427,8 @@ git remote set-url --add --push origin {repo_url}
 
     def compress_video2(self, video_path, target_path):
         t.run(f"""
-            ffmpeg -i '{video_path}' -c:v libx264 -vf scale=320:180 -r 23.98 -b:v 100k -c:a copy '{target_path}'
+            ffmpeg -i '{video_path}' -c:v libx264 -vf "scale=320:180" -r 23.98 -b:v 100k -c:a copy '{target_path}'
+            #ffmpeg -i '{video_path}' -c:v libx264 -vf scale=320:180 -r 16 -b:v 100k -c:a copy '{target_path}'
         """)
 
     def compress_audio(self, audio_path, target_path, kbps=128):
@@ -579,7 +580,7 @@ ifdown -v {interface}; ifup -v {interface}
             if found_index != None:
                 next_text = "\n".join(the_lines[found_index:found_index + 20])
                 print("\n\n_______\n\n")
-                print(next_text)
+                print(next_text.strip("`"))
             else:
                 print("\n\n_______\n\n")
                 print("I can't find anything.")
