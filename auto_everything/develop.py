@@ -2433,6 +2433,195 @@ const _general_from_dict_function = (old_object, new_object) => {{
 
         return template_text
 
+    def _convert_yrpc_code_into_javascript_rpc_code(self, identity_name: str, source_code: str) -> str:
+        _, rpc_dict = self.get_information_from_yrpc_protocol_code(source_code=source_code)
+
+        client_function_list: list[str] = []
+        for function_name, parameter_info in rpc_dict.items():
+            input_variable: str = parameter_info["input_variable"]
+            output_variable: str = parameter_info["output_variable"]
+
+            if " " in input_variable:
+                input_variable = re.split(r"\s+", input_variable)[1]
+            if " " in output_variable:
+                output_variable = re.split(r"\s+", output_variable)[1]
+
+            client_function_list.append(f"""
+    {function_name}({input_variable}, response_handle_function) {{
+        this._get_reponse_or_error_by_url_path_and_input("{function_name}", {input_variable}.to_dict(), response_handle_function)
+    }}
+            """.rstrip().lstrip('\n'))
+
+        client_function_list_text = "\n\n".join(client_function_list)
+
+        template_text = f"""
+import * as {identity_name}_objects from './{identity_name}_objects'
+
+export class Client_{identity_name} {{
+  /**
+   * @param {{string}} _service_url is something like: "http://127.0.0.1:80" or "https://127.0.0.1"
+   * @param {{{{ [key: string]: string }}}} _header  http headers, it's a dictionary, liek {{'content-type', 'application/json'}}
+   * @param {{Function}} _error_handle_function will get called when http request got error, you need to give it a function like: (err: String) {{print(err)}}
+   * @param {{Function}} _interceptor_function will get called for every response, you need to give it a function like: (data: dict[Any, Any]) {{print(data)}}
+   * @param {{Function}} _function_before_request will get called before every request, you need to give it a function like: () {{global_loading_animation = true}}
+   * @param {{Function}} _function_after_request will get called after every request, you need to give it a function like: () {{global_loading_animation = false}}
+   */
+
+    /*
+    service_url: string
+    header: {{ [key: string]: string }} = {{}}
+    error_handle_function: (error: string) => void = (error: string) => {{console.log(error)}}
+    special_error_key: string = "__yingshaoxo's_error__"
+    interceptor_function: (data: any) => void = (data: any) => {{console.log(data)}}
+    function_before_request: () => void = () => {{}}
+    function_after_request: () => void = () => {{}}
+    */
+
+    constructor(service_url, header={{}}, error_handle_function=(error) => {{console.log(error)}}, interceptor_function=(data) => {{console.log(data)}}, function_before_request=() => {{}}, function_after_request=() => {{}}) {{
+        this._special_error_key = "__yingshaoxo's_error__"
+
+        if (service_url.endsWith("/")) {{
+            service_url = service_url.slice(0, service_url.length-1);
+        }}
+        try {{
+            if (location.protocol === 'https:') {{
+                if (service_url.startsWith("http:")) {{
+                    service_url = service_url.replace("http:", "https:")
+                }}
+            }} else if (location.protocol === 'http:') {{
+                if (service_url.startsWith("https:")) {{
+                    service_url = service_url.replace("https:", "http:")
+                }}
+            }}
+        }} catch (e) {{
+        }}
+        this._service_url = service_url
+
+        if (header != null) {{
+            this._header = header
+        }}
+
+        if (error_handle_function) {{
+            this._error_handle_function = error_handle_function
+        }}
+
+        if (interceptor_function) {{
+            this._interceptor_function = interceptor_function
+        }}
+
+        if (function_before_request) {{
+            this._function_before_request = function_before_request
+        }}
+
+        if (function_after_request) {{
+            this._function_after_request = function_after_request
+        }}
+    }}
+
+    _get_reponse_or_error_by_url_path_and_input(sub_url, input_dict, handle_response_function) {{
+        var the_url = `${{this._service_url}}/{identity_name}/${{sub_url}}/`
+        var use_xml_http = false
+        if (typeof fetch !== 'undefined') {{
+            use_xml_http = false
+        }} else {{
+            // use less xml_request, it will not give you right error message
+            use_xml_http = true
+        }}
+
+        var input_json_data = JSON.stringify(input_dict)
+        var header = this._header
+        var special_error_key = this._special_error_key
+        var before_function = this._function_before_request
+        var after_function = this._function_after_request
+        var interceptor_function = this._interceptor_function
+        var error_handle_function = this._error_handle_function
+
+        try {{
+            if (use_xml_http == false) {{
+                // use fetch
+                before_function()
+                fetch(the_url,
+                {{
+                    method: "POST",
+                    body: input_json_data,
+                    headers: {{
+                        "Content-type": "application/json; charset=UTF-8",
+                        ...header
+                    }}
+                }})
+                .then((response) => {{
+                    response.json().then(
+                        (data) => {{
+                            interceptor_function(data)
+                            handle_response_function(data)
+                            after_function()
+                        }}
+                    ).
+                    catch((e) => {{
+                        var fake_data = {{[special_error_key]: String(e)}}
+                        after_function()
+                        error_handle_function(fake_data[special_error_key])
+                    }})
+                }})
+                .catch((e) => {{
+                    var fake_data = {{[special_error_key]: String(e)}}
+                    after_function()
+                    error_handle_function(fake_data[special_error_key])
+                }})
+            }} else {{
+                // use XMLHttpRequest
+                before_function()
+                var xhr = new XMLHttpRequest();
+
+                xhr.open('POST', the_url, true);
+                xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+                for (var [key, value] of Object.entries(header)) {{
+                    xhr.setRequestHeader(key, value);
+                }}
+
+                xhr.onreadystatechange = function () {{
+                    if (xhr.readyState === XMLHttpRequest.DONE) {{
+                        if (xhr.status === 200) {{
+                            try {{
+                                var data = JSON.parse(xhr.responseText)
+                                interceptor_function(data)
+                                handle_response_function(data)
+                            }}
+                            catch (e) {{
+                                var fake_data = {{[special_error_key]: "Json parse error" + ": " + String(xhr.statusText)}}
+                                error_handle_function(fake_data[special_error_key])
+                            }}
+                        }} else {{
+                            var fake_data = {{[special_error_key]: String(xhr.status)}}
+                            error_handle_function(fake_data[special_error_key])
+                        }}
+                        after_function()
+                    }}
+                }};
+
+                xhr.onerror = function() {{
+                    var fake_data = {{[special_error_key]: String(xhr.status) + ": " + String(xhr.statusText)}}
+                    error_handle_function(fake_data[special_error_key])
+                    after_function()
+                }}
+
+                xhr.send(input_json_data);
+            }}
+        }} catch (e) {{
+            var fake_data = {{[special_error_key]: String(e)}}
+            error_handle_function(fake_data[special_error_key])
+            after_function()
+        }}
+    }}
+
+{client_function_list_text}
+}}
+
+export default Client_{identity_name}
+        """.strip()
+
+        return template_text
+
     def _convert_yrpc_code_into_golang_objects_code(self, identity_name: str, source_code: str) -> str:
         arguments_dict, _ = self.get_information_from_yrpc_protocol_code(source_code=source_code)
 
@@ -2643,7 +2832,7 @@ package {identity_name}
                     rpc_code = self._convert_yrpc_code_into_typescript_rpc_code(identity_name=identity_name, source_code=source_code)
                 elif which_language == "javascript":
                     objects_code = self._convert_yrpc_code_into_javascript_objects_code(source_code=source_code)
-                    rpc_code = "// Did not implemented yet. I also do not recommend typescript. It add complexity."
+                    rpc_code = self._convert_yrpc_code_into_javascript_rpc_code(identity_name=identity_name, source_code=source_code)
                 io_.write(file_path=target_objects_file_path, content=objects_code)
                 io_.write(file_path=target_rpc_file_path, content=rpc_code)
             elif which_language in ["golang"]:
