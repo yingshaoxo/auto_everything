@@ -2165,15 +2165,15 @@ export const {class_name} = {{
 
                     if is_enum or is_custom_message_type:
                         property_name_to_its_type_dict_variable_list.append(f"""
-        {name}: {type},
+                {name}: {type},
                         """.rstrip().lstrip('\n'))
                     else:
                         property_name_to_its_type_dict_variable_list.append(f"""
-        {name}: "{type}",
+                {name}: "{type}",
                         """.rstrip().lstrip('\n'))
 
                     key_string_dict_list.append(f"""
-        {name}: "{name}",
+                {name}: "{name}",
                     """.rstrip().lstrip('\n'))
 
                     constructor_arguments_list.append(f"""{name}""".rstrip().lstrip('\n'))
@@ -2196,15 +2196,16 @@ export class {class_name} {{
 
     constructor() {{
 {constructor_arguments_inside_code_block_list_text}
-    }}
 
-    _property_name_to_its_type_dict = {{
+        this._property_name_to_its_type_dict = {{
 {property_name_to_its_type_dict_variable_list_text}
-    }};
+        }};
 
-    _key_string_dict = {{
+        this._key_string_dict = {{
 {key_string_dict_list_text}
-    }};
+        }};
+
+    }}
 
     to_dict() {{
         return _general_to_dict_function(this);
@@ -2529,7 +2530,13 @@ export class Client_{identity_name} {{
         }}
 
         var input_json_data = JSON.stringify(input_dict)
-        var header = this._header
+
+        var header = {{'Content-Type': 'application/json; charset=UTF-8'}}
+        for (var key in this._header) {{
+            var value = this._header[key]
+            header[key] = value
+        }}
+
         var special_error_key = this._special_error_key
         var before_function = this._function_before_request
         var after_function = this._function_after_request
@@ -2544,10 +2551,7 @@ export class Client_{identity_name} {{
                 {{
                     method: "POST",
                     body: input_json_data,
-                    headers: {{
-                        "Content-type": "application/json; charset=UTF-8",
-                        ...header
-                    }}
+                    headers: header
                 }})
                 .then((response) => {{
                     response.json().then(
@@ -2574,8 +2578,8 @@ export class Client_{identity_name} {{
                 var xhr = new XMLHttpRequest();
 
                 xhr.open('POST', the_url, true);
-                xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-                for (var [key, value] of Object.entries(header)) {{
+                for (var key in header) {{
+                    var value = header[key]
                     xhr.setRequestHeader(key, value);
                 }}
 
