@@ -2,8 +2,10 @@
 
 Here, I just want to talk about how to make a python based on any programming language.
 
+
 ## Easy Programming Language (易语言)
 Easy Programming Language is a language similar to original VB language in windows system. It is chinese based, but you can use English to do the programming if you like.
+
 
 ### Handle basic variables
 Source code: variable hi = "xx";
@@ -24,8 +26,10 @@ So far, you basically have a way to do modification for a variable in real time.
 
 This design will not work in some strict 1984 programming language, because they does not allow you to define infinite length list by default.
 
+
 ### Handle operations between basic variables
 Since you can modify basic variable types, you can also handle operations like "+", "-" symbols, for example, number or string addition, subtraction.
+
 
 ### Handle More complexed data structure: list, dictionary
 In c programming language, we can easyly create a new list in anywhere by using malloc(memory allocation): int* arr = (int*)malloc(n * sizeof(int));
@@ -35,6 +39,7 @@ But in easy programming language, you can't do it without using c extension. If 
 As for dict, we could use two linked list to mimic a dict data structure, but that would have low performence. We should use hash_map to create a dict type. But I don't know the details of hash map algorithm, maybe you should check python dict implementation in C, maybe you could understand it. The hash_dict speed is 10000 times quicker than pure double_linked_list_based_dict.
 
 As for the list or dict variable information saving, we save memory pointer than the real data.
+
 
 ### Make variable a general type
 In python, when you define a variable, you don't really tell the python the type of that variable, you won't specify it clearly about if is a bool or integer or string. The python simply knows it by doing a check on the value string format.
@@ -58,6 +63,7 @@ class General_Variable:
 
 Python do different operations with the variable according to the variable type.
 
+
 ### Handle functions
 Source code: function do_it_or_sleep(option) {};
 
@@ -79,6 +85,7 @@ Sometimes we may meet 'for loop' or 'while loop' in function text, in that case,
 
 One thing to notice is: you have to make sure you do the memory garbage freeing for those variables that was created inside of that function after the function ends. Only the return variable will be saved by doing a copy after function ends.
 
+
 ### Handle class
 Source code: 
 ```
@@ -99,6 +106,7 @@ Now, create a new dict, where key is class name, value is a pointer to a dict. B
 
 In fact, according to my observation in tiny cpython, I see they use a lot of pointer as value, so that they could easyly give a variable a new value by simply give it a pointer.
 
+
 ### Make sure your programming language has try and catch design
 Source code:
 ```
@@ -116,10 +124,22 @@ To achive it, there has two ways, one is manually precheck conditions before we 
 
 Another way is to relay on lower_system API, for example, in c, they use 'setjmp' and 'longjmp' to do that. But use it carefully, you will often found you can't find the same two functions across different archtecture computer. If in old c99 standard you meet this problem, you can simply give up on other more modern programming language. Because they are not stable across decades years.
 
+
+### Make it simple to understand
+Use underline symbol to seperate words in variable name or function name, for example: "this_is_a_variable"
+
+Use UpperCase variable to indicate it is a class, for example: "Dog_Class"
+
+Use more type indicator for function arguments, for example: "function sleep(sleep_time_in_second_in_float_format, sleep_time_in_millisecond_in_int_format=None)"
+
+
 ### Handle ralative path file import
 Source code: "import './module_folder/math.py' as math"
 
-...
+We do this simply because we do not trust dependencies that needs outside network downloading.
+
 
 ### Static compilling to binary excutable file
-...
+So that you can make a application store by your own to freely distribute your applications to users.
+
+Maybe you can also sell your own computer hardware online to make sure your programming language could last forever freely.
