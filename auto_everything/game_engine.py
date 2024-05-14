@@ -16,6 +16,9 @@ class Raw_3D_Object():
         2. Then you specify lines, planes.
         3. After those special shapes, you rendering raw points list, points that from 3d scanner. Those points can form a unusual plane.
         All in all, just like SVG image format, use small math description words to represent shape first, then use raw points to represents unusual things later.
+
+    To a extreme compression level of 3D model, you can simply use natural language to represent a shape, for example: "I want a cube that has side length of 3cm" or "A ball that center point is (0,0,0), radius is 1 meter".
+    What kind of thing you can't use natural language to represent in this world?
     """
     pass
 
