@@ -2,6 +2,23 @@
 
 from auto_everything.image import Image
 
+class Raw_3D_Object():
+    """
+    How to use data to represent a 3D model? Think about people shape to 3d model by using a 3d shape scanner:
+        We have a person stand in center, then there has a distance_detector points to that person, and do a rotate around that person. The distance_detector can be a camera or ultrasonic_distance_detector. The detector will go round to make a circle, and the center of that circle have the person stand. And for each time, the distance_detector will go up for 0.1mm length. So in the end, you will get a distance list or points list that represents the person shape.
+        If you think that list of data in polar coordinate system, you can have each points angle and line distance, so that you can get a list of 3D point in real xyz coordinates, for example, [z, y, x].
+        And as you know, you can't get all points, but some points to represent a human shape. Just think about drawing a line, you got some broken points, you have to connect those points togather to get a continues line that is considered the real line. Between 1 and 2, there could have infinite float numbers, so you can only choose some broken points.
+        For the 3D model, it is the same, you have to use around mean value to represent those plane that did not get scanned at the first place. So you will get a 3D model that have every points includeing those you calculated based on around points.
+        Those points you scanned for a 3D model can be the data that saved in disk to represent the model, but it is too big when you just want to save a cube.
+        When you save a cube, you just need to save a side length, and tell the render it is a cube. It only takes less than 100 characters to represent this cube, in other words, a cube model in disk will only take less than 1KB storage.
+        So how to make the 3d format a perfect one for saving all kinds of shapes with low storage cost?
+        1. You first specify all kinds of shape that could get represented with special shape, for example, cube, sphere.
+        2. Then you specify lines, planes.
+        3. After those special shapes, you rendering raw points list, points that from 3d scanner. Those points can form a unusual plane.
+        All in all, just like SVG image format, use small math description words to represent shape first, then use raw points to represents unusual things later.
+    """
+    pass
+
 class Three_Dimension_Object():
     """
     This should be a class that similar to image.py Image class.
