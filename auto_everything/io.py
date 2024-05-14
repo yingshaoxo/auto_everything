@@ -1,10 +1,6 @@
 import json
 import os
 
-import io
-import hashlib
-import base64
-
 
 class IO():
     """
@@ -80,10 +76,86 @@ class IO():
             f.write(content)
 
     def string_to_hex(self, utf_8_string):
+        """
+        Don't use hex, it adds complexity
+        """
         return utf_8_string.encode("utf-8", errors="ignore").hex()
 
     def hex_to_string(self, hex_string):
+        """
+        Don't use hex, it adds complexity
+        """
         return bytes.fromhex(hex_string).decode("utf-8", errors="ignore")
+
+    def bytes_list_to_int_list(self, bytes_data):
+        """
+        a byte can be represented as a integer between 0 and 255.
+        actually, if you loop python bytes object, you'll get a list of integer.
+        > a number between 0 and 255 can be a chracter in ASCII table. I recommand use ASCII to save text data, because it is easy to read from bytes data from disk storage.
+        """
+        list_ = [None] * len(bytes_data)
+        if type(bytes_data) == bytes or type(bytes_data) == bytearray:
+            for index, int_byte in enumerate(bytes_data):
+                list_[index] = int_byte
+        else:
+            for index, byte in enumerate(bytes_data):
+                zero_and_one_string_for_one_byte = bin(byte)[2:]
+                leading_zeros = ((8-len(zero_and_one_string_for_one_byte)) * '0')
+                zero_and_one_string_for_one_byte = leading_zeros + zero_and_one_string_for_one_byte
+                list_[index] = int(zero_and_one_string_for_one_byte, 2)
+        return list_
+
+    def int_list_to_bytes_list(self, int_list, big_or_little="little"):
+        """
+        a byte can be represented as a integer between 0 and 255
+        to make it simple, you can think a byte as an integer in range of [0, 255]. actually, if you loop python bytes object, you'll get a list of integer.
+        > a number between 0 and 255 can be a chracter in ASCII table
+
+        The return bytearray object can get converted to bytes by using 'bytes(a_bytearray)'
+
+        Why ask you to choose big or little?
+        Let's assume you have a byte: 00000001, it is normal in your computer, it is 'little'
+        But after you send it from right to left to another device, it becomes 10000000, it is 'big'. But if the other side do a reverse to let it become original data 00000001, they can still use 'little' to do the right parse.
+
+        I think for those old generation of people, they are stupid. If they could use 'little' all the time by doing a list[::-1] at the other side in a communication, why they use 'big'?
+        """
+        use_little = True
+        if big_or_little != "little":
+            use_little = False
+
+        a_bytearray = bytearray(range(len(int_list)))
+        for index, int_between_0_and_255 in enumerate(int_list):
+            if use_little:
+                a_bytearray[index] = int_between_0_and_255
+            else:
+                a_bytearray[index] = int_between_0_and_255.to_bytes(2, big_or_little)[0]
+        return a_bytearray
+
+    def bytes_to_binary_zero_and_one(self, bytes_data):
+        """
+        Yes, a byte can be a integer in range of [0, 255], but if you want to send data over electrical line, you have to send 0 and 1 signal, which is 0v and 5v voltage.
+        So you have to convert [0,255] number into a 8 length of string that only has 0 and 1.
+
+        The return value is a list of zero and one string, similar to [00000001, 00000010, 00000011]
+
+        Why for a byte, it has 8 number of zero or one? Because 2^8 == 256, you have to use 8 length of 0 and 1 to represent a number between 0 and 255 (a byte can represent a integer in range of [0,255])
+        That's also why in C language, you use char or int to represent a byte. a byte is nothing but a integer between 0 and 255.
+
+        > By the way, if you want to use 0 and 1 to represent a bigger number, for example 65536, you have to use 16 length of 0 and 1 number, because 2^16==65536.
+        """
+        list_ = [None] * len(bytes_data)
+        for index, byte in enumerate(bytes_data):
+            zero_and_one_string_for_one_byte = bin(byte)[2:]
+            leading_zeros = ((8-len(zero_and_one_string_for_one_byte)) * '0')
+            zero_and_one_string_for_one_byte = leading_zeros + zero_and_one_string_for_one_byte
+            list_[index] = zero_and_one_string_for_one_byte
+        return list_
+
+    def binary_zero_and_one_to_bytes(self, zero_and_one_string_list):
+        a_bytearray = bytearray(range(len(zero_and_one_string_list)))
+        for index, binary_string in enumerate(zero_and_one_string_list):
+            a_bytearray[index] = int(binary_string, 2)#.to_bytes(2, big_or_little)[0]
+        return bytes(a_bytearray)
 
     def __make_sure_txt_exist(self, path):
         if not os.path.exists(path):
@@ -138,20 +210,28 @@ class IO():
 
 
 class MyIO():
+    def __init__(self):
+        import io
+        import hashlib
+        import base64
+        self.io = io
+        self.hashlib = hashlib
+        self.base64 = base64
+
     def string_to_md5(self, text):
-        result = hashlib.md5(text.encode())
+        result = self.hashlib.md5(text.encode())
         return result.hexdigest()
 
     def base64_to_bytesio(self, base64_string):
-        img_data = base64.b64decode(base64_string)
-        return io.BytesIO(img_data)
+        img_data = self.base64.b64decode(base64_string)
+        return self.io.BytesIO(img_data)
 
     def bytesio_to_base64(self, bytes_io):
         """
         bytes_io: io.BytesIO()
         """
         bytes_io.seek(0)
-        return base64.b64encode(bytes_io.getvalue()).decode()
+        return self.base64.b64encode(bytes_io.getvalue()).decode()
 
     def hex_to_bytes(self, hex_string):
         return bytes.fromhex(hex_string)
@@ -162,3 +242,15 @@ class MyIO():
         """
         return bytes_data.hex()
 
+
+if __name__ == "__main__":
+    io = IO()
+    zero_and_one_list = io.bytes_to_binary_zero_and_one(b"123")
+    print(zero_and_one_list)
+    bytes_list = io.binary_zero_and_one_to_bytes(zero_and_one_list)
+    print(bytes_list)
+    int_list = io.bytes_list_to_int_list(bytes_list)
+    print(int_list)
+    new_bytes_list = io.int_list_to_bytes_list(int_list)
+    int_list = io.bytes_list_to_int_list(new_bytes_list)
+    print(int_list)

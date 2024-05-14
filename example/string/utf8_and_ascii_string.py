@@ -7,7 +7,7 @@ for _ in range(48):
     one_byte = raw_file.read(1)
     if one_byte == '\n'.encode("ascii"):
         break
-    print(one_byte, ord(one_byte), chr(ord(one_byte)))
+    print(one_byte, one_byte[0], ord(one_byte), chr(ord(one_byte)))
     # ord() converts byte to ascii_id
     # chr() converts ascii_id to byte
 raw_file.close()

@@ -18,6 +18,8 @@ If a index takes the whole line, we represente it as "2_d_1". It means the index
 If a index takes the whole line and repeated its line for 300 times, we represente it as "22_d_300". It means the index 22 takes the whole line and repeated its line in the down direction for 300 times.
 
 In a overview looking, the video should be a folder where the images file and audio file should have same name. For example, a video called "hi_you.mkv", it should end up with a folder called "hi_you", inside of that folder, it should have "hi_you_1.mkv.txt", "hi_you_2.mkv.txt", "hi_you_1.wav.txt", "hi_you_2.wav.txt"
+
+mkv is better since you can play it in a stream way on internet, while mp4 requires you fully download before you can play it.
 """
 
 
