@@ -88,6 +88,8 @@ class Audio():
         """
         sample_rate: int
             can be 8000, 16000, and so on
+        speed_mode: bool
+            if you set it to true, the process speed would be quicker, but audio quality will be lower
         """
         # we can scale it up first, then scale it down
         old_sample_rate = self.sample_rate
@@ -97,56 +99,34 @@ class Audio():
 
         ratio = old_sample_rate / sample_rate
 
-        if speed_mode == True:
-            part_width = int(round(ratio))
-            x_size = int(round(one_channel_length / ratio))
+        part_width = ratio
+        x_size = int(round(one_channel_length / ratio))
 
-            for channel_index in range(channels_number):
-                new_list = [None] * x_size
-                index = 0
-                index2 = 0
-                while True:
-                    last_index = index - part_width
-                    if last_index >= 0:
-                        signal_list = self.raw_data[channel_index][last_index:index]
-                        signal = int(round(sum(signal_list) / part_width))
+        for channel_index in range(channels_number):
+            new_list = [None] * x_size
+            index = 0
+            index2 = 0
+            while True:
+                last_index = round(index - part_width)
+                if last_index >= 0:
+                    signal_list = self.raw_data[channel_index][last_index:round(index)]
+                    if speed_mode == True:
+                        middle_index = last_index + int((round(index) - last_index) / 2)
+                        signal = self.raw_data[channel_index][middle_index]
                     else:
-                        signal = self.raw_data[channel_index][index]
-                    if index2 >= x_size:
-                        break
-                    new_list[index2] = signal
-                    index += part_width
-                    index2 += 1
-                    if index >= one_channel_length:
-                        break
-                for index in range(index2, x_size):
-                    new_list[index] = 0
-                self.raw_data[channel_index] = new_list
-        else:
-            part_width = ratio
-            x_size = int(round(one_channel_length / ratio))
-
-            for channel_index in range(channels_number):
-                new_list = [None] * x_size
-                index = 0
-                index2 = 0
-                while True:
-                    last_index = round(index - part_width)
-                    if last_index >= 0:
-                        signal_list = self.raw_data[channel_index][last_index:round(index)]
                         signal = int(round(sum(signal_list) / part_width))
-                    else:
-                        signal = self.raw_data[channel_index][round(index)]
-                    if index2 >= x_size:
-                        break
-                    new_list[index2] = signal
-                    index += part_width
-                    index2 += 1
-                    if index >= one_channel_length:
-                        break
-                for index in range(index2, x_size):
-                    new_list[index] = 0
-                self.raw_data[channel_index] = new_list
+                else:
+                    signal = self.raw_data[channel_index][round(index)]
+                if index2 >= x_size:
+                    break
+                new_list[index2] = signal
+                index += part_width
+                index2 += 1
+                if index >= one_channel_length:
+                    break
+            for index in range(index2, x_size):
+                new_list[index] = 0
+            self.raw_data[channel_index] = new_list
 
         self.sample_rate = sample_rate
 
