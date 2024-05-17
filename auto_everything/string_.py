@@ -103,9 +103,38 @@ class String:
                 counting += 1
         return counting / min_length
 
+    def get_similarity_score_of_two_sentence_by_substring(self, sentence1, sentence2, end=False):
+        """
+        It returns a float in range of [0, 1], 1 means equal.
+        This is also a extreamly quick method.
+        """
+        sentence1_length = len(sentence1)
+        all_counting = 0
+        match_counting = 0
+        length = sentence1_length
+        while length > 0:
+            index = 0
+            while True:
+                if index > sentence1_length:
+                    break
+                sub_string = sentence1[index: index + length]
+                if len(sub_string) == 0:
+                    break
+                if sub_string in sentence2:
+                    match_counting += 1
+                all_counting += 1
+                index += length
+            length = int(length / 2)
+        result = match_counting / all_counting
+
+        if end == False:
+            result = (result + self.get_similarity_score_of_two_sentence_by_substring(sentence2, sentence1, end=True)) / 2
+        return result
+
     def get_string_match_rating_level(self, input_text: str, text: str, lower_case: bool = True) -> float:
         """
         The higher, the more likely two string are equal
+        We assume input_text length less than text, normally input_text is a search text
 
         Made by yingshaoxo
         """
@@ -140,6 +169,14 @@ class String:
         It works better with get_similarity_score_of_two_sentence_by_position_match(hash1, hash2)
         """
         hash_code = disk.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=level, length=1, seperator=seperator, with_size=False)
+        return hash_code
+
+    def get_simple_hash(self, text, level=32, seperator="_"):
+        """
+        Can only used to identify the uniqueness of a file, in other words, get a shorter id of that file
+        Don't use this function to do comparation.
+        """
+        hash_code = disk.get_simple_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=level, seperator=seperator, with_size=False)
         return hash_code
 
     def get_all_sub_string(self, text: str, get_less: bool = False) -> list[str]:

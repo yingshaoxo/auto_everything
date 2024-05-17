@@ -1585,6 +1585,16 @@ class Yingshaoxo_Computer_Vision():
         final_difference = 1 - final_difference
         return final_difference
 
+    def action_recognition(self, video):
+        """
+        You don't have to use deep learning algorithm, you just need a sequence action detector
+        For example, if you want to know if a person is trying to pee on street, you can do it by:
+            1. check if that person suddently stop from walking, if stop, go to next check
+            2. check if a man show his penis, if a woman squat down and take off their pants. if so, go to next check
+            3. he or she want to pee
+        """
+        pass
+
 
 class Yingshaoxo_Speech_Recognizer():
     """

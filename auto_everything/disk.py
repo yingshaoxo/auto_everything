@@ -1018,6 +1018,7 @@ class Disk:
     def get_hash_of_a_file_by_using_yingshaoxo_method(self, path: str, bytes_data: bytes | None = None, level: int = 1, length: int = 8, seperator: str = "_", with_size: bool = False) -> str:
         """
         get hash string based on the bytes of a file by using yingshaoxo method.
+        this method works because a byte is a integer between (0, 255)
 
         Parameters
         ----------
@@ -1099,6 +1100,52 @@ class Disk:
     def get_fuzz_hash_by_using_yingshaoxo_method(self, bytes_data: bytes, level: int = 256) -> str:
         hash_code = self.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=bytes_data, level=level, length=1, seperator="", with_size=True)
         return hash_code
+
+    def get_simple_hash_of_a_file_by_using_yingshaoxo_method(self, path, bytes_data = None, level = 256, seperator = "_", with_size = False):
+        """
+        get simple hash string based on the bytes of a file by using yingshaoxo method.
+        this method works because a byte is a integer between (0, 255)
+        but you should not use it on integraty check, it is not a secure hash
+
+        The core about this function is that it do a step check about a file, it collect a byte per 'all_length//level' bytes, all collected bytes togather becomes the hash code.
+
+        Parameters
+        ----------
+        path: string
+            the file path
+        bytes_data: bytes
+            the file bytes
+        level: int
+            how accurate it should be, only work for bytes_data. The higher the better.
+        """
+        real_level = level
+        seperator_length = len(seperator)
+
+        if bytes_data == None:
+            file_ = open(path, "rb")
+            bytes_data = file_.read()
+            file_.close()
+
+        all_size = len(bytes_data)
+        if all_size == 0:
+            return "_".join(['0' for one in list(range(real_level))])
+        part_size = 0
+        while part_size == 0:
+            part_size = int(all_size / level)
+            if part_size == 0:
+                level = int(level / 2)
+
+        result_list = []
+        for level_i in range(level):
+            the_index = level_i * part_size
+            file_hash = str(int(bytes_data[the_index]))
+            file_hash = ("0" * (3-len(file_hash))) + file_hash
+            result_list.append(file_hash)
+
+        result = seperator.join(result_list)
+        if with_size == True:
+            result = str(all_size) + seperator + result
+        return result
 
     def get_hash_of_a_file_by_using_sha1(self, path: str) -> str:
         """

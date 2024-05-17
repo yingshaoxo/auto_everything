@@ -300,7 +300,7 @@ class Audio():
         self.raw_data = a_audio.raw_data
         return self
 
-    def reduce_noise_by_subtraction(self, noise_audio=None, threshold=None, use_first_x_second_noise=0.048, ratio=6):
+    def reduce_noise_by_subtraction(self, noise_audio=None, threshold=None, use_first_x_second_noise=0.048, ratio=6, use_global_value=False):
         """
         useless
         """
@@ -312,6 +312,9 @@ class Audio():
                 noise_audio = Audio()
                 noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
             threshold = round(sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * ratio)
+        if use_global_value == True:
+            threshold = round(max([abs(one) for one in self.raw_data[0]]) * 0.1)
+
         threshold = round(threshold)
 
         channels_number, one_channel_length = self.get_shape()
@@ -605,7 +608,7 @@ class Audio():
                 new_value = abs(new_value) # may have a bug in here, there should not have a negative number
 
             if use_int == True:
-                new_data_dict[key] = int(round(new_value))
+                new_data_dict[key] = int(new_value)
             else:
                 new_data_dict[key] = new_value
 
@@ -679,23 +682,43 @@ class Audio():
         a_image.print(100)
         return a_image
 
-    def to_hash(self, samples_per_second=2):
+    def to_hash(self):
+        """
+        For music, we use midi, which means a list of numbers between 0 and 128
+        For voice, we use voice parts, which means a list of voice without silence inside. for example, "How are you" voice will get seperated into ["how", "are", "you"], and for each word of sound, we will make it has same length by stretching the audio part. And for each character part, we have to do loudness_match.
+        The core is "audio strench" and "seperate audio by silence". And if you to have a more accurate one, you should have a dict where it has all audio for your language character. (Just think about how many sound or voice you hear before you can talk. It is about 5 years of length of audio.)
+        Or if you busy, just use noise gate method to get volume level per 0.025 second. and for chinese, you have to also detect 4 tones in pinyin.
+
+        Then, let me talk about statistic_based machine learning algorithm:
+            If you have 10 audio that talks about "How are you", you can know that each audio was composed by 3 words.
+            So you do a evenly split for each audio, let's say, split each one by 3. So that for each word, for example, "How", you can get 10 audio about "how".
+            You simply add all 10 "how" audio togather, so you can get a general audio that represents the "how" word.
+            You do this for all 500 general english words. In the end, if you have a new audio, you search your magic general audio word database. so that you can get a list of words to represent that new audio.
+            For somehow, you already implemented a human voice to text function.
+
+        Let me talk about the difference between deep learning and general machine learning:
+            1. deep learning simply remembers all data, so that it could be very accurate. But it takes disk storage space.
+            2. general machine learning uses hard coding algorithm or statistic mean value to solve a problem, it only solves standard question. It can be accurate only if the test question is a standard pure question without noise. But in real world, people sometimes talks in a way human themselves can't understand, how do you expect a mean value could cover that extream case?
+
+        And a super quick audio to text application could be:
+            1. record a audio, get per 0.025 second sound signal as a list after sound match for each silence interval. A 5 second audio will only have a 200 integer list as audio fingerprint.
+            2. since you have a dict in server, where key is audio fingerprint, value is text, so the search speed is very quick. For the hash finding process, it first find key[0:200], if not found, it will find key[0:199], until it found a text, then find another text from remain audio signals. the maxmuim time wasting would be 200 hash looking time, which is not an expensive operation for modern computer.
+            3. for wave audio, it is special, mean value will not work since they got negative value. So for each time point, you have get a max value and min value, treat two as one string.
+
+        Sometimes I think, it is not deep learning changed the world, it is hash table or dict changed the world.
+        """
+        from auto_everything.string_ import String
+        string = String()
+
         a_audio = self.copy()
-        a_audio = a_audio.change_sample_rate(samples_per_second)
-        a_audio = a_audio.range_map(-32767, 32767, 0, 99, use_int=True, loudness_match=True)
+        a_audio = a_audio.change_sample_rate(8000)
+        a_audio = a_audio.reduce_noise_by_subtraction(use_global_value=True)
+        a_audio = a_audio.range_map(-32767, 32767, -99, 99, use_int=True, loudness_match=True)
+
         the_data = a_audio.raw_data[0]
-        change_rate_list = []
-        previous_signal = None
-        for one in the_data:
-            signal = abs(one)
-            if previous_signal != None:
-                if previous_signal == 0:
-                    previous_signal = 1
-                the_change_rate = str(round((signal / previous_signal) * 10))
-                the_change_rate = "0"*(3-len(the_change_rate)) + the_change_rate
-                change_rate_list.append(the_change_rate)
-            previous_signal = signal
-        return "".join(change_rate_list)
+        the_text_data = "_".join([str(one) for one in the_data])
+
+        return string.get_simple_hash(the_text_data, level=4000)
 
     def resize(self, x_size, y_size=None, adds=1327):
         if x_size != None:
@@ -875,8 +898,8 @@ if __name__ == "__main__":
     audio = Audio()
     #audio.read_from_file("/home/yingshaoxo/Downloads/handclap2.wav.txt")
     audio = audio.read_wav_file("/home/yingshaoxo/Downloads/noise.wav")
-    audio = audio.reduce_noise()
-    #audio = audio.reduce_noise_by_subtraction(ratio=3)
+    #audio = audio.reduce_noise()
+    audio = audio.reduce_noise_by_subtraction(use_global_value=True)
     #audio = audio.reduce_noise_by_using_yingshaoxo_method(less_broken=True)
     #audio = audio.smooth_audio(kernel=1)
     #audio = audio.range_map(-32767, 32767, 0, 1023, loudness_match=True)
