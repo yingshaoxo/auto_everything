@@ -352,6 +352,8 @@ class Image:
 
         This is also how to compress png file in a way that human could not notice. Similar to https://tinypng.com
         Created by yingshaoxo
+
+        I'm pretty sure if you do this with 0.999 for background color than human body, you will get a small but clear human photo. You can do it by manually draw an interesting area.
         """
         new_image = self.copy()
         color_list = get_main_color_list_from_an_image(new_image, ratio)
@@ -535,7 +537,7 @@ char_image_container_cache = {} # 'size+char' as key, image_container as value
 
 
 class Container:
-    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, parent_height=None, parent_width=None, on_click_function=None):
+    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, parent_height=None, parent_width=None, on_click_function=None, information={}):
         """
         height: "8" means "8px", "0.5" means "50% of its parent container"
         width: "20" means "20px", "0.2" means "20%"
@@ -547,6 +549,7 @@ class Container:
         text: ""
         text_color: [0,0,0,255]
         text_size: 1
+        information: will pass to self.information as a {} dict
         """
         if (type(height) != int and type(height) != float) or (type(width) != int and type(width) != float):
             raise Exception("Height and width for root window must be integer. For example, '20' or '100'")
@@ -563,6 +566,7 @@ class Container:
         self.text_size = text_size
         self.parent_height = parent_height
         self.parent_width = parent_width
+        self.information = information
 
         self.real_property_dict = {}
         """
@@ -581,7 +585,7 @@ class Container:
         if on_click_function != None:
             self.on_click_function = on_click_function
         else:
-            def on_click():
+            def on_click(element=None):
                 return
 
             self.on_click_function = on_click
@@ -597,6 +601,13 @@ class Container:
         the_width = 8 * self.text_size
         maximum_character_number_per_row = int(parent_width / the_width)
 
+        if "\n" not in text:
+            center_text = True
+            horizontal_padding_space_number = int((maximum_character_number_per_row - len(text))/2)
+        else:
+            center_text = False
+            horizontal_padding_space_number = 0
+
         # let the text fill the parent_container
         new_text = ""
         for line in text.split("\n"):
@@ -608,15 +619,21 @@ class Container:
                 new_text += line
                 new_text += "\n"
             new_text += "\n"
-        text = new_text
+        text = new_text.strip()
+
+        maximum_line_number = int(parent_height / the_height)
+        if center_text == True:
+            vertical_padding_line_number = int((maximum_line_number - text.count("\n"))/2)
+        else:
+            vertical_padding_line_number = 0
 
         for line_index, line in enumerate(text.split("\n")):
             #if line_index != 0:
             #    children.append(Container(height=8, width=parent_width)) # line sperator
 
-            text_row_container = Container(height=the_height, width=parent_width, children=[], columns=True)
+            text_row_container = Container(height=the_height, width=parent_width, children=[], columns=True, information=self.information)
 
-            for char in line:
+            for char in " " + line + " ":
                 if not self._is_ascii(char):
                     char = " "
                 char_points_data = get_ascii_8_times_16_points_data(char)
@@ -638,9 +655,18 @@ class Container:
                     char_image_container = char_image_container_cache[char_id]
 
                 char_image_container.on_click_function = on_click_function
+                char_image_container.information=self.information
                 text_row_container.children.append(char_image_container)
 
+            space_char_container = text_row_container.children[0]
+            text_row_container.children = text_row_container.children[1:-1] # remove duplicate space chracter
+            text_row_container.children = [space_char_container]*horizontal_padding_space_number + text_row_container.children + [space_char_container]*horizontal_padding_space_number
             children.append(text_row_container)
+
+        if center_text == True:
+            # add vertical padding lines
+            empty_text_row_container = Container(height=the_height, width=parent_width, children=[], columns=True, information=self.information)
+            children = [empty_text_row_container] * vertical_padding_line_number + children + [empty_text_row_container] * vertical_padding_line_number
 
         return children
 
@@ -854,8 +880,8 @@ class Container:
     def render_as_text(self, text_height=16, text_width=8, pure_text=False):
         component_list = self._render_as_text_component_list()
 
-        char_number_in_one_row = int(self.real_property_dict["width"] // 8)
-        rows_number = int(self.real_property_dict["height"] // 16)
+        char_number_in_one_row = int(self.real_property_dict["width"] / 8)
+        rows_number = int(self.real_property_dict["height"] / 16)
 
         # raw_data = [[" "] * char_number_in_one_row] * rows_number # this will make bugs, if you change one row, every row will get changed
         raw_data = []
@@ -869,11 +895,11 @@ class Container:
             height = component["height"]
             width = component["width"]
 
-            real_top = int(top // text_height)
-            real_height = int(height // text_height)
+            real_top = int(top / text_height)
+            real_height = int(height / text_height) # max line number for this container
 
-            real_left = int(left // text_width)
-            real_width = int(width // text_width)
+            real_left = int(left / text_width)
+            real_width = int(width / text_width) # max character number per row
 
             if "image" in component:
                 # image
@@ -883,9 +909,30 @@ class Container:
                 text = component["text"]
                 if text == "":
                     continue
+
+                if "\n" in text:
+                    center_text = False
+                    horizontal_padding_space_number = 0
+                else:
+                    center_text = True
+                    horizontal_padding_space_number = int((real_width - len(text))/2)
+
+                if center_text == True:
+                    vertical_padding_line_number = int((real_height - text.count("\n"))/2)
+                else:
+                    vertical_padding_line_number = 0
+
                 char_list = list(text)
                 for row_index in range(real_top, real_top+real_height):
+                    if vertical_padding_line_number > 0:
+                        # for center text
+                        vertical_padding_line_number -= 1
+                        continue
                     for column_index in range(real_left, real_left+real_width):
+                        if horizontal_padding_space_number > 0:
+                            # for center text
+                            horizontal_padding_space_number -= 1
+                            continue
                         if len(char_list) == 0:
                             break
                         char = char_list[0]
@@ -919,7 +966,14 @@ class Container:
         """
         if len(self.children) == 0:
             print(self.text)
-            self.on_click_function()
+            try:
+                self.on_click_function(self)
+            except Exception as e:
+                try:
+                    self.on_click_function()
+                except Exception as e2:
+                    print(e)
+                    print(e2)
             return True
 
         clicked = False
@@ -960,7 +1014,14 @@ class Container:
             if left_top_y != None and left_top_x != None and right_bottom_y != None and right_bottom_x != None:
                 if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
                     # clicked at this container, but no children matchs, the point is at background
-                    self.on_click_function()
+                    try:
+                        self.on_click_function(self)
+                    except Exception as e:
+                        try:
+                            self.on_click_function()
+                        except Exception as e2:
+                            print(e)
+                            print(e2)
                     return True
 
         return clicked

@@ -1563,6 +1563,37 @@ class Yingshaoxo_Text_Generator():
         """
         return string_.get_fuzz_match_text_from_text_list(input_text, text_list, quick_mode=quick_mode)
 
+    def translation(self, input_text, rule_dict):
+        """
+        input_text: str
+            The text you want to translate
+        rule_dict: dict[str, str]
+            similar to {"{one} of {all}": "{all}的{one}", "one": "一个", "all": "所有"}
+
+        As you can see, the rule_dict not only covers sentence segment resort translation, also covers direct 1 to 1 translation.
+        We do not use regex for simplifying the translation process.
+        A complex example would be:
+            input_text: "How could you find it?"
+            rule_dict: {
+                "how could {a_character|1} {sub_sentence|x}": "{a_character} 怎么能 {sub_sentence}",
+                "you": "你",
+                "find": "找到",
+                "it": "它"
+            }
+            process:
+                1. splite input_text to sentence segments, here, it is ["how could you find it?"]
+                2. loop rule_dict, check if any key rule matchs the whole sentence. when it loop to the first key rule, the check process can be: first check if "how could" in input_text or not, if so, check if there has a word after "how could" or not, if so, check after that word, is there has a sub_sentence which has more than two words or not, if so, use the rule value to do the sentence transformation.
+                3. after first transformation, the input_text becomes "{you}怎么能{find it}?"
+                4. then we do another loop for rule_dict, we get "you to 你", "find to 找到", "it to 它"
+                5. we do other no special translation with long_sequence_first cutting translation, so now the result becomes "{你} 怎么能 {找到} {它}", it seems good, but what about the question mark "?" ? For any character that do not inside of rule_dict, we return them directly
+                6. In the end, we get "你 怎么能 找到它?"
+        As you can see, the whole translation process is just like what human thinks when you ask human to do a translation.
+        That also means, the 'deep learning' is not a reliable way to do the translation. If you want to have 100% accurate, you have to write at least 10000 rules for different sentence patterns.
+        It is hard to do it by one person, but if you ask 10000 person to add rule in parallel or sequence, to get an accurate translation dataset, it will only costs each person 5 minutes.
+        The final result is nice, since 50000 rules in pure text will take no more than 10MB. How wanderful it is for getting a state of art language translator with a small dataset less than 10MB. And it could work in 1990 made old computers if you want.
+        """
+        pass
+
 
 class Yingshaoxo_Computer_Vision():
     def __init__(self):
