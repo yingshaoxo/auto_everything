@@ -2317,7 +2317,9 @@ class Yingshaoxo_Strong_AI():
     """
     Just ask 1000000 programmer to work on one project. Start from basic, try to write code to mimic human thinking.
     Then you'll find, as they write more if else condition tree and self_adopt and self_update function, the more the 'person' they code looks like a real human.
-    You probably will never think to achieve strong Artificial Intelligence does not need to use deep learning method.
+    And how can you make sure that many of programmer will not broken the project? You use binary idea tree, let programmers working on their own sub_folder. For example, for alive concept, it can convert to "plant and animal". And animal can split into "can fly and can not fly", and go on. I did not cover virus for simplicity. Basically when you reach 20 sub_folder level, "2 to the power of 20" == 1048576 classes. Each programmer work on one class.
+
+    You probably have never thought to achieve strong Artificial Intelligence does not need to use deep learning method.
     """
     pass
 
