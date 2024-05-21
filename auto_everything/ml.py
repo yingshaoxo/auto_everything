@@ -2313,6 +2313,15 @@ class Yingshaoxo_Image_Transformer():
             return self.scale_up_image_by_using_yingshaoxo_method(image, scale_x=scale_x)
 
 
+class Yingshaoxo_Strong_AI():
+    """
+    Just ask 1000000 programmer to work on one project. Start from basic, try to write code to mimic human thinking.
+    Then you'll find, as they write more if else condition tree and self_adopt and self_update function, the more the 'person' they code looks like a real human.
+    You probably will never think to achieve strong Artificial Intelligence does not need to use deep learning method.
+    """
+    pass
+
+
 class ML():
     def __init__(self):
         self.Yingshaoxo_Text_Preprocessor = Yingshaoxo_Text_Preprocessor
