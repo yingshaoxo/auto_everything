@@ -1,4 +1,5 @@
 from auto_everything.image import Image
+from time import time as now
 
 image = Image()
 
@@ -15,9 +16,19 @@ small_image.resize(30, 30)
 small_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero1_30x30.png")
 print("30x30 image output done")
 
-an_image = an_image.get_simplified_image(ratio=0.9)
+start = now()
+an_image = an_image.get_simplified_image(ratio=0.5)
 an_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified.png")
 print("simplified image output done")
+end = now()
+print("time use:", end-start)
+
+start = now()
+a_copy = an_image_backup.copy().get_simplified_image2(ratio=0.5)
+a_copy.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified_2.png")
+print("simplified2 image output done")
+end = now()
+print("time use:", end-start)
 
 import auto_everything.additional.hqx as hqx
 an_image = hqx.yingshaoxo_image_scalling_up_by_using_hqx3(an_image)
