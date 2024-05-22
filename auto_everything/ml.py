@@ -1963,6 +1963,10 @@ class Yingshaoxo_Image_Transformer():
         0. simplifying function: which reduces big data to small data, but still represente that special thing
         1. comparation function: what if the difference between that picture and this picture
         2. feature hash function: generate a shorter id string to represent that special thing, it has to be different than other hash id string.
+    To speed up process:
+        1. divide and conquer, return and do not process saves most time.
+        2. don't do repeat work, use cache dict.
+        3. use multiple_process or multiple_computer to handle sub tasks at the same time.
     """
     """
     def get_smooth_line_points_by_using_bezier_curve(self, points):
