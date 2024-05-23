@@ -9,9 +9,9 @@ As for the compression algorithm, the head line should have the information abou
 
 After that, first, it should have a rgb color dict, where key is rgb data, value is the index. The index process should make sure the most frequent grb value has the smallest number as index.
 
-Then save the real image matix data by using index and space symbol. For example: "0 0 1 1 0 1". For each new line of pixels, we still use new line to do the seperation.
+Then save the real image matrix data by using index and space symbol. For example: "0 0 1 1 0 1". For each new line of pixels, we still use new line to do the seperation. (Here you can use index_to_rgb dict to get real rgb matrix data, or 2d array where each point is [r,g,b])
 
-If a index has repetition in the right direction in the same row, we use underline with the repitation number to indicate that, for example, if index 2 repeated 200 times, then we write it as "2_200".
+If a index has repetition in the right direction in the same row, we use underline with the repetition number to indicate that, for example, if index 2 repeated 200 times, then we write it as "2_200".
 
 If a index takes the whole line, we represente it as "2_d_1". It means the index 2 takes the whole line and repeated its line in the down direction for 1 times.
 
@@ -20,6 +20,8 @@ If a index takes the whole line and repeated its line for 300 times, we represen
 In a overview looking, the video should be a folder where the images file and audio file should have same name. For example, a video called "hi_you.mkv", it should end up with a folder called "hi_you", inside of that folder, it should have "hi_you_1.mkv.txt", "hi_you_2.mkv.txt", "hi_you_1.wav.txt", "hi_you_2.wav.txt"
 
 mkv is better since you can play it in a stream way on internet, while mp4 requires you fully download before you can play it.
+
+But any way, in the end all other format is not reliable, you have to save data with your own format.
 """
 
 
