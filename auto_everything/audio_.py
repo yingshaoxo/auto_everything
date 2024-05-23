@@ -823,7 +823,7 @@ class Audio():
             the_real_signal_dict[key] = str(index)
             index += 1
 
-        text_data = "format: yingshaoxo_audio; version: 2024; help: the third part contains a dict, you have to convert it into a dict where value is what you get by using space split, index start from 0. then start from part 4, they are real data, each one represent a channel, from left ear to right ear, you have to use the dict you got before to convert those index number into real signal."
+        text_data = "format: yingshaoxo_audio; version: 2024; help: the second part has sample_rate data. the third part contains a dict, you have to convert it into a dict where value is what you get by using space split, the key is the element index start from 0. then start from part 4, they are real data, each one represent a channel, from left ear to right ear, you have to use the dict you got before to convert those index number into real signal."
         text_data += "\n_______\n\n"
         text_data += "sample_rate," + str(sample_rate) + ",channels_number," + str(channels_number) + ",one_channel_length," + str(one_channel_length)
         text_data += "\n_______\n\n"

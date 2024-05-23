@@ -346,7 +346,7 @@ class Image:
         print("", end="", flush=True)
         return final_image
 
-    def get_simplified_image(self, ratio=0.8):
+    def get_simplified_image(self, ratio=0.7):
         """
         ratio: 0 to 1, more close to 1, more simplified
 
@@ -507,9 +507,9 @@ class Image:
                 return a_image
             elif file_path.endswith(".txt"):
                 splits = raw_text.split("\n_______\n")
-                size_info = splits[0].strip()
-                dict_text = splits[1].strip()
-                the_text_data = splits[2].strip()
+                size_info = splits[1].strip()
+                dict_text = splits[2].strip()
+                the_text_data = splits[3].strip()
 
                 the_color_dict = dict()
                 for index, line in enumerate(dict_text.split("\n")):
@@ -520,16 +520,51 @@ class Image:
                 width = int(info_splits[3])
 
                 a_image = Image().create_an_image(height=height, width=width)
-                for row_index, line in enumerate(the_text_data.split("\n")):
-                    for column_index, id_ in enumerate(line.strip().split(" ")):
-                        a_image.raw_data[row_index][column_index] = the_color_dict[id_]
+
+                if "_" not in the_text_data:
+                    # not extream mode, read pixel one by one
+                    for row_index, line in enumerate(the_text_data.split("\n")):
+                        for column_index, id_ in enumerate(line.strip().split(" ")):
+                            a_image.raw_data[row_index][column_index] = the_color_dict[id_]
+                else:
+                    row_index = 0
+                    lines = the_text_data.split("\n")
+                    for line in lines:
+                        column_index = 0
+                        line = line.strip()
+                        parts = line.split(" ")
+                        for part in parts:
+                            if "_d_" in part:
+                                # handle repeated line
+                                color_index, repeated_line_number = part.split("_d_")
+                                repeated_line_number = int(repeated_line_number)
+                                color = the_color_dict[color_index]
+                                for i in range(row_index, row_index + repeated_line_number):
+                                    a_image.raw_data[i] = [color] * width
+                                row_index += repeated_line_number - 1
+                                break
+                            elif "_" in part:
+                                # handle repeated pixel
+                                color_index, repeated_pixel_number = part.split("_")
+                                repeated_pixel_number = int(repeated_pixel_number)
+                                color = the_color_dict[color_index]
+                                for i in range(column_index, column_index + repeated_pixel_number):
+                                    a_image.raw_data[row_index][i] = color
+                                column_index += repeated_pixel_number
+                            else:
+                                # handle single pixel
+                                color_index = part
+                                color = the_color_dict[color_index]
+                                a_image.raw_data[row_index][column_index] = color
+                                column_index += 1
+                        row_index += 1
 
                 return a_image
         else:
             with open(file_path, "r", encoding="utf-8") as f:
                 return Image(json.loads(f.read()))
 
-    def save_image_to_file_path(self, file_path):
+    def save_image_to_file_path(self, file_path, extreme=False):
         """
         I have a new idea about image representation:
             1. For lines, for example, circuits, you can only use stright line and two_point_with_radius_arc_line to define everything.
@@ -588,17 +623,85 @@ class Image:
 
                 text_data = json.dumps(json_data, ensure_ascii=False)
             elif file_path.endswith(".txt"):
-                text_data = ""
+                text_data = "format: yingshaoxo_image; version: 2024; help: the second part has the height and width. the third part contains a dict, you have to convert it into a dict where value is what you get by using new_line split, and the key is the element index start from 0. then for part 4, they are real data, each one represent a pixel index, it has rows and columns of pixels split by new_line and space, you have to use the dict you got before to convert those index number into real pixel data. as for some special symbol in real data, 2_200 means 2 repeated for 200 times in the same row, 3_d_4 means the whole row is 3 and the line in down direction repeated 4 times."
+                text_data += "\n_______\n\n"
                 text_data += "height,"+str(height)+","+"width,"+str(width)
                 text_data += "\n_______\n\n"
                 for key in the_real_color_dict.keys():
                     text_data += key + "\n"
                 text_data += "_______\n\n"
-                for row_index, row in enumerate(self.raw_data):
-                    for column_index, color in enumerate(row):
-                        color = ",".join([str(one) for one in color])
-                        text_data += str(the_real_color_dict[color]) + " "
-                    text_data += "\n"
+                if extreme == False:
+                    for row_index, row in enumerate(self.raw_data):
+                        for column_index, color in enumerate(row):
+                            color = ",".join([str(one) for one in color])
+                            text_data += str(the_real_color_dict[color]) + " "
+                        text_data += "\n"
+                else:
+                    height, width = self.get_shape()
+                    row_index = 0
+                    while True:
+                        if row_index >= height:
+                            break
+                        column_index = 0
+                        while True:
+                            if row_index >= height:
+                                break
+                            if column_index >= width:
+                                break
+                            color = self.raw_data[row_index][column_index]
+                            color_string = ",".join([str(one) for one in color])
+                            color_index_string = str(the_real_color_dict[color_string])
+                            if column_index == 0:
+                                # there has possibility one index could cover the whole line and repeat that line
+                                repeated_line_counting = 0
+                                for i in range(row_index, height):
+                                    a_row = self.raw_data[i]
+                                    if all([one == color for one in a_row]):
+                                        repeated_line_counting += 1
+                                    else:
+                                        break
+                                if repeated_line_counting != 0:
+                                    # has repeated line
+                                    text_data += color_index_string + "_d_" + str(repeated_line_counting) + "\n"
+                                    row_index += repeated_line_counting
+                                    continue
+                                else:
+                                    # no repeated line, check current line pixel repeatation
+                                    repeated_pixel_counting = 0
+                                    for i in range(column_index, width):
+                                        other_pixel = self.raw_data[row_index][i]
+                                        if other_pixel == color:
+                                            repeated_pixel_counting += 1
+                                        else:
+                                            break
+                                    if repeated_pixel_counting == 1:
+                                        # no repeat pixel
+                                        text_data += color_index_string + " "
+                                    else:
+                                        # has repeat pixel
+                                        text_data += color_index_string + "_" + str(repeated_pixel_counting) + " "
+                                        column_index += repeated_pixel_counting
+                                        continue
+                            else:
+                                # there could only have repetation in one row
+                                repeated_pixel_counting = 0
+                                for i in range(column_index, width):
+                                    other_pixel = self.raw_data[row_index][i]
+                                    if other_pixel == color:
+                                        repeated_pixel_counting += 1
+                                    else:
+                                        break
+                                if repeated_pixel_counting == 1:
+                                    # no repeat pixel
+                                    text_data += color_index_string + " "
+                                else:
+                                    # has repeat pixel
+                                    text_data += color_index_string + "_" + str(repeated_pixel_counting) + " "
+                                    column_index += repeated_pixel_counting
+                                    continue
+                            column_index += 1
+                        text_data += "\n"
+                        row_index += 1
 
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(text_data)
