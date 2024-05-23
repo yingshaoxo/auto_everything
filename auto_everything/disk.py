@@ -1641,6 +1641,14 @@ class Disk:
                         disk.move_a_file(source_file_path=file, target_file_path=new_file)
 
     def compress_bytes_by_using_yingshaoxo_method(self, bytes_data, window_length=1024) -> bytes:
+        """
+        A joke: A extreme compression method would be magnet torrent, a x GB file can be 'uncompressed' by a magnet hash link string.
+
+        The real part is: if you use 'a' to represent 'ab', 'b' to represent 'ac', 'c' to represent 'ad', and so on, in the end, if you have a [ab,ac,ad] dict, you can always compress a file to its half size, but the price is you have to save that dict to everywhlere you want to uncompress a file.
+        It is like, you can write light python code, but to execute it, the price is you have to spend big storage to save python interpreter, a binary file.
+
+        Some compression software like rar, zip, 7z, they work in the same way, they rewrite the old file data, they make you can't get the original file unless you download their software.
+        """
         text = self.bytes_to_base64(bytes_data)
 
         text_length = len(text)

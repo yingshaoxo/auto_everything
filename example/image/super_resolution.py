@@ -52,6 +52,7 @@ print("opencv normal hd image output done")
 
 hd_image = image_transformer.scale_up_image_by_using_yingshaoxo_method(an_image_backup)
 hd_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero7_yingshaoxo_normal.png")
+hd_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero7_yingshaoxo_normal.png.txt")
 print("yingshaoxo normal hd image output done")
 
 
