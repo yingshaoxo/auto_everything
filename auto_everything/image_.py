@@ -368,13 +368,11 @@ class Image:
 
         return new_image
 
-    def get_simplified_image2(self, ratio=0.6, kernel_number=2):
+    def to_mosaic(self, ratio=0.99, kernel_number=6):
         """
         ratio: 0 to 1, more close to 1, more simplified
 
         It removes ratio big pixels for each 8x8 sub_image, for example ratio=0.6 means remove 60% noise pixels from 8x8 sub_image
-
-        This is 10 times quicker than version1, but the quality is not good, but it always reduces size in a magic way.
         """
         new_image = self.copy()
         ratio = 1-ratio
@@ -438,7 +436,8 @@ class Image:
                 new_pixel_dict = {}
                 for index, pixel in enumerate(real_pixel_list):
                     y,x = index_list[index]
-                    this_pixel = [int((r_mean+pixel[0])/2), int((g_mean+pixel[1])/2), int((b_mean+pixel[2])/2), int((transparent_counting+pixel[3])/2)]
+                    #this_pixel = [int((r_mean+pixel[0])/2), int((g_mean+pixel[1])/2), int((b_mean+pixel[2])/2), int((transparent_counting+pixel[3])/2)]
+                    this_pixel = pixel
                     pixel_string = str(pixel)
                     if pixel_string in new_pixel_dict:
                         new_pixel = new_pixel_dict[pixel_string]
@@ -564,7 +563,7 @@ class Image:
             with open(file_path, "r", encoding="utf-8") as f:
                 return Image(json.loads(f.read()))
 
-    def save_image_to_file_path(self, file_path, extreme=False):
+    def save_image_to_file_path(self, file_path, extreme=True):
         """
         I have a new idea about image representation:
             1. For lines, for example, circuits, you can only use stright line and two_point_with_radius_arc_line to define everything.

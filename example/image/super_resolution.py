@@ -17,16 +17,9 @@ small_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero1_30x30.png"
 print("30x30 image output done")
 
 start = now()
-an_image = an_image.get_simplified_image(ratio=0.5)
+an_image = an_image.get_simplified_image(ratio=0.7)
 an_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified.png")
 print("simplified image output done")
-end = now()
-print("time use:", end-start)
-
-start = now()
-a_copy = an_image_backup.copy().get_simplified_image2(ratio=0.5)
-a_copy.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified_2.png")
-print("simplified2 image output done")
 end = now()
 print("time use:", end-start)
 
@@ -52,7 +45,7 @@ print("opencv normal hd image output done")
 
 hd_image = image_transformer.scale_up_image_by_using_yingshaoxo_method(an_image_backup)
 hd_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero7_yingshaoxo_normal.png")
-hd_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero7_yingshaoxo_normal.png.txt")
+hd_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero7_yingshaoxo_normal.png.txt", extreme=True)
 print("yingshaoxo normal hd image output done")
 
 

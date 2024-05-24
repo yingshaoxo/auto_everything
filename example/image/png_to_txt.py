@@ -14,6 +14,7 @@ a_image.print(width=70)
 a_image = a_image.get_simplified_image()
 a_image.save_image_to_file_path(target_image_path+".txt", extreme=True)
 a_image.save_image_to_file_path(target_image_path+".json")
+a_image.save_image_to_file_path(target_image_path)
 
 input("Want to load them back?")
 a_image_1 = image.read_image_from_file(target_image_path+".json").copy()
