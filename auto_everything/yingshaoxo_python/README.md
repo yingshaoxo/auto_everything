@@ -143,3 +143,12 @@ We do this simply because we do not trust dependencies that needs outside networ
 So that you can make a application store by your own to freely distribute your applications to users.
 
 Maybe you can also sell your own computer hardware online to make sure your programming language could last forever freely.
+
+
+## Natural Language (English or any other human language)
+
+You never think you can create a programming language without using computer, right? You just have to implement a translator.
+
+For example, if you want to let a person to drink water. The code is "drink water now". But after the translation, it becomes "Hi, how are you? I think you should drink some water, it is good for your body health.".
+
+If the instruction is working, that person should drink water, but if it does not work, you have to try to translate the source code to some other sentence, for example: "I just poisoned you, I won't tell you if you drink that water, the poison would be gone".
