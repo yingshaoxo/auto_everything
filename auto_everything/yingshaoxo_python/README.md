@@ -24,7 +24,7 @@ It seems like you have to have a dict to save those variables information. For e
 
 So far, you basically have a way to do modification for a variable in real time. It seems to be very complexed to make a simple functionality with a compilling programming language, because you can do this kind of thing in python by using a simple dict where the key is variable name, the value is the real value.
 
-This design will not work in some strict 1984 programming language, because they does not allow you to define infinite length list by default.
+This design will not work in some strict 1984 programming language, because they does not allow you to define infinite length list by default. And they also do not allow you to create new variable in real time.
 
 
 ### Handle operations between basic variables
