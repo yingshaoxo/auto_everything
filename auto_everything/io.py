@@ -209,6 +209,110 @@ class IO():
         return self.read(self.__log_path)
 
 
+class Yingshaoxo_Dict():
+    """
+    This dict is based on yingshaoxo hash table algorithm.
+    """
+    def __init__(self, second_level=False):
+        self.key_and_value_distribution_list = [None] * 255
+        self.second_level = second_level
+        if second_level == True:
+            for i in range(255):
+                # for each branch, it has [key_list, value_list]
+                self.key_and_value_distribution_list[i] = [
+                    [], []
+                ]
+        else:
+            for i in range(255):
+                self.key_and_value_distribution_list[i] = Yingshaoxo_Dict(second_level=True)
+
+    def _get_yingshaoxo_hash_id_of_a_string_for_the_first_level(self, key):
+        """
+        It returns a index between [0, 254]
+        """
+        key = str(key)
+        return (ord(key[0]) + ord(key[-1])) % 255
+
+    def _get_yingshaoxo_hash_id_of_a_string(self, key):
+        """
+        It returns a index between [0, 254]
+        """
+        key = str(key)
+        #return ord(key[int(len(key)/2)]) % 255
+        hash_id = 0
+        sign = True
+        for byte in key[::3].encode("utf-8"):
+            if sign == True:
+                hash_id += byte
+            else:
+                hash_id -= byte
+            sign = not sign
+        hash_id = hash_id % 255
+        return hash_id
+
+    def set(self, key, value):
+        if self.second_level == True:
+            hash_id = self._get_yingshaoxo_hash_id_of_a_string(key)
+            # python pass list as pointer, so we will change original list
+            keys, values = self.key_and_value_distribution_list[hash_id]
+            found = False
+            for index, old_key in enumerate(keys):
+                if old_key == key:
+                    values[index] = value
+                    found = True
+                    return
+            if found == False:
+                keys.append(key)
+                values.append(value)
+        else:
+            hash_id = self._get_yingshaoxo_hash_id_of_a_string_for_the_first_level(key)
+            a_dict = self.key_and_value_distribution_list[hash_id]
+            a_dict.set(key, value)
+
+    def get(self, key):
+        """
+        If not exists, we return None
+        """
+        if self.second_level == True:
+            hash_id = self._get_yingshaoxo_hash_id_of_a_string(key)
+            keys, values = self.key_and_value_distribution_list[hash_id]
+            for index, old_key in enumerate(keys):
+                if old_key == key:
+                    return values[index]
+            return None
+        else:
+            hash_id = self._get_yingshaoxo_hash_id_of_a_string_for_the_first_level(key)
+            a_dict = self.key_and_value_distribution_list[hash_id]
+            return a_dict.get(key)
+
+    def delete(self, key):
+        if self.second_level == True:
+            hash_id = self._get_yingshaoxo_hash_id_of_a_string(key)
+            keys, values = self.key_and_value_distribution_list[hash_id]
+            target_index = None
+            for index, old_key in enumerate(keys):
+                if old_key == key:
+                    target_index = index
+            if target_index != None:
+                del keys[target_index]
+                del values[target_index]
+        else:
+            hash_id = self._get_yingshaoxo_hash_id_of_a_string_for_the_first_level(key)
+            a_dict = self.key_and_value_distribution_list[hash_id]
+            a_dict.delete(key)
+
+    def has_key(self, key):
+        if self.second_level == True:
+            if self.get(key) == None:
+                return False
+            else:
+                return True
+        else:
+            hash_id = self._get_yingshaoxo_hash_id_of_a_string_for_the_first_level(key)
+            a_dict = self.key_and_value_distribution_list[hash_id]
+            return a_dict.has_key(key)
+
+
 class MyIO():
     def __init__(self):
         import io
@@ -254,3 +358,13 @@ if __name__ == "__main__":
     new_bytes_list = io.int_list_to_bytes_list(int_list)
     int_list = io.bytes_list_to_int_list(new_bytes_list)
     print(int_list)
+    """
+    a_dict = Yingshaoxo_Dict()
+    print(a_dict.get("hi"))
+    a_dict.set("hi", "yingshaoxo")
+    print(a_dict.get("hi"))
+    a_dict.set("hi", "everyone")
+    print(a_dict.get("hi"))
+    a_dict.delete("hi")
+    print(a_dict.get("hi"))
+    """
