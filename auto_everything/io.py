@@ -255,15 +255,12 @@ class Yingshaoxo_Dict():
             hash_id = self._get_yingshaoxo_hash_id_of_a_string(key)
             # python pass list as pointer, so we will change original list
             keys, values = self.key_and_value_distribution_list[hash_id]
-            found = False
             for index, old_key in enumerate(keys):
                 if old_key == key:
                     values[index] = value
-                    found = True
                     return
-            if found == False:
-                keys.append(key)
-                values.append(value)
+            keys.append(key)
+            values.append(value)
         else:
             hash_id = self._get_yingshaoxo_hash_id_of_a_string_for_the_first_level(key)
             a_dict = self.key_and_value_distribution_list[hash_id]
@@ -293,6 +290,7 @@ class Yingshaoxo_Dict():
             for index, old_key in enumerate(keys):
                 if old_key == key:
                     target_index = index
+                    break
             if target_index != None:
                 del keys[target_index]
                 del values[target_index]
