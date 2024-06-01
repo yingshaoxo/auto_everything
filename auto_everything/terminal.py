@@ -135,7 +135,7 @@ class Terminal:
         path = self.fix_path(path)
         return os.path.exists(path)
 
-    def software_exists(self, software_name, core_function=False):
+    def software_exists(self, software_name, core_function=True):
         """
         cheack if a software exists
         return true is it exists
@@ -189,9 +189,9 @@ class Terminal:
             return False
 
     def _get_bash_software(self):
-        if self.software_exists("bash"):
+        if self.software_exists("bash", core_function=True):
             return "bash"
-        elif self.software_exists("sh"):
+        elif self.software_exists("sh", core_function=True):
             return "sh"
         return "bash"
 
