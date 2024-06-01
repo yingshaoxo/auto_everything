@@ -1626,6 +1626,14 @@ class Yingshaoxo_Computer_Vision():
         """
         pass
 
+    def auto_play_game_agent(self):
+        """
+        Try everything new to get right action for each situation. Then reuse those right data to play game. Don't make same mistakes twice.
+        To speed up the database search time, you need to simplify data. For example, for main character small area, use full pixel image comparation, and for the whole picture, resize it down to 10x10 pixels image, then do comparation.
+        And if you consider main character speed, you can split your database into 3, stand still mode, move mode, run mode.
+        """
+        pass
+
 
 class Yingshaoxo_Speech_Recognizer():
     """

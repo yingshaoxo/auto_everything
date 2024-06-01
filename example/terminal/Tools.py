@@ -533,6 +533,7 @@ ifdown -v {interface}; ifup -v {interface}
         yingshaoxo_http_server.start(host = "0.0.0.0", port = int(port))
 
     def find_string(self, search_string, start_from=0):
+        start_from = int(start_from)
         files = disk.get_files(folder="./", recursive=True, use_gitignore_file=True)
         counting = 0
         for file in files:
