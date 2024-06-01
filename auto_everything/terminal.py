@@ -383,6 +383,46 @@ class Terminal:
     #     else:
     #         return p
 
+    def _version2_of_run_command(self, c, timeout = 15, cwd = None):
+        c, temp_sh = self.__text_to_sh(c)
+        args_list = shlex.split(c)
+        try:
+            result = ""
+            start_time = datetime.now()
+            p = subprocess.Popen(
+                args_list,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                cwd=cwd,
+                preexec_fn= None if self.system_type == "win" else os.setsid
+            )
+            try:
+                while p.poll() is None:
+                    if p.stdout is None:
+                        break
+                    if p.stdout.readable():
+                        char = p.stdout.read(1)
+                        result += char
+                        #my_print(char, end="", flush=True)
+                    end_time = datetime.now()
+                    if (end_time - start_time).seconds > timeout:
+                        break
+                return result.strip(" \n")
+            except KeyboardInterrupt:
+                self.__remove_temp_sh(temp_sh)
+                self.kill_a_process_by_pid(p.pid)
+                raise KeyboardInterrupt
+            except Exception as e:
+                self.__remove_temp_sh(temp_sh)
+                self.kill_a_process_by_pid(p.pid)
+                return str(e)
+            self.__remove_temp_sh(temp_sh)
+            return result
+        except Exception as e:
+            self.__remove_temp_sh(temp_sh)
+            return str(e)
+
     def run_command(self, c, timeout = 15, cwd = None):
         """
         run shell commands with return value
@@ -403,6 +443,7 @@ class Terminal:
 
         # if '\n' in c:
         c = self.fix_path(c)
+        old_c = c
         if self.debug:
             my_print("\n" + "-" * 20 + "\n")
             my_print(c)
@@ -428,6 +469,7 @@ class Terminal:
             return result
         except Exception as e:
             self.__remove_temp_sh(temp_sh)
+            return self._version2_of_run_command(old_c, timeout, cwd)
             return str(e)
 
     def run_python_code(self, code, timeout = 15, cwd = None):
