@@ -431,6 +431,31 @@ git remote set-url --add --push origin {repo_url}
             #ffmpeg -i '{video_path}' -c:v libx264 -vf scale=320:180 -r 16 -b:v 100k -c:a copy '{target_path}'
         """)
 
+    def cut_video(self, video_path, target_path, start_time, end_time):
+        """
+        start_time or end_time: '01:02' means 1 minute 2 seconds
+        """
+        t.run(f"""
+            ffmpeg -i '{video_path}' -ss {start_time} -to {end_time} -c copy '{target_path}'
+        """)
+
+    def get_audio_from_video(self, video_path, audio_path):
+        t.run(f"""
+            ffmpeg -i '{video_path}' '{audio_path}'
+        """)
+
+    def get_images_from_video(self, video_path, image_folder):
+        image_folder = image_folder.rstrip("/")
+        t.run(f"""
+            mkdir '{image_folder}'
+            ffmpeg -i '{video_path}' '{image_folder}/%08d.png'
+        """)
+
+    def merge_audio_and_video(self, video_path, audio_path, target_path):
+        t.run(f"""
+            ffmpeg -i '{video_path}' -i '{audio_path}' -c:v copy -c:a copy '{target_path}'
+        """)
+
     def compress_audio(self, audio_path, target_path, kbps=128):
         t.run(f"""
             ffmpeg -i '{audio_path}' -b:a {kbps}k '{target_path}'
