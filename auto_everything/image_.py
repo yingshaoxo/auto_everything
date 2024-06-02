@@ -208,9 +208,10 @@ def to_mosaic(self, ratio=0.99, kernel_number=6):
     return new_image
 
 
-def get_simplified_image_in_an_accurate_way(self, level=2):
+def get_simplified_image_in_an_accurate_way(self, level=2, extream_color_number=None):
     """
     level: 2 to infinite, the bigger, the more simplified
+    extream_color_number: 20 is enough, it means the whole picture will only use 20 colors
     """
     new_image = self.copy()
 
@@ -292,14 +293,21 @@ def get_simplified_image_in_an_accurate_way(self, level=2):
             get_main_color_for_a_sub_window(real_pixel_list)
 
     main_color_list = get_main_color_list_from_set()
-    length_of_main_color = len(main_color_list)
-    if level >= length_of_main_color/2:
-        level = int(length_of_main_color/3)
-    main_color_list.sort()
-    new_main_color_list = []
-    for i in range(0, len(main_color_list), level):
-        new_main_color_list.append(main_color_list[i])
-    main_color_list = new_main_color_list
+    if extream_color_number != None:
+        from functools import cmp_to_key
+        def compare_color(color1, color2):
+            difference = ((color1[0] - color2[0])**2 + (color1[1] - color2[1])**2 + (color1[2] - color2[2])**2 + (color1[3] - color2[3])**2) ** 0.5
+            return difference
+        main_color_list = list(sorted(main_color_list, key=cmp_to_key(compare_color)))[-extream_color_number:]
+    else:
+        length_of_main_color = len(main_color_list)
+        if level >= length_of_main_color/2:
+            level = int(length_of_main_color/3)
+        main_color_list.sort()
+        new_main_color_list = []
+        for i in range(0, len(main_color_list), level):
+            new_main_color_list.append(main_color_list[i])
+        main_color_list = new_main_color_list
 
     new_pixel_dict = {}
     for y in range(height):
@@ -569,9 +577,10 @@ class Image:
 
         return new_image
 
-    def get_simplified_image_in_an_accurate_way(self, level=7):
+    def get_simplified_image_in_an_accurate_way(self, level=7, extream_color_number=None):
         """
         level: 2 to infinite, the bigger, the more simplified
+        extream_color_number: 20 is enough, it means the whole picture will only use 20 colors
         """
         """
         How to reduce noise in image or how to reduce color type in image or how to simplify a image or how to convert a image to cartoon?
@@ -583,7 +592,7 @@ class Image:
 
         > author: yingshaoxo
         """
-        return get_simplified_image_in_an_accurate_way(self, level)
+        return get_simplified_image_in_an_accurate_way(self, level, extream_color_number)
 
     def to_mosaic(self, ratio=0.99, kernel_number=6):
         """

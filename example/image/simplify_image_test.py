@@ -14,7 +14,7 @@ print("original image output done")
 print()
 
 start = now()
-mosaic_image = an_image.copy().to_mosaic(kernel_number=6)
+mosaic_image = an_image.copy().to_mosaic(kernel_number=12)
 mosaic_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_mosaic.png")
 print("mosaic image output done")
 end = now()
@@ -22,20 +22,18 @@ print("time use:", end-start)
 print()
 
 start = now()
-simplified_image_2 = an_image.copy().get_simplified_image_in_an_accurate_way(level=7)
+simplified_image_2 = an_image.copy().get_simplified_image_in_an_accurate_way(level=7, extream_color_number=50)
 simplified_image_2.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified2.png")
 print("simplified2 image output done")
 end = now()
 print("time use:", end-start)
 print()
 
-"""
 start = now()
-an_image = an_image.copy().get_simplified_image(ratio=0.7)
-an_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified.png")
-print("simplified image output done")
+simplified_image_1 = an_image.copy().get_simplified_image(ratio=0.7)
+simplified_image_1.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified.png")
+print("simplified1 image output done")
 end = now()
 print("time use:", end-start)
 print()
-"""
 
