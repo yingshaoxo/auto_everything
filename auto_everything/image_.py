@@ -121,6 +121,207 @@ def change_image_style_without_ai(source_image, target_image, simple_mode=True):
     return source_image
 
 
+def to_mosaic(self, ratio=0.99, kernel_number=6):
+    """
+    ratio: 0 to 1, more close to 1, more simplified
+
+    It removes ratio big pixels for each 8x8 sub_image, for example ratio=0.6 means remove 60% noise pixels from 8x8 sub_image
+    """
+    new_image = self.copy()
+    ratio = 1-ratio
+
+    def get_main_color_list_by_ratio(pixel_list, ratio):
+        counting_dict = {}
+        a_list = []
+        for color in pixel_list:
+            color = [str(one) for one in color]
+            color = ",".join(color)
+            if color in counting_dict.keys():
+                counting_dict[color] += 1
+            else:
+                counting_dict[color] = 1
+        sort_items = list(counting_dict.items())
+        sort_items.sort(key=lambda x: -x[1])
+
+        main_color_list = sort_items[:max(int(len(sort_items)*ratio), 3)]
+        main_color_list = [[int(each) for each in one[0].split(",")] for one in main_color_list]
+        return main_color_list
+
+    sub_image_pixel_numbers = kernel_number * kernel_number
+    height, width = new_image.get_shape()
+    height_step_number = int(height/kernel_number)
+    width_step_number = int(width/kernel_number)
+    for y_ in range(height_step_number):
+        y_start = y_ * kernel_number
+        y_end = y_start + kernel_number
+        if y_end >= height:
+            y_end = height - 1
+        for x_ in range(width_step_number):
+            x_start = x_ * kernel_number
+            x_end = x_start + kernel_number
+            if x_end >= width:
+                x_end = width - 1
+            index_list = [None] * sub_image_pixel_numbers
+            real_pixel_list = [None] * sub_image_pixel_numbers
+            counting = 0
+            red_counting = 0
+            green_counting = 0
+            blue_counting = 0
+            transparent_counting = 0
+            for y_index in range(y_start, y_end):
+                for x_index in range(x_start, x_end):
+                    pixel = new_image.raw_data[y_index][x_index]
+                    index_list[counting] = [y_index, x_index]
+                    real_pixel_list[counting] = pixel
+                    red_counting += pixel[0]
+                    green_counting += pixel[1]
+                    blue_counting += pixel[2]
+                    transparent_counting += pixel[3]
+                    counting += 1
+            real_sub_image_pixel_numbers = counting
+            index_list = [one for one in index_list if one != None]
+            real_pixel_list = [one for one in real_pixel_list if one != None]
+            r_mean = int(red_counting / real_sub_image_pixel_numbers)
+            g_mean = int(green_counting / real_sub_image_pixel_numbers)
+            b_mean = int(blue_counting / real_sub_image_pixel_numbers)
+            a_mean = int(transparent_counting / real_sub_image_pixel_numbers)
+            main_color_list = get_main_color_list_by_ratio(real_pixel_list, ratio)
+            new_pixel_dict = {}
+            for index, pixel in enumerate(real_pixel_list):
+                y,x = index_list[index]
+                #this_pixel = [int((r_mean+pixel[0])/2), int((g_mean+pixel[1])/2), int((b_mean+pixel[2])/2), int((transparent_counting+pixel[3])/2)]
+                this_pixel = pixel
+                pixel_string = str(pixel)
+                if pixel_string in new_pixel_dict:
+                    new_pixel = new_pixel_dict[pixel_string]
+                else:
+                    new_pixel = pixel
+                    minimum_distance = 99999
+                    for safe_color in main_color_list:
+                        difference = ((this_pixel[0] - safe_color[0])**2 + (this_pixel[1] - safe_color[1])**2 + (this_pixel[2] - safe_color[2])**2 + (this_pixel[3] - safe_color[3])**2) ** 0.5
+                        if difference < minimum_distance:
+                            minimum_distance = difference
+                            new_pixel = safe_color
+                    new_pixel_dict[pixel_string] = new_pixel
+                new_image.raw_data[y][x] = new_pixel
+
+    return new_image
+
+
+def get_simplified_image_in_an_accurate_way(self, level=2):
+    """
+    level: 2 to infinite, the bigger, the more simplified
+    """
+    new_image = self.copy()
+
+    main_color_set = set()
+
+    def get_main_color_for_a_sub_window(pixel_list):
+        counting_dict = {}
+        a_list = []
+        for color in pixel_list:
+            color = [str(one) for one in color]
+            color = ",".join(color)
+            if color in counting_dict.keys():
+                counting_dict[color] += 1
+            else:
+                counting_dict[color] = 1
+        sort_items = list(counting_dict.items())
+        sort_items.sort(key=lambda x: -x[1])
+        color_list_length = len(sort_items)
+
+        target = None
+        index = 0
+        while True:
+            color, counting = sort_items[index]
+            if color in main_color_set:
+                pass
+            else:
+                main_color_set.add(color)
+                target = color
+                break
+            index += 1
+            if index >= color_list_length:
+                break
+        return target
+
+    def get_main_color_list_from_set():
+        main_color_list = [[int(each) for each in one.split(",")] for one in main_color_set]
+        return main_color_list
+
+    kernel_number = 30
+    sub_image_pixel_numbers = kernel_number * kernel_number
+    height, width = new_image.get_shape()
+    height_step_number = int(height/kernel_number)
+    width_step_number = int(width/kernel_number)
+    for y_ in range(height_step_number):
+        y_start = y_ * kernel_number
+        y_end = y_start + kernel_number
+        if y_end >= height:
+            y_end = height - 1
+        for x_ in range(width_step_number):
+            x_start = x_ * kernel_number
+            x_end = x_start + kernel_number
+            if x_end >= width:
+                x_end = width - 1
+            index_list = [None] * sub_image_pixel_numbers
+            real_pixel_list = [None] * sub_image_pixel_numbers
+            counting = 0
+            #red_counting = 0
+            #green_counting = 0
+            #blue_counting = 0
+            #transparent_counting = 0
+            for y_index in range(y_start, y_end):
+                for x_index in range(x_start, x_end):
+                    pixel = new_image.raw_data[y_index][x_index]
+                    index_list[counting] = [y_index, x_index]
+                    real_pixel_list[counting] = pixel
+                    #red_counting += pixel[0]
+                    #green_counting += pixel[1]
+                    #blue_counting += pixel[2]
+                    #transparent_counting += pixel[3]
+                    counting += 1
+            real_sub_image_pixel_numbers = counting
+            index_list = [one for one in index_list if one != None]
+            real_pixel_list = [one for one in real_pixel_list if one != None]
+            #r_mean = int(red_counting / real_sub_image_pixel_numbers)
+            #g_mean = int(green_counting / real_sub_image_pixel_numbers)
+            #b_mean = int(blue_counting / real_sub_image_pixel_numbers)
+            #a_mean = int(transparent_counting / real_sub_image_pixel_numbers)
+            #main_color_set.add(",".join([str(r_mean), str(g_mean), str(b_mean), str(a_mean)]))
+            get_main_color_for_a_sub_window(real_pixel_list)
+
+    main_color_list = get_main_color_list_from_set()
+    length_of_main_color = len(main_color_list)
+    if level >= length_of_main_color/2:
+        level = int(length_of_main_color/3)
+    main_color_list.sort()
+    new_main_color_list = []
+    for i in range(0, len(main_color_list), level):
+        new_main_color_list.append(main_color_list[i])
+    main_color_list = new_main_color_list
+
+    new_pixel_dict = {}
+    for y in range(height):
+        for x in range(width):
+            old_pixel = new_image.raw_data[y][x]
+            pixel_string = str(old_pixel)
+            if pixel_string in new_pixel_dict:
+                new_pixel = new_pixel_dict[pixel_string]
+            else:
+                new_pixel = pixel
+                minimum_distance = 99999
+                for safe_color in main_color_list:
+                    difference = ((old_pixel[0] - safe_color[0])**2 + (old_pixel[1] - safe_color[1])**2 + (old_pixel[2] - safe_color[2])**2 + (old_pixel[3] - safe_color[3])**2) ** 0.5
+                    if difference < minimum_distance:
+                        minimum_distance = difference
+                        new_pixel = safe_color
+                new_pixel_dict[pixel_string] = new_pixel
+            new_image.raw_data[y][x] = new_pixel
+
+    return new_image
+
+
 
 class Image:
     """
@@ -172,7 +373,7 @@ class Image:
     def copy(self):
         data = []
         for row in self.raw_data:
-            data.append(list(row))
+            data.append([one for one in row])
         return Image(data)
 
     def _resize_an_list(self, a_list, old_length, new_length):
@@ -368,91 +569,29 @@ class Image:
 
         return new_image
 
+    def get_simplified_image_in_an_accurate_way(self, level=7):
+        """
+        level: 2 to infinite, the bigger, the more simplified
+        """
+        """
+        How to reduce noise in image or how to reduce color type in image or how to simplify a image or how to convert a image to cartoon?
+
+        1. split image into sub_image or sub_windows, use dict to get main color, each window would only have one color. In a photo shoot from a bad camera, you can see even for a white background wall, the picture would have many other color than white color, those are the noise we should remove.
+        2. by doing step1, we can get a bigger map where each 8x8 pixels only have one color. Those color are main colors for that picture. We can even only remain 100 colors as main color. Then for each pixel in the old picture, we do a loop comparation based on main color list, we use the most similar main color to replace old pixel.
+        3. For the color_compare part, you can use a global dict to cache some result, so you don't have to do repeat color distance calculation.
+        4. c is faster than c++ in 'get element from list by index' about 1.5 times. For some programming language, their dict and list built-in type is garbage, if you use those language to read a 1080x720 pixels list, it would take 0.5 second for a pixel sometimes, but the whole pixels number is 777600. (And cpp compile time is 10 times slower than c compile, 2 times slower than python)
+
+        > author: yingshaoxo
+        """
+        return get_simplified_image_in_an_accurate_way(self, level)
+
     def to_mosaic(self, ratio=0.99, kernel_number=6):
         """
         ratio: 0 to 1, more close to 1, more simplified
 
         It removes ratio big pixels for each 8x8 sub_image, for example ratio=0.6 means remove 60% noise pixels from 8x8 sub_image
         """
-        new_image = self.copy()
-        ratio = 1-ratio
-
-        def get_main_color_list_by_ratio(pixel_list, ratio):
-            counting_dict = {}
-            a_list = []
-            for color in pixel_list:
-                color = [str(one) for one in color]
-                color = ",".join(color)
-                if color in counting_dict.keys():
-                    counting_dict[color] += 1
-                else:
-                    counting_dict[color] = 1
-            sort_items = list(counting_dict.items())
-            sort_items.sort(key=lambda x: -x[1])
-
-            main_color_list = sort_items[:max(int(len(sort_items)*ratio), 3)]
-            main_color_list = [[int(each) for each in one[0].split(",")] for one in main_color_list]
-            return main_color_list
-
-        sub_image_pixel_numbers = kernel_number * kernel_number
-        height, width = new_image.get_shape()
-        height_step_number = int(height/kernel_number)
-        width_step_number = int(width/kernel_number)
-        for y_ in range(height_step_number):
-            y_start = y_ * kernel_number
-            y_end = y_start + kernel_number
-            if y_end >= height:
-                y_end = height - 1
-            for x_ in range(width_step_number):
-                x_start = x_ * kernel_number
-                x_end = x_start + kernel_number
-                if x_end >= width:
-                    x_end = width - 1
-                index_list = [None] * sub_image_pixel_numbers
-                real_pixel_list = [None] * sub_image_pixel_numbers
-                counting = 0
-                red_counting = 0
-                green_counting = 0
-                blue_counting = 0
-                transparent_counting = 0
-                for y_index in range(y_start, y_end):
-                    for x_index in range(x_start, x_end):
-                        pixel = new_image.raw_data[y_index][x_index]
-                        index_list[counting] = [y_index, x_index]
-                        real_pixel_list[counting] = pixel
-                        red_counting += pixel[0]
-                        green_counting += pixel[1]
-                        blue_counting += pixel[2]
-                        transparent_counting += pixel[3]
-                        counting += 1
-                real_sub_image_pixel_numbers = counting
-                index_list = [one for one in index_list if one != None]
-                real_pixel_list = [one for one in real_pixel_list if one != None]
-                r_mean = int(red_counting / real_sub_image_pixel_numbers)
-                g_mean = int(green_counting / real_sub_image_pixel_numbers)
-                b_mean = int(blue_counting / real_sub_image_pixel_numbers)
-                a_mean = int(transparent_counting / real_sub_image_pixel_numbers)
-                main_color_list = get_main_color_list_by_ratio(real_pixel_list, ratio)
-                new_pixel_dict = {}
-                for index, pixel in enumerate(real_pixel_list):
-                    y,x = index_list[index]
-                    #this_pixel = [int((r_mean+pixel[0])/2), int((g_mean+pixel[1])/2), int((b_mean+pixel[2])/2), int((transparent_counting+pixel[3])/2)]
-                    this_pixel = pixel
-                    pixel_string = str(pixel)
-                    if pixel_string in new_pixel_dict:
-                        new_pixel = new_pixel_dict[pixel_string]
-                    else:
-                        new_pixel = pixel
-                        minimum_distance = 99999
-                        for safe_color in main_color_list:
-                            difference = ((this_pixel[0] - safe_color[0])**2 + (this_pixel[1] - safe_color[1])**2 + (this_pixel[2] - safe_color[2])**2 + (this_pixel[3] - safe_color[3])**2) ** 0.5
-                            if difference < minimum_distance:
-                                minimum_distance = difference
-                                new_pixel = safe_color
-                        new_pixel_dict[pixel_string] = new_pixel
-                    new_image.raw_data[y][x] = new_pixel
-
-        return new_image
+        return to_mosaic(self, ratio, kernel_number)
 
     def change_image_style(self, target_image, simple_mode=False):
         return change_image_style_without_ai(self, target_image, simple_mode=simple_mode)
