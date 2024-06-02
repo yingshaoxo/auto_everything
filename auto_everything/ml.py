@@ -2345,6 +2345,12 @@ class Yingshaoxo_Image_Transformer():
         """
         pass
 
+    def fix_old_camera_bad_resolution_or_color(self):
+        """
+        If you have a look at your computer screen or mobile phone, you would notice they are very clear, they do not have much noise pixel data. But when you shoot your screen by using camera, you would see the recorded video has very bad quality in color or resolution. Why? Your camera is garbage compared to your eyes. How to fix this kind of problem? Use pixel or sub_image link, 1 to 1 translation, the input is your camera recorded data, the output is your screen real data.
+        """
+        pass
+
 
 class Yingshaoxo_Strong_AI():
     """
