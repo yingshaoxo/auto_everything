@@ -24,9 +24,16 @@ mkv is better since you can play it in a stream way on internet, while mp4 requi
 But any way, in the end all other format is not reliable, you have to save data with your own format.
 
 
+
 Let me talk more about the video compression:
 
 Video is special, it is composed by a list of continuse images. By only record the changed part of next image compared to previous image is not enough, we need to do more compression. For example, for each 30x30 pixel square sub_image, we can reuse it in later data representation. It is like you have a sub_image dict pre_loaded, for each image you have later, you generate that image by using dict sub_image_id. For each image, you treat it like a canvas, you draw rectangle or any other shape on it. I did not metion the svg format yet, but similarly, you can use math description to represent a shape, for example, a circle will only require a center point and radius, but if you use pixels, that would be a really huge data.
+
+And for svg, the highest level of data compression algorithm is graphic user interface making, UI engine or game engine. Just think, if you record a website changeable view, how many storage it would take? But actually it is just html+css+js code and a broswer decoder. Or if you think about a 3D game, how many disk space you will use for recording every aspect of that game? But the game itself is small. (Currently public 3D game engine is garbage, it can't produce high quality image or video as 2D game engine would do. A general 2D game engine is UI engine, programmers who uses UI engine are called front-end developers.)
+
+
+
+author: yingshaoxo
 """
 
 
