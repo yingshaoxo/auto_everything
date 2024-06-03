@@ -329,6 +329,23 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extream_color_number=
 
     return new_image
 
+def rgb_to_black_and_white(image):
+    new_image = image.copy()
+    height, width = new_image.get_shape()
+    for y in range(height):
+        for x in range(width):
+            pixel = new_image.raw_data[y][x]
+            red, green, blue, transparent = pixel
+            if transparent == 0:
+                continue
+            grayscale = max(min(int(0.2989 * red + 0.5870 * green + 0.1140 * blue), 255), 0)
+            if grayscale > 127:
+                new_pixel = [255,255,255,255]
+            else:
+                new_pixel = [0,0,0,255]
+            new_image.raw_data[y][x] = new_pixel
+    return new_image
+
 
 
 class Image:
@@ -594,7 +611,10 @@ class Image:
         """
         return get_simplified_image_in_an_accurate_way(self, level, extream_color_number)
 
-    def to_mosaic(self, ratio=0.99, kernel_number=6):
+    def to_white_and_black(self):
+        return rgb_to_black_and_white(self)
+
+    def to_mosaic(self, ratio=0.99, kernel_number=12):
         """
         ratio: 0 to 1, more close to 1, more simplified
 
