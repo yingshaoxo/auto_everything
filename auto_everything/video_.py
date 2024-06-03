@@ -22,6 +22,11 @@ In a overview looking, the video should be a folder where the images file and au
 mkv is better since you can play it in a stream way on internet, while mp4 requires you fully download before you can play it.
 
 But any way, in the end all other format is not reliable, you have to save data with your own format.
+
+
+Let me talk more about the video compression:
+
+Video is special, it is composed by a list of continuse images. By only record the changed part of next image compared to previous image is not enough, we need to do more compression. For example, for each 30x30 pixel square sub_image, we can reuse it in later data representation. It is like you have a sub_image dict pre_loaded, for each image you have later, you generate that image by using dict sub_image_id. For each image, you treat it like a canvas, you draw rectangle or any other shape on it. I did not metion the svg format yet, but similarly, you can use math description to represent a shape, for example, a circle will only require a center point and radius, but if you use pixels, that would be a really huge data.
 """
 
 
