@@ -448,8 +448,22 @@ git remote set-url --add --push origin {repo_url}
         image_folder = image_folder.rstrip("/")
         t.run(f"""
             mkdir '{image_folder}'
-            ffmpeg -i '{video_path}' '{image_folder}/%08d.png'
+            ffmpeg -i '{video_path}' '{image_folder}/%d.png'
         """)
+        video_info = t.run_command(f"ffmpeg -i '{video_path}'")
+        lines = [line for line in video_info.split("\n") if " fps" in line]
+        print("\n".join(lines))
+
+    def convert_images_to_video(self, image_folder, video_path, frame_rate=None):
+        image_folder = image_folder.rstrip("/")
+        if frame_rate == None:
+            t.run(f"""
+                ffmpeg -f image2 -i '{image_folder}/%d.png' '{video_path}'
+            """)
+        else:
+            t.run(f"""
+                ffmpeg -framerate {frame_rate} -i '{image_folder}/%d.png' '{video_path}'
+            """)
 
     def merge_audio_and_video(self, video_path, audio_path, target_path):
         t.run(f"""
