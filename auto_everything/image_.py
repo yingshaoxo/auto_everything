@@ -297,13 +297,18 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extream_color_number=
         from functools import cmp_to_key
         def compare_color(color1, color2):
             difference = ((color1[0] - color2[0])**2 + (color1[1] - color2[1])**2 + (color1[2] - color2[2])**2 + (color1[3] - color2[3])**2) ** 0.5
+            """
+            a_grayscale = max(min(int(0.2989 * color1[0] + 0.5870 * color1[1] + 0.1140 * color1[2]), 255), 0)
+            b_grayscale = max(min(int(0.2989 * color2[0] + 0.5870 * color2[1] + 0.1140 * color2[2]), 255), 0)
+            difference = abs(a_grayscale - b_grayscale)
+            """
             return difference
         main_color_list = list(sorted(main_color_list, key=cmp_to_key(compare_color)))[-extream_color_number:]
     else:
         length_of_main_color = len(main_color_list)
         if level >= length_of_main_color/2:
             level = int(length_of_main_color/3)
-        main_color_list.sort()
+        main_color_list.sort(key=lambda one: max(min(int(0.2989 * one[0] + 0.5870 * one[1] + 0.1140 * one[2]), 255), 0))
         new_main_color_list = []
         for i in range(0, len(main_color_list), level):
             new_main_color_list.append(main_color_list[i])
@@ -313,6 +318,8 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extream_color_number=
     for y in range(height):
         for x in range(width):
             old_pixel = new_image.raw_data[y][x]
+            if old_pixel[3] == 0:
+                continue
             pixel_string = str(old_pixel)
             if pixel_string in new_pixel_dict:
                 new_pixel = new_pixel_dict[pixel_string]
