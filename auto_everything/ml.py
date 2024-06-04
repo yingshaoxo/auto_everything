@@ -2130,7 +2130,7 @@ class Yingshaoxo_Image_Transformer():
         if speed_mode == True:
             new_image = resize_image_with_cubic_interpolation(image, new_height, new_width)
 
-            new_image = new_image.get_simplified_image(0.9)
+            new_image = new_image.get_simplified_image_in_a_slow_way(0.9)
             return new_image
         else:
             new_image = resize_image_with_cubic_interpolation(image, new_height, new_width)
@@ -2146,7 +2146,7 @@ class Yingshaoxo_Image_Transformer():
                     else:
                         pass
 
-            new_image = new_image.get_simplified_image(0.9)
+            new_image = new_image.get_simplified_image_in_a_slow_way(0.9)
 
             return new_image
 
@@ -2250,7 +2250,7 @@ class Yingshaoxo_Image_Transformer():
                 cv2_image = cv2.resize(cv2_image, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
                 image.raw_data = cv2_image.tolist()
 
-                image = image.get_simplified_image(0.9)
+                image = image.get_simplified_image_in_a_slow_way(0.9)
                 return image
             else:
                 image = image.copy()
@@ -2279,7 +2279,7 @@ class Yingshaoxo_Image_Transformer():
                             else:
                                 pass
 
-                cubic_big_image_that_has_smooth_line = cubic_big_image_that_has_smooth_line.get_simplified_image(0.9)
+                cubic_big_image_that_has_smooth_line = cubic_big_image_that_has_smooth_line.get_simplified_image_in_a_slow_way(0.9)
 
                 return cubic_big_image_that_has_smooth_line
         except Exception as e:
@@ -2325,7 +2325,7 @@ class Yingshaoxo_Image_Transformer():
                         else:
                             pass
 
-            image = image.get_simplified_image(0.7)
+            image = image.get_simplified_image_in_a_slow_way(0.7)
             return image
         except Exception as e:
             return self.scale_up_image_by_using_yingshaoxo_method(image, scale_x=scale_x)

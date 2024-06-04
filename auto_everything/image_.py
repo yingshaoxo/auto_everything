@@ -572,7 +572,7 @@ class Image:
         print("", end="", flush=True)
         return final_image
 
-    def get_simplified_image(self, ratio=0.7):
+    def get_simplified_image_in_a_slow_way(self, ratio=0.7):
         """
         ratio: 0 to 1, more close to 1, more simplified
 
@@ -594,7 +594,7 @@ class Image:
 
         return new_image
 
-    def get_simplified_image_in_an_accurate_way(self, level=7, extream_color_number=None):
+    def get_simplified_image(self, level=7, extream_color_number=None):
         """
         level: 2 to infinite, the bigger, the more simplified
         extream_color_number: 20 is enough, it means the whole picture will only use 20 colors
@@ -610,6 +610,29 @@ class Image:
         > author: yingshaoxo
         """
         return get_simplified_image_in_an_accurate_way(self, level, extream_color_number)
+
+    def get_simplified_image_in_a_quick_way(self, level=15):
+        """
+        level: int
+            The higher, the more simplified
+
+        We know rgb value is in (0,255), but we don't need that many color to represent things. So we use [0,5] range values for rgb. So all color we could get is 5x5x5x6=750. 750 colors is good enough. --- author: yingshaoxo
+        """
+        new_image = self.copy()
+        height, width = new_image.get_shape()
+        for y in range(height):
+            for x in range(width):
+                pixel = new_image.raw_data[y][x]
+                red, green, blue, transparent = pixel
+                if transparent == 0:
+                    new_pixel = [0,0,0,0]
+                else:
+                    red = int((int((red/255)*level)/level) * 255)
+                    green = int((int((green/255)*level)/level) * 255)
+                    blue = int((int((blue/255)*level)/level) * 255)
+                    new_pixel = [red,green,blue,transparent]
+                new_image.raw_data[y][x] = new_pixel
+        return new_image
 
     def to_white_and_black(self):
         return rgb_to_black_and_white(self)

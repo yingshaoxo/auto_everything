@@ -17,7 +17,7 @@ small_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero1_30x30.png"
 print("30x30 image output done")
 
 start = now()
-an_image = an_image.get_simplified_image(ratio=0.7)
+an_image = an_image.get_simplified_image_in_a_slow_way()
 an_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified.png")
 print("simplified image output done")
 end = now()

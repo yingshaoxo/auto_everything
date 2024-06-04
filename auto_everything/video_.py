@@ -31,6 +31,8 @@ Video is special, it is composed by a list of continuse images. By only record t
 
 And for svg, the highest level of data compression algorithm is graphic user interface making, UI engine or game engine. Just think, if you record a website changeable view, how many storage it would take? But actually it is just html+css+js code and a broswer decoder. Or if you think about a 3D game, how many disk space you will use for recording every aspect of that game? But the game itself is small. (Currently public 3D game engine is garbage, it can't produce high quality image or video as 2D game engine would do. A general 2D game engine is UI engine, programmers who uses UI engine are called front-end developers.)
 
+For some video type, for example, porn, you can even loop video segments to reduce size. For animation, 3D to 2D, you have to "reduce shadow color", darker white to white, darker red to red.
+
 
 
 author: yingshaoxo
