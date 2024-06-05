@@ -250,9 +250,9 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extream_color_number=
         main_color_list = [[int(each) for each in one.split(",")] for one in main_color_set]
         return main_color_list
 
-    kernel_number = 30
-    sub_image_pixel_numbers = kernel_number * kernel_number
     height, width = new_image.get_shape()
+    kernel_number = int((64/1920) * width)
+    sub_image_pixel_numbers = kernel_number * kernel_number
     height_step_number = int(height/kernel_number)
     width_step_number = int(width/kernel_number)
     for y_ in range(height_step_number):
@@ -642,6 +642,9 @@ class Image:
         return new_image
 
     def to_white_and_black(self):
+        """
+        If there only have 2 colors, think about if you save data sequencely without space as seperator, will you save half of storage?
+        """
         return rgb_to_black_and_white(self)
 
     def to_mosaic(self, ratio=0.99, kernel_number=12):

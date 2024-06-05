@@ -516,6 +516,9 @@ class String:
         """
         Or you simply encode word or meaning group by split text using space
         """
+        """
+        todo: speed up encoding speed by using dict than loop list
+        """
         def get_common_keyword_dict(text):
             all_substring = self.get_common_string_list_in_text(text, get_less=True, only_return_longest=True)
             the_dict = {}

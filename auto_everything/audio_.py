@@ -165,17 +165,109 @@ class Audio():
                 self.raw_data[channel_index][x] = int(round(self.raw_data[channel_index][x] * scale))
         return self
 
-    def get_simplified_audio(self, ratio=0.7, sample_rate=8000, extreme=False):
-        ratio = 1 - ratio
+    def get_simplified_audio(self, sample_rate=8000, extreme=False):
         audio = self.copy()
         channels_number, one_channel_length = audio.get_shape()
         audio = audio.change_sample_rate(sample_rate)
         audio = audio.merge_to_mono()
-        audio = audio.reduce_noise_by_counting(ratio)
-        audio = audio.change_volume(1.5)
+        audio = audio.change_volume(1.2)
         if extreme == True:
             audio = audio.range_map(-32767, 32767, 0, 1024)
-            #audio = audio.change_volume(1.5)
+        return audio
+
+    def get_extreme_simplified_audio(self, sample_rate=8000, max_signal_value=9):
+        """
+        If the max_signal_value is less than 128, use ascii char to represent 3 numbers is better than directly use 3 numbers in storage. It saves 3 times of storage.
+        """
+        audio = self.copy()
+        channels_number, one_channel_length = audio.get_shape()
+        audio = audio.change_sample_rate(sample_rate)
+        audio = audio.merge_to_mono()
+        audio = audio.range_map(-32767, 32767, -max_signal_value, max_signal_value)
+        audio = audio.range_map(-max_signal_value, max_signal_value, -32767, 32767)
+        return audio
+
+    def get_simplified_audio_by_using_balance_sample(self, sample_rate=8000, max_signal_number=30):
+        """
+        Two balance method is a method that considers horizontal and vertical level of data sampling.
+        It first sample data sub part evenly by using step number to get partly most frequent data.
+        Then at global level, it do a frequent sort again to get most frequent data, so those small data type can represent the whole data. So at the beginning, the data type is 32700, not it becomes 'max_signal_number' types, which is 30. The compression level is 1000.
+        Author: yingshaoxo
+        """
+        audio = self.copy()
+        channels_number, one_channel_length = audio.get_shape()
+        audio = audio.change_sample_rate(sample_rate)
+        audio = audio.merge_to_mono()
+
+        step_number = int((500/8000) * sample_rate)
+
+        common_signals_list_in_horizontal = []
+        channels_number, one_channel_length = audio.get_shape()
+        for channel_index in range(channels_number):
+            for x in range(0, one_channel_length, step_number):
+                #signal = audio.raw_data[channel_index][x]
+                #common_signals_list_in_horizontal.append(signal)
+                sub_window_dict = dict()
+                for signal in audio.raw_data[channel_index][x: x+step_number]:
+                    if signal in sub_window_dict:
+                        sub_window_dict[signal] += 1
+                    else:
+                        sub_window_dict[signal] = 1
+                sub_window_signal_frequency_dict_items = list(sub_window_dict.items())
+                sub_window_signal_frequency_dict_items.sort(key=lambda one: -one[1]) #positive first, big first, then smaller number
+                # we need to get a most frequent positive one and negative one
+                sign_flag = None
+                for target_signal_item in sub_window_signal_frequency_dict_items:
+                    target_signal = target_signal_item[0]
+                    if target_signal == 0:
+                        common_signals_list_in_horizontal.append(target_signal)
+                        break
+                    if sign_flag == None:
+                        if target_signal > 0:
+                            sign_flag = True
+                        elif target_signal < 0:
+                            sign_flag = False
+                        common_signals_list_in_horizontal.append(target_signal)
+                    else:
+                        if sign_flag == True:
+                            if target_signal > 0:
+                                continue
+                        else:
+                            if target_signal < 0:
+                                continue
+                        common_signals_list_in_horizontal.append(target_signal)
+                        break
+
+        signal_frequency_dict = {}
+        for signal in common_signals_list_in_horizontal:
+            if signal in signal_frequency_dict:
+                signal_frequency_dict[signal] += 1
+            else:
+                signal_frequency_dict[signal] = 1
+        signal_frequency_dict_items = list(signal_frequency_dict.items())
+        signal_frequency_dict_items.sort(key=lambda one: one[1]) #negative first, small first, then bigger number
+
+        signal_frequency_dict_items = signal_frequency_dict_items[-max_signal_number:]
+        common_signals = [one[0] for one in signal_frequency_dict_items]
+
+        channels_number, one_channel_length = audio.get_shape()
+        cache_dict = {}
+        for channel_index in range(channels_number):
+            for x in range(0, one_channel_length):
+                signal = audio.raw_data[channel_index][x]
+                target_signal = signal
+                if signal in cache_dict:
+                    target_signal = cache_dict[signal]
+                else:
+                    minimum_distance = 999999
+                    for safe_signal in common_signals:
+                        distance = abs(safe_signal - signal)
+                        if distance < minimum_distance:
+                            minimum_distance = distance
+                            target_signal = safe_signal
+                    cache_dict[signal] = target_signal
+                audio.raw_data[channel_index][x] = target_signal
+
         return audio
 
     def reduce_noise_by_frequency(self):
@@ -803,6 +895,9 @@ class Audio():
         wav_object.close()
 
     def save_to_file(self, file_path):
+        """
+        For yingshaoxo audio text format, there could have more compression inside. By introducing a repeat symbol. For example, "1_9" means repeat 1 for 9 times. "6_5" means repeat 6 for 5 times.
+        """
         sample_rate = self.sample_rate
         channels_number, one_channel_length = self.get_shape()
 
