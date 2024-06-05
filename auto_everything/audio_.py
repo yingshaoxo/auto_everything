@@ -84,7 +84,7 @@ class Audio():
 
         return another_audio
 
-    def change_sample_rate(self, sample_rate, speed_mode=False):
+    def change_sample_rate(self, sample_rate, speed_mode=False, accurate_mode=False):
         """
         sample_rate: int
             can be 8000, 16000, and so on
@@ -117,7 +117,19 @@ class Audio():
                         middle_index = last_index + int((round(index) - last_index) / 2)
                         signal = self.raw_data[channel_index][middle_index]
                     else:
-                        signal = int(round(sum(signal_list) / part_width))
+                        if accurate_mode == False:
+                            signal = int(round(sum(signal_list) / part_width))
+                        else:
+                            common_signals_list_in_horizontal = []
+                            sub_window_dict = dict()
+                            for signal in signal_list:
+                                if signal in sub_window_dict:
+                                    sub_window_dict[signal] += 1
+                                else:
+                                    sub_window_dict[signal] = 1
+                            sub_window_signal_frequency_dict_items = list(sub_window_dict.items())
+                            sub_window_signal_frequency_dict_items.sort(key=lambda one: -one[1])
+                            signal = sub_window_signal_frequency_dict_items[0][0]
                 else:
                     signal = self.raw_data[channel_index][round(index)]
                 if index2 >= x_size:
@@ -168,14 +180,14 @@ class Audio():
                 self.raw_data[channel_index][x] = int(round(self.raw_data[channel_index][x] * scale))
         return self
 
-    def get_simplified_audio(self, sample_rate=8000, extreme=False):
+    def get_simplified_audio(self, sample_rate=8000, extreme=False, accurate_mode=False):
         audio = self.copy()
         channels_number, one_channel_length = audio.get_shape()
-        audio = audio.change_sample_rate(sample_rate)
+        audio = audio.change_sample_rate(sample_rate, accurate_mode=accurate_mode)
         audio = audio.merge_to_mono()
         audio = audio.change_volume(1.2)
         if extreme == True:
-            audio = audio.range_map(-32767, 32767, 0, 1024)
+            audio = audio.range_map(-32767, 32767, 0, 1024, loudness_match=False)
         return audio
 
     def get_extreme_simplified_audio(self, sample_rate=8000, max_signal_value=9):
@@ -186,8 +198,8 @@ class Audio():
         channels_number, one_channel_length = audio.get_shape()
         audio = audio.change_sample_rate(sample_rate)
         audio = audio.merge_to_mono()
-        audio = audio.range_map(-32767, 32767, -max_signal_value, max_signal_value)
-        audio = audio.range_map(-max_signal_value, max_signal_value, -32767, 32767)
+        audio = audio.range_map(-32767, 32767, -max_signal_value, max_signal_value, loudness_match=True)
+        audio = audio.range_map(-max_signal_value, max_signal_value, -32767, 32767, loudness_match=False)
         return audio
 
     def get_simplified_audio_by_using_balance_sample(self, sample_rate=8000, max_signal_number=30):
@@ -195,11 +207,12 @@ class Audio():
         Two balance method is a method that considers horizontal and vertical level of data sampling.
         It first sample data sub part evenly by using step number to get partly most frequent data.
         Then at global level, it do a frequent sort again to get most frequent data, so those small data type can represent the whole data. So at the beginning, the data type is 32700, not it becomes 'max_signal_number' types, which is 30. The compression level is 1000.
+        Why this method not working perfect in mutiple_track_mixed audio? because those data does not belong to one track, the frequency detection may not work well on it. But if you do process for each track, then merge all of them after process, it would be perfect.
         Author: yingshaoxo
         """
         audio = self.copy()
         channels_number, one_channel_length = audio.get_shape()
-        audio = audio.change_sample_rate(sample_rate)
+        audio = audio.change_sample_rate(sample_rate, accurate_mode=True)
         audio = audio.merge_to_mono()
 
         step_number = int((500/8000) * sample_rate)

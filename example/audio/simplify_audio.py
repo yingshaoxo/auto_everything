@@ -5,7 +5,7 @@ audio = Audio()
 audio = audio.read_wav_file("/home/yingshaoxo/Downloads/handclap2.wav")
 
 start_time = time()
-simplifyed_1 = audio.copy().get_simplified_audio()
+simplifyed_1 = audio.copy().get_simplified_audio(accurate_mode=False)
 simplifyed_1.write_wav_file("/home/yingshaoxo/Downloads/simplifyed_1.wav")
 simplifyed_1.save_to_file("/home/yingshaoxo/Downloads/simplifyed_1.wav.txt")
 end_time = time()
