@@ -19,10 +19,17 @@ end_time = time()
 print("simplified2", end_time-start_time)
 
 start_time = time()
-simplifyed_3 = audio.copy().get_simplified_audio_by_using_balance_sample()
+simplifyed_3 = audio.copy().get_simplified_audio_by_using_balance_sample(sample_rate=8000, max_signal_number=30)
 simplifyed_3.write_wav_file("/home/yingshaoxo/Downloads/simplifyed_3.wav")
 simplifyed_3.save_to_file("/home/yingshaoxo/Downloads/simplifyed_3.wav.txt")
 end_time = time()
 print("simplified3", end_time-start_time)
+
+start_time = time()
+simplifyed_5 = Audio()
+simplifyed_5.read_from_file("/home/yingshaoxo/Downloads/simplifyed_3.wav.txt")
+print("export data == import data: ", simplifyed_5.raw_data == simplifyed_3.raw_data)
+end_time = time()
+print("simplified3 read", end_time-start_time)
 
 

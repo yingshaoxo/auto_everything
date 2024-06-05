@@ -91,6 +91,9 @@ class Audio():
         speed_mode: bool
             if you set it to true, the process speed would be quicker, but audio quality will be lower
         """
+        """
+        todo: use mean value will cause noise data in small volume, have to change to other method
+        """
         # we can scale it up first, then scale it down
         old_sample_rate = self.sample_rate
         channels_number, one_channel_length = self.get_shape()
@@ -894,7 +897,7 @@ class Audio():
 
         wav_object.close()
 
-    def save_to_file(self, file_path):
+    def save_to_file(self, file_path, extreme_mode=True):
         """
         For yingshaoxo audio text format, there could have more compression inside. By introducing a repeat symbol. For example, "1_9" means repeat 1 for 9 times. "6_5" means repeat 6 for 5 times.
         """
@@ -918,20 +921,43 @@ class Audio():
             the_real_signal_dict[key] = str(index)
             index += 1
 
-        text_data = "format: yingshaoxo_audio; version: 2024; help: the second part has sample_rate data. the third part contains a dict, you have to convert it into a dict where value is what you get by using space split, the key is the element index start from 0. then start from part 4, they are real data, each one represent a channel, from left ear to right ear, you have to use the dict you got before to convert those index number into real signal."
+        text_data = "format: yingshaoxo_audio; version: 2024; help: the second part has sample_rate data. the third part contains a dict, you have to convert it into a dict where value is what you get by using space split, the key is the element index start from 0. then start from part 4, they are real data, each one represent a channel, from left ear to right ear, you have to use the dict you got before to convert those index number into real signal list. If you meet '1_9', it means repeat 1 for 9 times. '6_5' means repeat 6 for 5 times."
         text_data += "\n_______\n\n"
         text_data += "sample_rate," + str(sample_rate) + ",channels_number," + str(channels_number) + ",one_channel_length," + str(one_channel_length)
         text_data += "\n_______\n\n"
         for key in the_real_signal_dict.keys():
                 text_data += str(key) + " "
         text_data += "\n_______\n\n"
-        for channel_index in range(channels_number):
-            for index in range(one_channel_length):
-                signal = self.raw_data[channel_index][index]
-                text_data += str(the_real_signal_dict[signal]) + " "
-            text_data += "\n_______\n\n"
 
-        text_data = text_data[:-len("\n_______\n\n")]
+        if extreme_mode == False:
+            for channel_index in range(channels_number):
+                for index in range(one_channel_length):
+                    signal = self.raw_data[channel_index][index]
+                    text_data += str(the_real_signal_dict[signal]) + " "
+                text_data += "\n_______\n\n"
+            text_data = text_data[:-len("\n_______\n\n")]
+        else:
+            for channel_index in range(channels_number):
+                index = 0
+                while True:
+                    signal = self.raw_data[channel_index][index]
+                    repeat_counting = 0
+                    for temp_signal_index in range(index, one_channel_length):
+                        temp_signal = self.raw_data[channel_index][temp_signal_index]
+                        if temp_signal == signal:
+                            repeat_counting += 1
+                        else:
+                            break
+                    if repeat_counting >= 2:
+                        text_data += str(the_real_signal_dict[signal]) + "_" + str(repeat_counting) + " "
+                        index += repeat_counting - 1
+                    else:
+                        text_data += str(the_real_signal_dict[signal]) + " "
+                    index += 1
+                    if index >= one_channel_length:
+                        break
+                text_data += "\n_______\n\n"
+            text_data = text_data[:-len("\n_______\n\n")]
 
         file = open(file_path, "w", encoding="utf-8")
         file.write(text_data)
@@ -958,13 +984,33 @@ class Audio():
         for index, value in enumerate(dict_text.split(" ")):
             the_signal_dict[str(index)] = int(value)
 
-        raw_data = []
-        for channel_index, the_text_data in enumerate(the_text_data_list):
-            a_list = [None] * one_channel_length
-            for index, signal_index in enumerate(the_text_data.split(" ")):
-                real_value = the_signal_dict[signal_index]
-                a_list[index] = real_value
-            raw_data.append(a_list)
+        if "_" not in the_text_data_list[0]:
+            # not extreme mode
+            raw_data = []
+            for channel_index, the_text_data in enumerate(the_text_data_list):
+                a_list = [None] * one_channel_length
+                for index, signal_index in enumerate(the_text_data.split(" ")):
+                    real_value = the_signal_dict[signal_index]
+                    a_list[index] = real_value
+                raw_data.append(a_list)
+        else:
+            # extreme mode
+            raw_data = []
+            for channel_index, the_text_data in enumerate(the_text_data_list):
+                a_list = [None] * one_channel_length
+                index = 0
+                for _, signal_index in enumerate(the_text_data.split(" ")):
+                    if "_" in signal_index:
+                        real_signal_index, repeat_time = signal_index.split("_")
+                        real_value = the_signal_dict[real_signal_index]
+                        for one in range(int(repeat_time)):
+                            a_list[index] = real_value
+                            index += 1
+                    else:
+                        real_value = the_signal_dict[signal_index]
+                        a_list[index] = real_value
+                        index += 1
+                raw_data.append(a_list)
 
         self.raw_data = raw_data
 
