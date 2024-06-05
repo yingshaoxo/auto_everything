@@ -2131,6 +2131,7 @@ class Yingshaoxo_Image_Transformer():
             new_image = resize_image_with_cubic_interpolation(image, new_height, new_width)
 
             new_image = new_image.get_simplified_image_in_a_slow_way(0.9)
+            #new_image = new_image.get_simplified_image(extreme_color_number=3)
             return new_image
         else:
             new_image = resize_image_with_cubic_interpolation(image, new_height, new_width)

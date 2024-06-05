@@ -3,7 +3,7 @@ from time import time as now
 
 image = Image()
 
-source_image_path = "/home/yingshaoxo/Downloads/hero.png"
+source_image_path = "/home/yingshaoxo/Downloads/water.png"
 an_image = image.read_image_from_file(source_image_path)
 an_image_backup = an_image.copy()
 height, width = an_image.get_shape()
@@ -14,7 +14,7 @@ print("original image output done")
 print()
 
 start = now()
-simplified_image_2 = an_image.copy().get_simplified_image(level=7, extream_color_number=50)
+simplified_image_2 = an_image.copy().get_simplified_image(level=7)#, extreme_color_number=50)
 simplified_image_2.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified2.png")
 print("simplified2 image output done")
 end = now()
