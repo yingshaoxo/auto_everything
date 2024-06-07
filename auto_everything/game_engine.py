@@ -19,6 +19,8 @@ class Raw_3D_Object():
 
     To a extreme compression level of 3D model, you can simply use natural language to represent a shape, for example: "I want a cube that has side length of 3cm" or "A ball that center point is (0,0,0), radius is 1 meter".
     What kind of thing you can't use natural language to represent in this world?
+
+    As for 3D to 2D animation, you just have to remove "shadow" in 3D world. The shadow here not only mean the dark on the ground, but also the darker part of an object. For each part in an object, there should only have one color, no darker color. In other words, just remove the light, and render every part with the same light strengh according to camera position. (As for animation movie, let human control those character like playing a game in real time is a good way to collect movements.)
     """
     pass
 
