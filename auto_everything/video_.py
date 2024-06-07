@@ -38,6 +38,9 @@ For some video type, for example, porn, you can even loop video segments to redu
 author: yingshaoxo
 """
 
+import multiprocessing
+from time import sleep
+
 from auto_everything.terminal import Terminal
 from auto_everything.disk import Disk
 from auto_everything.audio_ import Audio
@@ -130,6 +133,17 @@ class Video():
                     a_image.raw_data[y][x] = [0, 0, 0, 255]
             return a_image
 
+        def handle_an_image_in_another_process(image_path):
+            a_image = Image().read_image_from_file(image_path)
+            try:
+                a_image = image_handler(a_image)
+            except Exception as e:
+                print(e)
+                a_image = get_black_image_for_error_frame(a_image)
+            a_image.save_image_to_file_path(image_path.split(".")[0] + ".png")
+
+        cpu_number = multiprocessing.cpu_count() * 2
+
         video_info = terminal.run_command(f"ffmpeg -i '{source_video_path}'")
         lines = [line for line in video_info.split("\n") if " fps" in line]
         frame_rate = "25"
@@ -158,17 +172,22 @@ class Video():
         elif image_handler != None and audio_handler == None:
             # do process for image
             images = disk.get_files(image_folder, recursive=False, type_limiter=[".bmp"])
+            process_list = []
             counting = 0
             for image_path in images:
-                a_image = Image().read_image_from_file(image_path)
-                try:
-                    a_image = image_handler(a_image)
-                except Exception as e:
-                    print(e)
-                    a_image = get_black_image_for_error_frame(a_image)
-                a_image.save_image_to_file_path(image_path.split(".")[0] + ".png")
+                a_process = multiprocessing.Process(target=handle_an_image_in_another_process, args=(image_path,))
+                process_list.append(a_process)
+                a_process.start()
+                if len(process_list) == cpu_number:
+                    while True:
+                        if any([not one.is_alive() for one in process_list]):
+                            break
+                        sleep(1)
+                    process_list = [one for one in process_list if one.is_alive()]
                 counting += 1
                 print("image " + str(counting) + " processed.")
+            while any([one.is_alive() for one in process_list]):
+                sleep(1)
         elif image_handler != None and audio_handler != None:
             # do process for all
             a_audio = Audio().read_wav_file(audio_path)
@@ -177,17 +196,22 @@ class Video():
             print("audio processed.")
 
             images = disk.get_files(image_folder, recursive=False)
+            process_list = []
             counting = 0
             for image_path in images:
-                a_image = Image().read_image_from_file(image_path)
-                try:
-                    a_image = image_handler(a_image)
-                except Exception as e:
-                    print(e)
-                    a_image = get_black_image_for_error_frame(a_image)
-                a_image.save_image_to_file_path(image_path.split(".")[0] + ".png")
+                a_process = multiprocessing.Process(target=handle_an_image_in_another_process, args=(image_path,))
+                process_list.append(a_process)
+                a_process.start()
+                if len(process_list) == cpu_number:
+                    while True:
+                        if any([not one.is_alive() for one in process_list]):
+                            break
+                        sleep(1)
+                    process_list = [one for one in process_list if one.is_alive()]
                 counting += 1
                 print("image " + str(counting) + " processed.")
+            while any([one.is_alive() for one in process_list]):
+                sleep(1)
 
         terminal.run(f"""
             rm -fr '{image_folder}/*.bmp'
