@@ -600,28 +600,39 @@ ifdown -v {interface}; ifup -v {interface}
         documentation = py.generate_documentation_for_a_python_project("./", "/tmp/doc.md", just_return_string=True)
         parts = documentation.split("\n\n_______\n\n")
 
+        previous_input_text = None
+        start_from = 0
         while True:
-            input_text = input("\n\n_______\n\nWhat you want to search?\n").strip()
+            input_text = input("\n\n_______\n\nWhat you want to search? (n for next)\n").strip()
+            if len(input_text) != 1:
+                previous_input_text = input_text
+                start_from = 0
+            else:
+                start_from += 1
+                if previous_input_text == None:
+                    continue
+                input_text = previous_input_text
             os.system("clear")
 
+            counting = 0
             found_index = None
             the_lines = None
             for part in parts:
-                if found_index != None:
-                    break
                 if input_text in part:
                     lines = part.split("\n")
                     for index, line in enumerate(lines):
                         if input_text in line and line.strip()[0] not in ["#", '"', "'"]:
-                            found_index = index
-                            the_lines = lines
-                            break
-
-            if found_index != None:
-                next_text = "\n".join(the_lines[found_index:found_index + 20])
-                print("\n\n_______\n\n")
-                print(next_text.strip("`"))
-            else:
+                            if counting >= start_from:
+                                found_index = index
+                                the_lines = lines
+                                break
+                            counting += 1
+                if found_index != None:
+                    next_text = "\n".join(the_lines[found_index:found_index + 20])
+                    print("\n\n_______\n\n")
+                    print(next_text.strip("`"))
+                    break
+            if found_index == None:
                 print("\n\n_______\n\n")
                 print("I can't find anything.")
 
