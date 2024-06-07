@@ -914,6 +914,10 @@ class Audio():
         """
         For yingshaoxo audio text format, there could have more compression inside. By introducing a repeat symbol. For example, "1_9" means repeat 1 for 9 times. "6_5" means repeat 6 for 5 times.
         """
+        if file_path.lower().endswith(".wav"):
+            self.write_wav_file(file_path)
+            return self
+
         sample_rate = self.sample_rate
         channels_number, one_channel_length = self.get_shape()
 
@@ -977,6 +981,10 @@ class Audio():
         file.close()
 
     def read_from_file(self, file_path):
+        if file_path.lower().endswith(".wav"):
+            self.read_wav_file(file_path)
+            return self
+
         a_file = open(file_path, "r", encoding="utf-8")
         raw_text = a_file.read()
         a_file.close()

@@ -38,25 +38,77 @@ For some video type, for example, porn, you can even loop video segments to redu
 author: yingshaoxo
 """
 
+from auto_everything.terminal import Terminal
+from auto_everything.disk import Disk
+from auto_everything.audio_ import Audio
+from auto_everything.image_ import Image
+terminal = Terminal()
+disk = Disk()
 
-class Simple_Video():
-    def split_video_to_images_and_audio(self):
+
+class Video():
+    def split_video_to_images_and_audio(self, video_path, output_folder, frame_rate="25", image_format="bmp"):
+        """
+        This function returns [image_folder, audio_path]
+
+        For example, "hi.mp4", have 3 seconds length of data
+        it will be in a "hi" folder, inside of hi folder, there should have "images" folder and "audio.wav" file
+        in the "images" folder, there should have ["1", "2", "3"] 3 folders to represente 3 seconds
+        in each seconds folder, there should have 25 pictures from "1.png" to "20.png". (but it could have just have 2 images, which means 1 second only have one image)
+        """
+        image_folder = disk.join_paths(output_folder, "images")
+        audio_path = disk.join_paths(output_folder, "audio.wav")
+
+        terminal.run(f"""
+            mkdir '{output_folder}'
+        """)
+
+        terminal.run(f"""
+            rm -fr '{audio_path}'
+            ffmpeg -i '{video_path}' '{audio_path}'
+        """)
+
+        image_folder = image_folder.rstrip("/")
+        frame_rate = str(frame_rate)
+        terminal.run(f"""
+            rm -fr '{image_folder}'
+            mkdir '{image_folder}'
+            ffmpeg -i '{video_path}' -r {frame_rate} '{image_folder}/%d.{image_format}'
+        """)
+
+        return image_folder, audio_path
+
+    def merge_images_and_audio_to_video(self, image_folder, audio_path, video_path, frame_rate="25", image_format="bmp", video_kb_limit=None):
         """
         For example, "hi.mp4", have 3 seconds length of data
         it will be in a "hi" folder, inside of hi folder, there should have "images" folder and "audio.wav" file
         in the "images" folder, there should have ["1", "2", "3"] 3 folders to represente 3 seconds
         in each seconds folder, there should have 20 pictures from "1.png" to "20.png". (but it could have just have 2 images, which means 1 second only have to images)
         """
-        pass
+        image_folder = image_folder.rstrip("/")
 
-    def merge_images_and_audio_to_video(self):
-        """
-        For example, "hi.mp4", have 3 seconds length of data
-        it will be in a "hi" folder, inside of hi folder, there should have "images" folder and "audio.wav" file
-        in the "images" folder, there should have ["1", "2", "3"] 3 folders to represente 3 seconds
-        in each seconds folder, there should have 20 pictures from "1.png" to "20.png". (but it could have just have 2 images, which means 1 second only have to images)
-        """
-        pass
+        temp_target_video_path = disk.get_a_temp_file_path("tempvideo.mp4")
+        if video_kb_limit == None:
+            terminal.run(f"""
+                rm -fr '{temp_target_video_path}'
+                ffmpeg -framerate {frame_rate} -i '{image_folder}/%d.{image_format}' '{temp_target_video_path}'
+            """)
+        else:
+            terminal.run(f"""
+                rm -fr '{temp_target_video_path}'
+                ffmpeg -framerate {frame_rate} -i '{image_folder}/%d.{image_format}' -b:v {video_kb_limit}k '{temp_target_video_path}'
+            """)
+
+        terminal.run(f"""
+            rm -fr '{video_path}'
+            ffmpeg -i '{temp_target_video_path}' -i '{audio_path}' -c:v copy -c:a aac -b:a 64k '{video_path}'
+        """)
+
+        terminal.run(f"""
+            rm -fr '{temp_target_video_path}'
+        """)
+
+        return video_path
 
     def read_video_from_file(self):
         # if it is a folder, we read our own data structure
@@ -65,3 +117,83 @@ class Simple_Video():
     def write_video_to_file(self):
         # if it is a folder, we write our own data structure
         pass
+
+    def video_to_video(self, source_video_path, target_video_path, image_handler=None, audio_handler=None, temp_folder=None):
+        if image_handler == None and audio_handler == None:
+            disk.copy_a_file(source_video_path, target_video_path)
+            return
+
+        def get_black_image_for_error_frame(a_image):
+            height, width = a_image.get_shape()
+            for y in range(height):
+                for x in range(width):
+                    a_image.raw_data[y][x] = [0, 0, 0, 255]
+            return a_image
+
+        video_info = terminal.run_command(f"ffmpeg -i '{source_video_path}'")
+        lines = [line for line in video_info.split("\n") if " fps" in line]
+        frame_rate = "25"
+        kb_per_second = None
+        if len(lines) != 0:
+            line = lines[0]
+            info_list = line.split(",")
+            for info in info_list:
+                info = info.strip()
+                if " fps" in info:
+                    frame_rate = info.split(" fps")[0]
+                elif " kb/s" in info:
+                    kb_per_second = info.split(" kb/s")[0]
+
+        if temp_folder == None:
+            a_temp_folder = disk.get_a_temp_folder_path()
+        else:
+            a_temp_folder = temp_folder
+        image_folder, audio_path = self.split_video_to_images_and_audio(source_video_path, a_temp_folder, image_format="bmp", frame_rate=frame_rate)
+        if image_handler == None and audio_handler != None:
+            # do process for audio
+            a_audio = Audio().read_wav_file(audio_path)
+            a_audio = audio_handler(a_audio)
+            a_audio.write_wav_file(audio_path)
+            print("audio processed.")
+        elif image_handler != None and audio_handler == None:
+            # do process for image
+            images = disk.get_files(image_folder, recursive=False, type_limiter=[".bmp"])
+            counting = 0
+            for image_path in images:
+                a_image = Image().read_image_from_file(image_path)
+                try:
+                    a_image = image_handler(a_image)
+                except Exception as e:
+                    print(e)
+                    a_image = get_black_image_for_error_frame(a_image)
+                a_image.save_image_to_file_path(image_path.split(".")[0] + ".png")
+                counting += 1
+                print("image " + str(counting) + " processed.")
+        elif image_handler != None and audio_handler != None:
+            # do process for all
+            a_audio = Audio().read_wav_file(audio_path)
+            a_audio = audio_handler(a_audio)
+            a_audio.write_wav_file(audio_path)
+            print("audio processed.")
+
+            images = disk.get_files(image_folder, recursive=False)
+            counting = 0
+            for image_path in images:
+                a_image = Image().read_image_from_file(image_path)
+                try:
+                    a_image = image_handler(a_image)
+                except Exception as e:
+                    print(e)
+                    a_image = get_black_image_for_error_frame(a_image)
+                a_image.save_image_to_file_path(image_path.split(".")[0] + ".png")
+                counting += 1
+                print("image " + str(counting) + " processed.")
+
+        terminal.run(f"""
+            rm -fr '{image_folder}/*.bmp'
+        """)
+        video_path = self.merge_images_and_audio_to_video(image_folder, audio_path, target_video_path, frame_rate=frame_rate, image_format="png", video_kb_limit=kb_per_second)
+        terminal.run(f"""
+            rm -fr '{a_temp_folder}'
+        """)
+        return video_path

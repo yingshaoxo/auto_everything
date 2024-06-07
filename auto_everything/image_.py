@@ -691,6 +691,18 @@ class Image:
                     print(e1)
                     print(e)
                     print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.txt', then do a text level compression.")
+        elif file_path.endswith(".bmp"):
+            try:
+                import auto_everything.additional.pybmp as pybmp
+
+                height, width, raw_data = pybmp.read_bmp_from_file(file_path)
+
+                a_image = self.create_an_image(height, width)
+                a_image.raw_data = raw_data
+                return a_image
+            except Exception as e:
+                print(e)
+                print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.txt', then do a text level compression.")
         elif file_path.endswith(".json") or file_path.endswith(".txt"):
             with open(file_path, "r", encoding="utf-8") as f:
                 raw_text = f.read()
