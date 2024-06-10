@@ -157,7 +157,8 @@ class Audio():
             for channel_index in range(channels_number):
                 value = a_audio.raw_data[channel_index][index]
                 a_list.append(value)
-            new_data[index] = int(round(sum(a_list)/channels_number))
+            the_average_value = sum(a_list)/channels_number
+            new_data[index] = int(round(the_average_value))
 
         a_audio.raw_data = [new_data]
 
@@ -286,27 +287,90 @@ class Audio():
 
         return audio
 
-    def reduce_noise_by_frequency(self):
+    def range_map(self, original_min_value, original_max_value, min_value, max_value, use_int=True, loudness_match=True):
         """
-        garbage code, won't work
+        original_min_value, original_max_value, min_value, max_value: int
+            -32767, 32767, 0, 1023 for micropython
+            -32767, 32767, 0, 254 for arduino
+        use_int: bool
+            will make sure all result is integer
+        loudness_match: bool
+            will make sure the sound has a volume you can hear
+
+        By default wav audio has negative numbers. It is in range of (-32767, 32767)
+
+        You can use this function to do convertion between (0, 3.3) and (0, 5) and (-32767, 32767) and (0, 1024) and (0, 255)
+
+        If you want float number, you have to set use_int==False
         """
-        def high_pass_filter(data_list, sample_rate, high_pass_frequency):
-            import math
-            dt = 1/sample_rate
-            RC = 1/(2*3.14159265358979323846*high_pass_frequency)
-            alpha = RC / (RC + dt)
+        if original_min_value < 0:
+            original_has_negative_number=True
+        else:
+            original_has_negative_number=False
 
-            filtered_data = [0] * len(data_list)
-            for i in range(1, len(data_list)):
-                filtered_data[i] = round(alpha * filtered_data[i-1] + alpha * (data_list[i] - data_list[i-1]))
+        if min_value < 0:
+            target_has_negative_number = True
+        else:
+            target_has_negative_number = False
 
-            return filtered_data
-
+        new_data_dict = {}
+        real_original_max_value = -999999
+        real_original_min_value = 999999
         channels_number, one_channel_length = self.get_shape()
         for channel_index in range(channels_number):
-            new_data_list = high_pass_filter(self.raw_data[channel_index].copy(), self.sample_rate, 8500)
-            self.raw_data[channel_index] = new_data_list
-        self.change_volume(7)
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                new_data_dict[signal] = signal
+
+                if signal > real_original_max_value:
+                    real_original_max_value = signal
+                if signal < real_original_min_value:
+                    real_original_min_value = signal
+
+        if loudness_match == True:
+            original_range = real_original_max_value - real_original_min_value
+        else:
+            original_range = original_max_value - original_min_value
+        half_original_range = original_range/2
+        if original_range == 0:
+            return self
+
+        new_range = max_value - min_value
+        half_new_range = new_range/2
+        if new_range == 0:
+            return self
+
+        for key in new_data_dict.keys():
+            value = new_data_dict[key]
+
+            if original_has_negative_number == True:
+                if value >= 0:
+                    value += half_original_range
+                else:
+                    value = half_original_range - abs(value)
+
+            new_value = (value / original_range) * new_range
+
+            if target_has_negative_number == True:
+                new_value = new_value - half_new_range
+            else:
+                new_value = abs(new_value) # may have a bug in here, there should not have a negative number
+
+            if use_int == True:
+                new_data_dict[key] = int(new_value)
+            else:
+                new_data_dict[key] = new_value
+
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = self.raw_data[channel_index][index]
+                new_signal = new_data_dict[signal]
+                if new_signal > max_value:
+                    new_signal = max_value
+                elif new_signal < min_value:
+                    new_signal = min_value
+                self.raw_data[channel_index][index] = new_signal
+
         return self
 
     def reduce_noise_by_counting(self, ratio=0.7):
@@ -623,87 +687,6 @@ class Audio():
                 absolute_signal = abs(signal)
                 if absolute_signal > max_absolute_signal:
                     self.raw_data[channel_index][index] = round(signal*reducing_factor)
-
-        return self
-
-    def range_map(self, original_min_value, original_max_value, min_value, max_value, use_int=True, loudness_match=True):
-        """
-        original_min_value, original_max_value, min_value, max_value: int
-            -32767, 32767, 0, 1023 for micropython
-            -32767, 32767, 0, 254 for arduino
-        use_int: bool
-            will make sure all result is integer
-        loudness_match: bool
-            will make sure the sound has a volume you can hear
-
-        By default wav audio has negative numbers. It is in range of (-32767, 32767)
-
-        You can use this function to do convertion between (0, 3.3) and (0, 5) and (-32767, 32767) and (0, 1024) and (0, 255)
-
-        If you want float number, you have to set use_int==False
-        """
-        if original_min_value < 0:
-            original_has_negative_number=True
-        else:
-            original_has_negative_number=False
-
-        if min_value < 0:
-            target_has_negative_number = True
-        else:
-            target_has_negative_number = False
-
-        new_data_dict = {}
-        real_original_max_value = -999999
-        real_original_min_value = 999999
-        channels_number, one_channel_length = self.get_shape()
-        for channel_index in range(channels_number):
-            for index in range(one_channel_length):
-                signal = self.raw_data[channel_index][index]
-                new_data_dict[signal] = signal
-
-                if signal > real_original_max_value:
-                    real_original_max_value = signal
-                if signal < real_original_min_value:
-                    real_original_min_value = signal
-
-        if loudness_match == True:
-            original_range = real_original_max_value - real_original_min_value
-        else:
-            original_range = original_max_value - original_min_value
-        half_original_range = original_range/2
-        if original_range == 0:
-            return self
-
-        new_range = max_value - min_value
-        half_new_range = new_range/2
-        if new_range == 0:
-            return self
-
-        for key in new_data_dict.keys():
-            value = new_data_dict[key]
-
-            if original_has_negative_number == True:
-                if value >= 0:
-                    value += half_original_range
-                else:
-                    value = half_original_range - abs(value)
-
-            new_value = (value / original_range) * new_range
-
-            if target_has_negative_number == True:
-                new_value = new_value - half_new_range
-            else:
-                new_value = abs(new_value) # may have a bug in here, there should not have a negative number
-
-            if use_int == True:
-                new_data_dict[key] = int(new_value)
-            else:
-                new_data_dict[key] = new_value
-
-        for channel_index in range(channels_number):
-            for index in range(one_channel_length):
-                signal = self.raw_data[channel_index][index]
-                self.raw_data[channel_index][index] = new_data_dict[signal]
 
         return self
 
