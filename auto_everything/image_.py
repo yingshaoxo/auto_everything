@@ -81,6 +81,9 @@ def change_image_style_without_ai(source_image, target_image, simple_mode=True):
     # 1. get all colors in target_image
     # 2. for each source image color, choose one that has minimum distance in target image colors
     # 3. use cache result to speed up the processing
+    """
+    For deep learning version, what they did is: split source images and target images as sub image slots, 1 to 1 link by using dict. For a new input image, first they found most similar one in old source_images database, then for each smaller sub_image in that input image, they found their similar sub_image in target image sub_image database. There has an threshold for similarity, if can't found a target sub_image in target image dataset, then it will try to split that sub_image into a smaller sub_image list, then try to found it again until one pixel level. When the similarity threshold equal to 1, which means every new input image is actually in the dataset, the software is doing 1 to 1 translation with no flexibility. When the similarity threshold equal to 0, the software will output nothing or random noise picture.
+    """
     source_image = source_image.copy()
 
     target_color_set = set()
@@ -117,6 +120,122 @@ def change_image_style_without_ai(source_image, target_image, simple_mode=True):
                         the_best_color = target_color
                 image_style_color_dict[color_string] = the_best_color
                 source_image[y][x] = image_style_color_dict[color_string]
+
+    return source_image
+
+
+def change_image_style_with_random_number(source_image, random_numbers):
+    import colorsys
+
+    if random_numbers == None:
+        import random
+        random_number1 = random.randint(1, 255)
+        random_number2 = random.randint(1, 255)
+        print("random_numbers:", random_number1, random_number2)
+    else:
+        random_number1 = random_numbers[0]
+        random_number2 = random_numbers[1]
+
+    source_image = source_image.copy()
+
+    color_dict = dict()
+    for row in source_image.raw_data:
+        for color in row:
+            if color[3] != 255:
+                continue
+            color_string = ",".join([str(one) for one in color])
+            if color_string in color_dict:
+                continue
+            else:
+                r, g, b, _ = color
+                h,s,v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
+                h,s,v = h*255, s*255, v*255
+                h += random_number1
+                s += random_number2
+                h = h % 255
+                s = s % 255
+                r,g,b = colorsys.hsv_to_rgb(h/255, s/255, v/255)
+                target_color = [int(r*255),int(g*255),int(b*255),255]
+                color_dict[color_string] = target_color
+
+    height, width = source_image.get_shape()
+    for y in range(height):
+        for x in range(width):
+            color = source_image[y][x]
+            if color[3] != 255:
+                continue
+            color_string = ",".join([str(one) for one in color])
+            source_image[y][x] = color_dict[color_string]
+
+    return source_image
+
+
+def change_image_style_with_frequency_counting(source_image, target_image):
+    """
+    garbage code
+
+    You could map color frequency for two image, for example a color from source image repeates 70% times, another color in target image repeats 70% times, you treat the two color as a link. But this method only work for one image, in video, may have problems.It also works for audio, for voice clone/hide.
+    I think for sound, it is more like add voice data directly in old audio, but the human voice sound is very small, and only if old audio has data, no silence, we add voice data in. If you have brain interface API, add human voice to any sound you hear is easy.
+    """
+    source_image = source_image.copy()
+
+    source_color_dict = dict()
+    for row in source_image.raw_data:
+        for color in row:
+            if color[3] != 255:
+                continue
+            color_string = ",".join([str(one) for one in color])
+            if color_string in source_color_dict:
+                source_color_dict[color_string] += 1
+            else:
+                source_color_dict[color_string] = 1
+
+    target_color_dict = dict()
+    for row in target_image.raw_data:
+        for color in row:
+            if color[3] != 255:
+                continue
+            color_string = ",".join([str(one) for one in color])
+            if color_string in target_color_dict:
+                target_color_dict[color_string] += 1
+            else:
+                target_color_dict[color_string] = 1
+
+    image_style_color_dict = dict()
+
+    source_color_items = list(source_color_dict.items())
+    target_color_items = list(target_color_dict.items())
+    source_color_items.sort(key=lambda one: one[1])
+    target_color_items.sort(key=lambda one: one[1])
+    source_color_list = [one[0] for one in source_color_items]
+    target_color_list = [one[0] for one in target_color_items]
+    #source_color_list = source_color_list[-int(len(source_color_items)*0.005):]
+    #target_color_list = target_color_list[-int(len(target_color_items)*0.005):]
+    if len(source_color_items) < len(target_color_items):
+        kernel = len(target_color_list)/len(source_color_list)
+        for index, color_string in enumerate(source_color_list):
+            real_index = round(index * kernel)
+            if real_index >= len(target_color_list):
+                real_index = len(target_color_list) - 1
+            image_style_color_dict[color_string] = [int(one) for one in target_color_list[real_index].split(",")]
+    elif len(source_color_items) > len(target_color_items):
+        kernel = len(source_color_list)/len(target_color_list)
+        for index, color_string in enumerate(source_color_list):
+            real_index = round(index / kernel)
+            if real_index >= len(target_color_list):
+                real_index = len(target_color_list) - 1
+            image_style_color_dict[color_string] = [int(one) for one in target_color_list[real_index].split(",")]
+
+    height, width = source_image.get_shape()
+    for y in range(height):
+        for x in range(width):
+            color = source_image[y][x]
+            if color[3] != 255:
+                continue
+            color_string = ",".join([str(one) for one in color])
+            target_color = image_style_color_dict.get(color_string)
+            if target_color != None:
+                source_image[y][x] = target_color
 
     return source_image
 
@@ -656,8 +775,22 @@ class Image:
         """
         return to_mosaic(self, ratio, kernel_number)
 
-    def change_image_style(self, target_image, simple_mode=False):
-        return change_image_style_without_ai(self, target_image, simple_mode=simple_mode)
+    def change_image_style(self, target_image, simple_mode=False, frequency_counting_mode=False, random_mode=False, random_numbers=None):
+        """
+        target_image: another image
+            Can be itself if you use other mode
+        random_mode: bool
+            Default False
+        random_numbers: list
+            [50, 50, 50]
+        """
+        if random_mode == True:
+            return change_image_style_with_random_number(target_image, random_numbers)
+        else:
+            if frequency_counting_mode == True:
+                return change_image_style_with_frequency_counting(self, target_image)
+            else:
+                return change_image_style_without_ai(self, target_image, simple_mode=simple_mode)
 
     def read_image_from_file(self, file_path):
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
