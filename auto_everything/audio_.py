@@ -28,6 +28,19 @@ The funny part about audio is that for same volume, some sound may sounds like b
 """
 
 
+"""
+Then what is low base sound, what is high frequency sound? The bass is low frequency sound, the high pitch piano sound is high frequency sound, the man voice is low frequency sound, the woman voice is high frequency sound.
+
+What is high frequency sound? what is low frequency sound? Suppose you have 1 second sound, a signal appears a lot of times, it is high frequency sound.
+
+High frequency is like: _|_|_|_|_|_, low frequency is like: ___|___|____, you see, for same period of time, low frequency has less signal, high frequency has more signals.
+
+It seems like we distingush voice by frequency than pure signal volume. This makes audio process hard.
+
+But I can guess, human or animal uses a counting dict for signals, in one second, same volume signal will become a counting number, for next second, if that sound do not exists anymore, we will delete that signal from our counting dict. So that we can do frequency analyze in real time for what we hear. The counting data is what we called "sound fingerprint".
+"""
+
+
 class Audio():
     """
     author: yingshaoxo
