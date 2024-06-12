@@ -4,8 +4,10 @@ string = String()
 a = "how are you"
 b = "how aue you"
 c = "nice try"
-print("high", string.get_similarity_score_of_two_sentence_by_substring(a,b))
-print("low", string.get_similarity_score_of_two_sentence_by_substring(a,c))
+#print("high", string.get_similarity_score_of_two_sentence_by_substring(a,b))
+#print("low", string.get_similarity_score_of_two_sentence_by_substring(a,c))
+print("high", string.compare_two_sentences(a,b))
+print("low", string.compare_two_sentences(b,c))
 
 
 input("\n\nMore test?")

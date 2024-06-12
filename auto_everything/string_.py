@@ -70,6 +70,23 @@ class String:
                     return False
             return True
 
+    def _get_core_info_of_string(self, text):
+        a_dict = dict()
+        sequence_list = []
+        for char in text:
+            if char in a_dict:
+                a_dict[char] += 1
+            else:
+                a_dict[char] = 1
+                sequence_list.append(char)
+        max_counting = -1
+        for counting in a_dict.values():
+            if counting > max_counting:
+                max_counting = counting
+        for key in a_dict.keys():
+            a_dict[key] = int(a_dict[key]/max_counting*99)
+        return sequence_list, a_dict
+
     def compare_two_sentences(self, sentence1: str, sentence2: str, using_yingshaoxo_method: bool = True) -> float:
         """
         return similarity, from `0.0` to `1.0`, 1 means equal, 0 means no relate.
@@ -81,7 +98,33 @@ class String:
         sentence2: string
         """
         if using_yingshaoxo_method == True:
-            return self.get_string_match_rating_level(input_text = sentence1, text = sentence2)
+            #return self.get_string_match_rating_level(input_text = sentence1, text = sentence2)
+
+            similarity0 = self.get_similarity_score_of_two_sentence_by_position_match(sentence1, sentence2)
+            similarity1 = self.get_similarity_score_of_two_sentence_by_position_match(self.get_simple_hash(sentence1), self.get_simple_hash(sentence2))
+
+            sequence_list_1, a_dict_1 = self._get_core_info_of_string(sentence1)
+            sequence_list_2, a_dict_2 = self._get_core_info_of_string(sentence2)
+            similarity2 = self.get_similarity_score_of_two_sentence_by_position_match("".join(sequence_list_1), "".join(sequence_list_2))
+
+            char_set_1 = set(sequence_list_1)
+            char_set_2 = set(sequence_list_2)
+            common_char_set = char_set_1 & char_set_2
+            similarity3 = len(common_char_set) / ((len(sequence_list_1) + len(sequence_list_2))/2)
+
+            all_counting = 0
+            counting_difference = 0
+            for char in common_char_set:
+                counting1 = a_dict_1[char]
+                counting2 = a_dict_2[char]
+                counting_difference += abs(counting1 - counting2)
+                all_counting += a_dict_1[char] + a_dict_2[char]
+            if all_counting == 0:
+                similarity4 = 0
+            else:
+                similarity4 = (all_counting-counting_difference) / all_counting
+
+            return similarity0 * 0.1 + similarity1 * 0.1 + similarity2 * 0.2 + similarity3 * 0.2 + similarity4 * 0.4
         else:
             from difflib import SequenceMatcher
             ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
