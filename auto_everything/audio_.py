@@ -833,6 +833,21 @@ class Audio():
         a_audio = a_audio.reduce_noise_by_subtraction(use_global_value=True)
         a_audio = a_audio.merge_to_mono()
         a_audio = a_audio.range_map(-32767, 32767, 0, 99, use_int=True, loudness_match=True)
+        try:
+            start_index = 0
+            for signal in a_audio.raw_data[0]:
+                if signal != 49:
+                    start_index += 1
+                    break
+            end_index = len(a_audio.raw_data[0])
+            for signal in reversed(a_audio.raw_data[0]):
+                if signal != 49:
+                    end_index -= 1
+                    break
+            a_audio.raw_data[0] = a_audio.raw_data[0][start_index: end_index]
+            a_audio = a_audio.resize(seconds)
+        except Exception as e:
+            pass
         text_data = "".join([str("{:02d}".format(one)) for one in a_audio.raw_data[0]])
 
         old_text_length = len(text_data)
