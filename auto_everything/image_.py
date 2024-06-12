@@ -738,7 +738,7 @@ class Image:
         """
         return get_simplified_image_in_an_accurate_way(self, level, extreme_color_number)
 
-    def get_simplified_image_in_a_quick_way(self, level=15):
+    def get_simplified_image_in_a_quick_way(self, level=15, raw=False):
         """
         level: int
             The higher, the more simplified
@@ -754,9 +754,14 @@ class Image:
                 if transparent == 0:
                     new_pixel = [0,0,0,0]
                 else:
-                    red = int((int((red/255)*level)/level) * 255)
-                    green = int((int((green/255)*level)/level) * 255)
-                    blue = int((int((blue/255)*level)/level) * 255)
+                    if raw == False:
+                        red = int((int((red/255)*level)/level) * 255)
+                        green = int((int((green/255)*level)/level) * 255)
+                        blue = int((int((blue/255)*level)/level) * 255)
+                    else:
+                        red = int((red/255)*level)
+                        green = int((green/255)*level)
+                        blue = int((blue/255)*level)
                     new_pixel = [red,green,blue,transparent]
                 new_image.raw_data[y][x] = new_pixel
         return new_image
@@ -791,6 +796,34 @@ class Image:
                 return change_image_style_with_frequency_counting(self, target_image)
             else:
                 return change_image_style_without_ai(self, target_image, simple_mode=simple_mode)
+
+    def to_hash(self):
+        """
+        It turns out you have to make sure those picture has same shape in height and width if you want to do a comparation
+        """
+        a_image = self.get_simplified_image_in_a_quick_way(level=10, raw=True)
+        height, width = a_image.get_shape()
+        sequence_color_list = []
+        color_dict = dict()
+        for y in range(height):
+            for x in range(width):
+                pixel = a_image.raw_data[y][x]
+                if pixel[3] != 255:
+                    continue
+                pixel_string = ",".join([str(one) for one in pixel[:3]])
+                if pixel_string in color_dict:
+                    color_dict[pixel_string] += 1
+                else:
+                    color_dict[pixel_string] = 1
+                    sequence_color_list.append(pixel_string)
+        max_frequency = -1
+        for value in color_dict.values():
+            if value > max_frequency:
+                max_frequency = value
+        item_list = list(color_dict.items())
+        item_list.sort(key=lambda one:one[0])
+        text_data = ",".join([str(one[0])+":"+str(int(one[1]/max_frequency*100)) for one in item_list])
+        return "_".join(sequence_color_list) +";"+ text_data
 
     def read_image_from_file(self, file_path):
         if file_path.endswith(".png") or file_path.endswith(".jpg"):

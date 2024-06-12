@@ -806,6 +806,7 @@ class Audio():
         dict_list = []
         sequence_signal_list = []
         a_set = set()
+        max_frequency = -1
         for i in range(int(len(the_data)/kernel)):
             start_index = i * kernel
             end_index = start_index + kernel
@@ -822,12 +823,15 @@ class Audio():
                     sequence_signal_list.append(str(one))
                     a_set.add(one)
             dict_list.append(counting_dict)
+            for counting in counting_dict.values():
+                if counting > max_frequency:
+                    max_frequency = counting
 
         the_text_data = ""
         for a_dict in dict_list:
             the_dict_items = list(a_dict.items())
             the_dict_items.sort(key=lambda one: one[0])
-            the_text_data += ",".join([str(one[0])+":"+str(one[1]) for one in the_dict_items]) + "\n"
+            the_text_data += ",".join([str(one[0])+":"+str(int((one[1]/max_frequency)*100)) for one in the_dict_items]) + "\n"
 
         return ",".join(sequence_signal_list) +";"+ string.get_simple_hash(the_text_data, level=64)
 

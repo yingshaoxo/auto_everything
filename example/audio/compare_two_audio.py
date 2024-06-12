@@ -19,3 +19,7 @@ print("little high", string.get_similarity_score_of_two_sentence_by_position_mat
 print()
 print("low", string.get_similarity_score_of_two_sentence_by_position_match(audio_1_hash, audio_4_hash))
 print("low", string.get_similarity_score_of_two_sentence_by_position_match(audio_2_hash, audio_4_hash))
+
+"""
+You have to make sure two audio has same length
+"""
