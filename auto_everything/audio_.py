@@ -387,6 +387,40 @@ class Audio():
 
         return self
 
+    def resize(self, new_audio_length_in_seconds):
+        """
+        Maybe you have to remove quit a lot of data in 1/2 data equally to prevent the tune gets high
+        """
+        a_audio = self.copy()
+        new_audio_data_length = round(a_audio.sample_rate * new_audio_length_in_seconds)
+
+        channels_number, one_channel_length = a_audio.get_shape()
+        for channel_index in range(channels_number):
+            old_audio_data = a_audio.raw_data[channel_index]
+            old_audio_data_length = len(old_audio_data)
+            new_audio_data = [None] * new_audio_data_length
+            if new_audio_data_length == old_audio_data_length:
+                continue
+            elif new_audio_data_length < old_audio_data_length:
+                kernel = old_audio_data_length / new_audio_data_length
+                for x in range(new_audio_data_length):
+                    old_x = x
+                    x = int(x*kernel)
+                    if x >= old_audio_data_length:
+                        x = old_audio_data_length - 1
+                    new_audio_data[old_x] = old_audio_data[x]
+                a_audio.raw_data[channel_index] = new_audio_data
+            elif new_audio_data_length > old_audio_data_length:
+                kernel = new_audio_data_length / old_audio_data_length
+                for x in range(new_audio_data_length):
+                    old_x = x
+                    x = int(x/kernel)
+                    if x >= old_audio_data_length:
+                        x = old_audio_data_length - 1
+                    new_audio_data[old_x] = old_audio_data[x]
+                a_audio.raw_data[channel_index] = new_audio_data
+        return a_audio
+
     def reduce_noise_by_counting(self, ratio=0.7):
         """
         One way is to count sound frequency, cut low frequency stuff, or save middle frequency stuff
@@ -719,7 +753,7 @@ class Audio():
         a_image = a_image.create_an_image(height, width)
 
         line_length = 10
-        a_audio.resize(x_size=int(width/line_length))
+        a_audio._fake_resize(x_size=int(width/line_length))
         channels_number, one_channel_length = a_audio.get_shape()
 
         for channel_index in range(channels_number):
@@ -767,7 +801,7 @@ class Audio():
         a_image.print(100)
         return a_image
 
-    def to_hash(self):
+    def to_hash(self, seconds=0.5, hash_length=64):
         """
         For music, we use midi, which means a list of numbers between 0 and 128
         For voice, we use voice parts, which means a list of voice without silence inside. for example, "How are you" voice will get seperated into ["how", "are", "you"], and for each word of sound, we will make it has same length by stretching the audio part. And for each character part, we have to do loudness_match.
@@ -792,50 +826,36 @@ class Audio():
 
         Sometimes I think, it is not deep learning changed the world, it is hash table or dict changed the world.
         """
-        from auto_everything.string_ import String
-        string = String()
-
         a_audio = self.copy()
+
+        a_audio = a_audio.resize(seconds)
         a_audio = a_audio.change_sample_rate(8000)
         a_audio = a_audio.reduce_noise_by_subtraction(use_global_value=True)
         a_audio = a_audio.merge_to_mono()
+        a_audio = a_audio.range_map(-32767, 32767, 0, 99, use_int=True, loudness_match=True)
+        text_data = "".join([str("{:02d}".format(one)) for one in a_audio.raw_data[0]])
 
-        a_audio = a_audio.range_map(-32767, 32767, 0, 20, use_int=True, loudness_match=True)
-        the_data = a_audio.raw_data[0]
-        kernel = int(self.sample_rate/7) #70%second samples
-        dict_list = []
-        sequence_signal_list = []
-        a_set = set()
-        max_frequency = -1
-        for i in range(int(len(the_data)/kernel)):
-            start_index = i * kernel
-            end_index = start_index + kernel
-            sub_window = the_data[start_index: end_index]
-            counting_dict = dict()
-            for one in sub_window:
-                if one in counting_dict:
-                    counting_dict[one] += 1
-                else:
-                    counting_dict[one] = 1
-                if one in a_set:
-                    pass
-                else:
-                    sequence_signal_list.append(str(one))
-                    a_set.add(one)
-            dict_list.append(counting_dict)
-            for counting in counting_dict.values():
-                if counting > max_frequency:
-                    max_frequency = counting
+        old_text_length = len(text_data)
+        if old_text_length > hash_length:
+            kernel = old_text_length / hash_length
+            new_text = ""
+            for i in range(hash_length):
+                i = int(i * kernel)
+                if i >= old_text_length:
+                    i = old_text_length-1
+                new_text += text_data[i]
+            return new_text
+        else:
+            kernel = hash_length / old_text_length
+            new_text = ""
+            for i in range(hash_length):
+                i = int(i / kernel)
+                if i >= old_text_length:
+                    i = old_text_length-1
+                new_text += text_data[i]
+            return new_text
 
-        the_text_data = ""
-        for a_dict in dict_list:
-            the_dict_items = list(a_dict.items())
-            the_dict_items.sort(key=lambda one: one[0])
-            the_text_data += ",".join([str(one[0])+":"+str(int((one[1]/max_frequency)*100)) for one in the_dict_items]) + "\n"
-
-        return ",".join(sequence_signal_list) +";"+ string.get_simple_hash(the_text_data, level=64)
-
-    def resize(self, x_size, y_size=None, adds=1327):
+    def _fake_resize(self, x_size, y_size=None, adds=1327):
         if x_size != None:
             x_size = int(x_size)
 

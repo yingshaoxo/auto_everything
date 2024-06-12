@@ -797,33 +797,38 @@ class Image:
             else:
                 return change_image_style_without_ai(self, target_image, simple_mode=simple_mode)
 
-    def to_hash(self):
+    def to_hash(self, height=32, width=32, hash_length=64):
         """
         It turns out you have to make sure those picture has same shape in height and width if you want to do a comparation
         """
-        a_image = self.get_simplified_image_in_a_quick_way(level=10, raw=True)
-        height, width = a_image.get_shape()
-        sequence_color_list = []
-        color_dict = dict()
+        a_image = self.copy().get_simplified_image_in_a_quick_way(level=99, raw=True)
+        a_image.resize(height,width)
+        text_data = ""
         for y in range(height):
             for x in range(width):
                 pixel = a_image.raw_data[y][x]
-                if pixel[3] != 255:
-                    continue
-                pixel_string = ",".join([str(one) for one in pixel[:3]])
-                if pixel_string in color_dict:
-                    color_dict[pixel_string] += 1
-                else:
-                    color_dict[pixel_string] = 1
-                    sequence_color_list.append(pixel_string)
-        max_frequency = -1
-        for value in color_dict.values():
-            if value > max_frequency:
-                max_frequency = value
-        item_list = list(color_dict.items())
-        item_list.sort(key=lambda one:one[0])
-        text_data = ",".join([str(one[0])+":"+str(int(one[1]/max_frequency*100)) for one in item_list])
-        return "_".join(sequence_color_list) +";"+ text_data
+                pixel_string = "".join(["{:02d}".format(one) for one in pixel[:3]])
+                text_data += pixel_string # + ","
+
+        old_text_length = len(text_data)
+        if old_text_length > hash_length:
+            kernel = old_text_length / hash_length
+            new_text = ""
+            for i in range(hash_length):
+                i = int(i * kernel)
+                if i >= old_text_length:
+                    i = old_text_length-1
+                new_text += text_data[i]
+            return new_text
+        else:
+            kernel = hash_length / old_text_length
+            new_text = ""
+            for i in range(hash_length):
+                i = int(i / kernel)
+                if i >= old_text_length:
+                    i = old_text_length-1
+                new_text += text_data[i]
+            return new_text
 
     def read_image_from_file(self, file_path):
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
