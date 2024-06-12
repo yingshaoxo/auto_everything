@@ -506,14 +506,23 @@ git remote set-url --add --push origin {repo_url}
 sudo vi /etc/network/interfaces
 # add following code to the bottom
 
-    allow-hotplug {interface}
-    iface {interface} inet dhcp
-    wpa-ssid <wifi_name>
-    wpa-psk <password>
+#audo lo
+#iface lo inet loopback
 
+auto {interface}
+allow-hotplug {interface}
+iface {interface} inet dhcp
+    iface {interface} inet dhcp
+    wpa-ssid "<wifi_name>"
+    wpa-psk "<password>"
 
 # execute another command
+sudo apt install ifupdown
 ifdown -v {interface}; ifup -v {interface}
+
+# if above not work, try reboot or ethernet wire connection, wifi is not reliable. new linux, especially ubuntu23+ is shit. if you rename /usr/bin/python3 to something else, you'll never be able to connect to new wifi.
+# use ubuntu version 16 or lower is fine.
+# if you have to use apt to install ifdown or ifup, it means that package can get modified by ubuntu at any time, which means the syntax of /etc/network/interfaces also got changed, which means this method is not working any more. I still remember ubuntu removes ifconfig linux command. now have to use "ip address" to get your host ip, which means ubuntu function is not stable. Let's say fuck to newer version of ubuntu, because they sucks.
         """)
 
     def serve(self, port):
