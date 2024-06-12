@@ -204,7 +204,7 @@ class Audio():
             audio = audio.range_map(-32767, 32767, 0, 1024, loudness_match=False)
         return audio
 
-    def get_extreme_simplified_audio(self, sample_rate=8000, max_signal_value=9):
+    def get_extreme_simplified_audio(self, sample_rate=8000, max_signal_value=9, raw=False):
         """
         If the max_signal_value is less than 128, use ascii char to represent 3 numbers is better than directly use 3 numbers in storage. It saves 3 times of storage.
         """
@@ -213,7 +213,8 @@ class Audio():
         audio = audio.change_sample_rate(sample_rate)
         audio = audio.merge_to_mono()
         audio = audio.range_map(-32767, 32767, -max_signal_value, max_signal_value, loudness_match=True)
-        audio = audio.range_map(-max_signal_value, max_signal_value, -32767, 32767, loudness_match=False)
+        if raw == False:
+            audio = audio.range_map(-max_signal_value, max_signal_value, -32767, 32767, loudness_match=False)
         return audio
 
     def get_simplified_audio_by_using_balance_sample(self, sample_rate=8000, max_signal_number=30):
@@ -797,12 +798,38 @@ class Audio():
         a_audio = self.copy()
         a_audio = a_audio.change_sample_rate(8000)
         a_audio = a_audio.reduce_noise_by_subtraction(use_global_value=True)
-        a_audio = a_audio.range_map(-32767, 32767, -99, 99, use_int=True, loudness_match=True)
+        a_audio = a_audio.merge_to_mono()
 
+        a_audio = a_audio.range_map(-32767, 32767, 0, 20, use_int=True, loudness_match=True)
         the_data = a_audio.raw_data[0]
-        the_text_data = "_".join([str(one) for one in the_data])
+        kernel = int(self.sample_rate/7) #70%second samples
+        dict_list = []
+        sequence_signal_list = []
+        a_set = set()
+        for i in range(int(len(the_data)/kernel)):
+            start_index = i * kernel
+            end_index = start_index + kernel
+            sub_window = the_data[start_index: end_index]
+            counting_dict = dict()
+            for one in sub_window:
+                if one in counting_dict:
+                    counting_dict[one] += 1
+                else:
+                    counting_dict[one] = 1
+                if one in a_set:
+                    pass
+                else:
+                    sequence_signal_list.append(str(one))
+                    a_set.add(one)
+            dict_list.append(counting_dict)
 
-        return string.get_simple_hash(the_text_data, level=4000)
+        the_text_data = ""
+        for a_dict in dict_list:
+            the_dict_items = list(a_dict.items())
+            the_dict_items.sort(key=lambda one: one[0])
+            the_text_data += ",".join([str(one[0])+":"+str(one[1]) for one in the_dict_items]) + "\n"
+
+        return ",".join(sequence_signal_list) +";"+ string.get_simple_hash(the_text_data, level=64)
 
     def resize(self, x_size, y_size=None, adds=1327):
         if x_size != None:
