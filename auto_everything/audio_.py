@@ -40,6 +40,10 @@ It seems like we distingush voice by frequency than pure signal volume. This mak
 But I can guess, human or animal uses a counting dict for signals, in one second, same volume signal will become a counting number, for next second, if that sound do not exists anymore, we will delete that signal from our counting dict. So that we can do frequency analyze in real time for what we hear. The counting data is what we called "sound fingerprint".
 """
 
+"""
+But overall, audio is a low efficiency information saving format. Because for one second, it has 8000 integers, which takes 8KB. But if you use pure ASCII character to save information, 8KB could save 8000 characters. Can you speak 8000 character per second? Audio is 8000 times low efficiency than pure text. Because it uses "frequency modulation (FM)", which scales up pure data about 8000 times, generate 7999 garbage information.
+"""
+
 
 class Audio():
     """
@@ -103,9 +107,6 @@ class Audio():
             can be 8000, 16000, and so on
         speed_mode: bool
             if you set it to true, the process speed would be quicker, but audio quality will be lower
-        """
-        """
-        todo: use mean value will cause noise data in small volume, have to change to other method
         """
         # we can scale it up first, then scale it down
         old_sample_rate = self.sample_rate
@@ -387,39 +388,87 @@ class Audio():
 
         return self
 
-    def resize(self, new_audio_length_in_seconds):
+    def resize(self, new_audio_length_in_seconds, keep_pitch=False):
         """
-        Maybe you have to remove quit a lot of data in 1/2 data equally to prevent the tune gets high
+        keep_pitch: bool
+            Default False
+            How to change length without change pitch? for example, make the length twice:
+                old_signal: _|_|_\_\
+                new_signal: _|_|_|_|_\_\_\_\
+            What I did is to repeat every 2 signal twice, then use mean value to connect them to make the audio line smooth.
         """
         a_audio = self.copy()
         new_audio_data_length = round(a_audio.sample_rate * new_audio_length_in_seconds)
 
-        channels_number, one_channel_length = a_audio.get_shape()
-        for channel_index in range(channels_number):
-            old_audio_data = a_audio.raw_data[channel_index]
-            old_audio_data_length = len(old_audio_data)
-            new_audio_data = [None] * new_audio_data_length
-            if new_audio_data_length == old_audio_data_length:
-                continue
-            elif new_audio_data_length < old_audio_data_length:
-                kernel = old_audio_data_length / new_audio_data_length
-                for x in range(new_audio_data_length):
-                    old_x = x
-                    x = int(x*kernel)
-                    if x >= old_audio_data_length:
-                        x = old_audio_data_length - 1
-                    new_audio_data[old_x] = old_audio_data[x]
-                a_audio.raw_data[channel_index] = new_audio_data
-            elif new_audio_data_length > old_audio_data_length:
-                kernel = new_audio_data_length / old_audio_data_length
-                for x in range(new_audio_data_length):
-                    old_x = x
-                    x = int(x/kernel)
-                    if x >= old_audio_data_length:
-                        x = old_audio_data_length - 1
-                    new_audio_data[old_x] = old_audio_data[x]
-                a_audio.raw_data[channel_index] = new_audio_data
-        return a_audio
+        if keep_pitch == False:
+            channels_number, one_channel_length = a_audio.get_shape()
+            for channel_index in range(channels_number):
+                old_audio_data = a_audio.raw_data[channel_index]
+                old_audio_data_length = len(old_audio_data)
+                new_audio_data = [None] * new_audio_data_length
+                if new_audio_data_length == old_audio_data_length:
+                    continue
+                elif new_audio_data_length < old_audio_data_length:
+                    kernel = old_audio_data_length / new_audio_data_length
+                    for x in range(new_audio_data_length):
+                        old_x = x
+                        x = int(x*kernel)
+                        if x >= old_audio_data_length:
+                            x = old_audio_data_length - 1
+                        new_audio_data[old_x] = old_audio_data[x]
+                    a_audio.raw_data[channel_index] = new_audio_data
+                elif new_audio_data_length > old_audio_data_length:
+                    kernel = new_audio_data_length / old_audio_data_length
+                    for x in range(new_audio_data_length):
+                        old_x = x
+                        x = int(x/kernel)
+                        if x >= old_audio_data_length:
+                            x = old_audio_data_length - 1
+                        new_audio_data[old_x] = old_audio_data[x]
+                    a_audio.raw_data[channel_index] = new_audio_data
+            return a_audio
+        else:
+            channels_number, one_channel_length = a_audio.get_shape()
+            for channel_index in range(channels_number):
+                old_audio_data = a_audio.raw_data[channel_index]
+                old_audio_data_length = len(old_audio_data)
+                kernel = int(a_audio.sample_rate * 0.02) #160ms
+                if new_audio_data_length == old_audio_data_length:
+                    continue
+                elif new_audio_data_length < old_audio_data_length:
+                    old_audio_part_length = old_audio_data_length / kernel
+                    new_audio_part_length = new_audio_data_length / kernel
+                    scale_ratio = old_audio_part_length / new_audio_part_length
+                    new_data = []
+                    for i in range(int(new_audio_part_length)):
+                        old_part_index = i * scale_ratio
+                        old_audio_index = int(old_part_index * kernel)
+                        old_audio_part = old_audio_data[old_audio_index: old_audio_index+kernel]
+                        new_data += old_audio_part
+                    if len(new_data) < new_audio_data_length:
+                        new_data += [0] * (new_audio_data_length-len(new_data))
+                    new_data = new_data[:new_audio_data_length]
+                    a_audio.raw_data[channel_index] = new_data
+                elif new_audio_data_length > old_audio_data_length:
+                    new_length_ratio = (new_audio_data_length / old_audio_data_length)
+                    new_length_ratio_int = int(new_length_ratio)+1
+                    real_part_length = round(kernel*new_length_ratio)
+                    new_data = []
+                    x = 0
+                    while True:
+                        part = old_audio_data[x: x+kernel]
+                        mean_value = round((part[0] + part[-1])/2)
+                        part[0] = mean_value
+                        part[-1] = mean_value
+                        new_data += (part*new_length_ratio_int)[:real_part_length]
+                        x += kernel
+                        if x >= old_audio_data_length:
+                            break
+                    if len(new_data) < new_audio_data_length:
+                        new_data += [0] * (new_audio_data_length-len(new_data))
+                    new_data = new_data[:new_audio_data_length]
+                    a_audio.raw_data[channel_index] = new_data
+            return a_audio
 
     def reduce_noise_by_counting(self, ratio=0.7):
         """
