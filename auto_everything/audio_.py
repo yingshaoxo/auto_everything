@@ -455,18 +455,38 @@ class Audio():
                     real_part_length = round(kernel*new_length_ratio)
                     new_data = []
                     x = 0
+                    index = 0
+                    join_point_index_list = []
                     while True:
                         part = old_audio_data[x: x+kernel]
                         mean_value = round((part[0] + part[-1])/2)
                         part[0] = mean_value
                         part[-1] = mean_value
-                        new_data += (part*new_length_ratio_int)[:real_part_length]
+                        part_data = (part*new_length_ratio_int)[:real_part_length]
+                        index += len(part_data)
+                        new_data += part_data
                         x += kernel
                         if x >= old_audio_data_length:
                             break
+                        join_point_index_list.append(index)
+
                     if len(new_data) < new_audio_data_length:
                         new_data += [0] * (new_audio_data_length-len(new_data))
                     new_data = new_data[:new_audio_data_length]
+
+                    smooth_kernel = int(kernel/16)
+                    for index in join_point_index_list:
+                        if index >= new_audio_data_length:
+                            break
+                        start_index = index-smooth_kernel
+                        end_index = index+smooth_kernel
+                        for smooth_index in range(start_index, end_index):
+                            if smooth_index < 0 or smooth_index >= new_audio_data_length:
+                                continue
+                            diff = abs(smooth_index - index)
+                            decrease_ratio = diff/smooth_kernel
+                            new_data[smooth_index] = round(new_data[smooth_index] * decrease_ratio)
+
                     a_audio.raw_data[channel_index] = new_data
             return a_audio
 
