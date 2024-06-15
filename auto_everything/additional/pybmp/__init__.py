@@ -43,10 +43,6 @@ class BMP:
             self.bmp_data.append(bmp_data_row)
         self.bmp_data.reverse()
         file.close()
-        # R, G, B 三个通道
-        self.R = []
-        self.G = []
-        self.B = []
 
         self.rgb_data = [None] * self.biHeight
         for row in range(self.biHeight) :
@@ -62,6 +58,8 @@ class BMP:
 def read_bmp_from_file(path):
     """
     return (height, width, raw_data)
+
+    The newest GIMP or online png to bmp converter, they have used a bug version of bmp c++ library, so the bmp image you get from those sources will be broken in columns. If you use oldest ffmpeg to convert mp4 to bmp images, it would work fine.
     """
     img = BMP(path)
 

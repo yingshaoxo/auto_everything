@@ -396,6 +396,8 @@ class Audio():
                 old_signal: _|_|_\_\
                 new_signal: _|_|_|_|_\_\_\_\
             What I did is to repeat every 2 signal twice, then use mean value to connect them to make the audio line smooth.
+
+        This function works better in single channel audio, for example, only have human voice, or only have piano sound.
         """
         a_audio = self.copy()
         new_audio_data_length = round(a_audio.sample_rate * new_audio_length_in_seconds)
@@ -474,18 +476,18 @@ class Audio():
                         new_data += [0] * (new_audio_data_length-len(new_data))
                     new_data = new_data[:new_audio_data_length]
 
-                    smooth_kernel = int(kernel/16)
-                    for index in join_point_index_list:
-                        if index >= new_audio_data_length:
-                            break
-                        start_index = index-smooth_kernel
-                        end_index = index+smooth_kernel
-                        for smooth_index in range(start_index, end_index):
-                            if smooth_index < 0 or smooth_index >= new_audio_data_length:
-                                continue
-                            diff = abs(smooth_index - index)
-                            decrease_ratio = diff/smooth_kernel
-                            new_data[smooth_index] = round(new_data[smooth_index] * decrease_ratio)
+                    #smooth_kernel = int(kernel/16)
+                    #for index in join_point_index_list:
+                    #    if index >= new_audio_data_length:
+                    #        break
+                    #    start_index = index-smooth_kernel
+                    #    end_index = index+smooth_kernel
+                    #    for smooth_index in range(start_index, end_index):
+                    #        if smooth_index < 0 or smooth_index >= new_audio_data_length:
+                    #            continue
+                    #        diff = abs(smooth_index - index)
+                    #        decrease_ratio = diff/smooth_kernel
+                    #        new_data[smooth_index] = round(new_data[smooth_index] * decrease_ratio)
 
                     a_audio.raw_data[channel_index] = new_data
             return a_audio
