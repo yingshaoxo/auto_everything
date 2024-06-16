@@ -442,7 +442,7 @@ For context information extraction, you have to use the question. If one sentenc
 Then, for the other context, you do a simple sort
 -->
 
-### For text generation/completion
+### For text generation or completion
 ```
 one char predict next char
 two char predict next char
