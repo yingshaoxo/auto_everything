@@ -14,16 +14,16 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.dependencies]
 python = "^3.10"
 
-[tool.poetry.group.all]
-optional = true
-
-[tool.poetry.group.all.dependencies]
-pytest = "^7.2.0"
-ipykernel = "^6.19.2"
-
-[tool.poetry.group.dev.dependencies]
-pylint = "^3.0.1"
-pytest = "^7.4.2"
+#[tool.poetry.group.all]
+#optional = true
+#
+#[tool.poetry.group.all.dependencies]
+#pytest = "^7.2.0"
+#ipykernel = "^6.19.2"
+#
+#[tool.poetry.group.dev.dependencies]
+#pylint = "^3.0.1"
+#pytest = "^7.4.2"
 
 [tool.poetry.scripts]
 hi = "auto_everything._command_line_interface:_hi" # You can call 'hi' in everywhere from your terminal after you install this package

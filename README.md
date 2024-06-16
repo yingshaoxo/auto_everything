@@ -45,13 +45,15 @@ curl -sSL https://gitlab.com/yingshaoxo/use_docker_to_build_static_python3_binar
 
 > What the fuck the `debian` is thinking of? Why we can't use pip to directly install a package anymore? **debian/ubuntu linux branch** want to force people to let their package go through **a strict censorship process** so that they can decide which software is good, which is not?
 
-> npx 'npm install -g *' still working fine, 'export PATH=$PATH:/**/bin/' still working fine.
-
-> Those **assohle dictators** who in charge never want to make things easy, are they?
+> 'export PATH=$PATH:/**/bin/' still working fine.
 
 > Where is the freedom? My dear people! 
 
 > What is the difference between `pip install` and `apt install`? Simply because **pypi has more freedom**?
+
+> 2025: Actually, I found pypi is also not free any more, they let the package publish more and more complex and painful. (Without 2 Factor Verifying, you can't even login your pypi account.) I think you better create your own hardware and launch a new software distrubution platform. You would have totally freedom in your kindom if you created that world by yourself.
+
+> "More code, more bug, more dependencies, more unstable, remember that. --- yingshaoxo"
 
 #### Installation (For 3.5 <= Python < 3.10)
 
