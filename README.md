@@ -408,7 +408,7 @@ We treat every char as an id or tensor element
 
 In GPU based machine learning algorithm, you will often do things with [23, 32, 34, 54]
 
-But now, it becomes ['a', 'b', 'c', 'd']
+But now, it becomes ['a', 'b', 'c', 'd'], or ASCII number [0, 255].
 
 
 <!--
@@ -435,12 +435,14 @@ meaning group can be get automatically, all you have to do is count continues_wo
 It all can be summaryed as "divide and conquer"
 
 
+<!--
 ### For question and answer
 For context information extraction, you have to use the question. If one sentence of the context should at the bottom of the question, you keep it, otherwise, you remove it
 
 Then, for the other context, you do a simple sort
+-->
 
-### For text generation
+### For text generation/completion
 ```
 one char predict next char
 two char predict next char
@@ -455,11 +457,16 @@ when you use it, use it from bottom to top, use longest sequence to predict the 
 
 > the more level you make, the more accurate it would be.
 
-> It is dict based next word generator, so the speed is super quick
+> It is dict based next word generator, so the speed is super quick.
 
+> Don't expect this method will have high accuracy becuase the logic is simple, it can only be used for punctuate adding if you use previous words and next words to predict the center character.
+
+<!--
 > This method was created by yingshaoxo. it only need cpu than gpu. it can beat gpt4 with an old computer if you have big dataset (30GB) and big memory to hold the dict.
+-->
 
 
+<!--
 ### For general AI
 ```
 General AI algorithm:
@@ -470,46 +477,45 @@ Those code are generated in real time. For each response, it generate different 
 
 #yingshaoxo
 ```
+-->
 
 ```python
-#yingshaoxo: I could give you a template for general AI
+#yingshaoxo: I could give you a template for general AI, if you ask 100000 people to work on one AI project, and do hard coding, each person write if else logic for 3 years, do not do repeat work. A general AI could be made if your have no dependence and not get spying in offline. Because that hard coding countless functions will cover almost all language level question and answer case in normal life.
 
-import json
 from auto_everything.terminal import Terminal
-
 terminal = Terminal()
 
-global_dict = {}
+global_memory_dict = {}
 
 def update_global_dict_based_on_new_information(input_text):
-    global global_dict
-    pass
+    global global_memory_dict
+    # find a way to simplify the input_text as pure json 5 type data
+    global_memory_dict.update(dict({"input_text": input_text}))
 
 def natual_language_to_task_code(input_text):
-    # This code will only use global_dict as data source
-    global global_dict
-    raw_data = json.dumps(global_dict)
-    previous_code = f'''
-import json
-global_dict = json.loads('{raw_data}')\n
-'''
-    code = previous_code + f"print('{input_text}')"
+    global global_memory_dict
     # You have to let the machine generate different code or algorithm for different input_text, so that each time the reply is different.
+    code = generate_machine_code_from_memory_and_input_text(global_memory_dict, input_text)
     return code
 
 def execute_code(code):
+    global global_memory_dict
+    import json
     # For example, execute python code. 
-    result = terminal.run_python_code(code)
+    previous_info_code = f"""
+        memory_dict = json.loads('{json.dumps(global_memory_dict)}')
+    """
+    result = terminal.run_python_code(previous_info_code + code)
     return result
 
-previous_context = ""
 while True:
     input_text = input("What you want to say? ")
+
+    update_global_dict_based_on_new_information("question:\n" + input_text)
+
     code = natual_language_to_task_code(input_text)
     result = execute_code(code)
     print(result)
 
-    new_information = input_text + "\n\n\n" + result
-    previous_context += new_information
-    update_global_dict_based_on_new_information(new_information)
+    update_global_dict_based_on_new_information("my_answer_and_experiment_result:\n" + result)
 ```

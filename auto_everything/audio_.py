@@ -398,6 +398,7 @@ class Audio():
             What I did is to repeat every 2 signal twice, then use mean value to connect them to make the audio line smooth.
 
         This function works better in single channel audio, for example, only have human voice, or only have piano sound.
+        This function can get improved by split the whole audio to 20ms parts, only repeat those part that already repeated 2+ times.
         """
         a_audio = self.copy()
         new_audio_data_length = round(a_audio.sample_rate * new_audio_length_in_seconds)
