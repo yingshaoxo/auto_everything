@@ -53,6 +53,8 @@ curl -sSL https://gitlab.com/yingshaoxo/use_docker_to_build_static_python3_binar
 
 > 2025: Actually, I found pypi is also not free any more, they let the package publish more and more complex and painful. (Without 2 Factor Verifying, you can't even login your pypi account.) I think you better create your own hardware and launch a new software distrubution platform. You would have totally freedom in your kindom if you created that world by yourself.
 
+> I even found VPS(remote server computer) is also not stable, they force you to update systems, in new system, they will always have a background process that is doing a monitor for your user's data. And consider of censorship from bad law reason, I think you should also create your own physical network.
+
 > "More code, more bug, more dependencies, more unstable, remember that. --- yingshaoxo"
 
 #### Installation (For 3.5 <= Python < 3.10)
