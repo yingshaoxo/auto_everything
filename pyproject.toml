@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "auto-everything"
-version = "4.2"
+version = "4.3"
 description = "do automate things on Linux"
 authors = ["yingshaoxo <yingshaoxo@gmail.com>"]
 license = "MIT"
