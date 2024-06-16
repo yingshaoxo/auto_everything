@@ -466,8 +466,8 @@ when you use it, use it from bottom to top, use longest sequence to predict the 
 -->
 
 
-<!--
 ### For general AI
+<!--
 ```
 General AI algorithm:
 
