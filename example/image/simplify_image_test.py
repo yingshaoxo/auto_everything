@@ -1,4 +1,4 @@
-from auto_everything.image import Image
+from auto_everything.image_ import Image
 from time import time as now
 
 image = Image()
@@ -14,9 +14,17 @@ print("original image output done")
 print()
 
 start = now()
-simplified_image_2 = an_image.copy().get_simplified_image(level=7)#, extreme_color_number=50)
+simplified_image_2 = an_image.copy().get_simplified_image_in_a_quick_way(25)
 simplified_image_2.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified2.png")
-print("simplified2 image output done")
+print("quick simplified2 image output done")
+end = now()
+print("time use:", end-start)
+print()
+
+start = now()
+simplified_image_3 = an_image.copy().get_simplified_image(level=7)#, extreme_color_number=50)
+simplified_image_3.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified3.png")
+print("simplified3 image output done")
 end = now()
 print("time use:", end-start)
 print()
@@ -30,9 +38,9 @@ print("time use:", end-start)
 print()
 
 start = now()
-quick_mode = an_image.copy().get_simplified_image_in_a_quick_way(level=15)
+quick_mode = an_image.copy().get_simplified_image_in_a_extreme_quick_way(level=12)
 quick_mode.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_simplified_quick_mode.png")
-print("simplified quick_mode image output done")
+print("simplified extreme quick_mode image output done")
 end = now()
 print("time use:", end-start)
 print()

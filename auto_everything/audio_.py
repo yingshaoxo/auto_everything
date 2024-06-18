@@ -399,6 +399,7 @@ class Audio():
 
         This function works better in single channel audio, for example, only have human voice, or only have piano sound.
         This function can get improved by split the whole audio to 20ms parts, only repeat those part that already repeated 2+ times.
+        I think you could split the audio to multiple tracks by frequency, then do process for each track, because that will reduce collision.
         """
         a_audio = self.copy()
         new_audio_data_length = round(a_audio.sample_rate * new_audio_length_in_seconds)
@@ -493,6 +494,97 @@ class Audio():
                     a_audio.raw_data[channel_index] = new_data
             return a_audio
 
+    def split_audio_by_frequency(self, audio_numbers=3):
+        """
+        Audio frequency is not all about single signal value or volume, is not about signal index. It is about the how many closed wave in one second. In other words, how many continues_positive_signals and continues_negative_signals wave in one second. Or how many shake in one second. Here the 'shake' means magnet move up and down for once.
+        High frequency wave create high pitch, low frequency wave create low pitch, we only count no silence signal wave per 0.01*second.
+
+        This function will return you 3 audio: [low_frequency_audio, middle_frequency_audio, high_frequency_audio]
+        """
+        """
+        Unsure:
+            It seems like frequency spliting only need to use a pre_calcalated index_dict where frequency HZ is the key, index list is the value. The dict is different for different sample rate, for example 8000, 32000.
+            xHz means 1 second has x closed wave.
+            return {
+                "20Hz": [],
+                "63Hz": [],
+                "200Hz": [],
+                "630Hz": [],
+                "2000Hz": [],
+                "6300Hz": [],
+                "20000Hz": [],
+            }
+        """
+        a_audio_backup = self.copy().get_simplified_audio(sample_rate=8000)
+        a_audio_backup = a_audio_backup.range_map(-32767, 32767, -32767, 32767, loudness_match=True)
+        a_audio = a_audio_backup.copy().range_map(-32767, 32767, -1024, 1024, use_int=True, loudness_match=True)
+        # get global max value of no silence signal number per 0.01 second
+        standard_signal_number_per_part = int(0.005 * a_audio_backup.sample_rate)
+        #standard_signal_number_per_part = int(0.01 * a_audio_backup.sample_rate)
+        #standard_signal_number_per_part = int(0.1 * a_audio_backup.sample_rate)
+        #standard_signal_number_per_part = int(0.5 * a_audio_backup.sample_rate)
+        part_frequency_dict = dict()
+        max_frequency = 0
+        channels_number, one_channel_length = a_audio_backup.get_shape()
+        for channel_index in range(channels_number):
+            part_number = int(one_channel_length/standard_signal_number_per_part)
+            for index in range(part_number):
+                start_index = index * standard_signal_number_per_part
+                end_index = start_index + standard_signal_number_per_part
+                part_signal_list = a_audio.raw_data[channel_index][start_index: end_index]
+                counting = 0
+                index1 = 0
+                while True:
+                    signal = part_signal_list[index1]
+                    if signal != 0:
+                        index2 = index1+1
+                        if index2 >= len(part_signal_list):
+                            break
+                        while True:
+                            signal2 = part_signal_list[index2]
+                            if signal > 0 and signal2 <= 0:
+                                counting += 1
+                                index1 = index2 - 1
+                                break
+                            if signal < 0 and signal2 >= 0:
+                                counting += 1
+                                index1 = index2 - 1
+                                break
+                            index2 += 1
+                            if index2 >= len(part_signal_list):
+                                index1 = index2
+                                break
+                    index1 += 1
+                    if index1 >= len(part_signal_list):
+                        break
+                frequency = int(counting / 2)
+                part_frequency_dict[index] = frequency
+                if frequency > max_frequency:
+                    max_frequency = frequency
+        for part_index, frequency in part_frequency_dict.items():
+            part_frequency_dict[part_index] = frequency / max_frequency
+
+        temp_audio = Audio()
+        temp_audio.sample_rate = a_audio_backup.sample_rate
+        temp_audio.raw_data = [[0] * one_channel_length]
+        split_step = 1/audio_numbers
+        audio_list = []
+        for i in range(audio_numbers):
+            audio_list.append(temp_audio.copy())
+        for channel_index in range(channels_number):
+            part_number = int(one_channel_length/standard_signal_number_per_part)
+            for index in range(part_number):
+                start_index = index * standard_signal_number_per_part
+                end_index = start_index + standard_signal_number_per_part
+                part_signal_list = a_audio_backup.raw_data[channel_index][start_index: end_index]
+                frequency = part_frequency_dict[index]
+                the_index = int(frequency/split_step)
+                if the_index >= audio_numbers:
+                    the_index = audio_numbers - 1
+                audio_list[the_index].raw_data[0][start_index: end_index] = part_signal_list[:]
+
+        return audio_list
+
     def reduce_noise_by_counting(self, ratio=0.7):
         """
         One way is to count sound frequency, cut low frequency stuff, or save middle frequency stuff
@@ -572,7 +664,7 @@ class Audio():
         self.raw_data = a_audio.raw_data
         return self
 
-    def reduce_noise_by_subtraction(self, noise_audio=None, threshold=None, use_first_x_second_noise=0.048, ratio=6, use_global_value=False):
+    def reduce_noise_by_subtraction(self, noise_audio=None, threshold=None, use_first_x_second_noise=0.048, ratio=6, use_global_value=False, global_value=0.1):
         """
         useless
         """
@@ -585,7 +677,7 @@ class Audio():
                 noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
             threshold = round(sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * ratio)
         if use_global_value == True:
-            threshold = round(max([abs(one) for one in self.raw_data[0]]) * 0.1)
+            threshold = round(max([abs(one) for one in self.raw_data[0]]) * global_value)
 
         threshold = round(threshold)
 
@@ -904,23 +996,23 @@ class Audio():
         a_audio = a_audio.change_sample_rate(8000)
         a_audio = a_audio.reduce_noise_by_subtraction(use_global_value=True)
         a_audio = a_audio.merge_to_mono()
-        a_audio = a_audio.range_map(-32767, 32767, 0, 99, use_int=True, loudness_match=True)
+        a_audio = a_audio.range_map(-32767, 32767, -255, 255, use_int=True, loudness_match=True)
         try:
             start_index = 0
             for signal in a_audio.raw_data[0]:
-                if signal != 49:
+                if signal != 0:
                     start_index += 1
                     break
             end_index = len(a_audio.raw_data[0])
             for signal in reversed(a_audio.raw_data[0]):
-                if signal != 49:
+                if signal != 0:
                     end_index -= 1
                     break
             a_audio.raw_data[0] = a_audio.raw_data[0][start_index: end_index]
             a_audio = a_audio.resize(seconds)
         except Exception as e:
             pass
-        text_data = "".join([str("{:02d}".format(one)) for one in a_audio.raw_data[0]])
+        text_data = "".join([str("{:02d}".format(abs(one))) for one in a_audio.raw_data[0]])
 
         old_text_length = len(text_data)
         if old_text_length > hash_length:

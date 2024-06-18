@@ -388,6 +388,106 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extreme_color_number=
 
     return new_image
 
+
+def get_simplified_image_in_a_quick_way(self, level=25):
+    """
+    level: 2 to infinite, the bigger, the more simplified
+
+    It simplify the old image by "(rgb_value/255)*level". So we can get color group index which representes shapes(groups) in animation or normal picture.
+    Then for each color group, we treat it as a list. We get old image pixel list based on that color group pixel index. We sort that list by using greyscale value. For each list, we do a count, we only get first 3 top color.
+    Then for all pixel in old picture, we use root error to choose most similar color from top color list. It is very quick, because for each color index list, we only have 3 color to compare with.
+
+    You can think this method as audio multiple tracks, some of them are music, some of them are human voice. We process each track one to one to speed up the process and accuracy.
+    """
+    new_image = self.copy()
+    new_image = new_image.fill_transparent_color([0,0,0,0])
+    greyscale_image = rgb_to_greyscale(new_image, simple_mode=True)
+
+    index_tracks = dict()
+    color_tracks = dict()
+    height, width = greyscale_image.get_shape()
+    for y in range(height):
+        for x in range(width):
+            greyscale_value = greyscale_image.raw_data[y][x]
+            if greyscale_value[3] != 255:
+                continue
+            greyscale_value = greyscale_value[0]
+            old_rgb_color_string = str(new_image[y][x])
+            class_id = int(greyscale_value / 255 * level)
+            if class_id in index_tracks:
+                index_tracks[class_id].append([y, x])
+                if old_rgb_color_string in color_tracks[class_id]:
+                    color_tracks[class_id][old_rgb_color_string][0] += 1
+                else:
+                    color_tracks[class_id][old_rgb_color_string] = [1, [y,x]]
+            else:
+                index_tracks[class_id] = [[y, x]]
+                color_tracks[class_id] = dict({old_rgb_color_string: [1, [y,x]]})
+
+    the_cache = dict()
+    target_color_tracks = dict()
+    for track_key in color_tracks.keys():
+        temp_color_list = list(color_tracks[track_key].items())
+        temp_color_list.sort(key=lambda one: one[1][0])
+        # start, middle, end color as main color
+        if len(temp_color_list) >= 3:
+            main_color_list = [temp_color_list[0][1][1], temp_color_list[int(len(temp_color_list)/3)][1][1], temp_color_list[-1][1][1]]
+        elif len(temp_color_list) == 2:
+            main_color_list = [temp_color_list[0][1][1], temp_color_list[-2][1][1], temp_color_list[-1][1][1]]
+        else:
+            main_color_list = [temp_color_list[0][1][1], temp_color_list[0][1][1], temp_color_list[0][1][1]]
+        new_main_color_list = []
+        for y,x in main_color_list:
+            new_main_color_list.append(new_image[y][x])
+        for y,x in index_tracks[track_key]:
+            old_pixel = new_image[y][x]
+            new_pixel = old_pixel
+            pixel_string = str(old_pixel)
+            if pixel_string in the_cache:
+                new_pixel = the_cache[pixel_string]
+            else:
+                minimum_distance = 99999
+                for safe_color in new_main_color_list:
+                    difference = ((old_pixel[0] - safe_color[0])**2 + (old_pixel[1] - safe_color[1])**2 + (old_pixel[2] - safe_color[2])**2) ** 0.5
+                    if difference < minimum_distance:
+                        minimum_distance = difference
+                        new_pixel = safe_color
+                the_cache[pixel_string] = new_pixel
+            new_image[y][x] = new_pixel
+
+    return new_image
+
+def rgb_to_greyscale(image, simple_mode=False):
+    new_image = image.copy()
+    height, width = new_image.get_shape()
+    for y in range(height):
+        for x in range(width):
+            pixel = new_image.raw_data[y][x]
+            red, green, blue, transparent = pixel
+            if transparent == 0:
+                continue
+            if simple_mode == False:
+                grayscale = max(min(int(0.2989 * red + 0.5870 * green + 0.1140 * blue), 255), 0)
+            else:
+                grayscale = int((red + green + blue) / 3)
+            new_image.raw_data[y][x] = [grayscale, 0, 0, 255]
+    return new_image
+
+def rgb_to_hsv(image):
+    import colorsys
+    new_image = image.copy()
+    height, width = new_image.get_shape()
+    for y in range(height):
+        for x in range(width):
+            pixel = new_image.raw_data[y][x]
+            red, green, blue, transparent = pixel
+            if transparent == 0:
+                continue
+            h,s,v = colorsys.rgb_to_hsv(red/255, green/255, blue/255)
+            h,s,v = int(h*255), int(s*255), int(v*255)
+            new_image.raw_data[y][x] = [h, s, v, 255]
+    return new_image
+
 def rgb_to_black_and_white(image):
     new_image = image.copy()
     height, width = new_image.get_shape()
@@ -670,7 +770,10 @@ class Image:
         """
         return get_simplified_image_in_an_accurate_way(self, level, extreme_color_number)
 
-    def get_simplified_image_in_a_quick_way(self, level=15, raw=False):
+    def get_simplified_image_in_a_quick_way(self, level=25):
+        return get_simplified_image_in_a_quick_way(self, level)
+
+    def get_simplified_image_in_a_extreme_quick_way(self, level=15, raw=False):
         """
         level: int
             The higher, the more simplified
@@ -726,18 +829,29 @@ class Image:
         else:
             return change_image_style_without_ai(self.copy().get_simplified_image(level=6), target_image, simple_mode=simple_mode)
 
+    def fill_transparent_color(self, new_color=[255,255,255,255]):
+        a_image = self.copy()
+        height, width = a_image.get_shape()
+        for y in range(height):
+            for x in range(width):
+                pixel = a_image.raw_data[y][x]
+                if pixel[3] != 255:
+                    a_image.raw_data[y][x] = new_color
+        return a_image
+
     def to_hash(self, height=32, width=32, hash_length=64):
         """
         It turns out you have to make sure those picture has same shape in height and width if you want to do a comparation
         """
-        a_image = self.copy().get_simplified_image_in_a_quick_way(level=99, raw=True)
+        # rgb
+        a_image = self.copy().get_simplified_image_in_a_extreme_quick_way(level=99, raw=True)
         a_image.resize(height,width)
         text_data = ""
         for y in range(height):
             for x in range(width):
                 pixel = a_image.raw_data[y][x]
                 pixel_string = "".join(["{:02d}".format(one) for one in pixel[:3]])
-                text_data += pixel_string # + ","
+                text_data += pixel_string
 
         old_text_length = len(text_data)
         if old_text_length > hash_length:
