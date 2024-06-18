@@ -494,7 +494,7 @@ class Audio():
                     a_audio.raw_data[channel_index] = new_data
             return a_audio
 
-    def split_audio_by_frequency(self, audio_numbers=3):
+    def split_audio_by_frequency(self, audio_numbers=3, just_return_frequency_info_dict=False, sub_list_length_in_second=0.005):
         """
         Audio frequency is not all about single signal value or volume, is not about signal index. It is about the how many closed wave in one second. In other words, how many continues_positive_signals and continues_negative_signals wave in one second. Or how many shake in one second. Here the 'shake' means magnet move up and down for once.
         High frequency wave create high pitch, low frequency wave create low pitch, we only count no silence signal wave per 0.01*second.
@@ -519,7 +519,7 @@ class Audio():
         a_audio_backup = a_audio_backup.range_map(-32767, 32767, -32767, 32767, loudness_match=True)
         a_audio = a_audio_backup.copy().range_map(-32767, 32767, -1024, 1024, use_int=True, loudness_match=True)
         # get global max value of no silence signal number per 0.01 second
-        standard_signal_number_per_part = int(0.005 * a_audio_backup.sample_rate)
+        standard_signal_number_per_part = int(sub_list_length_in_second * a_audio_backup.sample_rate)
         #standard_signal_number_per_part = int(0.01 * a_audio_backup.sample_rate)
         #standard_signal_number_per_part = int(0.1 * a_audio_backup.sample_rate)
         #standard_signal_number_per_part = int(0.5 * a_audio_backup.sample_rate)
@@ -563,6 +563,9 @@ class Audio():
                     max_frequency = frequency
         for part_index, frequency in part_frequency_dict.items():
             part_frequency_dict[part_index] = frequency / max_frequency
+
+        if just_return_frequency_info_dict == True:
+            return part_frequency_dict
 
         temp_audio = Audio()
         temp_audio.sample_rate = a_audio_backup.sample_rate
@@ -993,10 +996,10 @@ class Audio():
         a_audio = self.copy()
 
         a_audio = a_audio.resize(seconds)
-        a_audio = a_audio.change_sample_rate(8000)
+        a_audio = a_audio.change_sample_rate(20)
         a_audio = a_audio.reduce_noise_by_subtraction(use_global_value=True)
         a_audio = a_audio.merge_to_mono()
-        a_audio = a_audio.range_map(-32767, 32767, -255, 255, use_int=True, loudness_match=True)
+        a_audio = a_audio.range_map(-32767, 32767, -9, 9, use_int=True, loudness_match=True)
         try:
             start_index = 0
             for signal in a_audio.raw_data[0]:
@@ -1012,7 +1015,11 @@ class Audio():
             a_audio = a_audio.resize(seconds)
         except Exception as e:
             pass
-        text_data = "".join([str("{:02d}".format(abs(one))) for one in a_audio.raw_data[0]])
+        text_data = "".join([str("{:01d}".format(abs(one))) for one in a_audio.raw_data[0]])
+
+        frequency_dict = self.copy().split_audio_by_frequency(audio_numbers=3, just_return_frequency_info_dict=True, sub_list_length_in_second=0.02)
+        frequency_text = "".join(["{:01d}".format(int(one*9)) for one in frequency_dict.values()])
+        text_data += frequency_text
 
         old_text_length = len(text_data)
         if old_text_length > hash_length:

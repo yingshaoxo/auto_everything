@@ -1798,6 +1798,10 @@ class Yingshaoxo_Text_to_Speech():
 
     #tts #yingshaoxo
     """
+    """
+    one person voice to another voice:
+        we change wave frequency.
+    """
     def __init__(self):
         #pip install TTS
         #sudo apt install ffmpeg                 or          https://github.com/markus-perl/ffmpeg-build-script#:~:text=maintain%20different%20systems.-,Installation,-Quick%20install%20and
