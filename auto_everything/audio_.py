@@ -494,7 +494,7 @@ class Audio():
                     a_audio.raw_data[channel_index] = new_data
             return a_audio
 
-    def split_audio_by_frequency(self, audio_numbers=3, just_return_frequency_info_dict=False, sub_list_length_in_second=0.005):
+    def split_audio_by_frequency(self, audio_numbers=3, sub_list_length_in_second=0.005, just_return_frequency_info_dict=False, raw_data=False):
         """
         Audio frequency is not all about single signal value or volume, is not about signal index. It is about the how many closed wave in one second. In other words, how many continues_positive_signals and continues_negative_signals wave in one second. Or how many shake in one second. Here the 'shake' means magnet move up and down for once.
         High frequency wave create high pitch, low frequency wave create low pitch, we only count no silence signal wave per 0.01*second.
@@ -561,8 +561,9 @@ class Audio():
                 part_frequency_dict[index] = frequency
                 if frequency > max_frequency:
                     max_frequency = frequency
-        for part_index, frequency in part_frequency_dict.items():
-            part_frequency_dict[part_index] = frequency / max_frequency
+        if raw_data == False:
+            for part_index, frequency in part_frequency_dict.items():
+                part_frequency_dict[part_index] = frequency / max_frequency
 
         if just_return_frequency_info_dict == True:
             return part_frequency_dict
@@ -1000,6 +1001,8 @@ class Audio():
         a_audio = a_audio.reduce_noise_by_subtraction(use_global_value=True)
         a_audio = a_audio.merge_to_mono()
         a_audio = a_audio.range_map(-32767, 32767, -9, 9, use_int=True, loudness_match=True)
+
+        # remove head and tail silence
         try:
             start_index = 0
             for signal in a_audio.raw_data[0]:
@@ -1015,10 +1018,18 @@ class Audio():
             a_audio = a_audio.resize(seconds)
         except Exception as e:
             pass
+
+        # volume
         text_data = "".join([str("{:01d}".format(abs(one))) for one in a_audio.raw_data[0]])
 
+        # relative frequency
         frequency_dict = self.copy().split_audio_by_frequency(audio_numbers=3, just_return_frequency_info_dict=True, sub_list_length_in_second=0.02)
         frequency_text = "".join(["{:01d}".format(int(one*9)) for one in frequency_dict.values()])
+        text_data += frequency_text
+
+        # global frequency in [0, 4000] HZ
+        frequency_dict = self.copy().split_audio_by_frequency(audio_numbers=3, just_return_frequency_info_dict=True, sub_list_length_in_second=1, raw_data=True)
+        frequency_text = "".join(["{:01d}".format(min(int(one / 4000 * 10), 9)) for one in frequency_dict.values()])
         text_data += frequency_text
 
         old_text_length = len(text_data)
