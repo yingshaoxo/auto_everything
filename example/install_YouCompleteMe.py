@@ -153,6 +153,7 @@ autocmd VimEnter * NERDTree | if argc() > 0 || exists("s:std_in") | wincmd p | e
 
 "no auto indent
 filetype indent off
+set noai
 
 "show json quotes
 let g:vim_json_conceal=0
