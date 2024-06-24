@@ -34,7 +34,7 @@ class Common:
         if not os.path.exists(self._auto_everything_config_folder):
             os.mkdir(self._auto_everything_config_folder)
 
-    def _create_a_sub_config_folder_for_auto_everything(self, module_name: str):
+    def _create_a_sub_config_folder_for_auto_everything(self, module_name):
         sub_folder_path = os.path.join(self._auto_everything_config_folder, module_name)
         if not os.path.exists(sub_folder_path):
             os.mkdir(sub_folder_path)
@@ -1726,7 +1726,7 @@ class Store:
     A key-value store.
     """
 
-    def __init__(self, store_name: str, save_to_folder: str | None = None):
+    def __init__(self, store_name, save_to_folder = None, use_sql = True):
         self._common = Common()
 
         if save_to_folder is None or not os.path.exists(save_to_folder):
@@ -1737,7 +1737,17 @@ class Store:
             self._store_folder = save_to_folder
 
         self._store_name = store_name.strip()
-        self.__initialize_SQL()
+
+        self.use_sql = use_sql
+        if self.use_sql == True:
+            try:
+                self.__initialize_SQL()
+            except Exception as e:
+                print(e)
+                self.use_sql = False
+                self.__initialize_a_json()
+        else:
+            self.__initialize_a_json()
 
     def __initialize_SQL(self):
         import sqlite3 as sqlite3
@@ -1745,8 +1755,8 @@ class Store:
         self._SQL_DATA_FILE = os.path.join(self._store_folder, f"{self._store_name}.db")
         self._sql_conn = sqlite3.connect(self._SQL_DATA_FILE, check_same_thread=False)
 
-        def regular_expression(expr: str, item: Any):
-            reg = re.compile(expr, flags=re.DOTALL)
+        def regular_expression(expression_string, item):
+            reg = re.compile(expression_string, flags=re.DOTALL)
             return reg.search(item) is not None
 
         self._sql_conn.create_function(
@@ -1759,11 +1769,16 @@ class Store:
                     (key TEXT, value TEXT)"""
         )
 
-    def __pre_process_key(self, key: Any):
+    def __initialize_a_json(self):
+        self._JSON_DATA_FILE = os.path.join(self._store_folder, f"{self._store_name}.json")
+        with open(self._JSON_DATA_FILE, "w") as f:
+            f.write(json.dumps({}))
+
+    def __pre_process_key(self, key):
         key = str(key)
         return key
 
-    def __pre_process_value(self, value: Any):
+    def __pre_process_value(self, value):
         if not isinstance(value, str):
             try:
                 value = json.dumps(value)
@@ -1774,25 +1789,48 @@ class Store:
                 )
         return value
 
-    def __active_json_value(self, value: Any):
+    def __active_json_value(self, value):
         try:
             value = json.loads(value)
         except Exception as e:
             value = value
         return value
 
+    def _get_json_dict(self):
+        try:
+            with open(self._JSON_DATA_FILE, "r") as f:
+                raw_text = f.read()
+        except Exception as e:
+            file = open(self._JSON_DATA_FILE, "r")
+            raw_text = file.read()
+            file.close()
+        return json.loads(raw_text)
+
+    def _save_json_dict(self, new_dict):
+        try:
+            with open(self._JSON_DATA_FILE, "w") as f:
+                f.write(json.dumps(new_dict, indent=4, ensure_ascii=False))
+        except Exception as e:
+            file = open(self._JSON_DATA_FILE, "w")
+            file.write(json.dumps(new_dict))
+            file.close()
+
     def get_items(self):
         """
         get all key and value tuple in the store
         """
-        rows:list[Any] = []
-        for row in self._sql_cursor.execute(
-            f"SELECT * FROM {self._store_name} ORDER BY key"
-        ):
-            rows.append((row[0], self.__active_json_value(row[1])))
-        return rows
+        if self.use_sql == True:
+            rows = []
+            for row in self._sql_cursor.execute(
+                f"SELECT * FROM {self._store_name} ORDER BY key"
+            ):
+                rows.append((row[0], self.__active_json_value(row[1])))
+            return rows
+        else:
+            a_dict = self._get_json_dict()
+            return [[item[0], self.__active_json_value(item[1])] for item in a_dict.items()]
 
-    def has_key(self, key: str) -> bool:
+    def has_key(self, key):
         """
         check if a key exist in the store
 
@@ -1802,15 +1840,22 @@ class Store:
         """
         key = self.__pre_process_key(key)
 
-        results = self._sql_cursor.execute(
-            f'SELECT EXISTS(SELECT 1 FROM {self._store_name} WHERE key="{key}" LIMIT 1)'
-        )
-        if self._sql_cursor.fetchone()[0] > 0:
-            return True
+        if self.use_sql == True:
+            results = self._sql_cursor.execute(
+                f'SELECT EXISTS(SELECT 1 FROM {self._store_name} WHERE key="{key}" LIMIT 1)'
+            )
+            if self._sql_cursor.fetchone()[0] > 0:
+                return True
+            else:
+                return False
         else:
-            return False
+            a_dict = self._get_json_dict()
+            if key in a_dict:
+                return True
+            else:
+                return False
 
-    def get(self, key: str, default_value: Any = None):
+    def get(self, key, default_value = None):
         """
         get a value by using a key
 
@@ -1821,16 +1866,23 @@ class Store:
         """
         key = self.__pre_process_key(key)
 
-        self._sql_cursor.execute(
-            f"SELECT * FROM {self._store_name} WHERE key=?", (key,)
-        )
-        result = self._sql_cursor.fetchone()
-        if result:
-            return self.__active_json_value(result[1])
+        if self.use_sql == True:
+            self._sql_cursor.execute(
+                f"SELECT * FROM {self._store_name} WHERE key=?", (key,)
+            )
+            result = self._sql_cursor.fetchone()
+            if result:
+                return self.__active_json_value(result[1])
+            else:
+                return default_value
         else:
-            return default_value
+            a_dict = self._get_json_dict()
+            if key in a_dict:
+                return self.__active_json_value(a_dict[key])
+            else:
+                return default_value
 
-    def set(self, key: str, value: Any):
+    def set(self, key, value):
         """
         set a value by using a key
 
@@ -1842,16 +1894,21 @@ class Store:
         key = self.__pre_process_key(key)
         value = self.__pre_process_value(value)
 
-        if self.has_key(key):
-            self._sql_cursor.execute(
-                f"UPDATE {self._store_name} SET value=? WHERE key=?", (value, key)
-            )
+        if self.use_sql == True:
+            if self.has_key(key):
+                self._sql_cursor.execute(
+                    f"UPDATE {self._store_name} SET value=? WHERE key=?", (value, key)
+                )
+            else:
+                command = f""" INSERT INTO {self._store_name} VALUES(?,?) """
+                self._sql_cursor.execute(command, (key, value))
+            self._sql_conn.commit()
         else:
-            command = f""" INSERT INTO {self._store_name} VALUES(?,?) """
-            self._sql_cursor.execute(command, (key, value))
-        self._sql_conn.commit()
+            a_dict = self._get_json_dict()
+            a_dict.update({key: value})
+            self._save_json_dict(a_dict)
 
-    def delete(self, key: str):
+    def delete(self, key):
         """
         delete a value by using a key
 
@@ -1861,19 +1918,27 @@ class Store:
         """
         key = self.__pre_process_key(key)
 
-        if self.has_key(key):
-            self._sql_cursor.execute(
-                f"DELETE FROM {self._store_name} WHERE key=?", (key,)
-            )
+        if self.use_sql == True:
+            if self.has_key(key):
+                self._sql_cursor.execute(
+                    f"DELETE FROM {self._store_name} WHERE key=?", (key,)
+                )
 
-        self._sql_conn.commit()
+            self._sql_conn.commit()
+        else:
+            a_dict = self._get_json_dict()
+            del a_dict[key]
+            self._save_json_dict(a_dict)
 
     def reset(self):
         """
         empty the store
         """
-        self._sql_cursor.execute(f"DELETE FROM {self._store_name}")
-        self._sql_conn.commit()
+        if self.use_sql == True:
+            self._sql_cursor.execute(f"DELETE FROM {self._store_name}")
+            self._sql_conn.commit()
+        else:
+            self._save_json_dict({})
 
 
 class Dart_File_Hard_Encoder_And_Decoder:
