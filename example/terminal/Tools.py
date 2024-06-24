@@ -567,6 +567,7 @@ ifdown -v {interface}; ifup -v {interface}
                         bytes_data = f.read()
                     return bytes_data
             except Exception as e:
+                print(e)
                 return str(e)
 
         def special_handler(request: Yingshaoxo_Http_Request):

@@ -140,6 +140,7 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
         raw_response = None
         response = f"HTTP/1.1 500 Server error\r\n\r\n".lstrip()
 
+        response_header_dict = None
         if handle_get_file_url != None and method == "GET":
             # handle file download request, for example, html, css...
             raw_response = handle_get_file_url(url)
@@ -158,6 +159,14 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
             for route_regex_expression, route_function in reversed(list(router.items())):
                 if re.fullmatch(route_regex_expression, url) != None:
                     raw_response = route_function(the_request_object)
+                    if type(raw_response) == tuple or type(raw_response) == list:
+                        response_header_dict = raw_response[1]
+                        raw_response = raw_response[0]
+                    break
+
+        response_header_text = ""
+        if response_header_dict != None:
+            response_header_text += "\n" + "\n".join([f"{key}: {value}" for key,value in response_header_dict.items()])
 
         if type(raw_response) == str:
             if method == "POST":
@@ -166,7 +175,7 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                 text_type = "text/html"
             response = f"""
 HTTP/1.1 200 OK
-Content-Type: {text_type}; charset={_The_Text_Encoding_}
+Content-Type: {text_type}; charset={_The_Text_Encoding_}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
 """.strip()
         elif type(raw_response) == dict:
@@ -175,7 +184,7 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
             response = f"""
 HTTP/1.1 200 OK
 Content-Type: application/json; charset={_The_Text_Encoding_}
-Content-Length: {json_length}
+Content-Length: {json_length}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
             """.strip()
         elif type(raw_response) == bytes:
@@ -195,12 +204,12 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
                 response = f"""
 HTTP/1.1 200 OK
 Content-Type: {the_content_type}; charset={_The_Text_Encoding_}
-Content-Length: {bytes_length}
+Content-Length: {bytes_length}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             else:
                 response = f"""
 HTTP/1.1 200 OK
-Content-Length: {bytes_length}
+Content-Length: {bytes_length}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
             response += raw_response
@@ -393,6 +402,7 @@ class Yingshaoxo_Threading_Based_Http_Server():
             for route_regex_expression, route_function in reversed(list(self.router.items())):
                 if re.fullmatch(route_regex_expression, sub_url) != None:
                     raw_response = route_function(the_request_object)
+                    break
 
             if raw_response == None:
                 raw_response = f"No API url matchs '{sub_url}'"
