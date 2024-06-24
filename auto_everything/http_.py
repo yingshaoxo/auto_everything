@@ -252,6 +252,8 @@ class Yingshaoxo_Http_Server():
             if (html_folder_path != ""):
                 if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
                     def handle_get_file_url(sub_url: str) -> bytes | None:
+                        # there has a bug, if the file is bigger than memory, it returns nothing: https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
+                        # we can also let the user download http://real_file#1MB_01, http://real_file#1MB_02, we are the one who decide how big a part file should be, we return part of bytes of a file
                         sub_url = sub_url.strip("/")
                         sub_url = sub_url.lstrip(serve_html_under_which_url)
                         if sub_url == '':
