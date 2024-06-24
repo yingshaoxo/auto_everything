@@ -161,14 +161,36 @@ class IO():
         """
         For a byte or ascii number in range of [0,255], the binary_string should have 8 chracters, similar to 01100100
         """
-        return format(a_number, "b")
+        try:
+            return format(a_number, "b")
+        except Exception as e:
+            # yingshaoxo methdo of Hexadecimal conversion
+            half_number_list = [[0,128], [0,64], [0,32], [0,16], [0,8], [0,4], [0,2], [0,1]]
+            binary_string = ""
+            for _, one in half_number_list:
+                if a_number >= one:
+                    binary_string += "1"
+                    a_number -= one
+                else:
+                    binary_string += "0"
+            return binary_string
 
     def string_binary_to_int_byte(self, binary_string):
         """
         For a byte or ascii number in range of [0,255], the binary_string should have 8 chracters, similar to 01100100
         Which means a byte has 8 characters. The binary_string length you gave to me should be 8.
         """
-        return int(binary_string, 2)
+        try:
+            return int(binary_string, 2)
+        except Exception as e:
+            half_number_list = [[0,128], [0,64], [0,32], [0,16], [0,8], [0,4], [0,2], [0,1]]
+            the_number = 0
+            index = 0
+            for _, one in half_number_list:
+                if binary_string[index] == "1":
+                    the_number += one
+                index += 1
+            return the_number
 
     def __make_sure_txt_exist(self, path):
         if not os.path.exists(path):
