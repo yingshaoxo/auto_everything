@@ -1313,6 +1313,21 @@ class Disk:
         else:
             return total_size
 
+    def compress_a_file(self, input_file_path, output_file_path):
+        if not t.software_exists("tar"):
+            raise Exception(f"Compress requires your linux has 'tar'")
+        if not output_file_path.endswith(".tar.gz"):
+            raise Exception(f"The output_file_path should ends with '.tar.gz', the full name should be 'xxx.tar.gz'")
+        t.run(f"tar -czvf '{output_file_path}' '{input_file_path}'")
+
+    def uncompress_a_file(self, input_file_path, output_folder):
+        if not t.software_exists("tar"):
+            raise Exception(f"Compress requires your linux has 'tar'")
+        if not input_file_path.endswith(".tar.gz"):
+            raise Exception(f"The input_file_path should ends with '.tar.gz', the full name should be 'xxx.tar.gz'")
+        t.run(f"mkdir -p '{output_folder}'")
+        t.run(f"tar -xzvf '{input_file_path}' -C '{output_folder}'")
+
     def compress(self, input_folder_path: str, output_zip_path: str, file_format: str = "zip") -> str:
         """
         compress files to a target.
@@ -1479,6 +1494,19 @@ class Disk:
 
     def bytes_to_hex(self, bytes_data: bytes):
         return bytes_data.hex()
+
+    def int_byte_to_binary_string(self, a_number):
+        """
+        For a byte or ascii number in range of [0,255], the binary_string should have 8 chracters, similar to 01100100
+        """
+        return format(a_number, "b")
+
+    def string_binary_to_int_byte(self, binary_string):
+        """
+        For a byte or ascii number in range of [0,255], the binary_string should have 8 chracters, similar to 01100100
+        Which means a byte has 8 characters. The binary_string length you gave to me should be 8.
+        """
+        return int(binary_string, 2)
 
     def remove_a_file(self, file_path: str):
         file_path = self._expand_user(file_path)

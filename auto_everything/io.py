@@ -157,6 +157,19 @@ class IO():
             a_bytearray[index] = int(binary_string, 2)#.to_bytes(2, big_or_little)[0]
         return bytes(a_bytearray)
 
+    def int_byte_to_binary_string(self, a_number):
+        """
+        For a byte or ascii number in range of [0,255], the binary_string should have 8 chracters, similar to 01100100
+        """
+        return format(a_number, "b")
+
+    def string_binary_to_int_byte(self, binary_string):
+        """
+        For a byte or ascii number in range of [0,255], the binary_string should have 8 chracters, similar to 01100100
+        Which means a byte has 8 characters. The binary_string length you gave to me should be 8.
+        """
+        return int(binary_string, 2)
+
     def __make_sure_txt_exist(self, path):
         if not os.path.exists(path):
             self.write(path, "")
