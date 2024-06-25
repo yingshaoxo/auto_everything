@@ -565,16 +565,9 @@ ifdown -v {interface}; ifup -v {interface}
                 else:
                     full_size = os.path.getsize(real_file_path)
                     if "Range" not in request.headers:
-                        try:
-                            with open(real_file_path, "rb") as f:
-                                bytes_data = f.read()
-                            return bytes_data, {"Accept-Ranges": "bytes"}
-                        except Exception as e:
-                            start_bytes, end_bytes = 0, 1024
-                            with open(real_file_path, "rb") as f:
-                                f.seek(start_bytes)
-                                bytes_data = f.read(end_bytes-start_bytes)
-                            return bytes_data, {"Accept-Ranges": "bytes", "Content-Range": f"bytes {str(start_bytes)}-{str(end_bytes)}/{full_size}"}
+                        with open(real_file_path, "rb") as f:
+                            bytes_data = f.read()
+                        return bytes_data, {"Accept-Ranges": "bytes"}
                     else:
                         range = request.headers["Range"]
                         range_data = range.split("=")[1]
@@ -583,7 +576,7 @@ ifdown -v {interface}; ifup -v {interface}
                         with open(real_file_path, "rb") as f:
                             f.seek(start_bytes)
                             bytes_data = f.read(end_bytes-start_bytes)
-                        return bytes_data, {"Accept-Ranges": "bytes", "Content-Range": f"bytes {str(start_bytes)}-{str(end_bytes)}/{full_size}"}
+                        return bytes_data, {"Accept-Ranges": "bytes", "Content-Range": f"bytes {str(start_bytes)}-{str(end_bytes)}/{full_size}"}, 206
             except Exception as e:
                 print(e)
                 return str(e)

@@ -140,6 +140,7 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
         raw_response = None
         response = f"HTTP/1.1 500 Server error\r\n\r\n".lstrip()
 
+        response_status_code = 200
         response_header_dict = None
         if handle_get_file_url != None and method == "GET":
             # handle file download request, for example, html, css...
@@ -160,8 +161,13 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                 if re.fullmatch(route_regex_expression, url) != None:
                     raw_response = route_function(the_request_object)
                     if type(raw_response) == tuple or type(raw_response) == list:
-                        response_header_dict = raw_response[1]
-                        raw_response = raw_response[0]
+                        if len(raw_response) == 2:
+                            response_header_dict = raw_response[1]
+                            raw_response = raw_response[0]
+                        elif len(raw_response) == 3:
+                            response_status_code = raw_response[2]
+                            response_header_dict = raw_response[1]
+                            raw_response = raw_response[0]
                     break
 
         response_header_text = ""
@@ -181,7 +187,7 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
             else:
                 text_type = "text/html"
             response = f"""
-HTTP/1.1 200 OK
+HTTP/1.1 {response_status_code} OK
 Content-Type: {text_type}; charset={_The_Text_Encoding_}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
 """.strip()
@@ -189,7 +195,7 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
             raw_response = json.dumps(raw_response, indent=4)
             json_length = len(raw_response)
             response = f"""
-HTTP/1.1 200 OK
+HTTP/1.1 {response_status_code} OK
 Content-Type: application/json; charset={_The_Text_Encoding_}
 Content-Length: {json_length}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
@@ -209,24 +215,25 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
 
             if the_content_type != None:
                 response = f"""
-HTTP/1.1 200 OK
+HTTP/1.1 {response_status_code} OK
 Content-Type: {the_content_type}; charset={_The_Text_Encoding_}
 Content-Length: {bytes_length}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             else:
                 response = f"""
-HTTP/1.1 200 OK
+HTTP/1.1 {response_status_code} OK
 Content-Length: {bytes_length}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
-            response += raw_response
+            #response += raw_response
+            socket_connection.sendall(response)
+            socket_connection.sendall(raw_response)
         else:
             response = f"HTTP/1.1 500 Server error\r\n\r\nNo router for {url}".strip()
 
         if type(response) == str:
             response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
-
-        socket_connection.sendall(response)
+            socket_connection.sendall(response)
     except Exception as e:
         print(e)
         response = f"HTTP/1.1 200 OK\r\n\r\n{e}".strip()
