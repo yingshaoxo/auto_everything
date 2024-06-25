@@ -572,7 +572,12 @@ ifdown -v {interface}; ifup -v {interface}
                         range = request.headers["Range"]
                         range_data = range.split("=")[1]
                         start_bytes, end_bytes = range_data.split("-")
-                        start_bytes, end_bytes = int(start_bytes), int(end_bytes)
+                        if start_bytes != "":
+                            start_bytes = int(start_bytes)
+                        if end_bytes != "":
+                            end_bytes = int(end_bytes)
+                        else:
+                            end_bytes = full_size
                         with open(real_file_path, "rb") as f:
                             f.seek(start_bytes)
                             bytes_data = f.read(end_bytes-start_bytes)
