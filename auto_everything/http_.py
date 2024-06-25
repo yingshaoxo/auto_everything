@@ -140,7 +140,7 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
         raw_response = None
         response = f"HTTP/1.1 500 Server error\r\n\r\n".lstrip()
 
-        response_status_code = 200
+        response_first_line = "HTTP/1.1 200 OK"
         response_header_dict = None
         if handle_get_file_url != None and method == "GET":
             # handle file download request, for example, html, css...
@@ -165,7 +165,7 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                             response_header_dict = raw_response[1]
                             raw_response = raw_response[0]
                         elif len(raw_response) == 3:
-                            response_status_code = raw_response[2]
+                            response_first_line = raw_response[2]
                             response_header_dict = raw_response[1]
                             raw_response = raw_response[0]
                     break
@@ -175,19 +175,12 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
             response_header_text += "\n" + "\n".join([f"{key}: {value}" for key,value in response_header_dict.items()])
 
         if type(raw_response) == str:
-            if raw_response.strip().startswith("HTTP/1.1 ") and raw_response.strip().split("\n")[0].count(" ") == 2:
-                response = raw_response.encode(_The_Text_Encoding_Lower_, errors="ignore")
-                socket_connection.sendall(response)
-                socket_connection.shutdown(1)
-                socket_connection.close()
-                exit()
-                return
             if method == "POST":
                 text_type = "text/plain"
             else:
                 text_type = "text/html"
             response = f"""
-HTTP/1.1 {response_status_code} OK
+{response_first_line}
 Content-Type: {text_type}; charset={_The_Text_Encoding_}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
 """.strip()
@@ -195,7 +188,7 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
             raw_response = json.dumps(raw_response, indent=4)
             json_length = len(raw_response)
             response = f"""
-HTTP/1.1 {response_status_code} OK
+{response_first_line}
 Content-Type: application/json; charset={_The_Text_Encoding_}
 Content-Length: {json_length}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
@@ -215,13 +208,13 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
 
             if the_content_type != None:
                 response = f"""
-HTTP/1.1 {response_status_code} OK
+{response_first_line}
 Content-Type: {the_content_type}; charset={_The_Text_Encoding_}
 Content-Length: {bytes_length}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             else:
                 response = f"""
-HTTP/1.1 {response_status_code} OK
+{response_first_line}
 Content-Length: {bytes_length}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")

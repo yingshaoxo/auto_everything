@@ -576,7 +576,7 @@ ifdown -v {interface}; ifup -v {interface}
                         with open(real_file_path, "rb") as f:
                             f.seek(start_bytes)
                             bytes_data = f.read(end_bytes-start_bytes)
-                        return bytes_data, {"Accept-Ranges": "bytes", "Content-Range": f"bytes {str(start_bytes)}-{str(end_bytes)}/{full_size}"}, 206
+                        return bytes_data, {"Accept-Ranges": "bytes", "Content-Range": f"bytes {str(start_bytes)}-{str(end_bytes)}/{full_size}"}, "HTTP/1.1 206 Partial Content"
             except Exception as e:
                 print(e)
                 return str(e)
