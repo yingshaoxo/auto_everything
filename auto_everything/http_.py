@@ -169,6 +169,13 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
             response_header_text += "\n" + "\n".join([f"{key}: {value}" for key,value in response_header_dict.items()])
 
         if type(raw_response) == str:
+            if raw_response.strip().startswith("HTTP/1.1 ") and raw_response.strip().split("\n")[0].count(" ") == 2:
+                response = raw_response.encode(_The_Text_Encoding_Lower_, errors="ignore")
+                socket_connection.sendall(response)
+                socket_connection.shutdown(1)
+                socket_connection.close()
+                exit()
+                return
             if method == "POST":
                 text_type = "text/plain"
             else:
