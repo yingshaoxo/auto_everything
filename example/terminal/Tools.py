@@ -1,5 +1,4 @@
-#!/usr/bin/env /usr/bin/python3
-#!/usr/bin/env /home/yingshaoxo/anaconda3/bin/python3
+#!/usr/bin/env /usr/bin/python3.10
 # Run this to generate bash auto complete script: Tools -- --completion
 
 import os, re
@@ -561,6 +560,7 @@ ifdown -v {interface}; ifup -v {interface}
                     all_list = [f'<a href="{new_request_url}/{file}">{file}</a>' for file in all_list]
 
                     html_code = "<br>".join(all_list)
+                    html_code = '<meta name="viewport" content="width=device-width, initial-scale=1.0">' + html_code
                     return html_code, {"Accept-Ranges": "bytes"}
                 else:
                     full_size = os.path.getsize(real_file_path)
