@@ -124,7 +124,9 @@ class String:
             else:
                 similarity4 = (all_counting-counting_difference) / all_counting
 
-            return similarity0 * 0.1 + similarity1 * 0.1 + similarity2 * 0.2 + similarity3 * 0.2 + similarity4 * 0.4
+            similarity5 = self.get_similarity_score_of_two_sentence_by_substring(sentence1, sentence2, minimum_substring_length=max(3, int(len(sentence1)/32)))
+
+            return similarity0 * 0.1 + similarity1 * 0.1 + similarity2 * 0.1 + similarity3 * 0.1 + similarity4 * 0.2 + similarity5 * 0.4
         else:
             from difflib import SequenceMatcher
             ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
@@ -146,13 +148,13 @@ class String:
                 counting += 1
         return counting / min_length
 
-    def get_similarity_score_of_two_sentence_by_substring(self, sentence1, sentence2, end=False):
+    def get_similarity_score_of_two_sentence_by_substring(self, sentence1, sentence2, end=False, minimum_substring_length=2):
         """
         It returns a float in range of [0, 1], 1 means equal.
         This is also a extreamly quick method.
         """
         sentence1_length = len(sentence1)
-        all_counting = 0
+        all_counting = 1
         match_counting = 0
         length = sentence1_length
         while length > 0:
@@ -168,10 +170,12 @@ class String:
                 all_counting += 1
                 index += length
             length = int(length / 2)
+            if length < minimum_substring_length:
+                break
         result = match_counting / all_counting
 
         if end == False:
-            result = (result + self.get_similarity_score_of_two_sentence_by_substring(sentence2, sentence1, end=True)) / 2
+            result = (result + self.get_similarity_score_of_two_sentence_by_substring(sentence2, sentence1, end=True, minimum_substring_length=minimum_substring_length)) / 2
         return result
 
     def get_string_match_rating_level(self, input_text: str, text: str, lower_case: bool = True) -> float:
