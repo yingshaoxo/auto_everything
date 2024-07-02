@@ -674,14 +674,15 @@ class Audio():
         """
         a_audio = self.copy()
 
-        if threshold == None:
-            if noise_audio == None:
-                noise_numbers = round(a_audio.sample_rate*use_first_x_second_noise)
-                noise_audio = Audio()
-                noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
-            threshold = round(sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * ratio)
         if use_global_value == True:
             threshold = round(max([abs(one) for one in self.raw_data[0]]) * global_value)
+        else:
+            if threshold == None:
+                if noise_audio == None:
+                    noise_numbers = round(a_audio.sample_rate*use_first_x_second_noise)
+                    noise_audio = Audio()
+                    noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
+                threshold = round(sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * ratio)
 
         threshold = round(threshold)
 
@@ -969,7 +970,15 @@ class Audio():
         a_image.print(100)
         return a_image
 
-    def to_hash(self, seconds=0.5, hash_length=64):
+    def to_hash(self, seconds=3, hash_length=12):
+        """
+        seconds: int
+            for keyword sound, such as "play", seconds = 3
+            for song, seconds = 60
+        hash_length: int
+            for keyword sound, hash_length=6
+            for song, hash_length=32
+        """
         """
         For music, we use midi, which means a list of numbers between 0 and 128
         For voice, we use voice parts, which means a list of voice without silence inside. for example, "How are you" voice will get seperated into ["how", "are", "you"], and for each word of sound, we will make it has same length by stretching the audio part. And for each character part, we have to do loudness_match.
@@ -994,63 +1003,46 @@ class Audio():
 
         Sometimes I think, it is not deep learning changed the world, it is hash table or dict changed the world.
         """
-        a_audio = self.copy()
+        """
+        How to get accurate comparation? Take multiple samples of audio for a sentence, then compare and use average value. Because in human life, we can recognize sentence because we have heard it multiple times.
+        """
+        def resize_text(text_data, hash_length):
+            old_text_length = len(text_data)
+            if old_text_length > hash_length:
+                kernel = old_text_length / hash_length
+                new_text = ""
+                for i in range(hash_length):
+                    i = int(i * kernel)
+                    if i >= old_text_length:
+                        i = old_text_length-1
+                    new_text += text_data[i]
+                return new_text
+            else:
+                kernel = hash_length / old_text_length
+                new_text = ""
+                for i in range(hash_length):
+                    i = int(i / kernel)
+                    if i >= old_text_length:
+                        i = old_text_length-1
+                    new_text += text_data[i]
+                return new_text
 
-        a_audio = a_audio.resize(seconds)
-        a_audio = a_audio.change_sample_rate(20)
-        a_audio = a_audio.reduce_noise_by_subtraction(use_global_value=True)
-        a_audio = a_audio.merge_to_mono()
-        a_audio = a_audio.range_map(-32767, 32767, -9, 9, use_int=True, loudness_match=True)
+        a_audio = self.copy().merge_to_mono()
+        a_audio = a_audio.copy().resize(seconds)
 
-        # remove head and tail silence
-        try:
-            start_index = 0
-            for signal in a_audio.raw_data[0]:
-                if signal != 0:
-                    start_index += 1
-                    break
-            end_index = len(a_audio.raw_data[0])
-            for signal in reversed(a_audio.raw_data[0]):
-                if signal != 0:
-                    end_index -= 1
-                    break
-            a_audio.raw_data[0] = a_audio.raw_data[0][start_index: end_index]
-            a_audio = a_audio.resize(seconds)
-        except Exception as e:
-            pass
-
-        # volume
-        text_data = "".join([str("{:01d}".format(abs(one))) for one in a_audio.raw_data[0]])
+        ## global frequency in [0, 4000] HZ
+        sub_list_length_in_second = 1
+        max_frequency_value = sub_list_length_in_second / (1 / 4000)
+        frequency_dict = a_audio.copy().split_audio_by_frequency(audio_numbers=3, just_return_frequency_info_dict=True, sub_list_length_in_second=sub_list_length_in_second, raw_data=True)
+        frequency_text_1 = "".join(["{:01d}".format(min(int(one / max_frequency_value * 10), 9)) for one in frequency_dict.values()])
 
         # relative frequency
-        frequency_dict = self.copy().split_audio_by_frequency(audio_numbers=3, just_return_frequency_info_dict=True, sub_list_length_in_second=0.02)
-        frequency_text = "".join(["{:01d}".format(int(one*9)) for one in frequency_dict.values()])
-        text_data += frequency_text
+        frequency_dict = a_audio.copy().split_audio_by_frequency(audio_numbers=3, just_return_frequency_info_dict=True, sub_list_length_in_second=0.2, raw_data=False)
+        frequency_text_2 = "".join(["{:01d}".format(min(int(one * 9), 9)) for one in frequency_dict.values()])
 
-        # global frequency in [0, 4000] HZ
-        frequency_dict = self.copy().split_audio_by_frequency(audio_numbers=3, just_return_frequency_info_dict=True, sub_list_length_in_second=1, raw_data=True)
-        frequency_text = "".join(["{:01d}".format(min(int(one / 4000 * 10), 9)) for one in frequency_dict.values()])
-        text_data += frequency_text
-
-        old_text_length = len(text_data)
-        if old_text_length > hash_length:
-            kernel = old_text_length / hash_length
-            new_text = ""
-            for i in range(hash_length):
-                i = int(i * kernel)
-                if i >= old_text_length:
-                    i = old_text_length-1
-                new_text += text_data[i]
-            return new_text
-        else:
-            kernel = hash_length / old_text_length
-            new_text = ""
-            for i in range(hash_length):
-                i = int(i / kernel)
-                if i >= old_text_length:
-                    i = old_text_length-1
-                new_text += text_data[i]
-            return new_text
+        final_hash = resize_text(frequency_text_1, int(len(frequency_text_2)*0.2)) + frequency_text_2
+        final_hash = resize_text(final_hash, hash_length)
+        return final_hash
 
     def _fake_resize(self, x_size, y_size=None, adds=1327):
         if x_size != None:
