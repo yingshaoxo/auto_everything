@@ -532,6 +532,9 @@ ifdown -v {interface}; ifup -v {interface}
         """
         @dataclass()
         class Yingshaoxo_Http_Request():
+            socket_connection: Any
+            socket_address: Any
+
             context: Any
             host: str
             method: str

@@ -14,6 +14,8 @@ _The_Text_Encoding_Lower_ = "utf-8"
 
 @dataclass()
 class Yingshaoxo_Http_Request():
+    socket_connection: Any
+    socket_address: Any
     context: Any
     host: str
     method: str
@@ -37,7 +39,7 @@ def _decode_url(text):
     return unquote(text)
 
 
-def _handle_socket_request(socket_connection, context, router, handle_get_file_url):
+def _handle_socket_request(socket_connection, socket_address, context, router, handle_get_file_url):
     try:
         host = None
         method = None
@@ -149,6 +151,8 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
         # if do not need to serve file, or file not exists, then handle others
         if raw_response == None:
             the_request_object = Yingshaoxo_Http_Request(
+                socket_connection=socket_connection,
+                socket_address=socket_address,
                 context=context,
                 host=host,
                 method=method,
@@ -295,8 +299,8 @@ class Yingshaoxo_Http_Server():
             process_list = []
 
             while True:
-                socket_connection, addr = server.accept()
-                process = self._multiprocessing.Process(target=_handle_socket_request, args=(socket_connection, self.context, self.router, handle_get_file_url))
+                socket_connection, socket_address = server.accept()
+                process = self._multiprocessing.Process(target=_handle_socket_request, args=(socket_connection, socket_address, self.context, self.router, handle_get_file_url))
                 process.start()
                 process_list.append(process)
 
@@ -398,6 +402,8 @@ class Yingshaoxo_Threading_Based_Http_Server():
                         url_arguments[unquote(argument_key)] = unquote(argument_value)
 
             the_request_object = Yingshaoxo_Http_Request(
+                socket_connection=None,
+                socket_address=None,
                 context=self.context,
                 host=headers.get("Host"),
                 method=method,
