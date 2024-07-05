@@ -53,3 +53,5 @@ The data format is simple: pure ascii bytes stream. For example: "pin33 1; pin35
 All micro_controller pins will get exposed in the right side of our computer. the left side will keep 2 old USB_A interface, audio input and output interface (3.5mm headphone jack), Ethernet cable line interface, CD or DVD interface if have space.
 
 As for the system boot mechanism, we will hard code a small disk as boot disk, it supports bios/MBR partition. We will suggest usesrs to put their data into another disk, so that disk can be greater than 2TB.
+
+> How to let x86 CPU take less electricity power and has less heat? Lower the CPU frequency, or lower the speed of 'crystal oscillation frequency' in hardware level. If we make the calculation speed of x86 to '0.3' of normal PC CPU, we could simply use this kind of x86 CPU to anywhere, such as mobile phone. Mobile phone handles less pixel number than PC, so it does not need many computation resources.

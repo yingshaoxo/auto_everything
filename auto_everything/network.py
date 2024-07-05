@@ -1,12 +1,13 @@
-import ipaddress
 from typing import Any
-from auto_everything.disk import Disk
+
+import ipaddress
 from pathlib import Path
 import os
 import http.client as httplib
 from urllib import request
 import json
 
+from auto_everything.disk import Disk
 from auto_everything.base import Terminal, OS
 
 t = Terminal(debug=False)
