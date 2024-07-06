@@ -25,6 +25,8 @@ In other words, it uses two line to connect speaker, one is ground, another is 0
 As for dB unit, 0dB means full volume and positive numbers means a boost in volume, while negative numbers mean a dedrease in volume. dB = 20*log10(abs(value)/32768). abs(value) = 10^(db/20)*32768.
 
 The funny part about audio is that for same volume, some sound may sounds like bass, another may sounds like gutar. The low_pass or high_pass audio filter is not simply rely on volume. It depends on repeating time and vibration frequency.
+
+For 3.5mm jack audio line used in phone and mp3, it will has a voltage value range in [0, 1] voltage. If you want to make the sound louder, 0 to 5 voltage range is required.
 """
 
 
