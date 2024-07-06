@@ -869,77 +869,89 @@ class Audio():
         self = a_audio
         return self
 
-    def smooth_audio(self, kernel=3):
+    def smooth_audio(self, kernel=3, use_volume_gate_tendency_softing_method=False):
         """
         The key for audio smooth is change volume smoothly. We want to let it go up or down slowly.
         But I don't know how to implement it in the right way yet.
         """
-        a_audio = self.copy()
+        if use_volume_gate_tendency_softing_method == False:
+            a_audio = self.copy()
 
-        kernel = int(kernel)
-        channels_number, one_channel_length = a_audio.get_shape()
-        for channel_index in range(channels_number):
-            for index in range(one_channel_length):
-                #signal = a_audio.raw_data[channel_index][index]
-                start_index = index - 1
-                end_index = index + kernel
-                if start_index <= 0:
-                    start_index = 0
-                if end_index >= one_channel_length:
-                    end_index = one_channel_length
-                signal_range = a_audio.raw_data[channel_index][start_index: end_index]
-                average_value = round(sum(signal_range)/len(signal_range))
-                a_audio.raw_data[channel_index][index] = average_value
+            kernel = int(kernel)
+            channels_number, one_channel_length = a_audio.get_shape()
+            for channel_index in range(channels_number):
+                for index in range(one_channel_length):
+                    #signal = a_audio.raw_data[channel_index][index]
+                    start_index = index - 1
+                    end_index = index + kernel
+                    if start_index <= 0:
+                        start_index = 0
+                    if end_index >= one_channel_length:
+                        end_index = one_channel_length
+                    signal_range = a_audio.raw_data[channel_index][start_index: end_index]
+                    average_value = round(sum(signal_range)/len(signal_range))
+                    a_audio.raw_data[channel_index][index] = average_value
 
-        self.raw_data = a_audio.raw_data
-        return self
-        """
-        kernel = 1000
-        a_audio = self.copy().merge_to_mono()
-        simple_audio = a_audio.copy().range_map(-32767, 32767, -99, 99, use_int=True, loudness_match=True)
-        kernel = int(kernel)
-        audio_volume_ratio_dict = {}
-        channels_number, one_channel_length = simple_audio.get_shape()
-        for channel_index in range(channels_number):
-            audio_volume_ratio_dict[channel_index] = []
-            last_signal_sum = None
-            for index in range(one_channel_length):
-                start_index = index * kernel
-                end_index = start_index + kernel
-                if end_index >= one_channel_length:
-                    end_index = one_channel_length
-                signal_sum = sum([one for one in simple_audio.raw_data[channel_index][start_index: end_index] if one > 0])
-                if last_signal_sum == None:
-                    a_ratio = 1
-                else:
-                    if last_signal_sum == 0:
-                        a_ratio = 0.7
+            self.raw_data = a_audio.raw_data
+            return self
+        else:
+            a_audio = self.copy().merge_to_mono()
+            kernel = int(a_audio.sample_rate * 0.05)
+            simple_audio = a_audio.copy().range_map(-32767, 32767, -99, 99, use_int=True, loudness_match=True)
+            audio_volume_ratio_dict = {}
+            channels_number, one_channel_length = simple_audio.get_shape()
+            for channel_index in range(channels_number):
+                audio_volume_ratio_dict[channel_index] = []
+                last_signal_sum = None
+                for index in range(one_channel_length):
+                    start_index = index * kernel
+                    end_index = start_index + kernel
+                    if end_index >= one_channel_length:
+                        end_index = one_channel_length
+                    signal_sum = (sum([one**2 for one in simple_audio.raw_data[channel_index][start_index: end_index]]) / kernel) ** 0.5
+                    if last_signal_sum == None:
+                        a_ratio = 1
                     else:
-                        a_ratio = signal_sum/last_signal_sum
-                audio_volume_ratio_dict[channel_index].append(a_ratio)
-                last_signal_sum = signal_sum
-                if end_index >= one_channel_length:
-                    break
+                        if last_signal_sum == 0:
+                            a_ratio = 0.7
+                        else:
+                            a_ratio = signal_sum/last_signal_sum
+                    audio_volume_ratio_dict[channel_index].append(a_ratio)
+                    last_signal_sum = signal_sum
+                    if end_index >= one_channel_length:
+                        break
 
-        # if signal_volume ratio > 1, the volume go up, if ratio < 1, volume go down. But we want to let it go up or down slowly
-        for channel_index in range(channels_number):
-            for index in range(one_channel_length):
-                signal = a_audio.raw_data[channel_index][index]
-                ratio = audio_volume_ratio_dict[channel_index][int(index/kernel)]
-                if ratio == 0:
-                    new_signal = signal
-                elif ratio > 1:
-                    new_signal = signal * 0.7
-                elif ratio < 1:
-                    new_signal = signal * 1.2
-                elif ratio == 1:
-                    new_signal = signal
-                new_signal = int(new_signal)
-                a_audio.raw_data[channel_index][index] = new_signal
+            # if signal_volume ratio > 1, the volume go up, if ratio < 1, volume go down. But we want to let it go up or down slowly
+            for channel_index in range(channels_number):
+                for index in range(one_channel_length):
+                    signal = a_audio.raw_data[channel_index][index]
+                    ratio = audio_volume_ratio_dict[channel_index][int(index/kernel)]
+                    if ratio == 0:
+                        new_signal = signal
+                    elif ratio > 1:
+                        if ratio > 6:
+                            new_signal = signal * 0.5
+                        elif ratio > 2:
+                            new_signal = signal * 0.7
+                        else:
+                            new_signal = signal * 0.9
+                    elif ratio < 1:
+                        new_signal = signal
+                        #if ratio < 0:
+                        #    new_signal = signal
+                        #elif ratio < 0.3:
+                        #    new_signal = signal * 1.3
+                        #elif ratio < 0.8:
+                        #    new_signal = signal * 1.2
+                        #else:
+                        #    new_signal = signal * 1.1
+                    elif ratio == 1:
+                        new_signal = signal
+                    new_signal = int(new_signal)
+                    a_audio.raw_data[channel_index][index] = new_signal
 
-        self.raw_data = a_audio.raw_data
-        return self
-        """
+            self.raw_data = a_audio.raw_data
+            return self
 
     def volume_db_limiter(self, db=-13, reducing_factor=0.7):
         """

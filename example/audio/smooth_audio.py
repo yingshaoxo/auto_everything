@@ -7,7 +7,7 @@ audio = audio.read_wav_file("/home/yingshaoxo/Downloads/handclap2.wav")
 audio.write_wav_file("/home/yingshaoxo/Downloads/smooth_original.wav")
 
 start_time = time()
-smooth_1 = audio.copy().smooth_audio()
+smooth_1 = audio.copy().smooth_audio(use_volume_gate_tendency_softing_method=True)
 #for i in range(10):
     #smooth_1 = smooth_1.smooth_audio()
 smooth_1.write_wav_file("/home/yingshaoxo/Downloads/smooth_by_volume_gate.wav")
