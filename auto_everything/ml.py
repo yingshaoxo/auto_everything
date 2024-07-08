@@ -1634,6 +1634,16 @@ class Yingshaoxo_Computer_Vision():
         """
         pass
 
+    def remove_background_from_human_video(self):
+        """
+        1. Let user take a picture of background without human.
+        2. Let user take a picture with human.
+        3. Computer calculate difference between two picture to get human picture pixels.
+        4. For each new image, we remove background pixels, remain human pixels.
+        5. To increase the accuracy, increase the camera real resolution.
+        """
+        pass
+
 
 class Yingshaoxo_Speech_Recognizer():
     """
