@@ -70,16 +70,16 @@ class Universal_Asynchronous_Receiver_And_Transmitter():
 
         fd = self.os.open(SERIAL_PORT, self.os.O_RDWR | self.os.O_NOCTTY | self.os.O_NDELAY)
 
-        attrs = self.fcntl.tcgetattr(fd)
-        attrs[1] = attrs[1] & ~(termios.ICANON | termios.ECHO | termios.ISIG)
-        attrs[1] = attrs[1] | termios.CS8
-        attrs[1] = attrs[1] & ~termios.ICANON
-        attrs[1] = attrs[1] & ~termios.ECHO
-        attrs[1] = attrs[1] & ~termios.ISIG
-        attrs[1] = attrs[1] & ~termios.IXON
-        attrs[2] = attrs[2] & ~termios.CRTSCTS
-        attrs[3] = BAUD_RATE
-        self.fcntl.tcsetattr(fd, self.fcntl.TCSANOW, attrs)
+        #attrs = self.fcntl.tcgetattr(fd)
+        #attrs[1] = attrs[1] & ~(termios.ICANON | termios.ECHO | termios.ISIG)
+        #attrs[1] = attrs[1] | termios.CS8
+        #attrs[1] = attrs[1] & ~termios.ICANON
+        #attrs[1] = attrs[1] & ~termios.ECHO
+        #attrs[1] = attrs[1] & ~termios.ISIG
+        #attrs[1] = attrs[1] & ~termios.IXON
+        #attrs[2] = attrs[2] & ~termios.CRTSCTS
+        #attrs[3] = BAUD_RATE
+        #self.fcntl.tcsetattr(fd, self.fcntl.TCSANOW, attrs)
 
         try:
             self.os.write(fd, data)
@@ -90,5 +90,6 @@ class Universal_Asynchronous_Receiver_And_Transmitter():
 
 
 if __name__ == "__main__":
-    uart = Universal_Asynchronous_Receiver_And_Transmitter(device_path="/dev/ttyACM0")
-    uart.read(print)
+    uart = Universal_Asynchronous_Receiver_And_Transmitter(device_path="/dev/ttyUSB0")
+    #uart.read(print)
+    #uart.write(b"abcd\n")
