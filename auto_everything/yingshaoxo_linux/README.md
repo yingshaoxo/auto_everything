@@ -55,3 +55,9 @@ All micro_controller pins will get exposed in the right side of our computer. th
 As for the system boot mechanism, we will hard code a small disk as boot disk, it supports bios/MBR partition. We will suggest usesrs to put their data into another disk, so that disk can be greater than 2TB.
 
 > How to let x86 CPU take less electricity power and has less heat? Lower the CPU frequency, or lower the speed of 'crystal oscillation frequency' in hardware level. If we make the calculation speed of x86 to '0.3' of normal PC CPU, we could simply use this kind of x86 CPU to anywhere, such as mobile phone. Mobile phone handles less pixel number than PC, so it does not need many computation resources.
+
+### Solution 2
+
+Sometimes, we can't built a x86 CPU or motherboard by ourselves, how do we do? We use something else. For example, if we have 6 micro_controller: micro_controller_A is for reading keyboard signal and convert it into ASCII code and send it to other microcontroller 30 times per second. micro_controller_B is for sending text or grapic pixels to LED screen to show information. micro_controller_C is for handling the keyboard ASCII 256 characters input and do some operations, then output some results to the screen. micro_controller_D is for disk or storage operations, it handles data saving and reading. micro_controller_E is for sending and receiving digital_and_analog pin value, it works as USB, but much more open, for example, you can use it to make your own recorder and speaker.
+
+This is just an archetecture or framework, you can even use other small computing devices to finish the whole computer, for example, you can use 5 mobile devices to do the same thing.
