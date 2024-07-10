@@ -15,6 +15,8 @@ I lost my job for almost 2 years. If you wish to see me alive, please buy me som
 
 > But it is hard to make sure everything working fine 20 years later. Because I can't make sure 20 years later you can still buy a hardware that could allow you to run python2.7 or tinypy or old version of micropython. (Maybe you simply can't download a python2.7 binary or source code, or can't compile it since you don't have an old GCC.)
 
+> If you use new gcc or new python, it would end like: same source code, 50 years later after you compile it, the size increase to 500 times of its original binary file size. Or the new python size is 500 times bigger than 3MB. Or the performance drop down to 100 times of its original one. It is say, in old computer, you can run a 5KB software to finish a task in a very quick speed, in new computer, you have to use 500MB software to finish the same task, and slower.
+
 #### Installation (For Python == 3.10)
 
 ```bash
