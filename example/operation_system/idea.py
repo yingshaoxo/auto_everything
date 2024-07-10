@@ -17,3 +17,11 @@
 
 All in all, a system that takes only 20.7 MB.
 """
+
+"""
+Or, in a simple way, 3 tabs: file_manager, broswer, terminal.
+
+It remembers last open tab. You can link the screen to your mobile device so that you can not rely on your mobile hardware and system that much.
+
+The broswer can be a local database search engine (Add, Delete, Modifying, Search).
+"""
