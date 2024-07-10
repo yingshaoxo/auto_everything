@@ -17,6 +17,8 @@ I lost my job for almost 2 years. If you wish to see me alive, please buy me som
 
 > If you use new gcc or new python, it would end like: same source code, 50 years later after you compile it, the size increase to 500 times of its original binary file size. Or the new python size is 500 times bigger than 3MB. Or the performance drop down to 100 times of its original one. It is say, in old computer, you can run a 5KB software to finish a task in a very quick speed, in new computer, you have to use 500MB software to finish the same task, and slower.
 
+> Just do a search of "How to build a computer by using basic electronic units? Do not use any other chip or micro_controller." You will simply found there has no answers. Do you live in a free world?
+
 #### Installation (For Python == 3.10)
 
 ```bash
