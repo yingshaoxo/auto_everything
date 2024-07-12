@@ -32,6 +32,8 @@ or
 
 ```bash
 python3 -m pip install auto_everything --break-system-packages
+
+# I think newer version of pypi and pip and pip package format has problems. Why they use a file ends with ".toml"? They think a "setup.py" python file can't be used to represent information? A python dict can't be used to represent information? Are they stupid? By using ".toml" file, I can't use old 8_version pip to install new packages, and I can't even upgrade pip itself because it can't find a "setup.py" file in new pip package. They made a big bug.
 ```
 
 or
