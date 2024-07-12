@@ -26,7 +26,9 @@ As for dB unit, 0dB means full volume and positive numbers means a boost in volu
 
 The funny part about audio is that for same volume, some sound may sounds like bass, another may sounds like gutar. The low_pass or high_pass audio filter is not simply rely on volume. It depends on repeating time and vibration frequency.
 
-For 3.5mm jack audio line used in phone and mp3, it will has a voltage value range in [0, 1] voltage. If you want to make the sound louder, 0 to 5 voltage range is required.
+For 3.5mm jack audio output line used in phone and mp3, it will has a voltage value range in [0, 1.23] voltage. If you want to make the sound louder, 0 to 5 voltage range is required, you can do it with 2v gate NMOS relay, or Triode amplifier circuit.
+
+For 3.5mm jack audio microphone input line, or simply microphone input, it will have a voltage range of [0.001, 0.01]. You have to use volatage or current range_map circuit to convert it into a range of [0, 5] voltage, so your micro_controller can read it. Some chip such as LM386 can do the voltage amplifing work, they use triode to do the work, you can find LM386 chip inner circuit graph online. But you'd better design one yourself.
 """
 
 
