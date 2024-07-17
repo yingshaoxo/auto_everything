@@ -1656,6 +1656,14 @@ class Yingshaoxo_Computer_Vision():
         """
         pass
 
+    def object_detection_and_tracking(self):
+        """
+        For 2D view, ask human to point out an object, for example, a center box for an object. Then the computer tracking that object start from that position. Each frame, the computer will calculate its around boxs to see which direction that object moves, and the computer will notice for some part of that object, it is always have same pixel color, which means those pixels are part of that object. As the time goes by, even if human just pointed out a center box, the computer captures the whole object by using hard coding method. This works only if that object moves as a whole body.
+        If an object do not move, we split a picture to smaller box list, then do object recognition one by one.
+        For 3D view, it is the same, but including angle data.
+        """
+        pass
+
 
 class Yingshaoxo_Speech_Recognizer():
     """
