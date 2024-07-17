@@ -505,6 +505,59 @@ def rgb_to_black_and_white(image):
             new_image.raw_data[y][x] = new_pixel
     return new_image
 
+def single_pixel_rgb_to_hsv(r, g, b):
+    """
+    Here the h,s,v all in range of [0, 255]
+    """
+    """
+    HSV(Hue, Saturation, Value)是根据颜色的直观特性由A. R. Smith在1978年创建的一种颜色空间, 也称六角锥体模型(Hexcone Model)。 这个模型中颜色的参数分别是：色调（H），饱和度（S），亮度（V）。
+    色调H：用角度度量，取值范围为0°～360°，从红色开始按逆时针方向计算，红色为0°，绿色为120°,蓝色为240°。它们的补色是：黄色为60°，青色为180°,品红为300°；
+    饱和度S：取值范围为0.0～1.0；
+    亮度V：取值范围为0.0(黑色)～1.0(白色)。
+    RGB和CMY颜色模型都是面向硬件的，而HSV（Hue Saturation Value）颜色模型是虚拟的。
+    """
+    r, g, b = r/255.0, g/255.0, b/255.0
+    mx = max(r, g, b)
+    mn = min(r, g, b)
+    df = mx-mn
+    if mx == mn:
+        h = 0
+    elif mx == r:
+        h = (60 * ((g-b)/df) + 360) % 360
+    elif mx == g:
+        h = (60 * ((b-r)/df) + 120) % 360
+    elif mx == b:
+        h = (60 * ((r-g)/df) + 240) % 360
+    if mx == 0:
+        s = 0
+    else:
+        s = df/mx
+    v = mx
+    return int((h/360)*255), int(s*255), int(v*255)
+
+def single_pixel_hsv_to_rgb(h,s,v):
+    """
+    Here the r,g,b all in range of [0, 255]
+    """
+    h = float((h/255)*360)
+    s = float(s/255)
+    v = float(v/255)
+    h60 = h / 60.0
+    h60f = int(h60)#math.floor(h60)
+    hi = int(h60f) % 6
+    f = h60 - h60f
+    p = v * (1 - s)
+    q = v * (1 - f * s)
+    t = v * (1 - (1 - f) * s)
+    r, g, b = 0, 0, 0
+    if hi == 0: r, g, b = v, t, p
+    elif hi == 1: r, g, b = q, v, p
+    elif hi == 2: r, g, b = p, v, t
+    elif hi == 3: r, g, b = p, q, v
+    elif hi == 4: r, g, b = t, p, v
+    elif hi == 5: r, g, b = v, p, q
+    r, g, b = int(r * 255), int(g * 255), int(b * 255)
+    return r, g, b
 
 
 class Image:
