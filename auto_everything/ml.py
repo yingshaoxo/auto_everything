@@ -1644,6 +1644,17 @@ class Yingshaoxo_Computer_Vision():
         """
         pass
 
+    def object_feature_extraction_and_recognition(self):
+        """
+        Give human an object that he never seen before, how do that human remember it?
+        He put that object on white wall or black desk, he rotate that object, because that object color is different than the background, he remembers the different pixels and angle of that object. Done.
+        How hard the computer need to extract object pixels shape from pure single color background?
+        """
+        """
+        As for the recognition part, if you got every pixel of an object, you can use relative pixel check to check if an object is the target or not, if a relative pixel does not match an object in database, you return immidiately. From 4x4 pixel cube to 100x100 pixel point matrix, from big category of objects to small category of objects, simple and easy. It is like using a hash table, can be very quick if you have a tree structure and multiple dict structure.
+        """
+        pass
+
 
 class Yingshaoxo_Speech_Recognizer():
     """

@@ -474,6 +474,17 @@ git remote set-url --add --push origin {repo_url}
             ffmpeg -i '{audio_path}' -b:a {kbps}k '{target_path}'
         """)
 
+    def record_screen(self, target_path):
+        t.run(f"""
+            ffmpeg -video_size 1920x1080 -framerate 25 -f x11grab -i :0 '{target_path}'
+        """)
+
+        """
+        # record with sound
+        ffmpeg -sources
+        ffmpeg -f pulse -i alsa_input.pci-0000_00_1f.3-platform-skl_hda_dsp_generic.HiFi__hw_sofhdadsp_6__source -f x11grab -r 30 -s 1920x1080 -i :0 -ac 2 -async 25 -filter_complex amix=inputs=1 output.mp4
+        """
+
     def check_battery_power(self):
         t.run(f"""
         cat /sys/class/power_supply/BAT0/capacity
