@@ -24,11 +24,20 @@ class BMP:
         self.biYPelsPerMeter = unpack("<i", file.read(4))[0]# 垂直分辨率
         self.biClrUsed = unpack("<i", file.read(4))[0]      # 实际使用的彩色表中的颜色索引数
         self.biClrImportant = unpack("<i", file.read(4))[0] # 对图像显示有重要影响的颜色索引的数目
+
+        if self.biBitCount != 24:
+            raise Exception("(we need 24bit rgb bmp) 输入的图片比特值为 ：" + str(self.biBitCount) + "\t 与程序不匹配" + "\n" + "We also need you select 'Do not write color space information' under 'Compatibility Options' when exporting BMP from GIMP.")
+
+
+        # handle color_space offset
+        if self.biClrUsed == 0:
+            self.bfOffBits = self.biSize + 14
+        else:
+            self.bfOffBits = self.biSize + 14 + (self.biClrUsed * 4)
+        file.seek(self.bfOffBits)
+
+        # read data
         self.bmp_data = []
-
-        if self.biBitCount != 24 :
-            raise Exception("(we need 24bit rgb bmp) 输入的图片比特值为 ：" + str(self.biBitCount) + "\t 与程序不匹配")
-
         for height in range(self.biHeight) :
             bmp_data_row = []
             # 四字节填充位检测
