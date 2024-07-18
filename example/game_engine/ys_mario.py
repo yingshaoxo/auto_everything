@@ -181,6 +181,13 @@ class Yingshaoxo_Terminal_Mario():
                 if self.mario_position[0] == 6:
                     break
 
+        # moving background when user go beyound 1/2 width
+        while self.mario_position[1] >= (self.window_width / 2):
+            self._move_background()
+            self.mario_position[1] -= 1
+            sleep(self.delay)
+            self._display()
+
     def render(self):
         self._reset_background()
 

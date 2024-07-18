@@ -1640,7 +1640,8 @@ class Yingshaoxo_Computer_Vision():
         2. Let user take a picture with human.
         3. Computer calculate difference between two picture to get human picture pixels.
         4. For each new image, we remove background pixels, remain human pixels.
-        5. To increase the accuracy, increase the camera real resolution.
+        5. To increase the accuracy, increase the camera real resolution or compare smaller box sub_image.
+        Your camera is garbage because for the same time, same position, for same color object, it will produce different color images.
         """
         pass
 
