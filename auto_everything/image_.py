@@ -784,6 +784,55 @@ class Image:
         print("", end="", flush=True)
         return final_image
 
+    def compare(self, another_image):
+        """
+        return a float between 0 and 1, 1 means equal, 0 means no relate.
+        """
+        r_all_1 = 0
+        g_all_1 = 0
+        b_all_1 = 0
+        height, width = self.get_shape()
+        for row in self.raw_data:
+            temp_r = 0
+            temp_g = 0
+            temp_b = 0
+            for pixel in row:
+                r,g,b,_ = pixel
+                temp_r += r
+                temp_g += g
+                temp_b += b
+            r_all_1 += temp_r/width
+            g_all_1 += temp_g/width
+            b_all_1 += temp_b/width
+        r_all_1 = r_all_1/height
+        g_all_1 = g_all_1/height
+        b_all_1 = b_all_1/height
+
+        r_all_2 = 0
+        g_all_2 = 0
+        b_all_2 = 0
+        height, width = another_image.get_shape()
+        for row in another_image.raw_data:
+            temp_r = 0
+            temp_g = 0
+            temp_b = 0
+            for pixel in row:
+                r,g,b,_ = pixel
+                temp_r += r
+                temp_g += g
+                temp_b += b
+            r_all_2 += temp_r/width
+            g_all_2 += temp_g/width
+            b_all_2 += temp_b/width
+        r_all_2 = r_all_2/height
+        g_all_2 = g_all_2/height
+        b_all_2 = b_all_2/height
+
+        difference = abs(r_all_1-r_all_2) + abs(g_all_1-g_all_2) + abs(b_all_1-b_all_2)
+        difference = ((difference*100)/(255*3))/20
+        difference = 1 - difference
+        return difference
+
     def get_simplified_image_in_a_slow_way(self, ratio=0.7):
         """
         ratio: 0 to 1, more close to 1, more simplified

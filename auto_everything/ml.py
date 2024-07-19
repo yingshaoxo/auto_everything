@@ -1636,7 +1636,7 @@ class Yingshaoxo_Computer_Vision():
         """
         pass
 
-    def remove_background_from_human_video(self, background_image, has_human_image, kernel=5, compare_number=27, complex_mode=True):
+    def remove_background_from_human_video(self, background_image, has_human_image, kernel=5, compare_number=0.5, complex_mode=True):
         """
         1. Let user take a picture of background without human.
         2. Let user take a picture with human.
@@ -1670,26 +1670,13 @@ class Yingshaoxo_Computer_Vision():
                 for row in temp_human_sub_image:
                     human_sub_image.append(row[start_width: end_width])
 
-                difference = 0
-                r_all_1 = 0
-                g_all_1 = 0
-                b_all_1 = 0
-                r_all_2 = 0
-                g_all_2 = 0
-                b_all_2 = 0
-                for index, row in enumerate(background_sub_image):
-                    for index2, value in enumerate(row):
-                        value2 = human_sub_image[index][index2]
-                        r_all_1 += value[0]
-                        g_all_1 += value[1]
-                        b_all_1 += value[2]
-                        r_all_2 += value2[0]
-                        g_all_2 += value2[1]
-                        b_all_2 += value2[2]
-                difference = abs(r_all_1 - r_all_2)/all_number + abs(g_all_1 - g_all_2)/all_number + abs(b_all_1 - b_all_2)/all_number
-                difference = difference / 3
+                background_2 = self.image.create_an_image(kernel, kernel, [0,0,0,0])
+                background_2.raw_data = background_sub_image
 
-                if difference > compare_number:
+                human_2 = self.image.create_an_image(kernel, kernel, [0,0,0,0])
+                human_2.raw_data = human_sub_image
+
+                if background_2.compare(human_2) < compare_number:
                     # it is human, not background
                     for index, human_row in enumerate(human_sub_image):
                         new_image.raw_data[start_height+index][start_width: end_width] = human_row[:]
@@ -1750,7 +1737,20 @@ class Yingshaoxo_Computer_Vision():
                         condition_4 = True
                         break
 
+                ok = False
                 if (condition_1 and condition_2 and condition_3 and condition_4):
+                    ok = True
+                #if (condition_1 and condition_2 and condition_3):
+                #    ok = True
+                #if (condition_2 and condition_3 and condition_4):
+                #    ok = True
+                #if (condition_3 and condition_4 and condition_1):
+                #    ok = True
+                #if (condition_4 and condition_1 and condition_2):
+                #    ok = True
+                #if (condition_3 and condition_4):
+                #    ok = True
+                if ok == True:
                     # it is human, not background
                     for index, human_row in enumerate(human_sub_image):
                         new_image.raw_data[start_height+index][start_width: end_width] = human_row[:]
