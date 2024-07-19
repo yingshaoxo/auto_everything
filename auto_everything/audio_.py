@@ -1037,6 +1037,37 @@ class Audio():
         a_image.print(100)
         return a_image
 
+    def compare(self, another_audio, level=18):
+        """
+        return similarity value, a float number between [0,1], 1 means equal, 0 means no relate.
+        """
+        a_audio = self.copy().merge_to_mono()
+        another_audio = another_audio.merge_to_mono()
+
+        def get_a_list(a_audio):
+            frequency_dict = a_audio.split_audio_by_frequency(audio_numbers=level, just_return_frequency_info_dict=True, sub_list_length_in_second=0.1, raw_data=True)
+            values = []
+            for i in range(len(frequency_dict.keys())):
+                values.append(frequency_dict[i])
+            return values
+
+        result_list_1 = get_a_list(a_audio)
+        result_list_2 = get_a_list(another_audio)
+        difference = 0
+        for index, one in enumerate(result_list_1):
+            difference += abs(one-result_list_2[index])
+        difference = difference/len(result_list_1)
+
+        max_value = max([max(result_list_1),max(result_list_2)])
+        difference = ((difference * 100) / (max_value)) / 25
+        difference = 1 - difference
+        if difference > 1:
+            difference = 1
+        if difference < 0:
+            difference = 0
+
+        return difference
+
     def to_hash(self, seconds=3, hash_length=12):
         """
         seconds: int
