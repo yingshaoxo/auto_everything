@@ -1597,20 +1597,22 @@ class Yingshaoxo_Text_Generator():
 
 class Yingshaoxo_Computer_Vision():
     def __init__(self):
-        import numpy
-        self.numpy = numpy
+        from auto_everything.image import Image
+        self.image = Image()
 
     def get_similarity_of_two_images(self, numpy_image_1: Any, numpy_image_2: Any) -> float:
         """
         return a float between 0 and 1, 1 means equal, 0 means no relate.
         """
-        mean1 = self.numpy.mean(numpy_image_1, axis=(0, 1))
-        mean2 = self.numpy.mean(numpy_image_2, axis=(0, 1))
+        import numpy
+
+        mean1 = numpy.mean(numpy_image_1, axis=(0, 1))
+        mean2 = numpy.mean(numpy_image_2, axis=(0, 1))
 
         difference = 0.0
-        difference += self.numpy.absolute(mean1[0] - mean2[0])
-        difference += self.numpy.absolute(mean1[1] - mean2[1])
-        difference += self.numpy.absolute(mean1[2] - mean2[2])
+        difference += numpy.absolute(mean1[0] - mean2[0])
+        difference += numpy.absolute(mean1[1] - mean2[1])
+        difference += numpy.absolute(mean1[2] - mean2[2])
 
         final_difference = ((difference * 100) / (255*3)) / 20
         final_difference = 1 - final_difference
@@ -1634,16 +1636,126 @@ class Yingshaoxo_Computer_Vision():
         """
         pass
 
-    def remove_background_from_human_video(self):
+    def remove_background_from_human_video(self, background_image, has_human_image, kernel=5, compare_number=27, complex_mode=True):
         """
         1. Let user take a picture of background without human.
         2. Let user take a picture with human.
         3. Computer calculate difference between two picture to get human picture pixels.
         4. For each new image, we remove background pixels, remain human pixels.
         5. To increase the accuracy, increase the camera real resolution or compare smaller box sub_image.
-        Your camera is garbage because for the same time, same position, for same color object, it will produce different color images.
+        Your camera is garbage because for the same time, same position, for same color object, it will produce different color images. Or when people in view, it took different background, when poeple not in view, it took another kind of background.
+        I also think the computer vision has bugs, for a square picture, human think it is white, but computer think it is black.
         """
-        pass
+        height, width = background_image.get_shape()
+        kernel = kernel
+        all_number = kernel*kernel
+        step_height = int(height/kernel)
+        step_width = int(width/kernel)
+        saved_2d_list = [[False]*step_width for _ in range(step_height)]
+        new_image = self.image.create_an_image(height, width, [0,0,0,0])
+        for height_index in range(step_height):
+            for width_index in range(step_width):
+                start_height = height_index * kernel
+                end_height = start_height + kernel
+                start_width = width_index * kernel
+                end_width = start_width + kernel
+
+                temp_background_sub_image = background_image.raw_data[start_height:end_height]
+                background_sub_image = []
+                for row in temp_background_sub_image:
+                    background_sub_image.append(row[start_width: end_width])
+
+                temp_human_sub_image = has_human_image.raw_data[start_height:end_height]
+                human_sub_image = []
+                for row in temp_human_sub_image:
+                    human_sub_image.append(row[start_width: end_width])
+
+                difference = 0
+                r_all_1 = 0
+                g_all_1 = 0
+                b_all_1 = 0
+                r_all_2 = 0
+                g_all_2 = 0
+                b_all_2 = 0
+                for index, row in enumerate(background_sub_image):
+                    for index2, value in enumerate(row):
+                        value2 = human_sub_image[index][index2]
+                        r_all_1 += value[0]
+                        g_all_1 += value[1]
+                        b_all_1 += value[2]
+                        r_all_2 += value2[0]
+                        g_all_2 += value2[1]
+                        b_all_2 += value2[2]
+                difference = abs(r_all_1 - r_all_2)/all_number + abs(g_all_1 - g_all_2)/all_number + abs(b_all_1 - b_all_2)/all_number
+                difference = difference / 3
+
+                if difference > compare_number:
+                    # it is human, not background
+                    for index, human_row in enumerate(human_sub_image):
+                        new_image.raw_data[start_height+index][start_width: end_width] = human_row[:]
+                    saved_2d_list[height_index][width_index] = True
+                else:
+                    saved_2d_list[height_index][width_index] = False
+
+        if complex_mode == False:
+            return new_image
+
+        index_2 = 0 #here I can't use 'index' variable because the stupid new python changed index variable at runtime
+        for height_index in range(int(height/kernel)):
+            for width_index in range(int(width/kernel)):
+                start_height = height_index * kernel
+                end_height = start_height + kernel
+                start_width = width_index * kernel
+                end_width = start_width + kernel
+
+                temp_human_sub_image = has_human_image.raw_data[start_height:end_height]
+                human_sub_image = []
+                for row in temp_human_sub_image:
+                    human_sub_image.append(row[start_width: end_width])
+
+                current_point = saved_2d_list[height_index][width_index]
+                if current_point == True:
+                    continue
+
+                point_y, point_x = height_index, width_index
+                condition_1 = False
+                while point_x > 0:
+                    point_x -= 1
+                    a_point = saved_2d_list[point_y][point_x]
+                    if a_point == True:
+                        condition_1 = True
+                        break
+                point_y, point_x = height_index, width_index
+                condition_2 = False
+                while point_x < step_width-1:
+                    point_x += 1
+                    a_point = saved_2d_list[point_y][point_x]
+                    if a_point == True:
+                        condition_2 = True
+                        break
+                point_y, point_x = height_index, width_index
+                condition_3 = False
+                while point_y > 0:
+                    point_y -= 1
+                    a_point = saved_2d_list[point_y][point_x]
+                    if a_point == True:
+                        condition_3 = True
+                        break
+                point_y, point_x = height_index, width_index
+                condition_4 = False
+                while point_y < step_height-1:
+                    point_y += 1
+                    a_point = saved_2d_list[point_y][point_x]
+                    if a_point == True:
+                        condition_4 = True
+                        break
+
+                if (condition_1 and condition_2 and condition_3 and condition_4):
+                    # it is human, not background
+                    for index, human_row in enumerate(human_sub_image):
+                        new_image.raw_data[start_height+index][start_width: end_width] = human_row[:]
+
+        return new_image
 
     def object_feature_extraction_and_recognition(self):
         """
