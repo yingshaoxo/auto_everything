@@ -2,8 +2,19 @@ import json
 try:
     from auto_everything.font_ import get_ascii_8_times_16_points_data
 except Exception as e:
-    from font_ import get_ascii_8_times_16_points_data
+    try:
+        from font_ import get_ascii_8_times_16_points_data
+    except Exception as e:
+        print(e)
 
+
+
+def my_print(message="", end="\n", flush=False):
+    import sys
+    sys.stdout.write(str(message))
+    sys.stdout.write(end)
+    if flush == True:
+        sys.stdout.flush()
 
 
 terminal_color_dict = {
@@ -510,11 +521,11 @@ def single_pixel_rgb_to_hsv(r, g, b):
     Here the h,s,v all in range of [0, 255]
     """
     """
-    HSV(Hue, Saturation, Value)是根据颜色的直观特性由A. R. Smith在1978年创建的一种颜色空间, 也称六角锥体模型(Hexcone Model)。 这个模型中颜色的参数分别是：色调（H），饱和度（S），亮度（V）。
-    色调H：用角度度量，取值范围为0°～360°，从红色开始按逆时针方向计算，红色为0°，绿色为120°,蓝色为240°。它们的补色是：黄色为60°，青色为180°,品红为300°；
-    饱和度S：取值范围为0.0～1.0；
-    亮度V：取值范围为0.0(黑色)～1.0(白色)。
-    RGB和CMY颜色模型都是面向硬件的，而HSV（Hue Saturation Value）颜色模型是虚拟的。
+    HSV(Hue, Saturation, Value) is a color space created by A. R. Smith in 1978. The parameters of color in this model are hue (H), saturation (S) and brightness (V).
+    Hue H: measured by angle, the value range is 0 ~ 360, and calculated counterclockwise from red, with red being 0, green being 120 and blue being 240. Their complementary colors are: yellow is 60, cyan is 180 and magenta is 300;
+    Saturation s: the value range is 0.0 ~ 1.0;
+    Brightness v: the value range is 0.0 (black) ~ 1.0 (white).
+    RGB color model is made for hardware displaying, while HSV(Hue Saturation Value) color is model for virtual world.
     """
     r, g, b = r/255.0, g/255.0, b/255.0
     mx = max(r, g, b)
@@ -778,10 +789,10 @@ class Image:
                 new_color = new_color_raw["rgb"]
                 new_color = [new_color[0], new_color[1], new_color[2], the_color[3]]
                 final_image.raw_data[row_index][column_index] = new_color
-                print(new_color_raw["value"], end="")
-            print("\n", end="", flush=True)
+                my_print(new_color_raw["value"], end="")
+            my_print("\n", end="", flush=True)
 
-        print("", end="", flush=True)
+        my_print("", end="", flush=True)
         return final_image
 
     def compare(self, another_image):
@@ -1363,7 +1374,7 @@ class Container:
                         else:
                             char_points_data[row_index][column_index] = self.color
 
-                char_id = f"{self.text_size}+{char}"
+                char_id = "{size}+{char}".format(size=self.text_size, char=char)
                 if char_id not in char_image_container_cache:
                     char_image = Image().create_an_image(height=16, width=8, color=self.color)
                     char_image.raw_data = char_points_data
@@ -1798,19 +1809,19 @@ try:
             from auto_everything.disk import Disk
             self._disk = Disk()
 
-        def read_image_from_file(self, file_path: str):
+        def read_image_from_file(self, file_path):
             return self._Image.open(file_path)
 
-        def read_image_from_bytes_io(self, bytes_io: Any):
+        def read_image_from_bytes_io(self, bytes_io):
             return self._Image.open(bytes_io)
 
-        def read_image_from_base64_string(self, base64_string: str):
+        def read_image_from_base64_string(self, base64_string):
             return self.read_image_from_bytes_io(self._disk.base64_to_bytesio(base64_string=base64_string))
 
-        def save_image_to_file_path(self, image: Any, file_path: str):
+        def save_image_to_file_path(self, image, file_path):
             image.save(file_path)
 
-        def save_bytes_io_image_to_file_path(self, bytes_io_image: Any, file_path: str):
+        def save_bytes_io_image_to_file_path(self, bytes_io_image, file_path):
             with open(file_path, "wb") as f:
                 f.write(bytes_io_image.getbuffer())
 
@@ -1820,7 +1831,7 @@ try:
             image.save(out, format="jpeg")
             return out.tell()
 
-        def decrease_the_size_of_an_image(self, image: Any, quality=None) -> Any:
+        def decrease_the_size_of_an_image(self, image, quality=None):
             image = image.convert('RGB')
             out = self._BytesIO()
             if quality is None:
@@ -1830,7 +1841,7 @@ try:
             out.seek(0)
             return out
 
-        def force_decrease_image_file_size(self, image: Any, limit_in_kb: int=1024) -> Any:
+        def force_decrease_image_file_size(self, image, limit_in_kb=1024):
             """
             :param image: PIL image
             :param limit: kb

@@ -145,6 +145,16 @@ bfg --delete-files {filename}
                         except Exception as e:
                             print(e)
 
+    def delete_pyc(self):
+        files = disk.get_files(".", recursive=True)
+        for file in files:
+            if file.endswith(".pyc"):
+                try:
+                    disk.delete_a_file(file)
+                    print(f"file deleted: {file}")
+                except Exception as e:
+                    print(e)
+
     def sync_with_remote_git_repo(self, repo_url: str):
         t.run(f"""
 # Add a new remote upstream repository
