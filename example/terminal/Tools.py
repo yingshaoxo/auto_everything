@@ -145,13 +145,22 @@ bfg --delete-files {filename}
                         except Exception as e:
                             print(e)
 
-    def delete_pyc(self):
+    def delete_pyc_and_pycache(self):
         files = disk.get_files(".", recursive=True)
         for file in files:
             if file.endswith(".pyc"):
                 try:
                     disk.delete_a_file(file)
                     print(f"file deleted: {file}")
+                except Exception as e:
+                    print(e)
+
+        files = disk.get_folders(".", recursive=True)
+        for file in files:
+            if file.endswith("__pycache__"):
+                try:
+                    disk.delete_a_folder(file)
+                    print(f"folder deleted: {file}")
                 except Exception as e:
                     print(e)
 

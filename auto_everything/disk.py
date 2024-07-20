@@ -612,6 +612,38 @@ class Disk:
 
         return files
 
+    def get_folders(
+        self,
+        folder,
+        recursive = True,
+    ):
+        """
+        Get files list recursively under a folder.
+
+        Parameters
+        ----------
+        folder: string
+        recursive: bool
+        """
+        folder = self._expand_user(folder)
+        assert os.path.exists(folder), f"{folder} is not exist!"
+
+        if recursive == True:
+            folder_list = []
+            for root, dirnames, filenames in os.walk(folder):
+                for dirname in dirnames:
+                    a_folder = self.join_paths(root, dirname)
+                    if not os.path.islink(a_folder):
+                        folder_list.append(a_folder)
+        else:
+            folder_list = []
+            for dirname in os.listdir(folder):
+                a_folder = self.join_paths(folder, dirname)
+                if os.path.isdir(a_folder):
+                    if not os.path.islink(a_folder):
+                        folder_list.append(a_folder)
+        return folder_list
+
     def get_folder_and_files(
         self,
         folder: str,
