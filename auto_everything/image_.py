@@ -516,6 +516,43 @@ def rgb_to_black_and_white(image):
             new_image.raw_data[y][x] = new_pixel
     return new_image
 
+def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_distance=15, downscale_ratio=1):
+    """
+    yingshaoxo: You can use Canny method, but I think it is hard to understand and implement.
+
+    Need a erosion algorithm in here.
+    """
+    original_image = a_image.copy()
+    original_height, original_width = original_image.get_shape()
+    a_image = a_image.resize(int(original_height/downscale_ratio), int(original_width/downscale_ratio))
+
+    old_height, old_width = a_image.get_shape()
+    new_image = a_image.create_an_image(old_height, old_width, [0,0,0,0])
+
+    height, width = a_image.get_shape()
+    point_list = []
+    for row_index in range(height):
+        previous_pixel = None
+        for column_index in range(width):
+            pixel = a_image.raw_data[row_index][column_index]
+            if previous_pixel != None:
+                color_distance_in_horizontal = (abs(previous_pixel[0]-pixel[0]) + abs(previous_pixel[1]-pixel[1]) + abs(previous_pixel[2]-pixel[2]))/3
+                if row_index > 0:
+                    upper_pixel = a_image.raw_data[row_index-1][column_index]
+                    color_distance_in_vertical = (abs(upper_pixel[0]-pixel[0]) + abs(upper_pixel[1]-pixel[1]) + abs(upper_pixel[2]-pixel[2])) / 3
+                else:
+                    color_distance_in_vertical = 0
+                if color_distance_in_horizontal >= min_color_distance or color_distance_in_vertical >= min_color_distance:
+                    a_point = [row_index, column_index]
+                    point_list.append(a_point)
+            previous_pixel = pixel
+
+    for y,x in point_list:
+        new_image.raw_data[y][x] = [0,0,0,255]
+
+    new_image.resize(original_height, original_width)
+    return new_image
+
 def single_pixel_rgb_to_hsv(r, g, b):
     """
     Here the h,s,v all in range of [0, 255]
@@ -569,6 +606,27 @@ def single_pixel_hsv_to_rgb(h,s,v):
     elif hi == 5: r, g, b = v, p, q
     r, g, b = int(r * 255), int(g * 255), int(b * 255)
     return r, g, b
+
+def make_a_line_between_two_points(point_a, point_b):
+    y1, x1 = point_a
+    y2, x2 = point_b
+    new_list = []
+    upper_part = y1 - y2
+    lower_part = x1 - x2
+    if upper_part == 0:
+        # horizontal_line
+        for x in range(min(x1, x2), max(x1, x2)):
+            new_list.append([y1, x])
+    elif lower_part == 0:
+        # vertical line
+        for y in range(min(y1, y2), max(y1, y2)):
+            new_list.append([y, x1])
+    else:
+        slop = upper_part / lower_part
+        for x_index in range(min(x1, x2), max(x1, x2)):
+            y_index = round(slop*(x_index-x2) + y2)
+            new_list.append([y_index, x_index])
+    return new_list
 
 
 class Image:
@@ -669,7 +727,7 @@ class Image:
 
         old_height, old_width = self.get_shape()
         if old_height == height and old_width == width:
-            return
+            return self
 
         # handle width
         data = []
@@ -749,7 +807,7 @@ class Image:
 
         return self
 
-    def get_inner_image(self, y_start, y_end, x_start, x_end):
+    def get_inner_image(self, y_start, y_end, x_start, x_end, padding=True):
         old_height, old_width = self.get_shape()
         height = y_end - y_start
         width = x_end - x_start
@@ -758,15 +816,17 @@ class Image:
         new_data = []
         for y in range(y_start, y_end):
             if y < 0 or y >= old_height:
-                new_data.append([[0,0,0,0]] * width)
+                if padding == True:
+                    new_data.append([[0,0,0,0]] * width)
                 continue
             row = self.raw_data[y]
             target_row = [[0,0,0,0]] * width
             a_index_ = 0
             for x in range(x_start, x_end):
                 if x < 0 or x >= old_width:
-                    target_row[a_index_] = [0,0,0,0]
-                    a_index_ += 1
+                    if padding == True:
+                        target_row[a_index_] = [0,0,0,0]
+                        a_index_ += 1
                     continue
                 target_row[a_index_] = row[x]
                 a_index_ += 1
