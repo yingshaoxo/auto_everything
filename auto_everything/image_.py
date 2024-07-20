@@ -749,6 +749,32 @@ class Image:
 
         return self
 
+    def get_inner_image(self, y_start, y_end, x_start, x_end):
+        old_height, old_width = self.get_shape()
+        height = y_end - y_start
+        width = x_end - x_start
+        if height <= 0 or width <= 0:
+            return self.create_an_image(0, 0, [0,0,0,0])
+        new_data = []
+        for y in range(y_start, y_end):
+            if y < 0 or y >= old_height:
+                new_data.append([[0,0,0,0]] * width)
+                continue
+            row = self.raw_data[y]
+            target_row = [[0,0,0,0]] * width
+            a_index_ = 0
+            for x in range(x_start, x_end):
+                if x < 0 or x >= old_width:
+                    target_row[a_index_] = [0,0,0,0]
+                    a_index_ += 1
+                    continue
+                target_row[a_index_] = row[x]
+                a_index_ += 1
+            new_data.append(target_row)
+        new_image = self.create_an_image(height, width, [0,0,0,0])
+        new_image.raw_data = new_data
+        return new_image
+
     def rotate(self):
         """
         rotate 90 degree in clockwise
@@ -841,8 +867,14 @@ class Image:
 
         difference = abs(r_all_1-r_all_2) + abs(g_all_1-g_all_2) + abs(b_all_1-b_all_2)
         difference = ((difference*100)/(255*3))/20
-        difference = 1 - difference
-        return difference
+        similarity = 1 - difference
+
+        if similarity < 0:
+            similarity = 0
+        if similarity > 1:
+            similarity = 1
+
+        return similarity
 
     def get_simplified_image_in_a_slow_way(self, ratio=0.7):
         """

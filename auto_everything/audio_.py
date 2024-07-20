@@ -1060,13 +1060,13 @@ class Audio():
 
         max_value = max([max(result_list_1),max(result_list_2)])
         difference = ((difference * 100) / (max_value)) / 25
-        difference = 1 - difference
-        if difference > 1:
-            difference = 1
-        if difference < 0:
-            difference = 0
+        similarity = 1 - difference
+        if similarity > 1:
+            similarity = 1
+        if similarity < 0:
+            similarity = 0
 
-        return difference
+        return similarity
 
     def to_hash(self, seconds=3, hash_length=12):
         """
