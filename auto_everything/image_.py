@@ -903,7 +903,7 @@ class Image:
         """
         return a float between 0 and 1, 1 means equal, 0 means no relate.
 
-        If it is not accurate, it simply because your camera or rgb_system or computer_color_system is not right. I see things as white, but computer thinks it is black. It happens even when I use HSV color space. If you can link all color into 9 colors, then you solve 99% of the problems related to computer vision.
+        If it is not accurate, it simply because your camera or rgb_system or computer_color_system is not right. I see things as white, but computer thinks it is black. It happens even when I use HSV color space. If you can link all color into 9 colors, then you solve 99% of the problems related to computer vision. It you can write a function to know if two color is the similar color from real world picture as accuracy as human do, you win every computer vision game.
         """
         r_all_1 = 0
         g_all_1 = 0
