@@ -516,7 +516,7 @@ def rgb_to_black_and_white(image):
             new_image.raw_data[y][x] = new_pixel
     return new_image
 
-def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_distance=15, downscale_ratio=1):
+def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_distance=15, downscale_ratio=3):
     """
     yingshaoxo: You can use Canny method, but I think it is hard to understand and implement.
 

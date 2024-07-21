@@ -1777,6 +1777,13 @@ class Yingshaoxo_Computer_Vision():
         """
         pass
 
+    def color_based_shape_layer_extraction_algorithm(self):
+        """
+        When I make volume based sound control light, I found if we use 3 second average sound volume to check if a new sound volume is higher than average volume could make a better control over the light. For example, when I clap my hands, it lights up.
+        When you think a yellow desk in real world, it is not all yellow at all part, especially when you put a white light close to that desk, for computer, it will think that part of desk is white, but no. Human would think it is still a yellow desk. Why? Because human process color differently, human will only think a suddently change on color is the edge line of an object. In other words, if the color slowly changes, human will still think it is beloning to the old object. Now if you put the desk close to white wall, the color suddenly changed, then human think it is the boundary of that desk.
+        """
+        pass
+
 
 class Yingshaoxo_Speech_Recognizer():
     """
