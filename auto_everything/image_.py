@@ -902,6 +902,8 @@ class Image:
     def compare(self, another_image):
         """
         return a float between 0 and 1, 1 means equal, 0 means no relate.
+
+        If it is not accurate, it simply because your camera or rgb_system or computer_color_system is not right. I see things as white, but computer thinks it is black. It happens even when I use HSV color space. If you can link all color into 9 colors, then you solve 99% of the problems related to computer vision.
         """
         r_all_1 = 0
         g_all_1 = 0
@@ -963,6 +965,9 @@ class Image:
         return self
 
     def get_balanced_image(self):
+        """
+        For example, light up darker image.
+        """
         new_image = self.copy()
         try:
             max_r = -999
