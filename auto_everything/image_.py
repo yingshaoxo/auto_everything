@@ -484,8 +484,63 @@ def rgb_to_greyscale(image, simple_mode=False):
             new_image.raw_data[y][x] = [grayscale, 0, 0, 255]
     return new_image
 
+def single_pixel_rgb_to_hsv(r, g, b):
+    """
+    Here the h,s,v all in range of [0, 255]
+    """
+    """
+    HSV(Hue, Saturation, Value) is a color space created by A. R. Smith in 1978. The parameters of color in this model are hue (H), saturation (S) and brightness (V).
+    Hue H: measured by angle, the value range is 0 ~ 360, and calculated counterclockwise from red, with red being 0, green being 120 and blue being 240. Their complementary colors are: yellow is 60, cyan is 180 and magenta is 300;
+    Saturation s: the value range is 0.0 ~ 1.0;
+    Brightness v: the value range is 0.0 (black) ~ 1.0 (white).
+    RGB color model is made for hardware displaying, while HSV(Hue Saturation Value) color is model for virtual world.
+    """
+    r, g, b = r/255.0, g/255.0, b/255.0
+    mx = max(r, g, b)
+    mn = min(r, g, b)
+    df = mx-mn
+    if mx == mn:
+        h = 0
+    elif mx == r:
+        h = (60 * ((g-b)/df) + 360) % 360
+    elif mx == g:
+        h = (60 * ((b-r)/df) + 120) % 360
+    elif mx == b:
+        h = (60 * ((r-g)/df) + 240) % 360
+    if mx == 0:
+        s = 0
+    else:
+        s = df/mx
+    v = mx
+    return int((h/360)*255), int(s*255), int(v*255)
+
+def single_pixel_hsv_to_rgb(h,s,v):
+    """
+    Here the r,g,b all in range of [0, 255]
+    """
+    h = float((h/255)*360)
+    s = float(s/255)
+    v = float(v/255)
+    h60 = h / 60.0
+    h60f = int(h60)#math.floor(h60)
+    hi = int(h60f) % 6
+    f = h60 - h60f
+    p = v * (1 - s)
+    q = v * (1 - f * s)
+    t = v * (1 - (1 - f) * s)
+    r, g, b = 0, 0, 0
+    if hi == 0: r, g, b = v, t, p
+    elif hi == 1: r, g, b = q, v, p
+    elif hi == 2: r, g, b = p, v, t
+    elif hi == 3: r, g, b = p, q, v
+    elif hi == 4: r, g, b = t, p, v
+    elif hi == 5: r, g, b = v, p, q
+    r, g, b = int(r * 255), int(g * 255), int(b * 255)
+    return r, g, b
+
+
 def rgb_to_hsv(image):
-    import colorsys
+    #import colorsys
     new_image = image.copy()
     height, width = new_image.get_shape()
     for y in range(height):
@@ -494,9 +549,26 @@ def rgb_to_hsv(image):
             red, green, blue, transparent = pixel
             if transparent == 0:
                 continue
-            h,s,v = colorsys.rgb_to_hsv(red/255, green/255, blue/255)
-            h,s,v = int(h*255), int(s*255), int(v*255)
+            #h,s,v = colorsys.rgb_to_hsv(red/255, green/255, blue/255)
+            #h,s,v = int(h*255), int(s*255), int(v*255)
+            h,s,v = single_pixel_rgb_to_hsv(red, green, blue)
             new_image.raw_data[y][x] = [h, s, v, 255]
+    return new_image
+
+def hsv_to_rgb(image):
+    #import colorsys
+    new_image = image.copy()
+    height, width = new_image.get_shape()
+    for y in range(height):
+        for x in range(width):
+            pixel = new_image.raw_data[y][x]
+            h, s, v, transparent = pixel
+            if transparent == 0:
+                continue
+            #r,g,b = colorsys.hsv_to_rgb(h/255, s/255, v/255)
+            #r,g,b = int(r*255), int(g*255), int(b*255)
+            r,g,b = single_pixel_hsv_to_rgb(h, s, v)
+            new_image.raw_data[y][x] = [r, g, b, 255]
     return new_image
 
 def rgb_to_black_and_white(image):
@@ -552,60 +624,6 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
 
     new_image.resize(original_height, original_width)
     return new_image
-
-def single_pixel_rgb_to_hsv(r, g, b):
-    """
-    Here the h,s,v all in range of [0, 255]
-    """
-    """
-    HSV(Hue, Saturation, Value) is a color space created by A. R. Smith in 1978. The parameters of color in this model are hue (H), saturation (S) and brightness (V).
-    Hue H: measured by angle, the value range is 0 ~ 360, and calculated counterclockwise from red, with red being 0, green being 120 and blue being 240. Their complementary colors are: yellow is 60, cyan is 180 and magenta is 300;
-    Saturation s: the value range is 0.0 ~ 1.0;
-    Brightness v: the value range is 0.0 (black) ~ 1.0 (white).
-    RGB color model is made for hardware displaying, while HSV(Hue Saturation Value) color is model for virtual world.
-    """
-    r, g, b = r/255.0, g/255.0, b/255.0
-    mx = max(r, g, b)
-    mn = min(r, g, b)
-    df = mx-mn
-    if mx == mn:
-        h = 0
-    elif mx == r:
-        h = (60 * ((g-b)/df) + 360) % 360
-    elif mx == g:
-        h = (60 * ((b-r)/df) + 120) % 360
-    elif mx == b:
-        h = (60 * ((r-g)/df) + 240) % 360
-    if mx == 0:
-        s = 0
-    else:
-        s = df/mx
-    v = mx
-    return int((h/360)*255), int(s*255), int(v*255)
-
-def single_pixel_hsv_to_rgb(h,s,v):
-    """
-    Here the r,g,b all in range of [0, 255]
-    """
-    h = float((h/255)*360)
-    s = float(s/255)
-    v = float(v/255)
-    h60 = h / 60.0
-    h60f = int(h60)#math.floor(h60)
-    hi = int(h60f) % 6
-    f = h60 - h60f
-    p = v * (1 - s)
-    q = v * (1 - f * s)
-    t = v * (1 - (1 - f) * s)
-    r, g, b = 0, 0, 0
-    if hi == 0: r, g, b = v, t, p
-    elif hi == 1: r, g, b = q, v, p
-    elif hi == 2: r, g, b = p, v, t
-    elif hi == 3: r, g, b = p, q, v
-    elif hi == 4: r, g, b = t, p, v
-    elif hi == 5: r, g, b = v, p, q
-    r, g, b = int(r * 255), int(g * 255), int(b * 255)
-    return r, g, b
 
 def make_a_line_between_two_points(point_a, point_b):
     y1, x1 = point_a
@@ -935,6 +953,55 @@ class Image:
             similarity = 1
 
         return similarity
+
+    def to_hsv(self):
+        self = rgb_to_hsv(self)
+        return self
+
+    def to_rgb(self):
+        self = hsv_to_rgb(self)
+        return self
+
+    def get_balanced_image(self):
+        new_image = self.copy()
+        try:
+            max_r = -999
+            max_g = -999
+            max_b = -999
+            min_r = 999
+            min_g = 999
+            min_b = 999
+            for row in new_image.raw_data:
+                for pixel in row:
+                    r,g,b,a = pixel
+                    if r > max_r:
+                        max_r = r
+                    if g > max_g:
+                        max_g = g
+                    if b > max_b:
+                        max_b = b
+                    if r < min_r:
+                        min_r = r
+                    if g < min_g:
+                        min_g = g
+                    if b < min_b:
+                        min_b = b
+            r_range = max_r - min_r
+            g_range = max_g - min_g
+            b_range = max_b - min_b
+            height, width = new_image.get_shape()
+            for y in range(height):
+                for x in range(width):
+                    r,g,b,a = new_image.raw_data[y][x]
+                    new_image.raw_data[y][x] = [
+                        round(((r - min_r)/r_range)*255),
+                        round(((g - min_g)/g_range)*255),
+                        round(((b - min_b)/b_range)*255),
+                        a
+                    ]
+        except Exception as e:
+            print(e)
+        return new_image
 
     def get_simplified_image_in_a_slow_way(self, ratio=0.7):
         """
