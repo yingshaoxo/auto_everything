@@ -550,7 +550,7 @@ def single_pixel_hsv_to_rgb(h, s, v, no_255=False):
     r, g, b = int(r * 255), int(g * 255), int(b * 255)
     return r, g, b
 
-def single_pixel_to_6_main_type_color(pixel):
+def single_pixel_to_6_main_type_color(pixel, free_mode=False):
     """
     red: (255,0,0->255) (255->101,0,255) (255,0->90,0)
     blue: (101->0,0,255) (0,0->255,255)
@@ -585,14 +585,17 @@ def single_pixel_to_6_main_type_color(pixel):
         new_color = [255,255,255,255]
     else:
         r,g,b = single_pixel_hsv_to_rgb(h, 255, 255)
-        if (r==255 and g==0 and 0<=b<=255) or (101<=r<=255 and g==0 and b==255) or (r==255 and 0<=g<=90 and b==0):
-            new_color = [255, 0, 0, 255]
-        elif ((0<=r<=101 and g==0 and b==255) or (r==0 and 0<=g<=255 and b==255)):
-            new_color = [0, 0, 255, 255]
-        elif ((r==0 and g==255 and 0<=b<=255) or (0<=r<=185 and g==255 and b==0)):
-            new_color = [0, 255, 0, 255]
-        elif ((185<=r<=255 and g==255 and b==0) or (r==255 and 90<=g<=255 and b==0)):
-            new_color = [255, 255, 0, 255]
+        if free_mode == True:
+            new_color = [r,g,b,255]
+        else:
+            if (r==255 and g==0 and 0<=b<=255) or (101<=r<=255 and g==0 and b==255) or (r==255 and 0<=g<=90 and b==0):
+                new_color = [255, 0, 0, 255]
+            elif ((0<=r<=101 and g==0 and b==255) or (r==0 and 0<=g<=255 and b==255)):
+                new_color = [0, 0, 255, 255]
+            elif ((r==0 and g==255 and 0<=b<=255) or (0<=r<=185 and g==255 and b==0)):
+                new_color = [0, 255, 0, 255]
+            elif ((185<=r<=255 and g==255 and b==0) or (r==255 and 90<=g<=255 and b==0)):
+                new_color = [255, 255, 0, 255]
     new_color[3] = a
     return new_color
 
@@ -1104,13 +1107,13 @@ class Image:
                 a_image[y][x] = new_color
         return a_image
 
-    def get_6_color_simplified_image(self, balanced=False):
+    def get_6_color_simplified_image(self, balance=False, free_mode=False):
         a_image = self.copy()
-        if balanced == True:
+        if balance == True:
             a_image = a_image.get_balanced_image()
         for y, row in enumerate(a_image.raw_data):
             for x, pixel in enumerate(row):
-                new_color = single_pixel_to_6_main_type_color(pixel)
+                new_color = single_pixel_to_6_main_type_color(pixel, free_mode=free_mode)
                 a_image[y][x] = new_color
         return a_image
 
