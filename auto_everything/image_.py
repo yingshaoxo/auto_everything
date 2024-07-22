@@ -586,6 +586,8 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False):
     else:
         r,g,b = single_pixel_hsv_to_rgb(h, 255, 255)
         if free_mode == True:
+            #r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*11)/11*255), 255)
+            r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), 255, 255)
             new_color = [r,g,b,255]
         else:
             if (r==255 and g==0 and 0<=b<=255) or (101<=r<=255 and g==0 and b==255) or (r==255 and 0<=g<=90 and b==0):
@@ -1176,13 +1178,13 @@ class Image:
                     new_pixel = [0,0,0,0]
                 else:
                     if raw == False:
-                        red = int((int((red/255)*level)/level) * 255)
-                        green = int((int((green/255)*level)/level) * 255)
-                        blue = int((int((blue/255)*level)/level) * 255)
+                        red = round((round((red/255)*level)/level) * 255)
+                        green = round((round((green/255)*level)/level) * 255)
+                        blue = round((round((blue/255)*level)/level) * 255)
                     else:
-                        red = int((red/255)*level)
-                        green = int((green/255)*level)
-                        blue = int((blue/255)*level)
+                        red = round((red/255)*level)
+                        green = round((green/255)*level)
+                        blue = round((blue/255)*level)
                     new_pixel = [red,green,blue,transparent]
                 new_image.raw_data[y][x] = new_pixel
         return new_image
