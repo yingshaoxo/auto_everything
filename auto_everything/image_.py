@@ -593,6 +593,7 @@ def single_pixel_to_6_main_type_color(pixel):
             new_color = [0, 255, 0, 255]
         elif ((185<=r<=255 and g==255 and b==0) or (r==255 and 90<=g<=255 and b==0)):
             new_color = [255, 255, 0, 255]
+    new_color[3] = a
     return new_color
 
 def rgb_to_hsv(image):
@@ -1099,7 +1100,7 @@ class Image:
                 if counting == 0:
                     pass
                 else:
-                    new_color = [round(all_r/counting), round(all_g/counting), round(all_b/counting),255]
+                    new_color = [round(all_r/counting), round(all_g/counting), round(all_b/counting), pixel[3]]
                 a_image[y][x] = new_color
         return a_image
 
