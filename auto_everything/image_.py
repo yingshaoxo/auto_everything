@@ -1067,7 +1067,7 @@ class Image:
             print(e)
         return new_image
 
-    def get_gaussian_blur_image(self, kernel=None, bug_version=True):
+    def get_gaussian_blur_image(self, kernel=3, bug_version=False):
         a_image = self.copy()
         backup_image = a_image.copy()
         height, width = a_image.get_shape()
