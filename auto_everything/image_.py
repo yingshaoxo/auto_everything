@@ -270,7 +270,7 @@ def to_mosaic(self, ratio=0.99, kernel_number=6):
     return new_image
 
 
-def get_simplified_image_in_an_accurate_way(self, level=2, extreme_color_number=None):
+def get_simplified_image_in_an_accurate_way(self, level=2, extreme_color_number=None, predefined_color_list=None):
     """
     level: 2 to infinite, the bigger, the more simplified
     extreme_color_number: 20 is enough, it means the whole picture will only use 20 colors
@@ -355,27 +355,30 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extreme_color_number=
             #main_color_set.add(",".join([str(r_mean), str(g_mean), str(b_mean), str(a_mean)]))
             get_main_color_for_a_sub_window(real_pixel_list)
 
-    main_color_list = get_main_color_list_from_set()
-    if extreme_color_number != None:
-        from functools import cmp_to_key
-        def compare_color(color1, color2):
-            difference = ((color1[0] - color2[0])**2 + (color1[1] - color2[1])**2 + (color1[2] - color2[2])**2 + (color1[3] - color2[3])**2) ** 0.5
-            """
-            a_grayscale = max(min(int(0.2989 * color1[0] + 0.5870 * color1[1] + 0.1140 * color1[2]), 255), 0)
-            b_grayscale = max(min(int(0.2989 * color2[0] + 0.5870 * color2[1] + 0.1140 * color2[2]), 255), 0)
-            difference = abs(a_grayscale - b_grayscale)
-            """
-            return difference
-        main_color_list = list(sorted(main_color_list, key=cmp_to_key(compare_color)))[-extreme_color_number:]
+    if predefined_color_list == None:
+        main_color_list = get_main_color_list_from_set()
+        if extreme_color_number != None:
+            from functools import cmp_to_key
+            def compare_color(color1, color2):
+                difference = ((color1[0] - color2[0])**2 + (color1[1] - color2[1])**2 + (color1[2] - color2[2])**2 + (color1[3] - color2[3])**2) ** 0.5
+                """
+                a_grayscale = max(min(int(0.2989 * color1[0] + 0.5870 * color1[1] + 0.1140 * color1[2]), 255), 0)
+                b_grayscale = max(min(int(0.2989 * color2[0] + 0.5870 * color2[1] + 0.1140 * color2[2]), 255), 0)
+                difference = abs(a_grayscale - b_grayscale)
+                """
+                return difference
+            main_color_list = list(sorted(main_color_list, key=cmp_to_key(compare_color)))[-extreme_color_number:]
+        else:
+            length_of_main_color = len(main_color_list)
+            if level >= length_of_main_color/2:
+                level = int(length_of_main_color/3)
+            main_color_list.sort(key=lambda one: max(min(int(0.2989 * one[0] + 0.5870 * one[1] + 0.1140 * one[2]), 255), 0))
+            new_main_color_list = []
+            for i in range(0, len(main_color_list), level):
+                new_main_color_list.append(main_color_list[i])
+            main_color_list = new_main_color_list
     else:
-        length_of_main_color = len(main_color_list)
-        if level >= length_of_main_color/2:
-            level = int(length_of_main_color/3)
-        main_color_list.sort(key=lambda one: max(min(int(0.2989 * one[0] + 0.5870 * one[1] + 0.1140 * one[2]), 255), 0))
-        new_main_color_list = []
-        for i in range(0, len(main_color_list), level):
-            new_main_color_list.append(main_color_list[i])
-        main_color_list = new_main_color_list
+        main_color_list = predefined_color_list
 
     new_pixel_dict = {}
     for y in range(height):
@@ -390,7 +393,8 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extreme_color_number=
                 new_pixel = pixel
                 minimum_distance = 99999
                 for safe_color in main_color_list:
-                    difference = ((old_pixel[0] - safe_color[0])**2 + (old_pixel[1] - safe_color[1])**2 + (old_pixel[2] - safe_color[2])**2 + (old_pixel[3] - safe_color[3])**2) ** 0.5
+                    #difference = ((old_pixel[0] - safe_color[0])**2 + (old_pixel[1] - safe_color[1])**2 + (old_pixel[2] - safe_color[2])**2 + (old_pixel[3] - safe_color[3])**2) ** 0.5
+                    difference = (abs(old_pixel[0] - safe_color[0]) + abs(old_pixel[1] - safe_color[1]) + abs(old_pixel[2] - safe_color[2])) / 3
                     if difference < minimum_distance:
                         minimum_distance = difference
                         new_pixel = safe_color
@@ -484,7 +488,7 @@ def rgb_to_greyscale(image, simple_mode=False):
             new_image.raw_data[y][x] = [grayscale, 0, 0, 255]
     return new_image
 
-def single_pixel_rgb_to_hsv(r, g, b):
+def single_pixel_rgb_to_hsv(r, g, b, no_255=False):
     """
     Here the h,s,v all in range of [0, 255]
     """
@@ -512,15 +516,23 @@ def single_pixel_rgb_to_hsv(r, g, b):
     else:
         s = df/mx
     v = mx
-    return int((h/360)*255), int(s*255), int(v*255)
+    if no_255 == False:
+        return int((h/360)*255), int(s*255), int(v*255)
+    else:
+        return h,s,v
 
-def single_pixel_hsv_to_rgb(h,s,v):
+def single_pixel_hsv_to_rgb(h, s, v, no_255=False):
     """
     Here the r,g,b all in range of [0, 255]
     """
-    h = float((h/255)*360)
-    s = float(s/255)
-    v = float(v/255)
+    if no_255 == False:
+        h = float((h/255)*360)
+        s = float(s/255)
+        v = float(v/255)
+    else:
+        h = float(h)
+        s = float(s)
+        v = float(v)
     h60 = h / 60.0
     h60f = int(h60)#math.floor(h60)
     hi = int(h60f) % 6
@@ -538,6 +550,50 @@ def single_pixel_hsv_to_rgb(h,s,v):
     r, g, b = int(r * 255), int(g * 255), int(b * 255)
     return r, g, b
 
+def single_pixel_to_6_main_type_color(pixel):
+    """
+    red: (255,0,0->255) (255->101,0,255) (255,0->90,0)
+    blue: (101->0,0,255) (0,0->255,255)
+    green: (0,255,255->0) (0->185,255,0)
+    yellow: (185->255,255,0) (255,255->90,0)
+    white: hsv, s<7% or s<18%
+    black: hsv, v<32%
+
+    main_colors = {
+        "Red": (255, 0, 0),
+        "Blue": (0, 0, 255),
+        "Green": (0, 255, 0),
+        "Yellow": (255, 255, 0),
+        "White": (255, 255, 255),
+        "Black": (0, 0, 0),
+    }
+
+    You can turn s and v to 100%, so you get standard rgb color, which belong to 4 colors, do not include white and black.
+    """
+    if len(pixel) == 4:
+        r,g,b,a = pixel
+    elif len(pixel) == 3:
+        r,g,b = pixel
+        a = 255
+    new_color = [0, 0, 0, 0]
+    h,s,v = single_pixel_rgb_to_hsv(r, g, b)
+    if v < (32/100) * 255:
+        # black
+        new_color = [0,0,0,255]
+    elif s < (18/100) * 255:
+        # white
+        new_color = [255,255,255,255]
+    else:
+        r,g,b = single_pixel_hsv_to_rgb(h, 255, 255)
+        if (r==255 and g==0 and 0<=b<=255) or (101<=r<=255 and g==0 and b==255) or (r==255 and 0<=g<=90 and b==0):
+            new_color = [255, 0, 0, 255]
+        elif ((0<=r<=101 and g==0 and b==255) or (r==0 and 0<=g<=255 and b==255)):
+            new_color = [0, 0, 255, 255]
+        elif ((r==0 and g==255 and 0<=b<=255) or (0<=r<=185 and g==255 and b==0)):
+            new_color = [0, 255, 0, 255]
+        elif ((185<=r<=255 and g==255 and b==0) or (r==255 and 90<=g<=255 and b==0)):
+            new_color = [255, 255, 0, 255]
+    return new_color
 
 def rgb_to_hsv(image):
     #import colorsys
@@ -588,7 +644,7 @@ def rgb_to_black_and_white(image):
             new_image.raw_data[y][x] = new_pixel
     return new_image
 
-def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_distance=15, downscale_ratio=3):
+def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_distance=15, downscale_ratio=3, gaussian_blur=False):
     """
     yingshaoxo: You can use Canny method, but I think it is hard to understand and implement.
 
@@ -597,6 +653,8 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
     original_image = a_image.copy()
     original_height, original_width = original_image.get_shape()
     a_image = a_image.resize(int(original_height/downscale_ratio), int(original_width/downscale_ratio))
+    if gaussian_blur == True:
+        a_image = a_image.get_gaussian_blur_image(2, bug_version=True)
 
     old_height, old_width = a_image.get_shape()
     new_image = a_image.create_an_image(old_height, old_width, [0,0,0,0])
@@ -1008,6 +1066,51 @@ class Image:
             print(e)
         return new_image
 
+    def get_gaussian_blur_image(self, kernel=None, bug_version=True):
+        a_image = self.copy()
+        backup_image = a_image.copy()
+        height, width = a_image.get_shape()
+        if kernel == None:
+            kernel = int(width / 24 / 2)
+        for y, row in enumerate(a_image.raw_data):
+            for x, pixel in enumerate(row):
+                new_color = pixel
+                start_y = y - kernel
+                end_y = y + kernel
+                start_x = x - kernel
+                end_x = x + kernel
+                if bug_version == True:
+                    sub_image = a_image.get_inner_image(start_y, end_y, start_x, end_x)
+                else:
+                    sub_image = backup_image.get_inner_image(start_y, end_y, start_x, end_x)
+                counting = 0
+                all_r = 0
+                all_g = 0
+                all_b = 0
+                for a_row in sub_image.raw_data:
+                    for temp_pixel in a_row:
+                        r,g,b,a = temp_pixel
+                        if a == 0:
+                            continue
+                        all_r += r
+                        all_g += g
+                        all_b += b
+                        counting += 1
+                if counting == 0:
+                    pass
+                else:
+                    new_color = [round(all_r/counting), round(all_g/counting), round(all_b/counting),255]
+                a_image[y][x] = new_color
+        return a_image
+
+    def get_6_color_simplified_image(self):
+        a_image = self.copy()
+        for y, row in enumerate(a_image.raw_data):
+            for x, pixel in enumerate(row):
+                new_color = single_pixel_to_6_main_type_color(pixel)
+                a_image[y][x] = new_color
+        return a_image
+
     def get_simplified_image_in_a_slow_way(self, ratio=0.7):
         """
         ratio: 0 to 1, more close to 1, more simplified
@@ -1030,7 +1133,7 @@ class Image:
 
         return new_image
 
-    def get_simplified_image(self, level=7, extreme_color_number=None):
+    def get_simplified_image(self, level=7, extreme_color_number=None, predefined_color_list=None):
         """
         level: 2 to infinite, the bigger, the more simplified
         extreme_color_number: 20 is enough, it means the whole picture will only use 20 colors
@@ -1045,7 +1148,7 @@ class Image:
 
         > author: yingshaoxo
         """
-        return get_simplified_image_in_an_accurate_way(self, level, extreme_color_number)
+        return get_simplified_image_in_an_accurate_way(self, level, extreme_color_number, predefined_color_list)
 
     def get_simplified_image_in_a_quick_way(self, level=25):
         return get_simplified_image_in_a_quick_way(self, level)
