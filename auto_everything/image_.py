@@ -550,7 +550,7 @@ def single_pixel_hsv_to_rgb(h, s, v, no_255=False):
     r, g, b = int(r * 255), int(g * 255), int(b * 255)
     return r, g, b
 
-def single_pixel_to_6_main_type_color(pixel, free_mode=False):
+def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=False):
     """
     red: (255,0,0->255) (255->101,0,255) (255,0->90,0)
     blue: (101->0,0,255) (0,0->255,255)
@@ -577,10 +577,12 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False):
         a = 255
     new_color = [0, 0, 0, 0]
     h,s,v = single_pixel_rgb_to_hsv(r, g, b)
-    if v < (32/100) * 255:
+    black_gate = 30
+    white_gate = 18
+    if v < (black_gate/100) * 255:
         # black
         new_color = [0,0,0,255]
-    elif s < (18/100) * 255:
+    elif s < (white_gate/100) * 255:
         # white
         new_color = [255,255,255,255]
     else:
@@ -588,6 +590,8 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False):
         if free_mode == True:
             #r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*11)/11*255), 255)
             r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), 255, 255)
+            if animation_mode == True:
+                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*3)/3*255), round(round(v/255*3)/3*255))
             new_color = [r,g,b,255]
         else:
             if (r==255 and g==0 and 0<=b<=255) or (101<=r<=255 and g==0 and b==255) or (r==255 and 0<=g<=90 and b==0):
@@ -1109,13 +1113,13 @@ class Image:
                 a_image[y][x] = new_color
         return a_image
 
-    def get_6_color_simplified_image(self, balance=False, free_mode=False):
+    def get_6_color_simplified_image(self, balance=False, free_mode=False, animation_mode=False):
         a_image = self.copy()
         if balance == True:
             a_image = a_image.get_balanced_image()
         for y, row in enumerate(a_image.raw_data):
             for x, pixel in enumerate(row):
-                new_color = single_pixel_to_6_main_type_color(pixel, free_mode=free_mode)
+                new_color = single_pixel_to_6_main_type_color(pixel, free_mode=free_mode, animation_mode=animation_mode)
                 a_image[y][x] = new_color
         return a_image
 
