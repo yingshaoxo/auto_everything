@@ -1104,8 +1104,10 @@ class Image:
                 a_image[y][x] = new_color
         return a_image
 
-    def get_6_color_simplified_image(self):
+    def get_6_color_simplified_image(self, balanced=False):
         a_image = self.copy()
+        if balanced == True:
+            a_image = a_image.get_balanced_image()
         for y, row in enumerate(a_image.raw_data):
             for x, pixel in enumerate(row):
                 new_color = single_pixel_to_6_main_type_color(pixel)
