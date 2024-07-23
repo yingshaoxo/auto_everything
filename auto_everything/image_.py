@@ -699,6 +699,80 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
     new_image.resize(original_height, original_width)
     return new_image
 
+def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=6):
+    a_image = a_image.copy()
+    old_height, old_width = a_image.get_shape()
+
+    a_image = a_image.resize(old_height//downscale_ratio, old_width//downscale_ratio)
+    height, width = a_image.get_shape()
+
+    new_image = a_image.create_an_image(height, width, [0,0,0,0])
+    a_image = a_image.get_gaussian_blur_image(2, bug_version=False)
+    a_image = a_image.get_balanced_image()
+    edge_image = a_image.to_edge_line(downscale_ratio=min(int(downscale_ratio/2),1))
+    for y in range(height):
+        for x in range(width):
+            edge_point = edge_image.raw_data[y][x]
+            r,g,b,a_ = edge_point
+            if a_ == 255:
+                continue
+
+            kernel = 1
+            while True:
+                start_y = y - kernel
+                end_y = y + kernel
+                start_x = x - kernel
+                end_x = x + kernel
+                if start_y < 0 or end_y > height or start_x < 0 or end_x > width:
+                    kernel -= 1
+                    break
+                sub_image = edge_image.get_inner_image(start_y, end_y, start_x, end_x)
+                should_stop = False
+                for row in sub_image.raw_data:
+                    for pixel in row:
+                        r,g,b,a = pixel
+                        if a == 255:
+                            should_stop = True
+                            kernel -= 1
+                            break
+                    if should_stop == True:
+                        break
+                if should_stop == True:
+                    break
+                kernel += 1
+
+            if kernel <= 0:
+                continue
+
+            start_y = y - kernel
+            end_y = y + kernel
+            start_x = x - kernel
+            end_x = x + kernel
+            sub_image = a_image.get_inner_image(start_y, end_y, start_x, end_x)
+            all_r, all_g, all_b, _ = 0,0,0,0
+            counting = 0
+            for row in sub_image.raw_data:
+                for pixel in row:
+                    r,g,b,a = pixel
+                    if a != 0:
+                        all_r += r
+                        all_g += g
+                        all_b += b
+                        counting += 1
+            if counting != 0:
+                r = min(max(round(all_r/counting),0),255)
+                g = min(max(round(all_g/counting),0),255)
+                b = min(max(round(all_b/counting),0),255)
+                a = a_image.raw_data[y][x][3]
+            else:
+                #r,g,b,a = a_image.raw_data[y][x]
+                r,g,b,a = 0,0,0,0
+
+            new_image[y][x] = [r,g,b,a]
+
+    new_image.resize(old_height, old_width)
+    return new_image
+
 def make_a_line_between_two_points(point_a, point_b):
     y1, x1 = point_a
     y2, x2 = point_b
@@ -1136,14 +1210,23 @@ class Image:
                 a_image[y][x] = new_color
         return a_image
 
-    def get_6_color_simplified_image(self, balance=False, free_mode=False, animation_mode=False, greyscale_mode=False):
+    def get_6_color_simplified_image(self, balance=False, free_mode=False, animation_mode=False, greyscale_mode=False, slow_mode=False):
         a_image = self.copy()
+        backup_image = a_image.copy()
+
         if balance == True:
             a_image = a_image.get_balanced_image()
         for y, row in enumerate(a_image.raw_data):
             for x, pixel in enumerate(row):
                 new_color = single_pixel_to_6_main_type_color(pixel, free_mode=free_mode, animation_mode=animation_mode, greyscale_mode=greyscale_mode)
                 a_image[y][x] = new_color
+
+        if slow_mode == True:
+            a_image2 = get_simplified_image_by_using_mean_square_and_edge_line(backup_image, downscale_ratio=2)
+            a_image2 = a_image2.get_6_color_simplified_image(balance=True, free_mode=True, accurate_mode=False)
+            height, width = a_image.get_shape()
+            a_image = a_image.paste_image_on_top_of_this_image(a_image2, 0,0,height,width)
+
         return a_image
 
     def get_simplified_image_in_a_slow_way(self, ratio=0.7):
