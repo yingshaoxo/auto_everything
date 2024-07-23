@@ -485,7 +485,7 @@ def rgb_to_greyscale(image, simple_mode=False):
                 grayscale = max(min(int(0.2989 * red + 0.5870 * green + 0.1140 * blue), 255), 0)
             else:
                 grayscale = int((red + green + blue) / 3)
-            new_image.raw_data[y][x] = [grayscale, 0, 0, 255]
+            new_image.raw_data[y][x] = [grayscale, grayscale, grayscale, 255]
     return new_image
 
 def single_pixel_rgb_to_hsv(r, g, b, no_255=False):
@@ -550,7 +550,7 @@ def single_pixel_hsv_to_rgb(h, s, v, no_255=False):
     r, g, b = int(r * 255), int(g * 255), int(b * 255)
     return r, g, b
 
-def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=False):
+def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=False, greyscale_mode=False):
     """
     red: (255,0,0->255) (255->101,0,255) (255,0->90,0)
     blue: (101->0,0,255) (0,0->255,255)
@@ -591,10 +591,12 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=Fal
     else:
         r,g,b = single_pixel_hsv_to_rgb(h, 255, 255)
         if free_mode == True:
-            #r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*11)/11*255), 255)
-            r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), 255, 255)
-            if animation_mode == True:
+            if greyscale_mode == True:
+                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), 0, round(round(v/255*3)/3*255))
+            elif animation_mode == True:
                 r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*2)/2*255), round(round(v/255*2)/2*255))
+            else:
+                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), 255, 255)
             new_color = [r,g,b,255]
         else:
             if (r==255 and g==0 and 0<=b<=255) or (101<=r<=255 and g==0 and b==255) or (r==255 and 0<=g<=90 and b==0):
@@ -717,6 +719,12 @@ def make_a_line_between_two_points(point_a, point_b):
             y_index = round(slop*(x_index-x2) + y2)
             new_list.append([y_index, x_index])
     return new_list
+
+def range_map(number, from_min, from_max, to_min, to_max, use_int=True):
+    result = (((number - from_min) / (from_max - from_min)) * (to_max - to_min)) + to_min
+    if use_int == True:
+        return round(result)
+    return result
 
 
 class Image:
@@ -1044,6 +1052,9 @@ class Image:
     def to_edge_line(self, min_color_distance=15, downscale_ratio=2, gaussian_blur=False):
         return get_edge_lines_of_a_image_by_using_yingshaoxo_method(self, min_color_distance=min_color_distance, downscale_ratio=downscale_ratio, gaussian_blur=gaussian_blur)
 
+    def to_greyscale(self):
+        return self.get_6_color_simplified_image(balance=True, free_mode=True, animation_mode=True, greyscale_mode=True)
+
     def get_balanced_image(self):
         """
         For example, light up darker image.
@@ -1125,13 +1136,13 @@ class Image:
                 a_image[y][x] = new_color
         return a_image
 
-    def get_6_color_simplified_image(self, balance=False, free_mode=False, animation_mode=False):
+    def get_6_color_simplified_image(self, balance=False, free_mode=False, animation_mode=False, greyscale_mode=False):
         a_image = self.copy()
         if balance == True:
             a_image = a_image.get_balanced_image()
         for y, row in enumerate(a_image.raw_data):
             for x, pixel in enumerate(row):
-                new_color = single_pixel_to_6_main_type_color(pixel, free_mode=free_mode, animation_mode=animation_mode)
+                new_color = single_pixel_to_6_main_type_color(pixel, free_mode=free_mode, animation_mode=animation_mode, greyscale_mode=greyscale_mode)
                 a_image[y][x] = new_color
         return a_image
 
