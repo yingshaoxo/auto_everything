@@ -702,6 +702,7 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
 def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1):
     """
     You could do the mean for each pixel by using "scale up until edge line", but that speed is very slow.
+    You can also use circle than square, it is more accurate.
     """
     a_image = a_image.copy()
     old_height, old_width = a_image.get_shape()
@@ -774,7 +775,7 @@ def real_world_photo_to_animation_graphic_function(a_image, colorful_mode=False,
         a_image_backup = a_image.copy()
         a_image = a_image.get_gaussian_blur_image(3, bug_version=True)
         if colorful_mode == True:
-            a_image = a_image.get_6_color_simplified_image(free_mode=True)
+            a_image = a_image.get_6_color_simplified_image(free_mode=True, accurate_mode=True)
 
         height, width = a_image.get_shape()
 
@@ -795,7 +796,7 @@ def real_world_photo_to_animation_graphic_function(a_image, colorful_mode=False,
                 break
 
             found_anything_in_this_scan = False
-            new_image = image.create_an_image(height, width, [0,0,0,0])
+            new_image = a_image.create_an_image(height, width, [0,0,0,0])
             last_rgb = None
             started = False
             temp_rgb_list = []
