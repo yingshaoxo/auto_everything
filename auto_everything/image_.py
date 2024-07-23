@@ -579,6 +579,9 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=Fal
     h,s,v = single_pixel_rgb_to_hsv(r, g, b)
     black_gate = 30
     white_gate = 18
+    if animation_mode == True:
+        black_gate = 0
+        white_gate = 0
     if v < (black_gate/100) * 255:
         # black
         new_color = [0,0,0,255]
@@ -591,7 +594,7 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=Fal
             #r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*11)/11*255), 255)
             r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), 255, 255)
             if animation_mode == True:
-                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*3)/3*255), round(round(v/255*3)/3*255))
+                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*2)/2*255), round(round(v/255*2)/2*255))
             new_color = [r,g,b,255]
         else:
             if (r==255 and g==0 and 0<=b<=255) or (101<=r<=255 and g==0 and b==255) or (r==255 and 0<=g<=90 and b==0):
@@ -660,8 +663,9 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
 
     Need a erosion algorithm in here.
     """
-    original_image = a_image.copy()
-    original_height, original_width = original_image.get_shape()
+    a_image = a_image.copy()
+    original_height, original_width = a_image.get_shape()
+
     a_image = a_image.resize(int(original_height/downscale_ratio), int(original_width/downscale_ratio))
     if gaussian_blur == True:
         a_image = a_image.get_gaussian_blur_image(2, bug_version=True)
@@ -848,6 +852,11 @@ class Image:
 
     def paste_image_on_top_of_this_image(self, another_image, top, left, height, width):
         """
+        top: start_y
+        left: start_x
+        height: end_y - start_y
+        width: end_x - start_x
+
         paste another image to current image based on (top, left, height, width) position in current image
         """
         base_image_height, base_image_width = self.get_shape()
@@ -1031,6 +1040,9 @@ class Image:
     def to_rgb(self):
         self = hsv_to_rgb(self)
         return self
+
+    def to_edge_line(self, min_color_distance=15, downscale_ratio=2, gaussian_blur=False):
+        return get_edge_lines_of_a_image_by_using_yingshaoxo_method(self, min_color_distance=min_color_distance, downscale_ratio=downscale_ratio, gaussian_blur=gaussian_blur)
 
     def get_balanced_image(self):
         """
