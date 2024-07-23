@@ -773,6 +773,172 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
     new_image.resize(old_height, old_width)
     return new_image
 
+def real_world_photo_to_animation_graphic_function(a_image, colorful_mode=False, return_a_image_list=False):
+    def color_based_shape_layout_extraction(a_image, kernel=5, min_color_distance=50, downscale_ratio=5):
+        """
+        based on rgb
+
+        yingshaoxo: smooth color check is the key.
+        """
+        original_image = a_image.copy()
+        original_height, original_width = original_image.get_shape()
+        a_image = a_image.resize(int(original_height/downscale_ratio), int(original_width/downscale_ratio))
+
+        a_image_backup = a_image.copy()
+        a_image = a_image.get_gaussian_blur_image(3, bug_version=True)
+        if colorful_mode == True:
+            a_image = a_image.get_6_color_simplified_image(free_mode=True)
+
+        height, width = a_image.get_shape()
+
+        step_height = int(height/kernel)
+        step_width = int(width/kernel)
+        saved_2d_list = [[None]*step_width for _ in range(step_height)]
+        layout_image_list = []
+        while True:
+            done_scan = True
+            for row in saved_2d_list:
+                for one in row:
+                    if one == None:
+                        done_scan = False
+                        break
+                if done_scan == False:
+                    break
+            if done_scan:
+                break
+
+            found_anything_in_this_scan = False
+            new_image = image.create_an_image(height, width, [0,0,0,0])
+            last_rgb = None
+            started = False
+            temp_rgb_list = []
+            last_raw_index = 0
+            for height_index in range(step_height):
+                found_any_in_this_row = False
+                for width_index in range(step_width):
+                    start_height = height_index * kernel
+                    end_height = start_height + kernel
+                    start_width = width_index * kernel
+                    end_width = start_width + kernel
+
+                    if saved_2d_list[height_index][width_index] != None:
+                        continue
+
+                    temp_sub_image = a_image.raw_data[start_height:end_height]
+                    sub_image = []
+                    for row in temp_sub_image:
+                        sub_image.append(row[start_width: end_width])
+
+                    temp_r = 0
+                    temp_g = 0
+                    temp_b = 0
+                    all_number = 0
+                    for row in sub_image:
+                        for pixel in row:
+                            r,g,b,a = pixel
+                            if a == 0:
+                                continue
+                            temp_r += r
+                            temp_g += g
+                            temp_b += b
+                            all_number += 1
+                    if all_number == 0:
+                        continue
+                    temp_r = temp_r / all_number
+                    temp_g = temp_g / all_number
+                    temp_b = temp_b / all_number
+
+                    if last_rgb == None:
+                        last_rgb = [temp_r, temp_g, temp_b]
+                        temp_rgb_list.append(last_rgb)
+
+                    difference = (abs(temp_r - last_rgb[0]) + abs(temp_g - last_rgb[1]) + abs(temp_b - last_rgb[2])) / 3
+                    if difference < min_color_distance:
+                        # it is same with the last one
+                        started = True
+
+                        temp_sub_image_backup = a_image_backup.raw_data[start_height:end_height]
+                        sub_image_backup = []
+                        for row in temp_sub_image_backup:
+                            sub_image_backup.append(row[start_width: end_width])
+
+                        for index, a_row in enumerate(sub_image_backup):
+                            new_image.raw_data[start_height+index][start_width: end_width] = a_row[:]
+                        saved_2d_list[height_index][width_index] = [start_height, start_width]
+
+                        r_list = [one[0] for one in temp_rgb_list]
+                        g_list = [one[1] for one in temp_rgb_list]
+                        b_list = [one[2] for one in temp_rgb_list]
+                        length = len(r_list)
+                        last_rgb = [
+                            sum(r_list)/length,
+                            sum(g_list)/length,
+                            sum(b_list)/length,
+                        ]
+                        temp_rgb_list.append([temp_r, temp_g, temp_b])
+
+                        found_any_in_this_row = True
+                        last_raw_index = height_index
+                        found_anything_in_this_scan = True
+                    else:
+                        continue
+                if started == True and found_any_in_this_row == False:
+                    break
+                if started == True:
+                    if (len([one for one in saved_2d_list[height_index] if one != None])/len(saved_2d_list[height_index])) < 0.5:
+                        # capture big, let small escape
+                        # have bug, it stops when should not 
+                        break
+
+            if found_anything_in_this_scan == True:
+                # find a way to smooth the edge by using pixel level filting use last_rgb
+                new_image.resize(original_height, original_width)
+                layout_image_list.append(new_image)
+            else:
+                break
+
+        return layout_image_list
+
+    def merge_image_layout_list_into_one_image(image_list, pure_color=True):
+        base_image = image_list[0]
+        height, width = base_image.get_shape()
+        base_image = base_image.create_an_image(height, width, [0,0,0,0])
+        for a_image in image_list:
+            r_all = 0
+            g_all = 0
+            b_all = 0
+            all_numbers = 0
+            for row in a_image.raw_data:
+                for pixel in row:
+                    r,g,b,a = pixel
+                    if a != 0:
+                        all_numbers += 1
+                        r_all += r
+                        g_all += g
+                        b_all += b
+            if all_numbers == 0:
+                continue
+            r_mean = round(r_all/all_numbers)
+            g_mean = round(g_all/all_numbers)
+            b_mean = round(b_all/all_numbers)
+            for y,row in enumerate(a_image.raw_data):
+                for x,pixel in enumerate(row):
+                    r,g,b,a = pixel
+                    if a != 0:
+                        if pure_color == True:
+                            base_image.raw_data[y][x] = [r_mean, g_mean, b_mean, 255]
+                        else:
+                            base_image.raw_data[y][x] = [r,g,b, 255]
+        return base_image
+
+    a_image = a_image.copy()
+    a_image_list = color_based_shape_layout_extraction(a_image, kernel=5, min_color_distance=50, downscale_ratio=1)
+    if return_a_image_list == False:
+        a_image = merge_image_layout_list_into_one_image(a_image_list, pure_color=True)
+        return a_image
+    else:
+        return a_image_list
+
 def make_a_line_between_two_points(point_a, point_b):
     y1, x1 = point_a
     y2, x2 = point_b
