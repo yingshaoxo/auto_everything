@@ -594,7 +594,7 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=Fal
             if greyscale_mode == True:
                 r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), 0, round(round(v/255*3)/3*255))
             elif animation_mode == True:
-                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*2)/2*255), round(round(v/255*2)/2*255))
+                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*2)/2*255), round(round(v/255*3)/3*255))
             else:
                 r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), 255, 255)
             new_color = [r,g,b,255]
