@@ -550,7 +550,7 @@ def single_pixel_hsv_to_rgb(h, s, v, no_255=False):
     r, g, b = int(r * 255), int(g * 255), int(b * 255)
     return r, g, b
 
-def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=False, greyscale_mode=False):
+def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=False, greyscale_mode=False, kernel=11):
     """
     red: (255,0,0->255) (255->101,0,255) (255,0->90,0)
     blue: (101->0,0,255) (0,0->255,255)
@@ -592,11 +592,11 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=Fal
         r,g,b = single_pixel_hsv_to_rgb(h, 255, 255)
         if free_mode == True:
             if greyscale_mode == True:
-                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), 0, round(round(v/255*3)/3*255))
+                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*kernel)/kernel*255), 0, round(round(v/255*3)/3*255))
             elif animation_mode == True:
-                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), round(round(s/255*2)/2*255), round(round(v/255*3)/3*255))
+                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*kernel)/kernel*255), round(round(s/255*2)/2*255), round(round(v/255*3)/3*255))
             else:
-                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*11)/11*255), 255, 255)
+                r,g,b = single_pixel_hsv_to_rgb(round(round(h/255*kernel)/kernel*255), 255, 255)
             new_color = [r,g,b,255]
         else:
             if (r==255 and g==0 and 0<=b<=255) or (101<=r<=255 and g==0 and b==255) or (r==255 and 0<=g<=90 and b==0):
@@ -699,7 +699,10 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
     new_image.resize(original_height, original_width)
     return new_image
 
-def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=6):
+def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1):
+    """
+    You could do the mean for each pixel by using "scale up until edge line", but that speed is very slow.
+    """
     a_image = a_image.copy()
     old_height, old_width = a_image.get_shape()
 
@@ -709,66 +712,50 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
     new_image = a_image.create_an_image(height, width, [0,0,0,0])
     a_image = a_image.get_gaussian_blur_image(2, bug_version=False)
     a_image = a_image.get_balanced_image()
-    edge_image = a_image.to_edge_line(downscale_ratio=min(int(downscale_ratio/2),1))
-    for y in range(height):
-        for x in range(width):
-            edge_point = edge_image.raw_data[y][x]
-            r,g,b,a_ = edge_point
-            if a_ == 255:
-                continue
 
-            kernel = 1
-            while True:
-                start_y = y - kernel
-                end_y = y + kernel
-                start_x = x - kernel
-                end_x = x + kernel
-                if start_y < 0 or end_y > height or start_x < 0 or end_x > width:
-                    kernel -= 1
-                    break
-                sub_image = edge_image.get_inner_image(start_y, end_y, start_x, end_x)
-                should_stop = False
-                for row in sub_image.raw_data:
-                    for pixel in row:
-                        r,g,b,a = pixel
+    edge_image = a_image.to_edge_line(downscale_ratio=2)
+    for kernel in [1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 25, 50, 100]:
+        step_height = int(height/kernel)
+        step_width = int(width/kernel)
+        for y in range(step_height):
+            for x in range(step_width):
+                start_y = y * kernel
+                end_y = start_y + kernel
+                start_x = x * kernel
+                end_x = start_x + kernel
+
+                ok_for_mean = True
+                edge_sub_image = edge_image.get_inner_image(start_y, end_y, start_x, end_x)
+                for row in edge_sub_image.raw_data:
+                    for r,g,b,a in row:
                         if a == 255:
-                            should_stop = True
-                            kernel -= 1
+                            ok_for_mean = False
                             break
-                    if should_stop == True:
+                    if ok_for_mean == False:
                         break
-                if should_stop == True:
-                    break
-                kernel += 1
 
-            if kernel <= 0:
-                continue
+                if ok_for_mean == True:
+                    sub_image = a_image.get_inner_image(start_y, end_y, start_x, end_x)
+                    all_r, all_g, all_b, _ = 0,0,0,0
+                    counting = 0
+                    for row in sub_image.raw_data:
+                        for pixel in row:
+                            r,g,b,a = pixel
+                            if a != 0:
+                                all_r += r
+                                all_g += g
+                                all_b += b
+                                counting += 1
+                    if counting != 0:
+                        r = min(max(round(all_r/counting),0),255)
+                        g = min(max(round(all_g/counting),0),255)
+                        b = min(max(round(all_b/counting),0),255)
+                    else:
+                        r,g,b,_ = a_image.raw_data[y][x]
 
-            start_y = y - kernel
-            end_y = y + kernel
-            start_x = x - kernel
-            end_x = x + kernel
-            sub_image = a_image.get_inner_image(start_y, end_y, start_x, end_x)
-            all_r, all_g, all_b, _ = 0,0,0,0
-            counting = 0
-            for row in sub_image.raw_data:
-                for pixel in row:
-                    r,g,b,a = pixel
-                    if a != 0:
-                        all_r += r
-                        all_g += g
-                        all_b += b
-                        counting += 1
-            if counting != 0:
-                r = min(max(round(all_r/counting),0),255)
-                g = min(max(round(all_g/counting),0),255)
-                b = min(max(round(all_b/counting),0),255)
-                a = a_image.raw_data[y][x][3]
-            else:
-                #r,g,b,a = a_image.raw_data[y][x]
-                r,g,b,a = 0,0,0,0
-
-            new_image[y][x] = [r,g,b,a]
+                    for y1 in range(start_y, end_y):
+                        for x1 in range(start_x, end_x):
+                            new_image.raw_data[y1][x1] = [r,g,b,a_image.raw_data[y1][x1][3]]
 
     new_image.resize(old_height, old_width)
     return new_image
@@ -1376,7 +1363,7 @@ class Image:
                 a_image[y][x] = new_color
         return a_image
 
-    def get_6_color_simplified_image(self, balance=False, free_mode=False, animation_mode=False, greyscale_mode=False, slow_mode=False):
+    def get_6_color_simplified_image(self, balance=False, free_mode=False, animation_mode=False, greyscale_mode=False, accurate_mode=False, kernel=11):
         a_image = self.copy()
         backup_image = a_image.copy()
 
@@ -1384,14 +1371,14 @@ class Image:
             a_image = a_image.get_balanced_image()
         for y, row in enumerate(a_image.raw_data):
             for x, pixel in enumerate(row):
-                new_color = single_pixel_to_6_main_type_color(pixel, free_mode=free_mode, animation_mode=animation_mode, greyscale_mode=greyscale_mode)
+                new_color = single_pixel_to_6_main_type_color(pixel, free_mode=free_mode, animation_mode=animation_mode, greyscale_mode=greyscale_mode, kernel=kernel)
                 a_image[y][x] = new_color
 
-        if slow_mode == True:
-            a_image2 = get_simplified_image_by_using_mean_square_and_edge_line(backup_image, downscale_ratio=2)
-            a_image2 = a_image2.get_6_color_simplified_image(balance=True, free_mode=True, accurate_mode=False)
+        if accurate_mode == True:
+            a_image2 = get_simplified_image_by_using_mean_square_and_edge_line(backup_image, downscale_ratio=1)
+            a_image2 = a_image2.get_6_color_simplified_image(balance=True, free_mode=True, animation_mode=False, accurate_mode=False)
             height, width = a_image.get_shape()
-            a_image = a_image.paste_image_on_top_of_this_image(a_image2, 0,0,height,width)
+            a_image = a_image.paste_image_on_top_of_this_image(a_image2,0,0,height,width)
 
         return a_image
 
