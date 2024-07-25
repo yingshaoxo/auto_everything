@@ -540,6 +540,10 @@ def single_pixel_hsv_to_rgb(h, s, v, no_255=False):
 
 def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=False, greyscale_mode=False, kernel=11):
     """
+    If in a picture, relative to that picture, you can group every pixel into X theme, you win the image segmentation based on color game.
+    Because when you use big box blur to know the picture only has [pink, black, yellow] 3 theme, if later you use global color threshold getting a green color segment, you are doing it wrong. The threshold should get dynamically adjusted based on main color theme.
+    """
+    """
     red: (255,0,0->255) (255->101,0,255) (255,0->90,0)
     blue: (101->0,0,255) (0,0->255,255)
     green: (0,255,255->0) (0->185,255,0)
