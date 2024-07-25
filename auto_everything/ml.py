@@ -1787,6 +1787,13 @@ class Yingshaoxo_Computer_Vision():
         """
         pass
 
+    def material_based_shape_layer_extraction_algorithm(self):
+        """
+        This is special, for example, for human hair, for same person, some part of the hair is black color, some part of the hair is yellow, you can only know it is hair. If you know it is hair, you can get hair shape.
+        Another example is glass, different light on glass will give you different color, but if you know it is glass material, you can get a glass_made object shape easily.
+        """
+        pass
+
 
 class Yingshaoxo_Speech_Recognizer():
     """
