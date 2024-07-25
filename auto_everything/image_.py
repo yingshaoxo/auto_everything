@@ -542,7 +542,7 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=Fal
     """
     If in a picture, relative to that picture, you can group every pixel into X theme, you win the image segmentation based on color game.
     Because when you use big box blur to know the picture only has [pink, black, yellow] 3 theme, if later you use global color threshold getting a green color segment, you are doing it wrong. The threshold should get dynamically adjusted based on main color theme.
-    Another thing to mention is "material detection is bigger than color".
+    Another thing to mention is "material or texture detection is bigger than color detection".
         This is special, for example, for human hair, for same person, some part of the hair is black color, some part of the hair is yellow color, you can only know it is hair. If you know it is hair, you can get hair shape.
         Another example is glass, different light on glass will give you different color, but if you know it is glass material, you can get a glass_made object shape easily.
     """
