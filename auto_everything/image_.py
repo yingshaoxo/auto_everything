@@ -392,7 +392,6 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extreme_color_number=
 
     return new_image
 
-
 def get_simplified_image_in_a_quick_way(self, level=25):
     """
     level: 2 to infinite, the bigger, the more simplified
@@ -688,7 +687,7 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
     new_image.resize(original_height, original_width)
     return new_image
 
-def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1):
+def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1, fill_transparent=False):
     """
     You could do the mean for each pixel by using "scale up until edge line", but that speed is very slow.
     You can also use circle than square, it is more accurate.
@@ -745,7 +744,45 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
 
                     for y1 in range(start_y, end_y):
                         for x1 in range(start_x, end_x):
+                            if y1 < 0 or y1 >= height or x1 < 0 or x1 >= width:
+                                continue
                             new_image.raw_data[y1][x1] = [r,g,b,a_image.raw_data[y1][x1][3]]
+
+    if fill_transparent == True:
+        step_height = int(height/10)
+        step_width = int(width/10)
+        for y in range(step_height):
+            for x in range(step_width):
+                start_y = y * kernel
+                end_y = start_y + kernel
+                start_x = x * kernel
+                end_x = start_x + kernel
+
+                sub_image = new_image.get_inner_image(start_y, end_y, start_x, end_x)
+                all_r, all_g, all_b, _ = 0,0,0,0
+                counting = 0
+                for row in sub_image.raw_data:
+                    for pixel in row:
+                        r,g,b,a = pixel
+                        if a != 0:
+                            all_r += r
+                            all_g += g
+                            all_b += b
+                            counting += 1
+                if counting != 0:
+                    r = min(max(round(all_r/counting),0),255)
+                    g = min(max(round(all_g/counting),0),255)
+                    b = min(max(round(all_b/counting),0),255)
+                else:
+                    r,g,b,_ = a_image.raw_data[y][x]
+
+                for y1 in range(start_y, end_y):
+                    for x1 in range(start_x, end_x):
+                        if y1 < 0 or y1 >= height or x1 < 0 or x1 >= width:
+                            continue
+                        if new_image.raw_data[y1][x1][3] != 0:
+                            continue
+                        new_image.raw_data[y1][x1] = [r,g,b,255]
 
     new_image.resize(old_height, old_width)
     return new_image
@@ -1205,6 +1242,9 @@ class Image:
             a_image = a_image.paste_image_on_top_of_this_image(a_image2,0,0,height,width)
 
         return a_image
+
+    def get_simplified_image_based_on_mean_square_and_edge_line(self, downscale_ratio=1, fill_transparent=False):
+        return get_simplified_image_by_using_mean_square_and_edge_line(self, downscale_ratio=downscale_ratio, fill_transparent=fill_transparent)
 
     def get_simplified_image_in_a_slow_way(self, ratio=0.7):
         """
