@@ -545,6 +545,7 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=Fal
     Another thing to mention is "material or texture detection is bigger than color detection".
         This is special, for example, for human hair, for same person, some part of the hair is black color, some part of the hair is yellow color, you can only know it is hair. If you know it is hair, you can get hair shape.
         Another example is glass, different light on glass will give you different color, but if you know it is glass material, you can get a glass_made object shape easily.
+    Another thing to mention is "edge line shape defines an object, not only color". Because in 3D engine, even if you only have edge shape with pure white color, you can still recognize that object.
     """
     """
     red: (255,0,0->255) (255->101,0,255) (255,0->90,0)

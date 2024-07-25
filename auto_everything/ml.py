@@ -1795,6 +1795,13 @@ class Yingshaoxo_Computer_Vision():
         """
         pass
 
+    def edge_line_based_shape_layer_extraction_algorithm(self):
+        """
+        A thing to mention is "edge line shape defines an object, not only color". Because in 3D engine, even if you only have edge shape with pure white color, you can still recognize that object.
+
+        """
+        pass
+
 
 class Yingshaoxo_Speech_Recognizer():
     """
