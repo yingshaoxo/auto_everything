@@ -1618,25 +1618,7 @@ class Yingshaoxo_Computer_Vision():
         final_difference = 1 - final_difference
         return final_difference
 
-    def action_recognition(self, video):
-        """
-        You don't have to use deep learning algorithm, you just need a sequence action detector
-        For example, if you want to know if a person is trying to pee on street, you can do it by:
-            1. check if that person suddently stop from walking, if stop, go to next check
-            2. check if a man show his penis, if a woman squat down and take off their pants. if so, go to next check
-            3. he or she want to pee
-        """
-        pass
-
-    def auto_play_game_agent(self):
-        """
-        Try everything new to get right action for each situation. Then reuse those right data to play game. Don't make same mistakes twice.
-        To speed up the database search time, you need to simplify data. For example, for main character small area, use full pixel image comparation, and for the whole picture, resize it down to 10x10 pixels image, then do comparation.
-        And if you consider main character speed, you can split your database into 3, stand still mode, move mode, run mode.
-        """
-        pass
-
-    def remove_background_from_human_video(self, background_image, has_human_image, kernel=5, compare_number=0.5, complex_mode=True):
+    def remove_background_from_has_human_image(self, background_image, has_human_image, kernel=5, compare_number=0.5, complex_mode=True):
         """
         1. Let user take a picture of background without human.
         2. Let user take a picture with human.
@@ -1756,6 +1738,46 @@ class Yingshaoxo_Computer_Vision():
                         new_image.raw_data[start_height+index][start_width: end_width] = human_row[:]
 
         return new_image
+
+    def moving_object_extraction(self, video):
+        """
+        Most accurate algorithm:
+            1. Let user take a picture of background without object.
+            2. Let user take a picture with object in the same background.
+            3. Computer calculate difference between two picture to get human picture pixels. For example, 5x5 sub_smaller_image.
+            4. For each new image, we remove background pixels, remain object pixels.
+            5. To increase the accuracy, increase the camera real resolution.
+
+        In real world without pre_captured background but has fixed position camera:
+            1. use 10 second video, get a picture per 1 second.
+            2. assume n picture are the same, m picture are the same. n > m. n is background. moving object part take less time in the video.
+            3. n is background, m is has_object_picture, take object out from background.
+
+        In real world, moving object moves inside background but not background get pre_captured:
+            1. 1 second per picture.
+            2. For each new image, get changed 5x5 sub_smaller_image relative to previous second picture.
+            3. If 5x5 image is the same with previous second 5x5 image in the same location, if 5x5 keeps the same with history 5x5 subimage list in the same location, it is the background.
+        """
+        pass
+
+    def action_recognition(self, video):
+        """
+        You don't have to use deep learning algorithm, you just need a sequence action detector
+        For example, if you want to know if a person is trying to pee on street, you can do it by:
+            1. check if that person suddently stop from walking, if stop, go to next check
+            2. check if a man show his penis, if a woman squat down and take off their pants. if so, go to next check
+            3. he or she want to pee
+        """
+        pass
+
+    def auto_play_game_agent(self):
+        """
+        Try everything new to get right action for each situation. Then reuse those right data to play game. Don't make same mistakes twice.
+        To speed up the database search time, you need to simplify data. For example, for main character small area, use full pixel image comparation, and for the whole picture, resize it down to 10x10 pixels image, then do comparation.
+        And if you consider main character speed, you can split your database into 3, stand still mode, move mode, run mode.
+        """
+        pass
+
 
     def object_feature_extraction_and_recognition(self):
         """

@@ -695,7 +695,7 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
     new_image.resize(original_height, original_width)
     return new_image
 
-def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1, fill_transparent=False):
+def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1, fill_transparent=False, pre_process=False):
     """
     You could do the mean for each pixel by using "scale up until edge line", but that speed is very slow.
     You can also use circle than square, it is more accurate.
@@ -707,10 +707,16 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
     height, width = a_image.get_shape()
 
     new_image = a_image.create_an_image(height, width, [0,0,0,0])
-    a_image = a_image.get_gaussian_blur_image(2, bug_version=False)
-    a_image = a_image.get_balanced_image()
 
-    edge_image = a_image.to_edge_line(downscale_ratio=2)
+    if pre_process == True:
+        a_image = a_image.get_gaussian_blur_image(2, bug_version=False)
+        a_image = a_image.get_balanced_image()
+
+    if pre_process == True:
+        edge_image = a_image.to_edge_line(downscale_ratio=2)
+    else:
+        edge_image = a_image.to_edge_line(downscale_ratio=1)
+
     for kernel in [1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 25, 50, 100]:
         step_height = int(height/kernel)
         step_width = int(width/kernel)
@@ -757,8 +763,9 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
                             new_image.raw_data[y1][x1] = [r,g,b,a_image.raw_data[y1][x1][3]]
 
     if fill_transparent == True:
-        step_height = int(height/10)
-        step_width = int(width/10)
+        kernel = 5
+        step_height = int(height/kernel)
+        step_width = int(width/kernel)
         for y in range(step_height):
             for x in range(step_width):
                 start_y = y * kernel
@@ -1244,10 +1251,9 @@ class Image:
                 a_image[y][x] = new_color
 
         if accurate_mode == True:
-            a_image2 = get_simplified_image_by_using_mean_square_and_edge_line(backup_image, downscale_ratio=1)
+            a_image2 = get_simplified_image_by_using_mean_square_and_edge_line(backup_image, downscale_ratio=1, fill_transparent=True, pre_process=True)
             a_image2 = a_image2.get_6_color_simplified_image(balance=True, free_mode=True, animation_mode=False, accurate_mode=False)
-            height, width = a_image.get_shape()
-            a_image = a_image.paste_image_on_top_of_this_image(a_image2,0,0,height,width)
+            a_image = a_image2
 
         return a_image
 
