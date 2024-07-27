@@ -1778,8 +1778,11 @@ class Yingshaoxo_Computer_Vision():
     def object_feature_extraction_and_recognition(self):
         """
         Give human an object that he never seen before, how do that human remember it?
-        He put that object on white wall or black desk, he rotate that object, because that object color is different than the background, he remembers the different pixels and angle of that object. Done.
+        He put that object on white wall or black desk, he rotate that object, because that object color is different than the background, he remembers the different pixels and angle or edge lines shape of that object. Done.
         How hard the computer need to extract object pixels shape from pure single color background?
+        """
+        """
+        Most of the time, human recognize object by edge lines, or shapes.
         """
         """
         As for the recognition part, if you got every pixel of an object, you can use relative pixel check to check if an object is the target or not, if a relative pixel does not match an object in database, you return immidiately. From 4x4 pixel cube to 100x100 pixel point matrix, from big category of objects to small category of objects, simple and easy. It is like using a hash table, can be very quick if you have a tree structure and multiple dict structure.
@@ -1789,6 +1792,8 @@ class Yingshaoxo_Computer_Vision():
 
     def object_detection_and_tracking(self):
         """
+        We use sub_box image and edge line shape to know if a box is an object or not.
+
         For 2D view, ask human to point out an object, for example, a center box for an object. Then the computer tracking that object start from that position. Each frame, the computer will calculate its around boxs to see which direction that object moves, and the computer will notice for some part of that object, it is always have same pixel color, which means those pixels are part of that object. As the time goes by, even if human just pointed out a center box, the computer captures the whole object by using hard coding method. This works only if that object moves as a whole body.
         If an object do not move, we split a picture to smaller box list, then do object recognition one by one.
         For 3D view, it is the same, but including angle data.
