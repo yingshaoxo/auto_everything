@@ -2187,6 +2187,16 @@ class Yingshaoxo_Image_Transformer():
         pass
     """
 
+    def image_modification_by_using_string_purpose_or_command(self):
+        """
+        How to modify image like photoshop with pure string as purpose?
+        For example, how to beautify face of an human image automatically?
+        1. You have to get a database of [source_image, human_modifying_porpose, photoshop_operations_for_achiving_that_porpose]
+        2. Search database for your purpose, redo those photoshop operations for your input_image
+        3. To increase the accuracy, you simplify the porpose or use smaller porpose. And some poeple even use brain interface to capture human porpose when they do photo modification to collect more accurate data.
+        """
+        pass
+
     def change_image_style(self, source_image, target_image):
         return source_image.change_image_style(target_image)
 
