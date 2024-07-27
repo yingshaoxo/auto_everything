@@ -2194,6 +2194,7 @@ class Yingshaoxo_Image_Transformer():
         1. You have to get a database of [source_image, human_modifying_porpose, photoshop_operations_for_achiving_that_porpose]
         2. Search database for your purpose, redo those photoshop operations for your input_image
         3. To increase the accuracy, you simplify the porpose or use smaller porpose. And some poeple even use brain interface to capture human porpose when they do photo modification to collect more accurate data.
+        The data collection process is similar to github or git commit, for every code modification, you use a string to descript it.
         """
         pass
 
