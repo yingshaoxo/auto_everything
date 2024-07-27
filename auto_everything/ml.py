@@ -1785,6 +1785,11 @@ class Yingshaoxo_Computer_Vision():
         Most of the time, human recognize object by edge lines, or shapes.
         """
         """
+        Anotehr thing to mention is that computer vision is not 100% accuracy in object recognition, for example, a toy car will get recognized as a car from both edge line and color group and materials, but it is not a real car.
+        Or a Wax Man is a man for computer vision in every aspect, but it is a fake man. You can only know if a man is real or not by doing a touch and do some interactions.
+        Computer vision can't solve everything.
+        """
+        """
         As for the recognition part, if you got every pixel of an object, you can use relative pixel check to check if an object is the target or not, if a relative pixel does not match an object in database, you return immidiately. From 4x4 pixel cube to 100x100 pixel point matrix, from big category of objects to small category of objects, simple and easy. It is like using a hash table, can be very quick if you have a tree structure and multiple dict structure.
         The data collection process can be: chose a list of different object pictures. scale it down to 3x3 pixel pictures, ask human to guess the object to get big category. Then scale original picture to 6x6 picture, ask human to guess the object to get smaller categorys. do it again and again until 100x100 pixel picture. For example, in 3x3 pixel picture level, people may think it is a tree, but later, people may think 100x100 picture is a willow tree. The category tree speration is for speeding up the recognition process.
         """
