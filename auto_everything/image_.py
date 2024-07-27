@@ -542,9 +542,11 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=Fal
     """
     If in a picture, relative to that picture, you can group every pixel into X theme, you win the image segmentation based on color game.
     Because when you use big box blur to know the picture only has [pink, black, yellow] 3 theme, if later you use global color threshold getting a green color segment, you are doing it wrong. The threshold should get dynamically adjusted based on main color theme.
+
     Another thing to mention is "material or texture detection is bigger than color detection".
         This is special, for example, for human hair, for same person, some part of the hair is black color, some part of the hair is yellow color, you can only know it is hair. If you know it is hair, you can get hair shape.
         Another example is glass, different light on glass will give you different color, but if you know it is glass material, you can get a glass_made object shape easily.
+
     Another thing to mention is "edge line shape defines an object, not only color". Because in 3D engine, even if you only have edge shape with pure white color, you can still recognize that object.
     """
     """
@@ -1522,7 +1524,7 @@ class Image:
             with open(file_path, "r", encoding="utf-8") as f:
                 return Image(json.loads(f.read()))
 
-    def save_image_to_file_path(self, file_path, extreme=True):
+    def save_image_to_file_path(self, file_path, extreme=False):
         """
         I have a new idea about image representation:
             1. For lines, for example, circuits, you can only use stright line and two_point_with_radius_arc_line to define everything.
@@ -1663,7 +1665,7 @@ class Image:
 
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(text_data)
-            print("Use 7z compression software if you want to have a smaller size image. It matchs the size of png. Because png secretly use zlib to do the compression.")
+            print("Use 7z/lzma compression software if you want to have a smaller size image. It matchs the size of png. Because png secretly use zlib to do the compression.")
         else:
             """
             For image, maybe convert it to ascii is a good compression idea

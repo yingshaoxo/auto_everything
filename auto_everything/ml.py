@@ -1744,19 +1744,15 @@ class Yingshaoxo_Computer_Vision():
         Most accurate algorithm:
             1. Let user take a picture of background without object.
             2. Let user take a picture with object in the same background.
-            3. Computer calculate difference between two picture to get human picture pixels. For example, 5x5 sub_smaller_image.
+            3. Computer calculate difference between two picture to get object picture pixels. For example, 5x5 sub_smaller_image.
             4. For each new image, we remove background pixels, remain object pixels.
             5. To increase the accuracy, increase the camera real resolution.
 
-        In real world without pre_captured background but has fixed position camera:
-            1. use 10 second video, get a picture per 1 second.
-            2. assume n picture are the same, m picture are the same. n > m. n is background. moving object part take less time in the video.
-            3. n is background, m is has_object_picture, take object out from background.
-
-        In real world, moving object moves inside background but not background get pre_captured:
-            1. 1 second per picture.
-            2. For each new image, get changed 5x5 sub_smaller_image relative to previous second picture.
-            3. If 5x5 image is the same with previous second 5x5 image in the same location, if 5x5 keeps the same with history 5x5 subimage list in the same location, it is the background.
+        For real world case:
+            1. You move your head, which is move the camera
+            2. After you keep still, the first thing you do is shoot a picture as the background
+            3. Any 5x5 pixel box that is not background, are moving object
+            4. If you move your head for all the angles, you are getting a full view VR image as the background. (Some people also call it 3D Panorama View)
         """
         pass
 
