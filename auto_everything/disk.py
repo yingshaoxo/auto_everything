@@ -401,11 +401,14 @@ class Disk:
         return match
 
     def get_gitignore_folders_and_files(self, folder: str, also_return_dot_git_folder: bool = False) -> list[str]:
+        """
+        return a list of string path, which should get ignored
+        """
         files = self.get_files(folder=folder)
 
         if "version" not in t.run_command("git --version").lower():
-            print("error: git needs to get installed for using 'use_gitignore_file' paramater.")
-            return files
+            #raise Exception("error: git needs to get installed for using 'use_gitignore_file' paramater.")
+            return self.get_gitignore_folders_and_files_by_using_yingshaoxo_method(folder, also_return_dot_git_folder=also_return_dot_git_folder)
 
         ignored_files = []
         git_folder_list = []
@@ -442,7 +445,9 @@ class Disk:
 
     def get_gitignore_folders_and_files_by_using_yingshaoxo_method(self, folder: str, also_return_dot_git_folder: bool = False, include_docker_ignore_file: bool = False) -> list[str]:
         """
-        Should not use it on top root folder, because it will use all gitignore for all sub_folders, which might have bugs.
+        return a list of path string, which should get ignored
+
+        folder is included
         """
         final_path_list = []
 
@@ -481,7 +486,6 @@ class Disk:
                     temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".dockerignore")).decode("utf-8", errors="ignore")
                     temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
                     ignore_pattern_list += temp_git_ignore_pattern_list
-            ignore_pattern_list.append(".git")
             ignore_pattern_list = list(set(ignore_pattern_list))
             #print(ignore_pattern_list)
 
@@ -494,7 +498,10 @@ class Disk:
                     file_path=file_path,
                     ignore_pattern_list=ignore_pattern_list,
                 ):
-                    final_path_list.append(file_path)
+                    if os.path.isdir(file_path):
+                        final_path_list.append(file_path+"/")
+                    else:
+                        final_path_list.append(file_path)
                     continue
 
                 if ignore_symbolic_link == True:
@@ -510,18 +517,19 @@ class Disk:
                     level=node.level + 1,
                     children=None
                 )
-                dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list)
-                files_and_folders.append(
-                    new_node
-                )
+                dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list.copy())
+                #files_and_folders.append(
+                #    new_node
+                #)
 
-            files_and_folders.sort(key=lambda node_: self._super_sort_key_function(node_.name))
-            node.children = files_and_folders
+            #files_and_folders.sort(key=lambda node_: self._super_sort_key_function(node_.name))
+            #node.children = files_and_folders
 
         if also_return_dot_git_folder == True:
             dive(root, [".git"])
         else:
             dive(root, [])
+
         return final_path_list
 
     def get_files(
@@ -533,7 +541,7 @@ class Disk:
         use_gitignore_file: bool = False
     ) -> List[str]:
         """
-        Get files recursively under a folder.
+        Get files as string_path_list recursively under a folder.
 
         Parameters
         ----------
@@ -618,7 +626,7 @@ class Disk:
         recursive = True,
     ):
         """
-        Get files list recursively under a folder.
+        Get folder string list recursively under a folder.
 
         Parameters
         ----------
@@ -912,7 +920,6 @@ class Disk:
                     temp_git_ignore_text = self.read_bytes_from_file(os.path.join(folder, ".dockerignore")).decode("utf-8", errors="ignore")
                     temp_git_ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=temp_git_ignore_text)
                     ignore_pattern_list += temp_git_ignore_pattern_list
-            ignore_pattern_list.append(".git")
             ignore_pattern_list = list(set(ignore_pattern_list))
             #print(ignore_pattern_list)
 
@@ -941,7 +948,7 @@ class Disk:
                     children=None
                 )
                 if recursive == True:
-                    dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list)
+                    dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list.copy())
                 files_and_folders.append(
                     new_node
                 )
@@ -949,7 +956,7 @@ class Disk:
             files_and_folders.sort(key=lambda node_: self._super_sort_key_function(node_.name))
             node.children = files_and_folders
 
-        dive(root, [])
+        dive(root, [".git"])
 
         if return_list_than_tree == False:
             return root
