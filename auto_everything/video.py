@@ -752,7 +752,7 @@ class Video:
             make_sure_target_does_not_exist(target_video_path)
 
             combine_command = (
-                f"ffmpeg -f concat -safe 0 -i '{txt_file_path}' '{target_video_path}'"
+                f"ffmpeg -f concat -safe 0 -i '{txt_file_path}' -c copy '{target_video_path}'"
             )
             t.run(combine_command, wait=True)
 

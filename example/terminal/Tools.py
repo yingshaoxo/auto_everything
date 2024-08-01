@@ -1,4 +1,4 @@
-#!/usr/bin/env /usr/bin/python3.10
+#!/usr/bin/env /usr/bin/python_yingshaoxo
 # Run this to generate bash auto complete script: Tools -- --completion
 
 import os, re
@@ -689,6 +689,11 @@ ifdown -v {interface}; ifup -v {interface}
                 if found_index != None:
                     next_text = "\n".join(the_lines[found_index:found_index + 20])
                     print("\n\n_______\n\n")
+
+                    class_lines = [line for line in list(reversed(the_lines[:found_index])) if line.strip().startswith("class ")]
+                    if len(class_lines) > 0:
+                        print(class_lines[0] + "\n")
+
                     print(next_text.strip("`"))
                     break
             if found_index == None:
