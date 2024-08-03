@@ -72,6 +72,7 @@ class Frame_Buffer_Operator():
         #    for x in range(width):
         #        pixel = a_image.raw_data[y][x]
         #        r,g,b,a = pixel
+        #        b,g,r,a = r,g,b,a
         #        data[index+0] = r
         #        data[index+1] = g
         #        data[index+2] = b
@@ -83,6 +84,7 @@ class Frame_Buffer_Operator():
             for x in range(width):
                 pixel = a_image.raw_data[y][x]
                 r,g,b,a = pixel
+                b,g,r,a = r,g,b,a
                 data_list.append(r)
                 data_list.append(g)
                 data_list.append(b)

@@ -909,15 +909,19 @@ class Image:
                     break
         else:
             # upscale
-            new_list = []
-            sub_window_length = int(new_length/old_length)
-            for one in a_list:
-                new_list += [one] * sub_window_length
-            new_list = new_list[:new_length]
-
-            # add missing pixels at the bottom
-            counting = sub_window_length * old_length
-            new_list += [[0,0,0,0]] * (new_length - counting)
+            sub_window_length = new_length/old_length
+            new_list = [None] * new_length
+            for i in range(new_length):
+                old_index = int(i / sub_window_length)
+                new_list[i] = a_list[old_index]
+            #new_list = []
+            #sub_window_length = int(new_length/old_length)
+            #for one in a_list:
+            #    new_list += [one] * sub_window_length
+            #new_list = new_list[:new_length]
+            ## add missing pixels at the bottom
+            #counting = sub_window_length * old_length
+            #new_list += [[0,0,0,0]] * (new_length - counting)
 
         return new_list
 
