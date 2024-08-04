@@ -1410,6 +1410,38 @@ class Image:
                 new_text += text_data[i]
             return new_text
 
+    def read_image_from_string(self, a_string):
+        """
+        data format: "height, width, 1d pixel hex rgba data"
+        """
+        height, width, hex_data_string = a_string.split(",")
+        height, width = int(height), int(width)
+        bytes_data = bytes().fromhex(hex_data_string)
+        a_image = self.create_an_image(height, width)
+        index = 0
+        for y in range(height):
+            for x in range(width):
+                a_image.raw_data[y][x] = [bytes_data[index], bytes_data[index+1], bytes_data[index+2], bytes_data[index+3]]
+                index += 4
+        return a_image
+
+    def save_image_as_string(self):
+        """
+        data format: "height, width, 1d pixel hex rgba data"
+        """
+        height, width = self.get_shape()
+        rgbx_data_string = str(height)+","+str(width)+","
+        rgbx_list = []
+        for row in self.raw_data:
+            for pixel in row:
+                r,g,b,a = pixel
+                rgbx_list.append(r)
+                rgbx_list.append(g)
+                rgbx_list.append(b)
+                rgbx_list.append(a)
+        rgbx_data_string += bytes(rgbx_list).hex()
+        return rgbx_data_string
+
     def read_image_from_file(self, file_path):
         if file_path.endswith(".png") or file_path.endswith(".jpg"):
             try:
@@ -2307,4 +2339,3 @@ if __name__ == "__main__":
     a_image.resize(512, 512)
     a_image.paste_image_on_top_of_this_image(a_image, 100, 27, 100, 100)
     a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2.png")
-

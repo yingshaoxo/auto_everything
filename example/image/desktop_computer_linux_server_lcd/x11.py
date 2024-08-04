@@ -40,6 +40,25 @@ class XEvent(ctypes.Structure):
         ("same_screen", ctypes.c_int),
     ]
 
+class XKeyPressedEvent(ctypes.Structure):
+    _fields_ = [
+        ("type", ctypes.c_int),
+        ("serial", ctypes.c_long),
+        ("send_event", ctypes.c_int),
+        ("display", ctypes.c_void_p),
+        ("window", ctypes.c_ulong),
+        ("root", ctypes.c_ulong),
+        ("subwindow", ctypes.c_ulong),
+        ("time", ctypes.c_ulong),
+        ("x", ctypes.c_int),
+        ("y", ctypes.c_int),
+        ("x_root", ctypes.c_int),
+        ("y_root", ctypes.c_int),
+        ("state", ctypes.c_int),
+        ("keycode", ctypes.c_int),
+        ("same_screen", ctypes.c_int),
+    ]
+
 KeyPress = 2
 KeyRelease = 3
 MotionNotify = 6
@@ -121,11 +140,17 @@ while True:
         #key_evnet = ctypes.cast(ctypes.byref(event), ctypes.POINTER(XKeyEvent))
         pass
     elif event.type == KeyRelease:
-        print("press", event.keycode)
+        print("press", event.keycode, "upper" if event.state==17 else "lower")
         if event.keycode == 9:
+            # esc
             exit()
-        if event.keycode == 46:
+        elif event.keycode == 46:
             test()
+        key_event = ctypes.cast(ctypes.byref(event), ctypes.POINTER(XKeyPressedEvent))
+        buffer = ctypes.create_string_buffer(1)
+        length = x11.XLookupString(key_event, buffer, 1, None, None)
+        if length > 0:
+            print("character:", buffer[0].decode("ascii"), "\n")
     elif event.type == MotionNotify:
         print("move", event.y, event.x)
         draw_pixel(event.x, event.y, 255,0,255)
