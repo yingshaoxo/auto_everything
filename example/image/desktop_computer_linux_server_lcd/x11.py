@@ -5,6 +5,7 @@ x11 = ctypes.CDLL("libX11.so.6")
 
 # Create a display
 display = x11.XOpenDisplay(None)
+screen = x11.XDefaultScreen(display)
 
 # Create a window
 width = 800
@@ -51,29 +52,65 @@ def draw_pixel(x, y, red, green, blue):
     x11.XDrawPoint(display, window, gc, x, y)
     x11.XFreeGC(display, gc)
 
-def draw_image(a_image):
+#def draw_image(a_image):
+#    a_image = a_image.copy()
+#    a_image.resize(height, width)
+#
+#    gc = x11.XCreateGC(display, window, 0, 0)
+#    for y in range(height):
+#        for x in range(width):
+#            r,g,b,a = a_image.raw_data[y][x]
+#            b,g,r,a = r,g,b,a
+#            if a != 255:
+#                continue
+#            pixel_color = (b << 16) + (g << 8) + r
+#            x11.XSetForeground(display, gc, pixel_color)
+#            x11.XDrawPoint(display, window, gc, x, y)
+#    x11.XFreeGC(display, gc)
+#    x11.XFlush(display)
+
+def show_image(a_image):
     a_image = a_image.copy()
     a_image.resize(height, width)
 
     gc = x11.XCreateGC(display, window, 0, 0)
+    data_list = []
     for y in range(height):
         for x in range(width):
             r,g,b,a = a_image.raw_data[y][x]
             b,g,r,a = r,g,b,a
-            if a != 255:
-                continue
-            pixel_color = (b << 16) + (g << 8) + r
-            x11.XSetForeground(display, gc, pixel_color)
-            x11.XDrawPoint(display, window, gc, x, y)
-    x11.XFreeGC(display, gc)
-    x11.XFlush(display)
+            data_list.append(r)
+            data_list.append(g)
+            data_list.append(b)
+            data_list.append(a)
+    data = bytes(data_list)
+
+    visual = x11.XDefaultVisual(display, screen)
+
+    image = x11.XCreateImage(
+        display,
+        visual,  # Use the same visual as your window
+        24,  # Match the image depth with the window depth
+        2, #x11.ZPixmap,
+        0,
+        ctypes.c_char_p(data),
+        width,
+        height,
+        32,  # Assuming 32-bit depth
+        0
+    )
+    x11.XSetForeground(display, gc, ((255 << 16) + (255 << 8) + 255))
+    x11.XPutImage(display, window, gc, image, 0, 0, 0, 0, width, height)
+    #x11.XFlush(display)
+    #x11.XFreeImage(display, image)
+    #x11.XFreeGC(display, gc)
 
 def test():
     from auto_everything.image import Image
     image = Image()
     source_image_path = "/home/yingshaoxo/Downloads/water.png"
     a_image = image.read_image_from_file(source_image_path)
-    draw_image(a_image)
+    show_image(a_image)
 
 event = XEvent()
 while True:

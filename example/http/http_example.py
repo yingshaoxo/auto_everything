@@ -13,21 +13,25 @@ class Yingshaoxo_Http_Request():
 """
 
 
-def home_handler(request: Yingshaoxo_Http_Request) -> dict:
-    return {"message": "Hello, world, fight for inner peace."}
-
-def special_handler(request: Yingshaoxo_Http_Request) -> str:
+def home_handler(request: Yingshaoxo_Http_Request) -> str:
     return "Hello, world, fight for personal freedom."
 
+def special_handler(request: Yingshaoxo_Http_Request) -> dict:
+    return {"message": "Hello, world, fight for inner peace."}
+
 def utf8_handler(request: Yingshaoxo_Http_Request) -> str:
-    #return {"ok": "今天你反抗了吗？"}
     return "今天你反抗了吗？"
 
-router = {
-    r"/fight": utf8_handler,
-    r"/freedom": special_handler,
-    r"(.*)": home_handler
-}
+def post_handler(request: Yingshaoxo_Http_Request) -> dict:
+    print(request.payload)
+    return {"ok": "今天你反抗了吗？"}
+
+router = [
+    [r"/post", post_handler],
+    [r"/fight", utf8_handler],
+    [r"/freedom", special_handler],
+    [r"(.*)", home_handler]
+]
 
 
 yingshaoxo_http_server = Yingshaoxo_Http_Server(router=router)

@@ -92,13 +92,18 @@ class Frame_Buffer_Operator():
         data = bytes(data_list)
 
         self.frame_buffer_memory_map.write(data)
+        self.frame_buffer_memory_map.seek(0)
 
 if __name__=="__main__":
     from auto_everything.image import Image
+    import time
     image = Image()
     source_image_path = "/home/yingshaoxo/Downloads/water.png"
     a_image = image.read_image_from_file(source_image_path)
     #a_image = a_image.get_6_color_simplified_image(free_mode=True, animation_mode=True)
 
     frame_buffer_operator = Frame_Buffer_Operator()
+    start = time.time()
     frame_buffer_operator.write_image(a_image)
+    end = time.time()
+    print(end-start)

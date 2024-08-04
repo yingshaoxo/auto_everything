@@ -161,7 +161,11 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                 headers=headers_dict,
                 payload=payload
             )
-            for route_regex_expression, route_function in reversed(list(router.items())):
+            if type(router) == list:
+                router_list = router
+            else:
+                router_list = reversed(list(router.items()))
+            for route_regex_expression, route_function in router_list:
                 if re.fullmatch(route_regex_expression, url) != None:
                     raw_response = route_function(the_request_object)
                     if type(raw_response) == tuple or type(raw_response) == list:
@@ -248,16 +252,18 @@ def _yingshaoxo_home_handler_example(request: Yingshaoxo_Http_Request) -> dict:
 def _yingshaoxo_special_handler_example(request: Yingshaoxo_Http_Request) -> dict:
     return "Hello, world, fight for personal freedom."
 
-_yingshaoxo_router_example = {
-    r"/freedom": _yingshaoxo_special_handler_example,
-    r"(.*?)": _yingshaoxo_home_handler_example,
-}
+_yingshaoxo_router_example = [
+    [r"/freedom", _yingshaoxo_special_handler_example],
+    [r"(.*?)", _yingshaoxo_home_handler_example],
+]
 
 
 class Yingshaoxo_Http_Server():
-    def __init__(self, router: dict[str, Callable[[Yingshaoxo_Http_Request], str|dict]]):
+    def __init__(self, router: Any):
         """
-        router: a dict where key is the url regex, value is a function like "def handle_function(request: Yingshaoxo_Http_Request) -> str|dict"
+        router: dict or list
+            a dict where key is the url regex, value is a function like "def handle_function(request: Yingshaoxo_Http_Request) -> str|dict"
+            but I recently found dict does not have order, which might cause bug, so if you send a list [[url_regex1, function1],[url_regex2, function2]], it will also work
         """
         import multiprocessing
         self._multiprocessing = multiprocessing
@@ -329,9 +335,11 @@ class Yingshaoxo_Http_Server():
 
 
 class Yingshaoxo_Threading_Based_Http_Server():
-    def __init__(self, router: dict[str, Callable[[Yingshaoxo_Http_Request], str|dict]]):
+    def __init__(self, router: dict[str, Callable[[Yingshaoxo_Http_Request], str|dict]] | list):
         """
-        router: a dict where key is the url regex, value is a function like "def handle_function(request: Yingshaoxo_Http_Request) -> str|dict"
+        router: dict or list
+            a dict where key is the url regex, value is a function like "def handle_function(request: Yingshaoxo_Http_Request) -> str|dict"
+            but I recently found dict does not have order, which might cause bug, so if you send a list [[url_regex1, function1],[url_regex2, function2]], it will also work
         """
         from http.server import HTTPServer, BaseHTTPRequestHandler
         from socketserver import ThreadingMixIn
@@ -412,7 +420,11 @@ class Yingshaoxo_Threading_Based_Http_Server():
                 headers=headers,
                 payload=payload
             )
-            for route_regex_expression, route_function in reversed(list(self.router.items())):
+            if type(self.router) == list:
+                router_list = self.router
+            else:
+                router_list = reversed(list(self.router.items()))
+            for route_regex_expression, route_function in router_list:
                 if re.fullmatch(route_regex_expression, sub_url) != None:
                     raw_response = route_function(the_request_object)
                     break
@@ -574,6 +586,9 @@ class Yingshaoxo_Http_Client():
         except Exception as e:
             self.backup_client = None
 
+        self.debug = False
+        self.encoding = _The_Text_Encoding_Lower_
+
     def _parse_url(self, url):
         protocol = "http"
         port = 80
@@ -631,14 +646,15 @@ class Yingshaoxo_Http_Client():
         if data == None:
             method = "GET"
         else:
-            if type(data) != dict and type(data) != list:
-                raise Exception("socket http json data must be dict or list type")
+            if type(data) != dict and type(data) != list and type(data) != str:
+                raise Exception("socket http json data must be dict or list or string type")
             else:
                 method = "POST"
 
         if self.use_proxy == False:
             protocol, host, port, sub_url = self._parse_url(url)
-            print(protocol, host, port, sub_url)
+            if self.debug == True:
+                print(protocol, host, port, sub_url)
 
             a_socket = self.socket.socket(self.socket.AF_INET, self.socket.SOCK_STREAM)
             a_socket.settimeout(60) #seconds
@@ -653,14 +669,18 @@ class Yingshaoxo_Http_Client():
             if method == "GET":
                 request_body += '\r\n'
             elif method == "POST":
-                data_string = self.json.dumps(data, indent=4)
+                if type(data) != str:
+                    data_string = self.json.dumps(data, indent=4)
+                else:
+                    data_string = data
                 request_body += "Content-Type: application/json\r\n"
                 request_body += "Content-Length: {}\r\n".format(len(data_string))
                 request_body += '\r\n'
                 request_body += data_string
 
-            bytes_message = request_body.encode("utf-8", errors="ignore")
-            print("Sent:", bytes_message)
+            bytes_message = request_body.encode(self.encoding, errors="ignore")
+            if self.debug == True:
+                print("Sent:", bytes_message)
 
             try:
                 #a_socket.sendall(bytes_message)
@@ -669,7 +689,8 @@ class Yingshaoxo_Http_Client():
                 while sent < length:
                     sent = sent + a_socket.send(bytes_message[sent:])
 
-                print("\nIn receiving...:")
+                if self.debug == True:
+                    print("\nIn receiving...:")
                 bytes_response = b""
                 while True:
                     chunk = a_socket.recv(4096)
@@ -683,14 +704,16 @@ class Yingshaoxo_Http_Client():
                 a_socket.close()
 
             if return_bytes == False:
-                response = bytes_response.decode("utf-8", errors="ignore")
-                [print("    " + one) for one in response.strip().split("\n")]
+                response = bytes_response.decode(self.encoding, errors="ignore")
+                if self.debug == True:
+                    [print("    " + one) for one in response.strip().split("\n")]
                 return response
             else:
-                print(bytes_response)
+                if self.debug == True:
+                    print(bytes_response)
                 return bytes_response
 
-    def get(self, url, paramater_dict = {}, header_dict = {}, return_bytes = False):
+    def get(self, url, paramater_dict = {}, header_dict = {}, return_bytes = False, raw_data = False):
         """
         url: str, header_dict: dict | None=None, return_bytes: bool = False
         """
@@ -699,18 +722,28 @@ class Yingshaoxo_Http_Client():
                 additional_list = [key + "=" + value for key, value in paramater_dict.items()]
                 url += "?" + "&".join(additional_list)
         try:
-            return self.socket_send_data(url, header_dict=header_dict, return_bytes=return_bytes)
+            data = self.socket_send_data(url, header_dict=header_dict, return_bytes=return_bytes)
+            if raw_data == True:
+                return data
+            else:
+                if return_bytes:
+                    return data.split(b"\r\n\r\n")[1]
+                else:
+                    return data.split("\r\n\r\n")[1]
         except Exception as e:
             print(e)
             return self.backup_client.get(url, headers=header_dict, return_bytes=return_bytes)
-        #return self._network.send_a_get_request(url, headers, return_bytes=return_bytes)
 
-    def post(self, url, data, header_dict = {}):
+    def post(self, url, data, header_dict = {}, raw_data = False):
         """
         url: str, data: dict, headers: dict | None=None
         """
         try:
-            return self.socket_send_data(url, data=data, header_dict=header_dict)
+            data = self.socket_send_data(url, data=data, header_dict=header_dict)
+            if raw_data == True:
+                return data
+            else:
+                return data.split("\r\n\r\n")[1]
         except Exception as e:
             print(e)
             return self.backup_client.post(url, data=data, headers=header_dict)
