@@ -622,10 +622,10 @@ ifdown -v {interface}; ifup -v {interface}
         def special_handler(request: Yingshaoxo_Http_Request):
             return "Hello, world, fight for personal freedom."
 
-        router = {
-            r"/__yingshaoxo__": special_handler,
-            r"(.*)": home_handler
-        }
+        router = [
+            [r"/__yingshaoxo__", special_handler],
+            [r"(.*)", home_handler]
+        ]
 
         yingshaoxo_http_server = Yingshaoxo_Http_Server(router=router)
         yingshaoxo_http_server.start(host = "0.0.0.0", port = int(port))
