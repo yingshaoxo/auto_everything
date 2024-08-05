@@ -23,6 +23,7 @@ class Yingshaoxo_Http_Request():
     url_arguments: dict[str, str]
     headers: dict[str, str]
     payload: dict[str, Any] | None
+    # payload can be bytes string, or string, or a dict, or None
 
 
 try:
@@ -237,7 +238,7 @@ Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             socket_connection.sendall(response)
     except Exception as e:
         print(e)
-        response = f"HTTP/1.1 200 OK\r\n\r\n{e}".strip()
+        response = f"HTTP/1.1 200 OK\r\n\r\nservice error: {e}".strip()
         response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
         socket_connection.sendall(response)
     finally:
@@ -493,7 +494,11 @@ class Yingshaoxo_Threading_Based_Http_Server():
                     self2.wfile.write("What you send is not json".encode(_The_Text_Encoding_Lower_, errors="ignore"))
                     return
 
-                request_json_dict = json.loads(self2.rfile.read(content_length))
+                json_data = self2.rfile.read(content_length)
+                try:
+                    request_json_dict = json.loads(json_data)
+                except Exception as e:
+                    request_json_dict = json_data
 
                 self2.send_response(200)
                 self2.send_header("Access-Control-Allow-Origin", "*")
@@ -727,9 +732,15 @@ class Yingshaoxo_Http_Client():
                 return data
             else:
                 if return_bytes:
-                    return data.split(b"\r\n\r\n")[1]
+                    if b"\r\n\r\n" in data:
+                        return data.split(b"\r\n\r\n")[1]
+                    else:
+                        return data
                 else:
-                    return data.split("\r\n\r\n")[1]
+                    if "\r\n\r\n" in data:
+                        return data.split("\r\n\r\n")[1]
+                    else:
+                        return data
         except Exception as e:
             print(e)
             return self.backup_client.get(url, headers=header_dict, return_bytes=return_bytes)
@@ -743,7 +754,10 @@ class Yingshaoxo_Http_Client():
             if raw_data == True:
                 return data
             else:
-                return data.split("\r\n\r\n")[1]
+                if "\r\n\r\n" in data:
+                    return data.split("\r\n\r\n")[1]
+                else:
+                    return data
         except Exception as e:
             print(e)
             return self.backup_client.post(url, data=data, headers=header_dict)

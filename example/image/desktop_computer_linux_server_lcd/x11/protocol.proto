@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+service open_on_not_open_ui_service {
+    rpc download_picture (Download_Picture_Request) returns (Download_Picture_Response);
+    rpc handle_input (Handle_Input_Request) returns (Handle_Input_Response);
+}
+
+message Download_Picture_Request {
+}
+
+message Download_Picture_Response {
+    // similar to normal yingshaoxo image text format
+    string image_text = 1;
+}
+
+message Handle_Input_Request {
+    // "a", "A", "c", "C", "+"
+    string ascii_code = 1;
+    // 1 for left_click, 3 for right_click
+    string button_code = 2;
+    // (y,x) will have value when mouse move
+    string point_y = 1;
+    string point_x = 2;
+
+    string height = 5;
+    string width = 6;
+
+    // one click moving is scoll, two click no moving is click, one long click is right_click 
+}
+
+message Handle_Input_Response {
+    // ok or error
+    string result = 1;
+}
