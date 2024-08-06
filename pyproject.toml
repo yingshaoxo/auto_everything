@@ -5,7 +5,8 @@ description = "do automate things on Linux"
 authors = ["yingshaoxo <yingshaoxo@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "auto_everything"}, {include = "example"}]
+#packages = [{include = "auto_everything"}, {include = "example"}]
+packages = [{include = "auto_everything"}]
 
 [build-system]
 requires = ["poetry-core"]
