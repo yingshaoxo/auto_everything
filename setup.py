@@ -4,7 +4,7 @@ from setuptools.command.build_ext import build_ext
 from setuptools import setup, find_packages
 from os.path import dirname, join, abspath
 
-version = "4.3"
+version = "4.4"
 
 # main
 file_path = join(abspath(dirname(__file__)), "README.md")
@@ -34,13 +34,14 @@ setup(
         "setuptools",
     ],
     extras_require={
-        "database": ["pymongo"],
-        "video": ["librosa", "numpy", "moviepy", "torchaudio", "vosk"],
-        "gui": ["numpy", "opencv-python", "pyscreenshot", "pytesseract", "pyautogui"],
-        "fakecamera": ["pyfakewebcam", "opencv-python"],
-        "image": ["pillow"],
-        "all": ["o365", "textrank4zh", "summa"],
+        #"database": ["pymongo"],
+        #"video": ["librosa", "numpy", "moviepy", "torchaudio", "vosk"],
+        #"gui": ["numpy", "opencv-python", "pyscreenshot", "pytesseract", "pyautogui"],
+        #"fakecamera": ["pyfakewebcam", "opencv-python"],
+        #"image": ["pillow"],
+        #"all": ["o365", "textrank4zh", "summa"],
     },
-    include_package_data=False,
     packages=["auto_everything"],
+    include_package_data=True,
+    package_data={'auto_everything': ['*.txt', "*.md", "*.c", "*.sh", "*.cpp", "*.proto"]},
 )
