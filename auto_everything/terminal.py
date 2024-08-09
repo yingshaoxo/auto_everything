@@ -224,6 +224,13 @@ class Terminal:
         except Exception:
             pass
 
+    def _run_for_windows(self, c, cwd=None):
+        if cwd == None:
+            cwd = os.path.dirname(c)
+        os.chdir(cwd)
+        os.system(c)
+        os.chdir(self.current_dir)
+
     def run(self, c, cwd = None, wait = True, use_os_system = False):
         """
         run shell commands without value returning
@@ -239,6 +246,8 @@ class Terminal:
         use_os_system: bool
             False, if this is ture, it will use os.system() to execute command. This will let this function return None
         """
+        if self.system_type == "win":
+            return self._run_for_windows(c)
 
         if cwd is None:
             cwd = self.current_dir
@@ -423,6 +432,43 @@ class Terminal:
             self.__remove_temp_sh(temp_sh)
             return str(e)
 
+    def _run_command_for_windows(self, c, timeout=15, cwd=None):
+        if cwd is None:
+            cwd = self.current_dir
+        args_list = shlex.split(c)
+        try:
+            result = ""
+            start_time = datetime.now()
+            p = subprocess.Popen(
+                args_list,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                cwd=cwd,
+                preexec_fn= None if self.system_type == "win" else os.setsid
+            )
+            try:
+                while p.poll() is None:
+                    if p.stdout is None:
+                        break
+                    if p.stdout.readable():
+                        char = p.stdout.read(1)
+                        result += char
+                        #my_print(char, end="", flush=True)
+                    end_time = datetime.now()
+                    if (end_time - start_time).seconds > timeout:
+                        break
+                return result.strip(" \n")
+            except KeyboardInterrupt:
+                p.kill()
+                raise KeyboardInterrupt
+            except Exception as e:
+                p.kill()
+                return str(e)
+            return result
+        except Exception as e:
+            return str(e)
+
     def run_command(self, c, timeout = 15, cwd = None):
         """
         run shell commands with return value
@@ -436,6 +482,9 @@ class Terminal:
         cwd: string
             current working directory
         """
+        if self.system_type == "win":
+            return self._run_command_for_windows(c, timeout, cwd)
+
         if cwd is None:
             cwd = self.current_dir
         else:
