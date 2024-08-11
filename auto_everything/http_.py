@@ -20,9 +20,9 @@ class Yingshaoxo_Http_Request():
     host: str
     method: str
     url: str
-    url_arguments: dict[str, str]
-    headers: dict[str, str]
-    payload: dict[str, Any] | None
+    url_arguments: dict
+    headers: dict
+    payload: dict # or None
     # payload can be bytes string, or string, or a dict, or None
 
 
@@ -278,7 +278,7 @@ class Yingshaoxo_Http_Server():
             handle_get_file_url = None
             if (html_folder_path != ""):
                 if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
-                    def handle_get_file_url(sub_url: str) -> bytes | None:
+                    def handle_get_file_url(sub_url: str) -> Any:
                         # there has a bug, if the file is bigger than memory, it returns nothing: https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
                         # we can also let the user download http://real_file#1MB_01, http://real_file#1MB_02, we are the one who decide how big a part file should be, we return part of bytes of a file
                         sub_url = sub_url.strip("/")
@@ -336,7 +336,7 @@ class Yingshaoxo_Http_Server():
 
 
 class Yingshaoxo_Threading_Based_Http_Server():
-    def __init__(self, router: dict[str, Callable[[Yingshaoxo_Http_Request], str|dict]] | list):
+    def __init__(self, router: dict):
         """
         router: dict or list
             a dict where key is the url regex, value is a function like "def handle_function(request: Yingshaoxo_Http_Request) -> str|dict"
@@ -362,12 +362,12 @@ class Yingshaoxo_Threading_Based_Http_Server():
         return dic
 
     def start(self, host:str = "0.0.0.0", port: int = 80, html_folder_path: str="", serve_html_under_which_url: str="/"):
-        def handle_file_request_url(sub_url: str) -> bytes | None:
+        def handle_file_request_url(sub_url: str) -> Any:
             return b'Hi there, this website is using yrpc (Yingshaoxo remote procedure control module).'
 
         if (html_folder_path != ""):
             if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
-                def handle_file_request_url(sub_url: str) -> bytes | None:
+                def handle_file_request_url(sub_url: str) -> Any:
                     sub_url = sub_url.strip("/")
                     sub_url = sub_url.lstrip(serve_html_under_which_url)
                     if sub_url == '':
@@ -386,7 +386,7 @@ class Yingshaoxo_Threading_Based_Http_Server():
             else:
                 print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
 
-        def handle_any_url(method: str, sub_url: str, headers: dict[str, str], payload: dict[str, Any] | None = None) -> tuple[bytes, str | bytes | dict]:
+        def handle_any_url(method: str, sub_url: str, headers: dict, payload: Any = None) -> tuple[bytes, Any]:
             #sub_url = sub_url.strip("/")
             #sub_url = sub_url.replace("{identity_name}", "", 1)
             #sub_url = sub_url.strip("/")
@@ -531,10 +531,10 @@ class Yingshaoxo_Http_Client_Backup():
         from auto_everything.network import Network
         self._network = Network()
 
-    def get(self, url: str, headers: dict | None=None, return_bytes: bool = False):
+    def get(self, url: str, headers: dict = None, return_bytes: bool = False):
         return self._network.send_a_get_request(url, headers, return_bytes=return_bytes)
 
-    def post(self, url: str, data: dict, headers: dict | None=None):
+    def post(self, url: str, data: dict, headers: dict = None):
         return self._network.send_a_post(url, data, headers)
 
 
