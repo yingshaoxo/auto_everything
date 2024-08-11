@@ -22,8 +22,9 @@ class Yingshaoxo_Http_Request():
     url: str
     url_arguments: dict
     headers: dict
-    payload: dict # or None
-    # payload can be bytes string, or string, or a dict, or None
+    payload: Any # or None
+    # payload can be bytes, or dict or string or None
+    # for Yingshaoxo_Http_Server, it will always bytes or dict
 
 
 try:
@@ -116,13 +117,19 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                     pass
                 else:
                     payload += socket_connection.recv((content_length)*4-len(payload)+200)
-                    payload = payload.decode(_The_Text_Encoding_Lower_, errors="ignore")
+                    #payload = payload.decode(_The_Text_Encoding_Lower_, errors="ignore")
             else:
                 # missing some headers, need more data, including payload
                 raw_http_request_bytes += socket_connection.recv((content_length)*4+len(raw_http_request_bytes)+200)
                 raw_http_request = raw_http_request_bytes.decode(_The_Text_Encoding_Lower_, errors="ignore")
                 payload = raw_http_request_bytes.split(payload_seperator_bytes)[1]
-                payload = payload.decode(_The_Text_Encoding_Lower_, errors="ignore")
+                #payload = payload.decode(_The_Text_Encoding_Lower_, errors="ignore")
+        if payload != None and "Content-Type" in headers_dict and "json" in headers_dict["Content-Type"]:
+            try:
+                payload = payload.decode(_The_Text_Encoding_Lower_)
+                payload = json.loads(payload)
+            except Exception as e:
+                print(e)
 
         # do the process directly
         splits = raw_http_request.split(payload_seperator)
@@ -651,7 +658,7 @@ class Yingshaoxo_Http_Client():
         if data == None:
             method = "GET"
         else:
-            if type(data) != dict and type(data) != list and type(data) != str:
+            if type(data) != dict and type(data) != list and type(data) != str and type(data) != bytes:
                 raise Exception("socket http json data must be dict or list or string type")
             else:
                 method = "POST"
@@ -671,19 +678,25 @@ class Yingshaoxo_Http_Client():
             if type(header_dict) == dict:
                 for key, value in header_dict.items():
                     request_body += "{}: {}\r\n".format(key, value)
+            request_body = request_body.encode(_The_Text_Encoding_Lower_, errors="ignore")
             if method == "GET":
-                request_body += '\r\n'
+                request_body += b'\r\n'
             elif method == "POST":
-                if type(data) != str:
-                    data_string = self.json.dumps(data, indent=4)
-                else:
+                if type(data) == dict or type(data) == list:
+                    data_string = self.json.dumps(data, indent=4).encode(_The_Text_Encoding_Lower_, errors="ignore")
+                elif type(data) == str:
+                    data_string = data.encode(_The_Text_Encoding_Lower_, errors="ignore")
+                elif type(data) == bytes:
                     data_string = data
-                request_body += "Content-Type: application/json\r\n"
-                request_body += "Content-Length: {}\r\n".format(len(data_string))
-                request_body += '\r\n'
+                else:
+                    data_string = str(data).encode(_The_Text_Encoding_Lower_, errors="ignore")
+                if type(data) == dict or type(data) == list:
+                    request_body += b"Content-Type: application/json\r\n"
+                request_body += ("Content-Length: {}\r\n".format(len(data_string))).encode(_The_Text_Encoding_Lower_, errors="ignore")
+                request_body += b'\r\n'
                 request_body += data_string
 
-            bytes_message = request_body.encode(self.encoding, errors="ignore")
+            bytes_message = request_body
             if self.debug == True:
                 print("Sent:", bytes_message)
 
@@ -745,19 +758,25 @@ class Yingshaoxo_Http_Client():
             print(e)
             return self.backup_client.get(url, headers=header_dict, return_bytes=return_bytes)
 
-    def post(self, url, data, header_dict = {}, raw_data = False):
+    def post(self, url, data, header_dict = {}, return_bytes = False, raw_data = False):
         """
         url: str, data: dict, headers: dict | None=None
         """
         try:
-            data = self.socket_send_data(url, data=data, header_dict=header_dict)
+            data = self.socket_send_data(url, data=data, header_dict=header_dict, return_bytes=return_bytes)
             if raw_data == True:
                 return data
             else:
-                if "\r\n\r\n" in data:
-                    return data.split("\r\n\r\n")[1]
+                if return_bytes:
+                    if b"\r\n\r\n" in data:
+                        return data.split(b"\r\n\r\n")[1]
+                    else:
+                        return data
                 else:
-                    return data
+                    if "\r\n\r\n" in data:
+                        return data.split("\r\n\r\n")[1]
+                    else:
+                        return data
         except Exception as e:
             print(e)
             return self.backup_client.post(url, data=data, headers=header_dict)

@@ -927,7 +927,7 @@ class Image:
 
     def resize(self, height, width):
         """
-        May be for scaling down image, we can first scale it up, then scale it down to have a better whole image
+        The image resize or pixel iteration in python is 60 times slower than c version, so don't use it as much as possible
         """
         if type(height) != int or type(width) != int:
             raise Exception("The height and width should be integer.")
@@ -1425,20 +1425,31 @@ class Image:
                 index += 4
         return a_image
 
-    def save_image_as_string(self):
+    def save_image_as_string(self, bgra=False):
         """
         data format: "height, width, 1d pixel hex rgba data"
+
+        framebuffer or x11 needs bgra
         """
         height, width = self.get_shape()
         rgbx_data_string = str(height)+","+str(width)+","
         rgbx_list = []
-        for row in self.raw_data:
-            for pixel in row:
-                r,g,b,a = pixel
-                rgbx_list.append(r)
-                rgbx_list.append(g)
-                rgbx_list.append(b)
-                rgbx_list.append(a)
+        if bgra == False:
+            for row in self.raw_data:
+                for pixel in row:
+                    r,g,b,a = pixel
+                    rgbx_list.append(r)
+                    rgbx_list.append(g)
+                    rgbx_list.append(b)
+                    rgbx_list.append(a)
+        else:
+            for row in self.raw_data:
+                for pixel in row:
+                    r,g,b,a = pixel
+                    rgbx_list.append(b)
+                    rgbx_list.append(g)
+                    rgbx_list.append(r)
+                    rgbx_list.append(a)
         rgbx_data_string += bytes(rgbx_list).hex()
         return rgbx_data_string
 

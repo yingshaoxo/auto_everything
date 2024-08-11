@@ -26,10 +26,16 @@ def post_handler(request: Yingshaoxo_Http_Request) -> dict:
     print(request.payload)
     return {"ok": "今天你反抗了吗？"}
 
+def post_bytes_handler(request: Yingshaoxo_Http_Request) -> bytes:
+    print(type(request.payload))
+    print(request.payload)
+    return b"You can post bytes and get bytes."
+
 router = [
-    [r"/post", post_handler],
     [r"/fight", utf8_handler],
     [r"/freedom", special_handler],
+    [r"/post", post_handler],
+    [r"/post_bytes_handler", post_bytes_handler],
     [r"(.*)", home_handler]
 ]
 
