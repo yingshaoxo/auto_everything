@@ -116,11 +116,15 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                 if len(payload) >= content_length:
                     pass
                 else:
-                    payload += socket_connection.recv((content_length)*4-len(payload)+200)
+                    for i in range(int(content_length/60000)+1):
+                        chunk = socket_connection.recv(60000) #this should be a number less than 65389
+                        payload += chunk
                     #payload = payload.decode(_The_Text_Encoding_Lower_, errors="ignore")
             else:
                 # missing some headers, need more data, including payload
-                raw_http_request_bytes += socket_connection.recv((content_length)*4+len(raw_http_request_bytes)+200)
+                for i in range(int(content_length/60000)+1):
+                    chunk = socket_connection.recv(60000) #this should be a number less than 65389
+                    raw_http_request += chunk
                 raw_http_request = raw_http_request_bytes.decode(_The_Text_Encoding_Lower_, errors="ignore")
                 payload = raw_http_request_bytes.split(payload_seperator_bytes)[1]
                 #payload = payload.decode(_The_Text_Encoding_Lower_, errors="ignore")
@@ -679,6 +683,7 @@ class Yingshaoxo_Http_Client():
                 for key, value in header_dict.items():
                     request_body += "{}: {}\r\n".format(key, value)
             request_body = request_body.encode(_The_Text_Encoding_Lower_, errors="ignore")
+
             if method == "GET":
                 request_body += b'\r\n'
             elif method == "POST":
