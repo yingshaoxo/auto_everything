@@ -13,7 +13,7 @@ My standards based on MIT license, but the more accurate license is: "Do whateve
 In linux, there has a principle: "If you can do things with pure text, don't do it with graphic. Because your typing speed is as fast as your thinking speed".
 
 ### 2. User has the highest Root permission
-In real free linux system, the user always have the highest permission. That is to say, the user can modifying any file in that system. The user can even delete the whole old system and flash (or install) their own new system by doing file copy and paste. Everything is transparent for that user. The user can see and control anything that is running in that system.
+In real free linux system, the user always have the highest permission. That is to say, the user can modifying any file in that system. The user can even delete the whole old system and flash (or install) their own new system by doing file copy and paste. Everything is transparent for that user. The user can see and control anything that is running in that system. And user can run any software without limitations.
 
 ### 3. Leave user with more freedom as possible
 In linux system, the system will always power the user. For example, whenever the hardware has some outside interface, linux will let the user has full control over those outside devices. For example, USB devices, Outside microcontroller pins, speakers, microphones, mouse, keyboard, LED screen, CPU frequency, Network lines, so on and on.
@@ -28,7 +28,7 @@ In linux, we do not ask our user to connect network to use the system. We don't 
 Control big led screen is hard, but control a small ASCII char printer and a simple keyboard is easy.
 
 ### 2. root permission
-Just give the user full permisson on files and folders.
+Just give the user full permisson on files and folders. And can run any binary software.
 
 ### 3. ourside device freedom
 Just let the user be able to control the outside device input and output data stream. So that they may write their own hardware driver software.

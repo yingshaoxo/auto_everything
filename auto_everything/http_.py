@@ -122,7 +122,7 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                     #payload = payload.decode(_The_Text_Encoding_Lower_, errors="ignore")
             else:
                 # missing some headers, need more data, including payload
-                for i in range(int(content_length/60000)+1):
+                for i in range(int(content_length/60000)+1): #maybe you should +2 in here
                     chunk = socket_connection.recv(60000) #this should be a number less than 65389
                     raw_http_request += chunk
                 raw_http_request = raw_http_request_bytes.decode(_The_Text_Encoding_Lower_, errors="ignore")
