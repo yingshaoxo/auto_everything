@@ -378,6 +378,8 @@ class String:
             negative_counting = 0
             for sub_string in all_sub_string:
                 sub_string_length = len(sub_string)
+                if sub_string_length == 1:
+                    continue
                 if sub_string in value:
                     positive_counting += sub_string_length
                     better_score += sub_string_length ** 3
