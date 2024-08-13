@@ -67,7 +67,7 @@ Python do different operations with the variable according to the variable type.
 
 
 ### Handle functions
-Source code: function do_it_or_sleep(option) { some_code };
+Source code: function do_it_or_sleep(option) {};
 
 Let's talk about function. For function, it should have two parts, one is function name, another is arguments.
 
@@ -81,7 +81,7 @@ Then you might ask, what is the function information, how can I save it to compu
 
 It is simple, you simply save all function text as value, where the key is function name.
 
-Later, if we call that function, we parse the arguments, copy arguments variable into function variable, we do a merge about variables. Then we do operations based on function code_block text line by line.
+Later, if we call that function, we parse the arguments, copy arguments variable into function variable, we do a merge about variables. Then we do operations based on function text line by line.
 
 Sometimes we may meet 'for loop' or 'while loop' in function text, in that case, we will simplely repeat some operations according to those code we meet.
 
@@ -91,12 +91,9 @@ One thing to notice is: you have to make sure you do the memory garbage freeing 
 ### Handle class
 Source code: 
 ```
-class Dog():
+Class Dog():
     def __init__(self):
         self.name = "god"
-    def __end__(self):
-        # do something when the class instance is no longer used
-        pass
     def run(self):
         pass
 ```
@@ -123,9 +120,9 @@ try {
 
 ```
 
-The try and catch design will make sure any error can get captured, so that we can handle unexpected conditions. Without it, your programming language will be a danger language.
+The try and catch design will make sure any error can get captured, so that we can handle unexpected conditions. Without it, your programming language will be danger language.
 
-To achive it, there has two ways, one is manually precheck conditions before we run, for example, 4 divide 0, if we know the later part is zero, we will raise an error before we run it. Or, if a function didn't get defined in previous code, but we called it, we raise an error.
+To achive it, there has two ways, one is manually precheck conditions before we run, for example, 4 divide 0, if we know the later part is zero, we will raise an error before we run it.
 
 Another way is to relay on lower_system API, for example, in c, they use 'setjmp' and 'longjmp' to do that. But use it carefully, you will often found you can't find the same two functions across different archtecture computer. If in old c99 standard you meet this problem, you can simply give up on other more modern programming language. Because they are not stable across decades years.
 
@@ -136,8 +133,6 @@ Use underline symbol to seperate words in variable name or function name, for ex
 Use UpperCase variable to indicate it is a class, for example: "Dog_Class"
 
 Use more type indicator for function arguments, for example: "function sleep(sleep_time_in_second_in_float_format, sleep_time_in_millisecond_in_int_format=None)"
-
-Do not use short name or abbreviation.
 
 
 ### Handle ralative path file import
@@ -150,8 +145,6 @@ We do this simply because we do not trust dependencies that needs outside networ
 So that you can make a application store by your own to freely distribute your applications to users.
 
 Maybe you can also sell your own computer hardware online to make sure your programming language could last forever freely.
-
-Let your software have MIT license does not mean it should open_sourced.
 
 
 ## Natural Language (English or any other human language)

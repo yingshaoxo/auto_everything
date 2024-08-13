@@ -1,4 +1,4 @@
-#!/usr/bin/env /usr/bin/python_yingshaoxo
+#!/usr/bin/env /home/python/use_docker_to_build_static_python3_binary_executable/data/Python-3.10.4/python
 # Run this to generate bash auto complete script: Tools -- --completion
 
 import os, re
