@@ -369,16 +369,20 @@ class String:
         else:
             all_sub_string = input_sub_string_list
 
+        top_better_score = 0
         top_score = 0
         top_index = 0
         for index, value in enumerate(text_list):
+            better_score = 0
             positive_counting = 0
             negative_counting = 0
             for sub_string in all_sub_string:
+                sub_string_length = len(sub_string)
                 if sub_string in value:
-                    positive_counting += len(sub_string)
+                    positive_counting += sub_string_length
+                    better_score += sub_string_length ** 3
                 else:
-                    negative_counting += len(sub_string)
+                    negative_counting += sub_string_length
             score = positive_counting / (positive_counting + negative_counting)
             if target_score != None:
                 if score >= target_score:
@@ -390,8 +394,11 @@ class String:
                         next_text = text_list[index+1]
                     return previous_text, value, next_text
             else:
-                if score > top_score:
-                    top_score = score
+                #if score > top_score:
+                #    top_score = score
+                #    top_index = index
+                if better_score > top_better_score:
+                    top_better_score = better_score
                     top_index = index
 
         previous_text = ""
