@@ -27,7 +27,7 @@ except Exception as e:
 """
 # Setup the LCD Display module
 """
-from ili9341 import Display, color565
+from ili9341 import Display
 from machine import Pin, SPI
 
 TFT_CLK_PIN = const(18)
@@ -61,8 +61,8 @@ def handle_touchscreen_press(x, y):
     print("clicked: ", y, x)
     
     # Draw dot
-    display.draw_pixel(x, y, color565(255,0,255))
-    display.draw_ellipse(x, y, 10, 10, color565(255,0,255))
+    display.draw_pixel(x, y, display.color565(255,0,255))
+    display.draw_ellipse(x, y, 10, 10, display.color565(255,0,255))
 
     # Click and rendering
     root_container.click(y, x)
@@ -84,7 +84,7 @@ while True:
 """
 # Setup the GUI module that comes from python package 'auto_everything', the author is yingshaoxo
 """
-from image import GUI, Container
+from image_ import GUI, Container
 
 def next_page_click():
     the_text.text="never give up"

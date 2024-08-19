@@ -1,20 +1,12 @@
 """ILI9341 LCD/Touch module."""
+"""
+modified by: yingshaoxo.xyz
+"""
 from time import sleep
 from math import cos, sin, pi, radians
 from sys import implementation
 from framebuf import FrameBuffer, RGB565  # type: ignore
 from io import BytesIO
-
-
-def color565(r, g, b):
-    """Return RGB565 color value.
-
-    Args:
-        r (int): Red value.
-        g (int): Green value.
-        b (int): Blue value.
-    """
-    return (r & 0xf8) << 8 | (g & 0xfc) << 3 | b >> 3
 
 
 class Display(object):
@@ -159,11 +151,30 @@ class Display(object):
         sleep(.1)
         self.clear()
 
-        self.get_ascii_8_times_16_points_data = None
+        self.yingshaoxo_init()
+
+    def yingshaoxo_init(self):
+        # font related
+        try:
+            from auto_everything.font_ import get_ascii_8_times_16_points_data
+        except Exception as e:
+            from font_ import get_ascii_8_times_16_points_data
+        self.get_ascii_8_times_16_points_data = get_ascii_8_times_16_points_data
+
         self.font_cache = {}
 
+    def color565(self, r, g, b):
+        """Return RGB565 color value.
+
+        Args:
+            r (int): Red value.
+            g (int): Green value.
+            b (int): Blue value.
+        """
+        return ((r & 0xf8) << 8 | (g & 0xfc) << 3 | b >> 3).to_bytes(2, "big")
+
     def draw_buffer(self, x0, y0, x1, y1, data):
-        """Write a block of data to display.
+        """Write a rectangle of data to display.
 
         Args:
             x0 (int):  Starting X position.
@@ -280,17 +291,10 @@ class Display(object):
             self.draw_buffer(0, row_index, width-1, row_index+step_length-1, data.read())
 
     def cache_font_at_boot_time(self):
-        if self.get_ascii_8_times_16_points_data == None:
-            try:
-                from auto_everything.font_ import get_ascii_8_times_16_points_data
-            except Exception as e:
-                from font_ import get_ascii_8_times_16_points_data
-            self.get_ascii_8_times_16_points_data = get_ascii_8_times_16_points_data
-
         r, g, b = 255,255,255
-        white = ((r & 0xf8) << 8 | (g & 0xfc) << 3 | b >> 3).to_bytes(2, "big")
+        white = self.color565(r,g,b)
         r, g, b = 0,0,0
-        black = ((r & 0xf8) << 8 | (g & 0xfc) << 3 | b >> 3).to_bytes(2, "big")
+        black = self.color565(r,g,b)
 
         all_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ \t\n\r\x0b\x0c'
         for char in all_chars:
@@ -304,6 +308,26 @@ class Display(object):
                         data.write(black)
             data.seek(0)
             self.font_cache[char] = data.read()
+
+    def get_char_bytes_by_char(self, char):
+        if char in self.font_cache:
+            return self.font_cache[char]
+        else:
+            r, g, b = 255,255,255
+            white = self.color565(r,g,b)
+            r, g, b = 0,0,0
+            black = self.color565(r,g,b)
+
+            char_points_data = self.get_ascii_8_times_16_points_data(char)
+            data = BytesIO(b'')
+            for row_index, row in enumerate(char_points_data):
+                for column_index, element in enumerate(row):
+                    if element == 1:
+                        data.write(white)
+                    else:
+                        data.write(black)
+            data.seek(0)
+            return data.read()
 
     def draw_2d_text(self, text_2d_array, height=None, width=None):
         #call self.cache_font_at_boot_time() first
@@ -326,6 +350,9 @@ class Display(object):
             for column_index in range(columns_number):
                 left = column_index * 8
 
+                if len(text_list) == 0:
+                    return
+
                 char = text_list[0]
                 text_list = text_list[1:]
 
@@ -334,7 +361,8 @@ class Display(object):
                 if char not in self.font_cache:
                     char = " "
 
-                self.draw_buffer(left, top, left+8-1, top+16-1, self.font_cache[char])
+                a_char_bytes = self.get_char_bytes_by_char(char)
+                self.draw_buffer(left, top, left+8-1, top+16-1, a_char_bytes)
 
     def draw_ellipse(self, x0, y0, a, b, color):
         """Draw an ellipse.

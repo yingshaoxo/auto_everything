@@ -1742,7 +1742,7 @@ try:
     del font_data_8x16
     gc.collect()
 except Exception as e:
-    pass
+    print(e)
 
 
 def get_ascii_8_times_16_points_data(char):
