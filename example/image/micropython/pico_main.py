@@ -20,8 +20,8 @@ TFT_CS_PIN = const(5)
 TFT_RST_PIN = const(13)
 TFT_DC_PIN = const(12)
 
-height=320
-width=240
+height=480
+width=320
 
 def create_display():
     spiTFT = SPI(0, baudrate=60000000, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN))
@@ -41,7 +41,7 @@ sleep(5)
 """
 # Setup the GUI module that comes from python package 'auto_everything', the author is yingshaoxo
 """
-from image_ import GUI, Container
+from image_ import Container
 
 def next_page_click():
     the_text.text="never give up"
@@ -57,7 +57,7 @@ root_container = Container(
     rows=True,
     children=[
         Container(
-            height=0.2,
+            height=0.1,
             width=1.0,
             columns=True,
             children=[
@@ -75,7 +75,7 @@ root_container = Container(
             ]
         ),
         Container(
-            height=0.6,
+            height=0.8,
             width=1.0,
             columns=True,
             children=[
@@ -83,7 +83,7 @@ root_container = Container(
             ]
         ),
         Container(
-            height=0.2,
+            height=0.1,
             width=1.0,
             columns=True,
             children=[
@@ -108,7 +108,6 @@ root_container = Container(
     ]
 )
 
-
 root_container.parent_height=height
 root_container.parent_width=width
 
@@ -117,7 +116,6 @@ def the_rendering():
     print("start rendering...")
     start_point = time()
     text_2d_array = root_container.render_as_text()
-    #image = root_container.render()
     end_point = time()
     print("time use: ", (end_point-start_point), "seconds")
     print("rendering finished...")
@@ -125,15 +123,13 @@ def the_rendering():
 
     print("start_drawing...")
     start_point = time()
-    #display.clear()
     display.draw_2d_text(text_2d_array)
-    #display.draw_image(image)
     end_point = time()
     print("time use: ", (end_point-start_point), "seconds")
     print("drawing_done.")
 
 print("start boot")
-#display.cache_font_at_boot_time()
+#display.cache_font_at_boot_time() #will get memory overflow
 print("end boot")
 print()
 

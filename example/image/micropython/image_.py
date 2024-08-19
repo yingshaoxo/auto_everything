@@ -1,6 +1,3 @@
-import json
-
-
 class Image:
     """
     This class will represent image as 2D list. For example [[r,g,b,a], [r,g,b,a]] means two RGBA point.
@@ -158,53 +155,18 @@ class Image:
             self.raw_data[y_index][x_start: x_end] = new_data
 
     def read_image_from_file(self, file_path):
-        if file_path.endswith(".png") or file_path.endswith(".jpg"):
-            try:
-                from PIL import Image as _Image
-            except Exception as e:
-                print(e)
-                print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
-
-            the_image = _Image.open(file_path)
-            height, width = the_image.size[1], the_image.size[0]
-
-            new_image = self.create_an_image(height=height, width=width)
-
-            data = the_image.convert('RGBA').getdata()
-
-            for row_index in range(0, height):
-                base_index = row_index * width
-                for column_index in range(0, width):
-                    new_image.raw_data[row_index][column_index] = list(data[base_index + column_index])
-
-            return new_image
-        else:
-            with open(file_path, "r", encoding="utf-8") as f:
-                return Image(json.loads(f.read()))
+        import json
+        with open(file_path, "r", encoding="utf-8") as f:
+            return Image(json.loads(f.read()))
 
     def save_image_to_file_path(self, file_path):
         """
-        I have a new idea about image representation:
-            1. For lines, for example, circuits, you can only use stright line and two_point_with_radius_arc_line to define everything.
-            2. For other colorful image, you can only use rectangle to define everything. Square is a special rectangle, especially 1x1 square, which normally means a point.
-            3. For 3D world, is can also combined with basic shapes, for example, cube, cuboid, sphere.
+        For image, maybe convert it to ascii is a good compression idea
         """
-        if file_path.endswith(".png") or file_path.endswith(".jpg"):
-            try:
-                from PIL import Image as _Image
-                import numpy
-                the_image = _Image.fromarray(numpy.uint8(self.raw_data))
-                the_image.save(file_path)
-            except Exception as e:
-                print(e)
-                print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.json', then do a text level compression.")
-        else:
-            """
-            For image, maybe convert it to ascii is a good compression idea
-            """
-            raw_data = json.dumps(self.raw_data, ensure_ascii=False)
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(raw_data)
+        import json
+        raw_data = json.dumps(self.raw_data, ensure_ascii=False)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(raw_data)
 
 
 class Animation:
@@ -215,11 +177,8 @@ class Animation:
     pass
 
 
-char_image_container_cache = {} # 'size+char' as key, image_container as value
-
-
 class Container:
-    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, parent_height=None, parent_width=None, on_click_function=None):
+    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, parent_height=None, parent_width=None, on_click_function=None, information={}):
         """
         height: "8" means "8px", "0.5" means "50% of its parent container"
         width: "20" means "20px", "0.2" means "20%"
@@ -231,6 +190,7 @@ class Container:
         text: ""
         text_color: [0,0,0,255]
         text_size: 1
+        information: will pass to self.information as a {} dict
         """
         if (type(height) != int and type(height) != float) or (type(width) != int and type(width) != float):
             raise Exception("Height and width for root window must be integer. For example, '20' or '100'")
@@ -247,6 +207,7 @@ class Container:
         self.text_size = text_size
         self.parent_height = parent_height
         self.parent_width = parent_width
+        self.information = information
 
         self.real_property_dict = {}
 
@@ -256,190 +217,13 @@ class Container:
         if on_click_function != None:
             self.on_click_function = on_click_function
         else:
-            def on_click():
+            def on_click(element=None):
                 return
 
             self.on_click_function = on_click
 
 
         self.get_ascii_8_times_16_points_data = None
-
-    def _is_ascii(self, char):
-        #return all(ord(c) < 128 for c in s)
-        return ord(char) < 128
-
-    def _convert_text_to_container_list(self, text, parent_height, parent_width, on_click_function):
-        # yingshaoxo
-        if self.get_ascii_8_times_16_points_data == None:
-            try:
-                from auto_everything.font_ import get_ascii_8_times_16_points_data
-            except Exception as e:
-                from font_ import get_ascii_8_times_16_points_data
-            self.get_ascii_8_times_16_points_data = get_ascii_8_times_16_points_data
-
-        children = []
-
-        the_height = 16 * self.text_size
-        the_width = 8 * self.text_size
-        maximum_character_number_per_row = int(parent_width / the_width)
-
-        # let the text fill the parent_container
-        new_text = ""
-        for line in text.split("\n"):
-            while len(line) > maximum_character_number_per_row:
-                new_text += line[:maximum_character_number_per_row]
-                new_text += "\n"
-                line = line[maximum_character_number_per_row:]
-            if len(line) != "":
-                new_text += line
-                new_text += "\n"
-            new_text += "\n"
-        text = new_text
-
-        for line_index, line in enumerate(text.split("\n")):
-            #if line_index != 0:
-            #    children.append(Container(height=8, width=parent_width)) # line sperator
-
-            text_row_container = Container(height=the_height, width=parent_width, children=[], columns=True)
-
-            for char in line:
-                if not self._is_ascii(char):
-                    char = " "
-                char_points_data = self.get_ascii_8_times_16_points_data(char)
-                for row_index, row in enumerate(char_points_data):
-                    for column_index, element in enumerate(row):
-                        if element == 1:
-                            char_points_data[row_index][column_index] = self.text_color
-                        else:
-                            char_points_data[row_index][column_index] = self.color
-
-                char_id = "{}+{}".format(self.text_size, char)
-                if char_id not in char_image_container_cache:
-                    char_image = Image().create_an_image(height=16, width=8, color=self.color)
-                    char_image.raw_data = char_points_data
-                    char_image.resize(height=the_height, width=the_width)
-                    char_image_container = Container(image=char_image, height=the_height, width=the_width, columns=True)
-                    char_image_container_cache[char_id] = char_image_container
-                else:
-                    char_image_container = char_image_container_cache[char_id]
-
-                char_image_container.on_click_function = on_click_function
-                text_row_container.children.append(char_image_container)
-
-            children.append(text_row_container)
-
-        return children
-
-    def _get_propertys_of_a_container(self, one_container):
-        return json.dumps([one_container.height, one_container.width, one_container.rows, one_container.columns, one_container.color, id(one_container.image), one_container.text, one_container.parent_height, one_container.parent_width, one_container.real_property_dict])
-
-    def _loop_all_components_in_tree_to_see_if_its_child_got_changed(self, root_container):
-        queue = [root_container]
-        while len(queue) > 0:
-            one_container = queue[0]
-            queue = queue[1:]
-            queue += one_container.children
-
-            new_propertys = self._get_propertys_of_a_container(one_container)
-            if new_propertys != one_container.old_propertys:
-                #one_container.old_propertys = new_propertys
-                return True
-        return False
-
-    def render(self):
-        """
-        returns a real container that uses fixed pixel values
-        """
-        if self._loop_all_components_in_tree_to_see_if_its_child_got_changed(self) == False:
-            return self.cache_image
-        else:
-            self.old_propertys = self._get_propertys_of_a_container(self)
-
-        real_image = None
-
-        if (type(self.height) != int and type(self.height) != float) or (type(self.width) != int and type(self.width) != float):
-            raise Exception("Height and width must be numbers. For example, 0.2 or 20. (0.2 means 20% of its parent)")
-
-        real_height = None
-        real_width = None
-
-        if type(self.height) == float:
-            if self.parent_height == None:
-                raise Exception("parent_height shoudn't be None")
-            real_height = int(self.parent_height * self.height)
-        else:
-            real_height = self.height
-
-        if type(self.width) == float:
-            if self.parent_width == None:
-                raise Exception("parent_width shoudn't be None")
-            real_width = int(self.parent_width * self.width)
-        else:
-            real_width = self.width
-
-        if self.image != None:
-            temp_image = self.image.copy()
-            image_height, image_width = temp_image.get_shape()
-            if image_height != real_height or image_width != real_width:
-                temp_image.resize(real_height, real_width)
-            real_image = temp_image
-        else:
-            real_image = Image()
-            real_image = real_image.create_an_image(real_height, real_width, self.color)
-
-        if self.text != "":
-            self.children = self._convert_text_to_container_list(self.text, parent_height=real_height, parent_width=real_width, on_click_function=self.on_click_function)
-            self.rows = True
-
-        #real_height, real_width = real_image.get_shape()
-        self.real_property_dict["height"] = real_height
-        self.real_property_dict["width"] = real_width
-
-        if self.rows == None and self.columns == None:
-            if self.text != "":
-                self.columns = True
-            else:
-                self.rows = True
-        if self.rows != True and self.columns != True:
-            self.rows = True
-        if self.rows == self.columns:
-            raise Exception("You can either set rows to True or set columns to True, but not both.")
-
-        if self.rows == True:
-            top = 0
-            left = 0
-            for one_row_container in self.children:
-                one_row_container.parent_height = self.real_property_dict["height"]
-                one_row_container.parent_width = self.real_property_dict["width"]
-                real_one_row_image = one_row_container.render()
-
-                one_row_height, one_row_width = real_one_row_image.get_shape()
-                real_image.paste_image_on_top_of_this_image(real_one_row_image, top=top, left=left, height=one_row_height, width=one_row_width)
-                one_row_container.real_property_dict["left_top_y"] = top
-                one_row_container.real_property_dict["left_top_x"] = left
-                one_row_container.real_property_dict["right_bottom_y"] = top + one_row_height
-                one_row_container.real_property_dict["right_bottom_x"] = one_row_width
-
-                top += one_row_height
-        elif self.columns == True:
-            left = 0
-            top = 0
-            for one_column_container in self.children:
-                one_column_container.parent_height = self.real_property_dict["height"]
-                one_column_container.parent_width = self.real_property_dict["width"]
-                real_one_column_image = one_column_container.render()
-
-                one_column_height, one_column_width = real_one_column_image.get_shape()
-                real_image.paste_image_on_top_of_this_image(real_one_column_image, top=top, left=left, height=one_column_height, width=one_column_width)
-                one_column_container.real_property_dict["left_top_y"] = top
-                one_column_container.real_property_dict["left_top_x"] = left
-                one_column_container.real_property_dict["right_bottom_y"] = one_column_height
-                one_column_container.real_property_dict["right_bottom_x"] = left+one_column_width
-
-                left += one_column_width
-
-        self.cache_image = real_image
-        return real_image
 
     def _render_as_text_component_list(self, top_=0, left_=0):
         """
@@ -540,8 +324,8 @@ class Container:
     def render_as_text(self, text_height=16, text_width=8, pure_text=False):
         component_list = self._render_as_text_component_list()
 
-        char_number_in_one_row = int(self.real_property_dict["width"] // 8)
-        rows_number = int(self.real_property_dict["height"] // 16)
+        char_number_in_one_row = int(self.real_property_dict["width"] / 8)
+        rows_number = int(self.real_property_dict["height"] / 16)
 
         # raw_data = [[" "] * char_number_in_one_row] * rows_number # this will make bugs, if you change one row, every row will get changed
         raw_data = []
@@ -555,11 +339,11 @@ class Container:
             height = component["height"]
             width = component["width"]
 
-            real_top = int(top // text_height)
-            real_height = int(height // text_height)
+            real_top = int(top / text_height)
+            real_height = int(height / text_height) # max line number for this container
 
-            real_left = int(left // text_width)
-            real_width = int(width // text_width)
+            real_left = int(left / text_width)
+            real_width = int(width / text_width) # max character number per row
 
             if "image" in component:
                 # image
@@ -569,9 +353,29 @@ class Container:
                 text = component["text"]
                 if text == "":
                     continue
+
+                if "\n" in text:
+                    center_text = False
+                    horizontal_padding_space_number = 0
+                else:
+                    center_text = True
+                    horizontal_padding_space_number = int((real_width - len(text))/2)
+
+                lines = text.split("\n")
+                actual_text_lines = len(lines) + sum([len(line)/real_width for line in lines])
+                vertical_padding_line_number = int((real_height-actual_text_lines) / 2)
+
                 char_list = list(text)
                 for row_index in range(real_top, real_top+real_height):
+                    if vertical_padding_line_number > 0:
+                        # for center text
+                        vertical_padding_line_number -= 1
+                        continue
                     for column_index in range(real_left, real_left+real_width):
+                        if horizontal_padding_space_number > 0:
+                            # for center text
+                            horizontal_padding_space_number -= 1
+                            continue
                         if len(char_list) == 0:
                             break
                         char = char_list[0]
@@ -605,7 +409,14 @@ class Container:
         """
         if len(self.children) == 0:
             print(self.text)
-            self.on_click_function()
+            try:
+                self.on_click_function(self)
+            except Exception as e:
+                try:
+                    self.on_click_function()
+                except Exception as e2:
+                    print(e)
+                    print(e2)
             return True
 
         clicked = False
@@ -646,43 +457,17 @@ class Container:
             if left_top_y != None and left_top_x != None and right_bottom_y != None and right_bottom_x != None:
                 if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
                     # clicked at this container, but no children matchs, the point is at background
-                    self.on_click_function()
+                    try:
+                        self.on_click_function(self)
+                    except Exception as e:
+                        try:
+                            self.on_click_function()
+                        except Exception as e2:
+                            print(e)
+                            print(e2)
                     return True
 
         return clicked
 
     def advance_click(self, touch_start, touch_move, touch_end, y, x):
         pass
-
-
-class GUI(Container):
-    """
-    This class will use Image class to represent graphic user interface, and also provide a top componet infomation list
-    Which contains the touchable area for each component. For example, it has a function called "touch(y,x) -> image_id"
-
-    We have to render the graph whenever the widget/component tree get changed
-
-    The component tree is not a tree, it is a 2d array (matrix), it was combined with rows and columns. Normally row width got change according to parent window change, but height is fixed. It is similar to flutter or web broswer. Those elements inside those list is components. You can call self.render() to render that component matrix.
-
-    In here, for User Interface, the parent big window would always be a rectangle, for example, 54*99 (1080*1980).
-
-    The core feature should be:
-    1. when children height or width beyound parent container, use a scroll bar automatically in either y or x direction. (in css, it is overflow-y or overflow-x)
-    2. auto re-render a child container when one of global variable they use got changed. and for other container that did not change, we use cached image. someone call this feature "hot reload when variable got changed" (Or when user make change on some variable, or if the user call render function, we loop the container tree, see which container's property got changed, if so, we do a re_render. starts from top containers, level down, if re_rendered, only render its children for once) (Or you could use __setattr__(self, name, value) hook in python class, when a property got changed, you call render. def __setattr__(self, name, value): self.__dict__[name] = value)
-    3. when user click a point, the GUI class should know which container the user clicked. so we can call on_click_function in that container.
-    4. consider give a special paramater to render() function, let it return a list of rectangle that represent those changed part of the screen. So the LCD can render those pixel block very quickly. (for other UI rendering engine, they could just use changed pixel for screen update)
-    """
-    def __init__(self, *arguments, **key_arguments):
-        super().__init__(*arguments, **key_arguments)
-
-
-#class TextGUI():
-#    """
-#    Now, think about this: a character will take 8*16 pixels. 320*240 screen could show 40 * 15 = 600 characters. You can treat characters as pixels. Then you only have to handle 600 rectangles. So in your memory, you should have a 600 elements 2d list as graphic buffer.
-#    For a terminal, it only has to have print_char function. So it you have LCD char buffer, for each time, you just have to move the top_left point of those char buffers. Just treat it like a one stream display flow (Don't forget the new line).
-#    """
-#    def __init__(self, height, width):
-#        char_number_in_one_row = int(width // 8)
-#        rows_number = int(height // 16)
-#
-#        self.raw_data = [[" "] * char_number_in_one_row] * rows_number

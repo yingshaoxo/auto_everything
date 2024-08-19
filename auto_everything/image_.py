@@ -1,12 +1,4 @@
 import json
-try:
-    from auto_everything.font_ import get_ascii_8_times_16_points_data
-except Exception as e:
-    try:
-        from font_ import get_ascii_8_times_16_points_data
-    except Exception as e:
-        print(e)
-
 
 
 def my_print(message="", end="\n", flush=False):
@@ -1787,11 +1779,21 @@ class Container:
 
             self.on_click_function = on_click
 
+
+        self.get_ascii_8_times_16_points_data = None
+
     def _is_ascii(self, char):
         #return all(ord(c) < 128 for c in s)
         return ord(char) < 128
 
     def _convert_text_to_container_list(self, text, parent_height, parent_width, on_click_function):
+        if self.get_ascii_8_times_16_points_data == None:
+            try:
+                from auto_everything.font_ import get_ascii_8_times_16_points_data
+            except Exception as e:
+                from font_ import get_ascii_8_times_16_points_data
+            self.get_ascii_8_times_16_points_data = get_ascii_8_times_16_points_data
+
         children = []
 
         the_height = 16 * self.text_size
@@ -1833,7 +1835,7 @@ class Container:
             for char in " " + line + " ":
                 if not self._is_ascii(char):
                     char = " "
-                char_points_data = get_ascii_8_times_16_points_data(char)
+                char_points_data = self.get_ascii_8_times_16_points_data(char)
                 for row_index, row in enumerate(char_points_data):
                     for column_index, element in enumerate(row):
                         if element == 1:
@@ -2114,10 +2116,9 @@ class Container:
                     center_text = True
                     horizontal_padding_space_number = int((real_width - len(text))/2)
 
-                if center_text == True:
-                    vertical_padding_line_number = int((real_height - text.count("\n"))/2)
-                else:
-                    vertical_padding_line_number = 0
+                lines = text.split("\n")
+                actual_text_lines = len(lines) + sum([len(line)/real_width for line in lines])
+                vertical_padding_line_number = int((real_height-actual_text_lines) / 2)
 
                 char_list = list(text)
                 for row_index in range(real_top, real_top+real_height):

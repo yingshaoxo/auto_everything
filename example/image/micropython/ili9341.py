@@ -7,6 +7,7 @@ from math import cos, sin, pi, radians
 from sys import implementation
 from framebuf import FrameBuffer, RGB565  # type: ignore
 from io import BytesIO
+import gc
 
 
 class Display(object):
@@ -353,16 +354,18 @@ class Display(object):
                 if len(text_list) == 0:
                     return
 
-                char = text_list[0]
-                text_list = text_list[1:]
+                #char = text_list[0]
+                #text_list = text_list[1:]
+                char = text_list.pop(0)
 
                 if char == "\n":
                     char = " "
-                #if char not in self.font_cache:
-                #    char = " "
 
                 a_char_bytes = self.get_char_bytes_by_char(char)
                 self.draw_buffer(left, top, left+8-1, top+16-1, a_char_bytes)
+                del a_char_bytes
+
+        gc.collect()
 
     def draw_ellipse(self, x0, y0, a, b, color):
         """Draw an ellipse.
