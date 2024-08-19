@@ -1,8 +1,4 @@
 import json
-try:
-    from auto_everything.font_ import get_ascii_8_times_16_points_data
-except Exception as e:
-    from font_ import get_ascii_8_times_16_points_data
 
 
 class Image:
@@ -59,8 +55,6 @@ class Image:
         return Image(data)
 
     def _resize_an_list(self, a_list, old_length, new_length):
-        # for downscale, you use "sub_window_length == int(old_size/new_size)", for each sub_window pixels, you only take the first pixel
-        # for upscale, you use "it == int(new_size/old_size)", for each old pixel, you times that pixel by it, if the final pixels data is not meet the required length, we add transparent black color at the bottom
         new_list = []
 
         if old_length == new_length:
@@ -68,11 +62,11 @@ class Image:
         if old_length > new_length:
             # downscale
             new_list = [None] * new_length
-            sub_window_length = int(old_length/new_length)
+            sub_window_length = old_length/new_length
             index = 0
             counting = 0
             while True:
-                first_element = a_list[index]
+                first_element = a_list[int(round(index))]
                 new_list[counting] = first_element
                 counting += 1
                 if counting >= new_length:
@@ -82,25 +76,24 @@ class Image:
                     break
         else:
             # upscale
-            new_list = []
-            sub_window_length = int(new_length/old_length)
-            for one in a_list:
-                new_list += [one] * sub_window_length
-            new_list = new_list[:new_length]
-
-            # add missing pixels at the bottom
-            counting = sub_window_length * old_length
-            new_list += [[0,0,0,0]] * (new_length - counting)
+            sub_window_length = new_length/old_length
+            new_list = [None] * new_length
+            for i in range(new_length):
+                old_index = int(i / sub_window_length)
+                new_list[i] = a_list[old_index]
 
         return new_list
 
     def resize(self, height, width):
+        """
+        The image resize or pixel iteration in python is 60 times slower than c version, so don't use it as much as possible
+        """
         if type(height) != int or type(width) != int:
             raise Exception("The height and width should be integer.")
 
         old_height, old_width = self.get_shape()
         if old_height == height and old_width == width:
-            return
+            return self
 
         # handle width
         data = []
@@ -108,12 +101,6 @@ class Image:
             data.append(self._resize_an_list(row, old_width, width))
 
         # handle height
-        """
-        data_2 = []
-        for column in list(zip(*data)):
-            data_2.append(self._resize_an_list(column, old_height, height))
-        self.raw_data = list(zip(*data_2))
-        """
         data_2 = []
         old_width = len(data[0])
         initialized = False
@@ -131,6 +118,7 @@ class Image:
                     data_2[index].append(one)
 
         self.raw_data = data_2
+        return self
 
     def paste_image_on_top_of_this_image(self, another_image, top, left, height, width):
         """
@@ -159,14 +147,6 @@ class Image:
             x_end = base_image_width
 
         for y_index in range(y_start, y_end):
-            #row = self.raw_data[y_index]
-            #first_part = row[0:x_start]
-            #second_part = row[x_end:]
-            #new_row = first_part + another_image[y_index] + second_part
-            #self.raw_data[y_index] = new_row
-
-            #self.raw_data[y_index][x_start: x_end] = another_image[y_index-y_start]
-
             old_data = self.raw_data[y_index][x_start: x_end]
             old_data_length = len(old_data)
             new_data = [None] * old_data_length
@@ -269,15 +249,6 @@ class Container:
         self.parent_width = parent_width
 
         self.real_property_dict = {}
-        """
-        self.real_property_dict["left_top_y"] = 0
-        self.real_property_dict["left_top_x"] = 0
-        self.real_property_dict["right_bottom_y"] = height
-        self.real_property_dict["right_bottom_x"] = width
-
-        self.real_property_dict["one_row_height"] = 0
-        self.real_property_dict["one_column_width"] = 0
-        """
 
         self.old_propertys = []
         self.cache_image = None
@@ -290,11 +261,22 @@ class Container:
 
             self.on_click_function = on_click
 
+
+        self.get_ascii_8_times_16_points_data = None
+
     def _is_ascii(self, char):
         #return all(ord(c) < 128 for c in s)
         return ord(char) < 128
 
     def _convert_text_to_container_list(self, text, parent_height, parent_width, on_click_function):
+        # yingshaoxo
+        if self.get_ascii_8_times_16_points_data == None:
+            try:
+                from auto_everything.font_ import get_ascii_8_times_16_points_data
+            except Exception as e:
+                from font_ import get_ascii_8_times_16_points_data
+            self.get_ascii_8_times_16_points_data = get_ascii_8_times_16_points_data
+
         children = []
 
         the_height = 16 * self.text_size
@@ -323,7 +305,7 @@ class Container:
             for char in line:
                 if not self._is_ascii(char):
                     char = " "
-                char_points_data = get_ascii_8_times_16_points_data(char)
+                char_points_data = self.get_ascii_8_times_16_points_data(char)
                 for row_index, row in enumerate(char_points_data):
                     for column_index, element in enumerate(row):
                         if element == 1:
@@ -704,95 +686,3 @@ class GUI(Container):
 #        rows_number = int(height // 16)
 #
 #        self.raw_data = [[" "] * char_number_in_one_row] * rows_number
-
-
-try:
-    from typing import Any
-
-    class MyPillow():
-        """
-        python3 -m pip install --upgrade Pillow
-        """
-        def __init__(self):
-            from io import BytesIO
-            from PIL import Image
-            self._Image = Image
-            self._BytesIO = BytesIO
-
-            from auto_everything.disk import Disk
-            self._disk = Disk()
-
-        def read_image_from_file(self, file_path: str):
-            return self._Image.open(file_path)
-
-        def read_image_from_bytes_io(self, bytes_io: Any):
-            return self._Image.open(bytes_io)
-
-        def read_image_from_base64_string(self, base64_string: str):
-            return self.read_image_from_bytes_io(self._disk.base64_to_bytesio(base64_string=base64_string))
-
-        def save_image_to_file_path(self, image: Any, file_path: str):
-            image.save(file_path)
-
-        def save_bytes_io_image_to_file_path(self, bytes_io_image: Any, file_path: str):
-            with open(file_path, "wb") as f:
-                f.write(bytes_io_image.getbuffer())
-
-        def get_image_bytes_size(self, image):
-            image = image.convert('RGB')
-            out = self._BytesIO()
-            image.save(out, format="jpeg")
-            return out.tell()
-
-        def decrease_the_size_of_an_image(self, image: Any, quality=None) -> Any:
-            image = image.convert('RGB')
-            out = self._BytesIO()
-            if quality is None:
-                image.save(out, format="jpeg")
-            else:
-                image.save(out, format="jpeg", optimize=True, quality=quality)
-            out.seek(0)
-            return out
-
-        def force_decrease_image_file_size(self, image: Any, limit_in_kb: int=1024) -> Any:
-            """
-            :param image: PIL image
-            :param limit: kb
-            :return: bytes_io
-            """
-            image = image.convert('RGB')
-            OK = False
-            quality = 100
-            out = self._BytesIO()
-            while (OK is False):
-                out = self._BytesIO()
-                image.save(out, format="jpeg", optimize=True, quality=quality)
-                size = self._disk.get_file_size(path=None, bytes_size=out.tell(), level="KB")
-                if size is None:
-                    break
-                quality -= 3
-                if size <= limit_in_kb or quality <= 3:
-                    OK = True
-            out.seek(0)
-            return out
-except Exception as e:
-    pass
-
-
-if __name__ == "__main__":
-    from auto_everything.disk import Disk
-    disk = Disk()
-    image = Image()
-
-    #a_image = image.read_image_from_file(disk._expand_user("~/Downloads/cat.jpg"))
-    #print(a_image.get_shape())
-    #print(a_image[0][0])
-    #print(a_image)
-    #a_image.resize(96, 128)
-    ##a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/cat2.png.json")
-    #a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/cat2.png")
-
-    a_image = image.read_image_from_file(disk._expand_user("~/Downloads/hero.png"))
-    a_image.resize(512, 512)
-    a_image.paste_image_on_top_of_this_image(a_image, 100, 27, 100, 100)
-    a_image.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2.png")

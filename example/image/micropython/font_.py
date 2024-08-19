@@ -1714,6 +1714,17 @@ z
 font_data_8x16 = font_data_8x16.strip()
 
 
+font_data_8x16_dict_as_1d_array = dict()
+parts = font_data_8x16.split("\n\n")
+for part in parts:
+    splits = part.split("\n")
+    symbol = splits[0]
+    data_text = ""
+    for line in splits[1:]:
+        data_text += line.strip()
+    font_data_8x16_dict_as_1d_array[symbol] = data_text
+
+
 def get_ascii_8_times_16_font_dict():
     dict_ = {}
     parts = font_data_8x16.split("\n\n")
@@ -1733,7 +1744,6 @@ except Exception as e:
     print(e)
     font_data_8x16_dict = {
         " ": [[0]*8 for i in range(16)],
-        "a": [[1]*8 for i in range(16)],
     }
 
 
@@ -1750,6 +1760,15 @@ def get_ascii_8_times_16_points_data(char):
     if char in font_data_8x16_dict:
         target_char = char
     else:
-        if char.lower() in font_data_8x16_dict:
-            target_char = char.lower()
+        if char in font_data_8x16_dict_as_1d_array:
+            a_char_text_data = font_data_8x16_dict_as_1d_array[char]
+            a_char_data = []
+            index = 0
+            for row in range(16):
+                temp_row = [0] * 8
+                for column in range(8):
+                    temp_row[column] = int(a_char_text_data[index])
+                    index += 1
+                a_char_data.append(temp_row)
+            return a_char_data
     return list([list(one) for one in font_data_8x16_dict[target_char]])

@@ -1,4 +1,4 @@
-# pico only has 264KB memory
+# pico only has 264KB memory, hard to make it render 480x320 screen
 
 print("Booted.")
 from time import sleep, time
@@ -20,14 +20,20 @@ TFT_CS_PIN = const(5)
 TFT_RST_PIN = const(13)
 TFT_DC_PIN = const(12)
 
+height=320
+width=240
+
 def create_display():
     spiTFT = SPI(0, baudrate=60000000, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN))
-    display = Display(spiTFT, dc=Pin(TFT_DC_PIN), cs=Pin(TFT_CS_PIN), rst=Pin(TFT_RST_PIN))
+    display = Display(spiTFT, dc=Pin(TFT_DC_PIN), cs=Pin(TFT_CS_PIN), rst=Pin(TFT_RST_PIN),
+                      height=height, width=width)
     return display
 
 display = create_display()
 print("Display ready.")
 display.draw_ellipse(30,30,10,10,display.color666(255,0,0))
+#a_char_bytes = display.get_char_bytes_by_char("1")
+#display.draw_buffer(50, 50, 50+8-1, 50+16-1, a_char_bytes)
 sleep(5)
 
 
@@ -103,8 +109,6 @@ root_container = Container(
 )
 
 
-height = 320 #128 #256
-width = 240 #96 #192
 root_container.parent_height=height
 root_container.parent_width=width
 

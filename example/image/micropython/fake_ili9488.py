@@ -53,6 +53,7 @@ class Ili9488_Display(Display):
                 self.write_cmd(value)
             else:
                 self.write_data(bytearray([value]))
+        del init_backdoor_data
         sleep(.1)
         self.write_cmd(0x21)
         self.write_cmd(0x29)

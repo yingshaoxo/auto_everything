@@ -358,8 +358,8 @@ class Display(object):
 
                 if char == "\n":
                     char = " "
-                if char not in self.font_cache:
-                    char = " "
+                #if char not in self.font_cache:
+                #    char = " "
 
                 a_char_bytes = self.get_char_bytes_by_char(char)
                 self.draw_buffer(left, top, left+8-1, top+16-1, a_char_bytes)
@@ -469,32 +469,6 @@ class Display(object):
         sleep(.05)
         self.rst(1)
         sleep(.05)
-
-    def scroll(self, y):
-        """Scroll display vertically.
-
-        Args:
-            y (int): Number of pixels to scroll display.
-        """
-        self.write_cmd(self.VSCRSADD, y >> 8, y & 0xFF)
-
-    def set_scroll(self, top, bottom):
-        """Set the height of the top and bottom scroll margins.
-
-        Args:
-            top (int): Height of top scroll margin
-            bottom (int): Height of bottom scroll margin
-        """
-        if top + bottom <= self.height:
-            middle = self.height - (top + bottom)
-            print(top, middle, bottom)
-            self.write_cmd(self.VSCRDEF,
-                           top >> 8,
-                           top & 0xFF,
-                           middle >> 8,
-                           middle & 0xFF,
-                           bottom >> 8,
-                           bottom & 0xFF)
 
     def sleep(self, enable=True):
         """Enters or exits sleep mode.
