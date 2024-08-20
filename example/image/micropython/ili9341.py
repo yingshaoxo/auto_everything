@@ -191,14 +191,7 @@ class Display(object):
         self.write_cmd(self.WRITE_RAM)
         self.write_data(data)
 
-    def cleanup(self):
-        """Clean up resources."""
-        self.clear()
-        self.display_off()
-        self.spi.deinit()
-        print('display off')
-
-    def clear(self, color=0, hlines=8):
+    def clear(self, color=None, hlines=4):
         """Clear display.
 
         Args:
@@ -216,21 +209,17 @@ class Display(object):
         h = self.height
         assert hlines > 0 and h % hlines == 0, (
             "hlines must be a non-zero factor of height.")
+
         # Clear display
-        if color:
-            line = color.to_bytes(2, 'big') * (w * hlines)
+        if color == None:
+            color = self.color565(0,0,0)
+        if type(color) == bytes:
+            line = color * (w * hlines)
         else:
-            line = bytearray(w * 2 * hlines)
+            line = color.to_bytes(2, 'big') * (w * hlines)
+
         for y in range(0, h, hlines):
             self.draw_buffer(0, y, w - 1, y + hlines - 1, line)
-
-    def display_off(self):
-        """Turn display off."""
-        self.write_cmd(self.DISPLAY_OFF)
-
-    def display_on(self):
-        """Turn display on."""
-        self.write_cmd(self.DISPLAY_ON)
 
     def draw_pixel(self, x, y, color):
         """Draw a single pixel.
@@ -333,6 +322,7 @@ class Display(object):
     def draw_2d_text(self, text_2d_array, height=None, width=None):
         #call self.cache_font_at_boot_time() first
         #text_2d_array = root_container.render_as_text()
+        self.clear()
 
         if height == None:
             height = self.height
@@ -360,6 +350,9 @@ class Display(object):
 
                 if char == "\n":
                     char = " "
+
+                if char == " ":
+                    continue
 
                 a_char_bytes = self.get_char_bytes_by_char(char)
                 self.draw_buffer(left, top, left+8-1, top+16-1, a_char_bytes)
@@ -473,17 +466,6 @@ class Display(object):
         self.rst(1)
         sleep(.05)
 
-    def sleep(self, enable=True):
-        """Enters or exits sleep mode.
-
-        Args:
-            enable (bool): True (default)=Enter sleep mode, False=Exit sleep
-        """
-        if enable:
-            self.write_cmd(self.SLPIN)
-        else:
-            self.write_cmd(self.SLPOUT)
-
     def write_cmd_mpy(self, command, *args):
         """Write command to OLED (MicroPython).
 
@@ -543,3 +525,29 @@ class Display(object):
         self.spi.write(data)
         self.spi.unlock()
         self.cs.value = True
+
+    def display_off(self):
+        """Turn display off."""
+        self.write_cmd(self.DISPLAY_OFF)
+
+    def display_on(self):
+        """Turn display on."""
+        self.write_cmd(self.DISPLAY_ON)
+
+    def sleep(self, enable=True):
+        """Enters or exits sleep mode.
+
+        Args:
+            enable (bool): True (default)=Enter sleep mode, False=Exit sleep
+        """
+        if enable:
+            self.write_cmd(self.SLPIN)
+        else:
+            self.write_cmd(self.SLPOUT)
+
+    def cleanup(self):
+        """Clean up resources."""
+        self.clear()
+        self.display_off()
+        self.spi.deinit()
+        print('display off')

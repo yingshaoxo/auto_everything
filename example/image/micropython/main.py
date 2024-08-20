@@ -1,3 +1,5 @@
+# yingshaoxo: I'm using "01studio_pyWiFi-ESP32P(8M RAM) micropython board" and "2.8inch spi ili9341 320x240 lcd".
+
 print("Booted.")
 from time import sleep
 sleep(5)
@@ -59,7 +61,7 @@ def handle_touchscreen_press(x, y):
     x = (display.width - 1) - x
     # Display coordinates
     print("clicked: ", y, x)
-    
+
     # Draw dot
     display.draw_pixel(x, y, display.color565(255,0,255))
     display.draw_ellipse(x, y, 10, 10, display.color565(255,0,255))

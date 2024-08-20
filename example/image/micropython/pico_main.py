@@ -1,4 +1,5 @@
-# pico only has 264KB memory, hard to make it render 480x320 screen
+# yingshaoxo: I'm using "yd_rp2040_lite_pi_pico(2M Flash, 264KB Memory) micropython board" and "4.0inch SPI IPS ili9488 480x320 lcd".
+# pico only has 264KB memory, hard to make it render 480x320 screen unless you use my code without change anything
 
 print("Booted.")
 from time import sleep, time
@@ -138,7 +139,7 @@ the_rendering()
 
 
 """
-# Set up the TFT touch module, which normally a built_in feature of the LCD (ili9341) you buy
+# Set up the TFT touch module, which normally a built_in feature of the LCD (ili9341 or ili9488) you buy
 """
 from time import sleep, time
 from xpt2046 import Touch
@@ -150,7 +151,7 @@ def handle_touchscreen_press(x, y):
     x = (display.width - 1) - x
     # Display coordinates
     print("clicked: ", y, x)
-    
+
     # Draw dot
     display.draw_pixel(x, y, display.color565(255,0,255))
     display.draw_ellipse(x, y, 10, 10, display.color565(255,0,255))

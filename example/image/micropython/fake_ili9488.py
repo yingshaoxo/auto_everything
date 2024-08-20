@@ -73,19 +73,6 @@ class Ili9488_Display(Display):
     def color565(self, r, g, b):
         return self.color666(r,g,b)
 
-    def clear(self, color=None):
-        # clear screen
-        w = self.width
-        h = self.height
-        if color == None:
-            color = self.color666(0,0,0)
-        if type(color) == bytes:
-            line = color * (w * 8)
-        else:
-            raise Exception("This shitty LCD driver only support rgb666")
-        for y in range(0, h, 8):
-            self.draw_buffer(0, y, w - 1, y + 7, line)
-
     def draw_pixel(self, x, y, color):
         """Draw a single pixel.
         Args:
