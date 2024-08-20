@@ -86,7 +86,7 @@ while True:
 """
 # Setup the GUI module that comes from python package 'auto_everything', the author is yingshaoxo
 """
-from image_ import GUI, Container
+from image_ import Container
 
 def next_page_click():
     the_text.text="never give up"

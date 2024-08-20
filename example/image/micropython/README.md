@@ -11,7 +11,7 @@ But **pyboard** always has SD card support.
 ## About memory
 It seems like only 8MB memory micropython board "yd_esp32_s3_n16r8_8ram16flash" can handle this project. 
 
-"pywifi_esp32_8M_ram" or "esp32_wroom_32_8M_ram" is also fine in this case. (MicroPython v1.22.1 on 2024-01-05)
+"pywifi_esp32p_8M_ram" or "esp32_wroom_32_8M_ram" is also fine in this case. (MicroPython v1.22.1 on 2024-01-05)
 
 Other boards, such as 'pi pico' will fail on loading font. Even if the font is less than 10kb. (But I managed to fix this problem by slowing down the process speed and use less memory.)
 
