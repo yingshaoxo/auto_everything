@@ -17,14 +17,14 @@ TFT_MOSI_PIN = const(3)
 TFT_MISO_PIN = const(4)
 TFT_CS_PIN = const(5)
 
-TFT_RST_PIN = const(13)
-TFT_DC_PIN = const(12)
+TFT_DC_PIN = const(0)
+TFT_RST_PIN = const(1)
 
 height=480
 width=320
 
 def create_display():
-    spiTFT = SPI(0, baudrate=60000000, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN))
+    spiTFT = SPI(0, baudrate=60000000, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN), miso=Pin(TFT_MISO_PIN))
     display = Display(spiTFT, dc=Pin(TFT_DC_PIN), cs=Pin(TFT_CS_PIN), rst=Pin(TFT_RST_PIN),
                       height=height, width=width)
     return display
@@ -134,3 +134,31 @@ print("end boot")
 print()
 
 the_rendering()
+
+
+
+"""
+# Set up the TFT touch module, which normally a built_in feature of the LCD (ili9341) you buy
+"""
+from time import sleep, time
+from xpt2046 import Touch
+from machine import Pin, SoftSPI
+
+def handle_touchscreen_press(x, y):
+    """Process touchscreen press events."""
+    #y = (display.height - 1) - y
+    x = (display.width - 1) - x
+    # Display coordinates
+    print("clicked: ", y, x)
+    
+    # Draw dot
+    display.draw_pixel(x, y, display.color565(255,0,255))
+    display.draw_ellipse(x, y, 10, 10, display.color565(255,0,255))
+
+    # Click and rendering
+    root_container.click(y, x)
+    #the_rendering()
+
+spi2 = SoftSPI(baudrate=100000, polarity=1, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(8))
+#spi2 = SPI(0, baudrate=60000000, sck=Pin(6), mosi=Pin(7), miso=Pin(8))
+touch = Touch(spi2, height=height, width=width, cs=Pin(9), int_pin=Pin(14), int_handler=handle_touchscreen_press)

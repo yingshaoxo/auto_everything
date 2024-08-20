@@ -13,7 +13,7 @@ It seems like only 8MB memory micropython board "yd_esp32_s3_n16r8_8ram16flash" 
 
 "pywifi_esp32_8M_ram" or "esp32_wroom_32_8M_ram" is also fine in this case. (MicroPython v1.22.1 on 2024-01-05)
 
-Other board like pi pico will fail on loading font. Even if the font is less than 10kb.
+Other boards, such as 'pi pico' will fail on loading font. Even if the font is less than 10kb. (But I managed to fix this problem by slowing down the process speed and use less memory.)
 
 ## Some words
 ```
@@ -30,15 +30,15 @@ GND(ground)
 CS(chip selection)
 RESET
 DC(data or command)
-SDI(mosi)
+SDI(serial data input to lcd, mosi)
 SCK/CLK(source clock)
 LED(back light, 3.3v on normally, but some needs 0v)
-SDO(miso)
+SDO(serial data output from lcd, miso)
 
 T_CLK(touch clock signal)
 T_CS(touch chip selection)
-T_DIN(touch mosi)
-T_DO(touch miso)
+T_DIN(serial data input to lcd, touch mosi)
+T_DO(serial data output from lcd, touch miso)
 T_IRQ(interrupt pin)
 ```
 
@@ -55,14 +55,14 @@ GND(ground)
 CS(chip selection)
 RST(reset)
 D/C
-SDI(mosi)
+SDI(serial data input to lcd, mosi)
 SCK/CLK(source clock)
 BL(screen back light)
-SDO(miso)
+SDO(serial data output from lcd, miso)
 
 TCK(clock signal)
 TCS(chip selection)
-TDI(mosi)
-TDO(miso)
-PEN
+TDI(serial data input to lcd, touch mosi)
+TDO(serial data output from lcd, touch miso)
+PEN(interrupt pin when pen touch down)
 ```
