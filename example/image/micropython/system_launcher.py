@@ -1,12 +1,12 @@
-# yingshaoxo: I'm using "yd_rp2040_lite_pi_pico(2M Flash, 264KB Memory) micropython board" and "4.0inch SPI IPS ili9488 480x320 lcd".
-# pico only has 264KB memory, hard to make it render 480x320 screen unless you use my code without change anything
-
 print("Booted.")
 from time import sleep, time
 sleep(5)
 print("Ready")
-from machine import freq
-freq(70000000)
+try:
+    from machine import freq
+    freq(70000000) #lower cpu frequency to save power
+except Exception as e:
+    print(e)
 
 
 """
@@ -35,10 +35,6 @@ def create_display():
 
 display = create_display()
 print("Display ready.")
-display.draw_ellipse(30,30,10,10,display.color666(255,0,0))
-#a_char_bytes = display.get_char_bytes_by_char("1")
-#display.draw_buffer(50, 50, 50+8-1, 50+16-1, a_char_bytes)
-sleep(5)
 
 
 
@@ -47,13 +43,14 @@ sleep(5)
 """
 from image_ import Container
 
-def next_page_click():
-    the_text.text="never give up"
-
-the_text = Container(text="Hello everyone! \nThis micropython mobile phone example was made by yingshaoxo.\nYingshaoxo is the god, will you believe it?", text_size=1)
-
-def previous_page_click():
-    the_text.text="yingshaoxo"
+content_container = Container(text="Hi you.\n\nHere should have an application list that you can click to open.")
+def handle_tab_click(tab_name):
+    if tab_name == "Files":
+        content_container.text="Files view\n\nWhere you can modify files on your disk."
+    elif tab_name == "Browser":
+        content_container.text="Browser view\n\nWhere you can visit websites."
+    elif tab_name == "Terminal":
+        content_container.text="Terminal view\n\nWhere you can use command lines."
 
 root_container = Container(
     height=1.0,
@@ -66,47 +63,28 @@ root_container = Container(
             columns=True,
             children=[
                 Container(
-                    width=0.2,
-                    text="Menu"
+                    width=0.33,
+                    text="Files",
+                    on_click_function=lambda x: handle_tab_click("Files")
                 ),
                 Container(
-                    width=0.6,
+                    width=0.33,
+                    text="Browser",
+                    on_click_function=lambda x: handle_tab_click("Browser")
                 ),
                 Container(
-                    width=0.2,
-                    text="Back"
+                    width=0.33,
+                    text="Terminal",
+                    on_click_function=lambda x: handle_tab_click("Terminal")
                 ),
             ]
         ),
         Container(
-            height=0.8,
+            height=0.9,
             width=1.0,
-            columns=True,
+            rows=True,
             children=[
-                the_text
-            ]
-        ),
-        Container(
-            height=0.1,
-            width=1.0,
-            columns=True,
-            children=[
-                Container(
-                    height=1.0,
-                    width=0.25,
-                    text="Previous Page",
-                    on_click_function=previous_page_click
-                ),
-                Container(
-                    height=1.0,
-                    width=0.5,
-                ),
-                Container(
-                    height=1.0,
-                    width=0.25,
-                    text="Next Page",
-                    on_click_function=next_page_click
-                )
+                content_container
             ]
         ),
     ]
@@ -119,26 +97,20 @@ def the_rendering():
     print()
     print("start rendering...")
     start_point = time()
-    text_2d_array = root_container.render_as_text()
+    text_1d_string = root_container.render_as_text(pure_text=True, one_dimention_text=True)
     end_point = time()
-    print("time use: ", (end_point-start_point), "seconds")
+    print("render time use: ", (end_point-start_point), "seconds")
     print("rendering finished...")
     print()
 
     print("start_drawing...")
     start_point = time()
-    display.draw_2d_text(text_2d_array)
+    display.draw_1d_text(text_1d_string)
     end_point = time()
-    print("time use: ", (end_point-start_point), "seconds")
+    print("draw time use: ", (end_point-start_point), "seconds")
     print("drawing_done.")
 
-print("start boot")
-#display.cache_font_at_boot_time() #will get memory overflow
-print("end boot")
-print()
-
 the_rendering()
-
 
 
 """
@@ -155,14 +127,13 @@ def handle_touchscreen_press(x, y):
     # Display coordinates
     print("clicked: ", y, x)
 
-    # Draw dot
+    # Draw dot circle
     display.draw_pixel(x, y, display.color565(255,0,255))
     display.draw_ellipse(x, y, 10, 10, display.color565(255,0,255))
 
     # Click and rendering
     root_container.click(y, x)
-    #the_rendering()
+    the_rendering()
 
 spi2 = SoftSPI(baudrate=9000, polarity=1, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(8))
-#spi2 = SPI(0, baudrate=60000000, sck=Pin(6), mosi=Pin(7), miso=Pin(8))
 touch = Touch(spi2, height=height, width=width, cs=Pin(9), int_pin=Pin(14), int_handler=handle_touchscreen_press)

@@ -39,9 +39,6 @@ class Ili9488_Display(Display):
         self.cs.init(self.cs.OUT, value=1)
         self.dc.init(self.dc.OUT, value=0)
         self.rst.init(self.rst.OUT, value=1)
-        self.reset = self.reset_mpy
-        self.write_cmd = self.write_cmd_mpy
-        self.write_data = self.write_data_mpy
 
         self.reset()
 

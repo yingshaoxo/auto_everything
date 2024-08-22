@@ -2076,7 +2076,7 @@ class Container:
 
         return data_list
 
-    def render_as_text(self, text_height=16, text_width=8, pure_text=False):
+    def render_as_text(self, text_height=16, text_width=8, pure_text=False, one_dimention_text=False):
         component_list = self._render_as_text_component_list()
 
         char_number_in_one_row = int(self.real_property_dict["width"] / 8)
@@ -2144,7 +2144,10 @@ class Container:
         else:
             text = ""
             for row in raw_data:
-                text += "".join(row) + "\n"
+                if one_dimention_text == False:
+                    text += "".join(row) + "\n"
+                else:
+                    text += "".join(row)
             return text
 
     def _convert_2d_text_to_image(self, text):

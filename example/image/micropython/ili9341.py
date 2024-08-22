@@ -107,20 +107,9 @@ class Display(object):
             self.rotation = self.ROTATE[rotation]
 
         # Initialize GPIO pins and set implementation specific methods
-        if implementation.name == 'circuitpython':
-            self.cs.switch_to_output(value=True)
-            self.dc.switch_to_output(value=False)
-            self.rst.switch_to_output(value=True)
-            self.reset = self.reset_cpy
-            self.write_cmd = self.write_cmd_cpy
-            self.write_data = self.write_data_cpy
-        else:
-            self.cs.init(self.cs.OUT, value=1)
-            self.dc.init(self.dc.OUT, value=0)
-            self.rst.init(self.rst.OUT, value=1)
-            self.reset = self.reset_mpy
-            self.write_cmd = self.write_cmd_mpy
-            self.write_data = self.write_data_mpy
+        self.cs.init(self.cs.OUT, value=1)
+        self.dc.init(self.dc.OUT, value=0)
+        self.rst.init(self.rst.OUT, value=1)
         self.reset()
         # Send initialization commands
         self.write_cmd(self.SWRESET)  # Software reset
@@ -163,6 +152,7 @@ class Display(object):
         self.get_ascii_8_times_16_points_data = get_ascii_8_times_16_points_data
 
         self.font_cache = {}
+        self.the_2d_text_cache = None
 
     def color565(self, r, g, b):
         """Return RGB565 color value.
@@ -360,6 +350,45 @@ class Display(object):
 
         gc.collect()
 
+    def draw_1d_text(self, a_text, height=None, width=None):
+        if height == None:
+            height = self.height
+        if width == None:
+            width = self.width
+
+        rows_number = int(height // 16)
+        columns_number = int(width // 8)
+
+        the_char_index = 0
+        for row_index in range(rows_number):
+            top = row_index * 16
+            for column_index in range(columns_number):
+                left = column_index * 8
+                the_char_index += 1
+
+                char = a_text[the_char_index - 1]
+
+                if char == "\n":
+                    char = " "
+
+                if self.the_2d_text_cache == None:
+                    if char == " ":
+                        continue
+
+                if self.the_2d_text_cache != None:
+                    if self.the_2d_text_cache[the_char_index-1] == char:
+                        continue
+
+                a_char_bytes = self.get_char_bytes_by_char(char)
+                self.draw_buffer(left, top, left+8-1, top+16-1, a_char_bytes)
+                del a_char_bytes
+
+        gc.collect()
+
+        del self.the_2d_text_cache
+        gc.collect()
+        self.the_2d_text_cache = a_text
+
     def draw_ellipse(self, x0, y0, a, b, color):
         """Draw an ellipse.
 
@@ -446,17 +475,7 @@ class Display(object):
             return True
         return False
 
-    def reset_cpy(self):
-        """Perform reset: Low=initialization, High=normal operation.
-
-        Notes: CircuitPython implemntation
-        """
-        self.rst.value = False
-        sleep(.05)
-        self.rst.value = True
-        sleep(.05)
-
-    def reset_mpy(self):
+    def reset(self):
         """Perform reset: Low=initialization, High=normal operation.
 
         Notes: MicroPython implemntation
@@ -466,7 +485,7 @@ class Display(object):
         self.rst(1)
         sleep(.05)
 
-    def write_cmd_mpy(self, command, *args):
+    def write_cmd(self, command, *args):
         """Write command to OLED (MicroPython).
 
         Args:
@@ -481,26 +500,7 @@ class Display(object):
         if len(args) > 0:
             self.write_data(bytearray(args))
 
-    def write_cmd_cpy(self, command, *args):
-        """Write command to OLED (CircuitPython).
-
-        Args:
-            command (byte): ILI9341 command code.
-            *args (optional bytes): Data to transmit.
-        """
-        self.dc.value = False
-        self.cs.value = False
-        # Confirm SPI locked before writing
-        while not self.spi.try_lock():
-            pass
-        self.spi.write(bytearray([command]))
-        self.spi.unlock()
-        self.cs.value = True
-        # Handle any passed data
-        if len(args) > 0:
-            self.write_data(bytearray(args))
-
-    def write_data_mpy(self, data):
+    def write_data(self, data):
         """Write data to OLED (MicroPython).
 
         Args:
@@ -510,21 +510,6 @@ class Display(object):
         self.cs(0)
         self.spi.write(data)
         self.cs(1)
-
-    def write_data_cpy(self, data):
-        """Write data to OLED (CircuitPython).
-
-        Args:
-            data (bytes): Data to transmit.
-        """
-        self.dc.value = True
-        self.cs.value = False
-        # Confirm SPI locked before writing
-        while not self.spi.try_lock():
-            pass
-        self.spi.write(data)
-        self.spi.unlock()
-        self.cs.value = True
 
     def display_off(self):
         """Turn display off."""
