@@ -217,7 +217,7 @@ class Container:
         if on_click_function != None:
             self.on_click_function = on_click_function
         else:
-            def on_click(element=None):
+            def on_click(element=None, y=None, x=None):
                 return
 
             self.on_click_function = on_click
@@ -395,17 +395,6 @@ class Container:
                     text += "".join(row)
             return text
 
-    def _convert_2d_text_to_image(self, text):
-        if type(text) == list:
-            text = ""
-            for row in text_2d_array:
-                text += "".join(row) + "\n"
-        root_container = Container(text=text)
-        root_container.parent_height=self.real_property_dict["height"]
-        root_container.parent_width=self.real_property_dict["width"]
-        image = root_container.render()
-        return image
-
     def click(self, y, x):
         """
         When user click a point, we find the root container they click, then we loop that root container to find out which child container that user click...
@@ -413,7 +402,7 @@ class Container:
         if len(self.children) == 0:
             print(self.text)
             try:
-                self.on_click_function(self)
+                self.on_click_function(self, y, x)
             except Exception as e:
                 try:
                     self.on_click_function()
@@ -461,7 +450,7 @@ class Container:
                 if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
                     # clicked at this container, but no children matchs, the point is at background
                     try:
-                        self.on_click_function(self)
+                        self.on_click_function(self, y, x)
                     except Exception as e:
                         try:
                             self.on_click_function()
@@ -474,3 +463,15 @@ class Container:
 
     def advance_click(self, touch_start, touch_move, touch_end, y, x):
         pass
+
+
+class Container_Helper:
+    # Help you handle container related operations
+    def iterate_child_container(self, root_container):
+        # So that you can get a container that has some id in information, and get its real height and width in "node.real_property_dict"
+        queue = [root_container]
+        while (len(queue) != 0):
+            child = queue.pop()
+            if len(child.children) != 0:
+                queue += child.children.copy()
+            yield child

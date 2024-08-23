@@ -1774,7 +1774,7 @@ class Container:
         if on_click_function != None:
             self.on_click_function = on_click_function
         else:
-            def on_click(element=None):
+            def on_click(element=None, y=None, x=None):
                 return
 
             self.on_click_function = on_click
@@ -1787,6 +1787,7 @@ class Container:
         return ord(char) < 128
 
     def _convert_text_to_container_list(self, text, parent_height, parent_width, on_click_function):
+        # have a bug, which force you to click text than background
         if self.get_ascii_8_times_16_points_data == None:
             try:
                 from auto_everything.font_ import get_ascii_8_times_16_points_data
@@ -1799,13 +1800,14 @@ class Container:
         the_height = 16 * self.text_size
         the_width = 8 * self.text_size
         maximum_character_number_per_row = int(parent_width / the_width)
+        maximum_character_number_per_column = int(parent_height / the_height)
 
-        if "\n" not in text:
-            center_text = True
-            horizontal_padding_space_number = int((maximum_character_number_per_row - len(text))/2)
-        else:
-            center_text = False
-            horizontal_padding_space_number = 0
+        #if "\n" not in text:
+        #    center_text = True
+        #    horizontal_padding_space_number = int((maximum_character_number_per_row - len(text))/2)
+        #else:
+        #    center_text = False
+        #    horizontal_padding_space_number = 0
 
         # let the text fill the parent_container
         new_text = ""
@@ -1820,19 +1822,34 @@ class Container:
             new_text += "\n"
         text = new_text.strip()
 
-        maximum_line_number = int(parent_height / the_height)
-        if center_text == True:
-            vertical_padding_line_number = int((maximum_line_number - text.count("\n"))/2)
+        #maximum_line_number = int(parent_height / the_height)
+        #if center_text == True:
+        #    vertical_padding_line_number = int((maximum_line_number - text.count("\n"))/2)
+        #else:
+        #    vertical_padding_line_number = 0
+
+        # center text
+        if text != "":
+            real_width = maximum_character_number_per_row
+            real_height = maximum_character_number_per_column
+            if "\n" in text:
+                center_text = False
+                horizontal_padding_space_number = 0
+            else:
+                center_text = True
+                horizontal_padding_space_number = int((real_width - len(text))/2) + 1
+
+            lines = text.split("\n")
+            actual_text_lines = len(lines)
+            vertical_padding_line_number = int((real_height-actual_text_lines) / 2)
         else:
+            horizontal_padding_space_number = 0
             vertical_padding_line_number = 0
 
+        space_char_container = Container(height=the_height, width=the_width, color=self.color, children=[], columns=True, information=self.information, on_click_function=on_click_function)
         for line_index, line in enumerate(text.split("\n")):
-            #if line_index != 0:
-            #    children.append(Container(height=8, width=parent_width)) # line sperator
-
             text_row_container = Container(height=the_height, width=parent_width, children=[], columns=True, information=self.information)
-
-            for char in " " + line + " ":
+            for char in line:
                 if not self._is_ascii(char):
                     char = " "
                 char_points_data = self.get_ascii_8_times_16_points_data(char)
@@ -1843,7 +1860,7 @@ class Container:
                         else:
                             char_points_data[row_index][column_index] = self.color
 
-                char_id = "{size}+{char}".format(size=self.text_size, char=char)
+                char_id = "{size}+{char}+{color}".format(size=self.text_size, char=char, color=self.color)
                 if char_id not in char_image_container_cache:
                     char_image = Image().create_an_image(height=16, width=8, color=self.color)
                     char_image.raw_data = char_points_data
@@ -1857,15 +1874,12 @@ class Container:
                 char_image_container.information=self.information
                 text_row_container.children.append(char_image_container)
 
-            space_char_container = text_row_container.children[0]
-            text_row_container.children = text_row_container.children[1:-1] # remove duplicate space chracter
-            text_row_container.children = [space_char_container]*horizontal_padding_space_number + text_row_container.children + [space_char_container]*horizontal_padding_space_number
+            text_row_container.children = [space_char_container]*horizontal_padding_space_number + text_row_container.children + [space_char_container]*(horizontal_padding_space_number) #there may have a bug for adding 2
             children.append(text_row_container)
 
-        if center_text == True:
-            # add vertical padding lines
-            empty_text_row_container = Container(height=the_height, width=parent_width, children=[], columns=True, information=self.information)
-            children = [empty_text_row_container] * vertical_padding_line_number + children + [empty_text_row_container] * vertical_padding_line_number
+        # add vertical padding lines
+        empty_text_row_container = Container(height=the_height*vertical_padding_line_number, width=parent_width, color=self.color, children=[], rows=True, information=self.information, on_click_function=on_click_function)
+        children = [empty_text_row_container] + children + [empty_text_row_container]
 
         return children
 
@@ -1929,6 +1943,7 @@ class Container:
         if self.text != "":
             self.children = self._convert_text_to_container_list(self.text, parent_height=real_height, parent_width=real_width, on_click_function=self.on_click_function)
             self.rows = True
+            self.columns = False
 
         #real_height, real_width = real_image.get_shape()
         self.real_property_dict["height"] = real_height
@@ -2168,7 +2183,7 @@ class Container:
         if len(self.children) == 0:
             print(self.text)
             try:
-                self.on_click_function(self)
+                self.on_click_function(self, y, x)
             except Exception as e:
                 try:
                     self.on_click_function()
@@ -2216,7 +2231,7 @@ class Container:
                 if y >= left_top_y and y <= right_bottom_y and x >= left_top_x and x <= right_bottom_x:
                     # clicked at this container, but no children matchs, the point is at background
                     try:
-                        self.on_click_function(self)
+                        self.on_click_function(self, y, x)
                     except Exception as e:
                         try:
                             self.on_click_function()
@@ -2229,6 +2244,18 @@ class Container:
 
     def advance_click(self, touch_start, touch_move, touch_end, y, x):
         pass
+
+
+class Container_Helper:
+    # Help you handle container related operations
+    def iterate_child_container(self, root_container):
+        # So that you can get a container that has some id in information, and get its real height and width in "node.real_property_dict"
+        queue = [root_container]
+        while (len(queue) != 0):
+            child = queue.pop()
+            if len(child.children) != 0:
+                queue += child.children.copy()
+            yield child
 
 
 class GUI(Container):

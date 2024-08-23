@@ -41,16 +41,44 @@ print("Display ready.")
 """
 # Setup the GUI module that comes from python package 'auto_everything', the author is yingshaoxo
 """
-from image_ import Container
+from image_ import Container, Container_Helper
+container_helper = Container_Helper()
 
 content_container = Container(text="Hi you.\n\nHere should have an application list that you can click to open.")
+render_as_text_component_backup = content_container._render_as_text_component_list
 def handle_tab_click(tab_name):
     if tab_name == "Files":
         content_container.text="Files view\n\nWhere you can modify files on your disk."
+        content_container._render_as_text_component_list = render_as_text_component_backup
     elif tab_name == "Browser":
         content_container.text="Browser view\n\nWhere you can visit websites."
+        content_container._render_as_text_component_list = render_as_text_component_backup
     elif tab_name == "Terminal":
-        content_container.text="Terminal view\n\nWhere you can use command lines."
+        #content_container.text="Terminal view\n\nWhere you can use command lines."
+        content_container.text=""
+        from applications.terminal import Terminal_App
+        sub_window_height = None
+        sub_window_width = None
+        for child in container_helper.iterate_child_container(root_container):
+            if child.information.get("id") == "content_box":
+                print(child.real_property_dict)
+                sub_window_height = child.real_property_dict["height"]
+                sub_window_width = child.real_property_dict["width"]
+                break
+        terminal_app = Terminal_App(height=sub_window_height, width=sub_window_width)
+        def handle_child_click(a_container, y, x):
+            terminal_app.handle_touch_function(y, x)
+        content_container.on_click_function=handle_child_click
+        def new_render_as_text_component_function(*arguments):
+            content_container.text = terminal_app.render_as_text()
+            if len(arguments) == 3:
+                _, top_, left_ = arguments
+            elif len(arguments) == 2:
+                top_, left_ = arguments
+            elif len(arguments) == 0:
+                top_, left_ = 0, 0
+            return render_as_text_component_backup(top_, left_)
+        content_container._render_as_text_component_list = new_render_as_text_component_function
 
 root_container = Container(
     height=1.0,
@@ -65,17 +93,17 @@ root_container = Container(
                 Container(
                     width=0.33,
                     text="Files",
-                    on_click_function=lambda x: handle_tab_click("Files")
+                    on_click_function=lambda *x: handle_tab_click("Files")
                 ),
                 Container(
                     width=0.33,
                     text="Browser",
-                    on_click_function=lambda x: handle_tab_click("Browser")
+                    on_click_function=lambda *x: handle_tab_click("Browser")
                 ),
                 Container(
                     width=0.33,
                     text="Terminal",
-                    on_click_function=lambda x: handle_tab_click("Terminal")
+                    on_click_function=lambda *x: handle_tab_click("Terminal")
                 ),
             ]
         ),
@@ -83,6 +111,7 @@ root_container = Container(
             height=0.9,
             width=1.0,
             rows=True,
+            information={"id": "content_box"},
             children=[
                 content_container
             ]

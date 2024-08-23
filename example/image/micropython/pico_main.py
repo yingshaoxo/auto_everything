@@ -47,12 +47,12 @@ sleep(5)
 """
 from image_ import Container
 
-def next_page_click():
+def next_page_click(*arguments):
     the_text.text="never give up"
 
 the_text = Container(text="Hello everyone! \nThis micropython mobile phone example was made by yingshaoxo.\nYingshaoxo is the god, will you believe it?", text_size=1)
 
-def previous_page_click():
+def previous_page_click(*arguments):
     the_text.text="yingshaoxo"
 
 root_container = Container(

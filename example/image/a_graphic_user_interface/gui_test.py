@@ -1,17 +1,13 @@
-from auto_everything.disk import Disk
-from auto_everything.image import GUI, Container
+from auto_everything.image_ import Container
 
-disk = Disk()
-
-def change_it_back(*args):
-    the_text.text="never give up"
-    print("fuck2")
-
-the_text = Container(text="fuck it\nyou got everything you need right now, you don't have to worry about anything.", text_size=3, on_click_function=change_it_back)
-
-def change_it(*args):
-    the_text.text="yingshaoxo"
-    print("fuck")
+content_container = Container(text="Hi you.\n\nHere should have an application list that you can click to open.")
+def handle_tab_click(tab_name):
+    if tab_name == "Files":
+        content_container.text="Files view\n\nWhere you can modify files on your disk."
+    elif tab_name == "Browser":
+        content_container.text="Browser view\n\nWhere you can visit websites."
+    elif tab_name == "Terminal":
+        content_container.text="Terminal view\n\nWhere you can use command lines."
 
 root_container = Container(
     height=1.0,
@@ -19,32 +15,37 @@ root_container = Container(
     rows=True,
     children=[
         Container(
-            height=0.5,
+            height=0.1,
             width=1.0,
-            color=[0,255,255,255],
             columns=True,
             children=[
                 Container(
-                    height=1.0,
-                    width=0.5,
-                    color=[255,0,255,255],
-                    rows=True,
-                    children=[
-                        the_text
-                    ],
+                    width=0.33,
+                    text="Files",
+                    color=[255,0,0,255],
+                    on_click_function=lambda *x: handle_tab_click("Files")
                 ),
                 Container(
-                    height=1.0,
-                    width=0.25,
-                    color=[255,255,0,255],
-                    on_click_function=lambda *x: print("hi you")
+                    width=0.33,
+                    text="Browser",
+                    color=[0,255,0,255],
+                    on_click_function=lambda *x: handle_tab_click("Browser")
                 ),
                 Container(
-                    height=1.0,
-                    width=0.25,
-                    color=[0,255,255,255],
-                    on_click_function=change_it
-                )
+                    width=0.33,
+                    text="Terminal",
+                    color=[0,0,255,255],
+                    on_click_function=lambda *x: handle_tab_click("Terminal")
+                ),
+            ]
+        ),
+        Container(
+            height=0.9,
+            width=1.0,
+            rows=True,
+            color=[245,25,211,255],
+            children=[
+                content_container
             ]
         ),
     ]
@@ -63,7 +64,7 @@ def click_it(y,x):
 target_image_path = "./gui.png"
 def refresh():
     image = root_container.render()
-    image.print()
+    #image.print()
     image.save_image_to_file_path(target_image_path)
 
 change_resolution()

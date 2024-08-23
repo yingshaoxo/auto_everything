@@ -3,10 +3,10 @@ from auto_everything.image import GUI, Container
 
 disk = Disk()
 
-def change_it_back():
+def change_it_back(*args):
     the_text1.text="never give up"
 
-def change_it_again():
+def change_it_again(*args):
     the_text1.text="yingshaoxo"
 
 the_text1 = Container(width=0.5, text="Menu", on_click_function=change_it_back)
@@ -22,12 +22,12 @@ root_container = Container(
     rows=True,
     children=[
         Container(
-            height=0.5,
+            height=0.1,
             width=1.0,
             columns=True,
         ),
         Container(
-            height=0.5,
+            height=0.9,
             width=1.0,
             columns=True,
             children=[
@@ -109,5 +109,6 @@ router = {
     #r"(.*)": home_handler
 }
 
+print("http://127.0.0.1:1212")
 yingshaoxo_http_server = Yingshaoxo_Threading_Based_Http_Server(router=router)
 yingshaoxo_http_server.start(host="0.0.0.0", port=1212, html_folder_path="./")
