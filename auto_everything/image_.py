@@ -2135,7 +2135,8 @@ class Container:
                 actual_text_lines = len(lines) + sum([len(line)/real_width for line in lines])
                 vertical_padding_line_number = int((real_height-actual_text_lines) / 2)
 
-                char_list = list(text)
+                index = 0
+                text_length = len(text)
                 for row_index in range(real_top, real_top+real_height):
                     if vertical_padding_line_number > 0:
                         # for center text
@@ -2146,10 +2147,10 @@ class Container:
                             # for center text
                             horizontal_padding_space_number -= 1
                             continue
-                        if len(char_list) == 0:
+                        if index >= text_length:
                             break
-                        char = char_list[0]
-                        char_list = char_list[1:]
+                        char = text[index]
+                        index += 1
                         if char == "\n":
                             break
                         raw_data[row_index][column_index] = char
