@@ -65,10 +65,17 @@ def handle_tab_click(tab_name):
                 sub_window_height = child.real_property_dict["height"]
                 sub_window_width = child.real_property_dict["width"]
                 break
+
         terminal_app = Terminal_App(height=sub_window_height, width=sub_window_width)
+
         def handle_child_click(a_container, y, x):
             terminal_app.handle_touch_function(y, x)
         content_container.on_click_function=handle_child_click
+
+        def handle_child_key_press(char):
+            terminal_app.handle_keyboard_function(char)
+        keyboard_callback_function_dict["terminal_app"] = handle_child_key_press
+
         def new_render_as_text_component_function(*arguments):
             content_container.text = terminal_app.render_as_text()
             if len(arguments) == 3:
@@ -79,6 +86,92 @@ def handle_tab_click(tab_name):
                 top_, left_ = 0, 0
             return render_as_text_component_backup(top_, left_)
         content_container._render_as_text_component_list = new_render_as_text_component_function
+
+keyboard_callback_function_dict = {}
+def handle_keyboard_press(a_container, y, x):
+    the_char = a_container.text
+    if the_char == " " or the_char == "":
+        return
+    #print("get key press:", the_char)
+    if the_char == "Space":
+        the_char = " "
+    elif the_char == "Enter":
+        the_char = "\n"
+    for a_function in keyboard_callback_function_dict.values():
+        try:
+            a_function(the_char)
+        except Exception as e:
+            print(e)
+
+def get_keyboard_container():
+    component_list = []
+    keyboard_text = """
+1 2 3 4 5 6 7 8 9 0
+q w e r t y u i o p
+ a s d f g h j k l 
+  z x c v b n m  
+_!:;\"'?.,%#<>{}[]()=+-*/@$&|^
+    """.strip()
+    for line in keyboard_text.split("\n"):
+        token_list = []
+        for one in line:
+            token_list.append(one)
+        line_length = len(line)
+        char_component_list = []
+        for token in token_list:
+            char_component_list.append(
+                Container(
+                    height=1.0,
+                    width=len(token)/line_length,
+                    rows=True,
+                    columns=False,
+                    text=token,
+                    on_click_function=handle_keyboard_press
+                )
+            )
+        component_list.append(
+            Container(
+                height=1/6,
+                width=1.0,
+                rows=False,
+                columns=True,
+                children=char_component_list
+            )
+        )
+
+    command_text = """
+Esc Tab Space Delete Enter
+    """.strip()
+    command_component_list = []
+    for token in command_text.split(" "):
+        command_component_list.append(
+            Container(
+                height=1.0,
+                width=1/5,
+                rows=True,
+                columns=False,
+                text=token,
+                on_click_function=handle_keyboard_press
+            )
+        )
+    component_list.append(
+        Container(
+            height=1/6,
+            width=1.0,
+            rows=False,
+            columns=True,
+            children=command_component_list
+        )
+    )
+
+    keyboard_container = Container(
+        height=0.2,
+        width=1.0,
+        rows=True,
+        information={"id": "keyboard"},
+        children=component_list
+    )
+    return keyboard_container
 
 root_container = Container(
     height=1.0,
@@ -108,7 +201,7 @@ root_container = Container(
             ]
         ),
         Container(
-            height=0.9,
+            height=0.7,
             width=1.0,
             rows=True,
             information={"id": "content_box"},
@@ -116,6 +209,7 @@ root_container = Container(
                 content_container
             ]
         ),
+        get_keyboard_container()
     ]
 )
 
@@ -158,7 +252,7 @@ def handle_touchscreen_press(x, y):
 
     # Draw dot circle
     display.draw_pixel(x, y, display.color565(255,0,255))
-    display.draw_ellipse(x, y, 10, 10, display.color565(255,0,255))
+    display.draw_ellipse(x, y, 5, 5, display.color565(255,0,255))
 
     # Click and rendering
     root_container.click(y, x)

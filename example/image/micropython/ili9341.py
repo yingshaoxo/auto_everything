@@ -153,6 +153,7 @@ class Display(object):
 
         self.font_cache = {}
         self.the_2d_text_cache = None
+        self.the_force_redraw_2d_text_index_set = set()
 
     def color565(self, r, g, b):
         """Return RGB565 color value.
