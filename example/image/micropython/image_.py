@@ -178,7 +178,7 @@ class Animation:
 
 
 class Container:
-    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, parent_height=None, parent_width=None, on_click_function=None, information={}):
+    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, center_text=True, parent_height=None, parent_width=None, on_click_function=None, information={}, custom_render_function=None):
         """
         height: "8" means "8px", "0.5" means "50% of its parent container"
         width: "20" means "20px", "0.2" means "20%"
@@ -205,9 +205,11 @@ class Container:
         self.text = text
         self.text_color = text_color
         self.text_size = text_size
+        self.center_text = center_text
         self.parent_height = parent_height
         self.parent_width = parent_width
         self.information = information
+        self.custom_render_function = custom_render_function
 
         self.real_property_dict = {}
 
@@ -259,6 +261,7 @@ class Container:
                 "height": real_height,
                 "width": real_width,
                 "image": self.image.copy(),
+                "center_text": self.center_text,
             })
         else:
             data_list.append({
@@ -267,6 +270,7 @@ class Container:
                 "height": real_height,
                 "width": real_width,
                 "text": self.text,
+                "center_text": self.center_text,
             })
 
         self.real_property_dict["height"] = real_height
@@ -334,6 +338,9 @@ class Container:
             raw_data.append(one_row)
 
         for component in component_list:
+            if self.custom_render_function != None:
+                self.custom_render_function(component)
+
             top = component["top"]
             left = component["left"]
             height = component["height"]
@@ -354,16 +361,20 @@ class Container:
                 if text == "":
                     continue
 
-                if "\n" in text:
-                    center_text = False
-                    horizontal_padding_space_number = 0
-                else:
-                    center_text = True
-                    horizontal_padding_space_number = int((real_width - len(text))/2)
+                if component["center_text"] == True:
+                    if "\n" in text:
+                        center_text = False
+                        horizontal_padding_space_number = 0
+                    else:
+                        center_text = True
+                        horizontal_padding_space_number = int((real_width - len(text))/2)
 
-                lines = text.split("\n")
-                actual_text_lines = len(lines) + sum([len(line)/real_width for line in lines])
-                vertical_padding_line_number = int((real_height-actual_text_lines) / 2)
+                    lines = text.split("\n")
+                    actual_text_lines = len(lines) + sum([len(line)/real_width for line in lines])
+                    vertical_padding_line_number = int((real_height-actual_text_lines) / 2)
+                else:
+                    vertical_padding_line_number = 0
+                    horizontal_padding_space_number = 0
 
                 index = 0
                 text_length = len(text)

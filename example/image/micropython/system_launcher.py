@@ -44,15 +44,18 @@ print("Display ready.")
 from image_ import Container, Container_Helper
 container_helper = Container_Helper()
 
+
 content_container = Container(text="Hi you.\n\nHere should have an application list that you can click to open.")
 render_as_text_component_backup = content_container._render_as_text_component_list
 def handle_tab_click(tab_name):
     if tab_name == "Files":
         content_container.text="Files view\n\nWhere you can modify files on your disk."
         content_container._render_as_text_component_list = render_as_text_component_backup
+        show_or_hide_keyboard(False)
     elif tab_name == "Browser":
         content_container.text="Browser view\n\nWhere you can visit websites."
         content_container._render_as_text_component_list = render_as_text_component_backup
+        show_or_hide_keyboard(False)
     elif tab_name == "Terminal":
         #content_container.text="Terminal view\n\nWhere you can use command lines."
         content_container.text=""
@@ -86,6 +89,8 @@ def handle_tab_click(tab_name):
                 top_, left_ = 0, 0
             return render_as_text_component_backup(top_, left_)
         content_container._render_as_text_component_list = new_render_as_text_component_function
+        show_or_hide_keyboard(True)
+
 
 keyboard_callback_function_dict = {}
 def handle_keyboard_press(a_container, y, x):
@@ -103,44 +108,45 @@ def handle_keyboard_press(a_container, y, x):
         except Exception as e:
             print(e)
 
+from applications._keyboard import A_Keyboard
+a_keyboard = A_Keyboard()
 def get_keyboard_container():
     component_list = []
-    keyboard_text = """
-1 2 3 4 5 6 7 8 9 0
-q w e r t y u i o p
- a s d f g h j k l 
-  z x c v b n m  
-_!:;\"'?.,%#<>{}[]()=+-*/@$&|^
-    """.strip()
-    for line in keyboard_text.split("\n"):
-        token_list = []
-        for one in line:
-            token_list.append(one)
-        line_length = len(line)
-        char_component_list = []
-        for token in token_list:
-            char_component_list.append(
+
+    def handle_special_keyboard_press(a_element, y, x):
+        a_char = a_keyboard.handle_touch_function(y,x)
+        handle_keyboard_press(Container(text=a_char), y, x)
+
+    component_list.append(
+        Container(
+            height=6/8,
+            width=1.0,
+            rows=False,
+            columns=True,
+            children=[
+                Container(height=1.0, width=0.15),
                 Container(
-                    height=1.0,
-                    width=len(token)/line_length,
-                    rows=True,
-                    columns=False,
-                    text=token,
-                    on_click_function=handle_keyboard_press
-                )
-            )
-        component_list.append(
-            Container(
-                height=1/6,
-                width=1.0,
-                rows=False,
-                columns=True,
-                children=char_component_list
-            )
+                    height=1.0, width=0.7, rows=True,
+                    text=a_keyboard.render_as_text(),
+                    center_text=False,
+                    on_click_function=handle_special_keyboard_press
+                ),
+                Container(height=1.0, width=0.15)
+            ]
         )
+    )
+
+    component_list.append(
+        Container(
+            height=8,
+            width=1.0,
+            rows=True,
+            columns=False,
+        )
+    )
 
     command_text = """
-Esc Tab Space Delete Enter
+Esc Tab Space Del Enter
     """.strip()
     command_component_list = []
     for token in command_text.split(" "):
@@ -156,7 +162,7 @@ Esc Tab Space Delete Enter
         )
     component_list.append(
         Container(
-            height=1/6,
+            height=1/8,
             width=1.0,
             rows=False,
             columns=True,
@@ -164,14 +170,55 @@ Esc Tab Space Delete Enter
         )
     )
 
+    component_list.append(
+        Container(
+            height=1/8,
+            width=1.0,
+            rows=False,
+            columns=True,
+            text="keyboard",
+            on_click_function=lambda *x: show_or_hide_keyboard()
+        )
+    )
+
     keyboard_container = Container(
         height=0.2,
         width=1.0,
         rows=True,
-        information={"id": "keyboard"},
         children=component_list
     )
     return keyboard_container
+
+keyboard_is_showing = False
+keyboard_container = get_keyboard_container()
+bottom_keyboard_trigger = Container(
+    height=0.05, width=1.0,
+    children=[
+        Container(
+            height=16,
+            width=1.0,
+            rows=True,
+            columns=False,
+        ),
+        Container(height=16, text="keyboard", on_click_function=lambda *x: show_or_hide_keyboard())
+    ]
+)
+def show_or_hide_keyboard(status=None):
+    global keyboard_is_showing
+    if status == None:
+        status = not keyboard_is_showing
+        keyboard_is_showing = status
+    if status == True:
+        keyboard_container.height = 0.3
+        root_container.children[1].height = 0.6
+        root_container.children[2] = keyboard_container
+        keyboard_is_showing = status
+    else:
+        bottom_keyboard_trigger.height = 0.05
+        root_container.children[1].height = 0.85
+        root_container.children[2] = bottom_keyboard_trigger
+        keyboard_is_showing = status
+
 
 root_container = Container(
     height=1.0,
@@ -201,7 +248,7 @@ root_container = Container(
             ]
         ),
         Container(
-            height=0.7,
+            height=0.85,
             width=1.0,
             rows=True,
             information={"id": "content_box"},
@@ -209,12 +256,13 @@ root_container = Container(
                 content_container
             ]
         ),
-        get_keyboard_container()
+        bottom_keyboard_trigger
     ]
 )
 
 root_container.parent_height=height
 root_container.parent_width=width
+
 
 def the_rendering():
     print()

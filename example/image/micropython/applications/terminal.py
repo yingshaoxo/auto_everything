@@ -51,7 +51,7 @@ class Terminal_App():
 
     def handle_touch_function(self, y, x):
         print("sub_app_click:", y, x)
-        self.text = "y:{}, x:{}".format(y, x)
+        #self.text = "y:{}, x:{}".format(y, x)
 
     def handle_keyboard_function(self, char):
         print("sub_app get key press:", char)
@@ -114,4 +114,8 @@ class Terminal_App():
             return "\n".join(os.listdir("."))
         elif command == "uname":
             return "yingshaoxo micropython phone linux system 1.0 2024"
-        return str(eval(command, globals(), locals()))
+        try:
+            result = str(eval(command, globals(), locals()))
+        except Exception as e:
+            result = str(e)
+        return result
