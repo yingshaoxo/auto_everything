@@ -25,6 +25,8 @@ TFT_RST_PIN = const(1)
 
 height=480
 width=320
+#height=320
+#width=240
 
 def create_display():
     baudrate = 60000000
@@ -117,6 +119,8 @@ def get_keyboard_container():
         a_char = a_keyboard.handle_touch_function(y,x)
         handle_keyboard_press(Container(text=a_char), y, x)
 
+    left_or_right_padding_width = int((width - 19*8)/2) #one line keyboard has 19 chars
+    center_keyboard_width = width - left_or_right_padding_width
     component_list.append(
         Container(
             height=6/8,
@@ -124,24 +128,15 @@ def get_keyboard_container():
             rows=False,
             columns=True,
             children=[
-                Container(height=1.0, width=0.15),
+                Container(height=1.0, width=left_or_right_padding_width),
                 Container(
-                    height=1.0, width=0.7, rows=True,
+                    height=1.0, width=center_keyboard_width, rows=True,
                     text=a_keyboard.render_as_text(),
                     center_text=False,
                     on_click_function=handle_special_keyboard_press
                 ),
-                Container(height=1.0, width=0.15)
+                Container(height=1.0, width=left_or_right_padding_width)
             ]
-        )
-    )
-
-    component_list.append(
-        Container(
-            height=8,
-            width=1.0,
-            rows=True,
-            columns=False,
         )
     )
 
@@ -169,6 +164,16 @@ Esc Tab Space Del Enter
             children=command_component_list
         )
     )
+
+    if height >= 480:
+        component_list.append(
+            Container(
+                height=8,
+                width=1.0,
+                rows=True,
+                columns=False,
+            )
+        )
 
     component_list.append(
         Container(
@@ -209,13 +214,13 @@ def show_or_hide_keyboard(status=None):
         status = not keyboard_is_showing
         keyboard_is_showing = status
     if status == True:
-        keyboard_container.height = 0.3
-        root_container.children[1].height = 0.6
+        root_container.children[1].height = 0.5
+        keyboard_container.height = 0.4
         root_container.children[2] = keyboard_container
         keyboard_is_showing = status
     else:
-        bottom_keyboard_trigger.height = 0.05
-        root_container.children[1].height = 0.85
+        bottom_keyboard_trigger.height = 0.1
+        root_container.children[1].height = 0.8
         root_container.children[2] = bottom_keyboard_trigger
         keyboard_is_showing = status
 
@@ -262,6 +267,7 @@ root_container = Container(
 
 root_container.parent_height=height
 root_container.parent_width=width
+show_or_hide_keyboard(False)
 
 
 def the_rendering():

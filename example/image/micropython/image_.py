@@ -394,7 +394,8 @@ class Container:
                         index += 1
                         if char == "\n":
                             break
-                        raw_data[row_index][column_index] = char
+                        if row_index < rows_number and column_index < char_number_in_one_row:
+                            raw_data[row_index][column_index] = char
 
         if pure_text == False:
             return raw_data

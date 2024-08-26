@@ -79,7 +79,7 @@ class Terminal_App():
             else:
                 self.x += 1
         else:
-            if char == "Delete":
+            if char == "Del":
                 self.current_line_buffer.pop()
                 self._draw_text(self.y, self.x, " ")
                 self._draw_text(self.y, self.x-1, " ")
