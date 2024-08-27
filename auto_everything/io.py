@@ -244,6 +244,67 @@ class IO():
         return self.read(self.__log_path)
 
 
+class File_IO:
+    def __init__(self, filename, mode=None):
+        # 'wb' for write bytes but will clear the whole file first, 'w' for write string
+        # 'rb+' for reading bytes and write bytes at any position
+        # 'ab' for appending data at the end
+        self.filename = filename
+
+        if mode == None:
+            if self.exists():
+                mode = "rb+"
+            else:
+                mode = "wb+"
+        self.mode = mode
+
+        print(mode)
+        self.file = open(filename, mode)
+
+    def read(self, size=-1):
+        return self.file.read(size)
+
+    def write(self, data):
+        if 'w' in self.mode or 'a' in self.mode or '+' in self.mode:
+            self.file.write(data)
+
+    def seek(self, offset, whence=None):
+        # where to start: os.SEEK_END, start from end; os.SEEK_SET, start from beginning
+        if whence == None:
+            self.file.seek(offset)
+        else:
+            self.file.seek(offset, whence)
+
+    def seek_from_end(self, negative_offset=0):
+        # only support binary mode
+        self.file.seek(negative_offset, os.SEEK_END)
+
+    def tell(self):
+        # get current file pointer that was set by seek
+        return self.file.tell()
+
+    def close(self):
+        self.file.close()
+
+    def get_size(self):
+        try:
+            return os.path.getsize(self.filename)
+        except Exception as e:
+            info = os.stat(self.filename)
+            filesize = info[6]
+            return filesize
+
+    def exists(self):
+        try:
+            os.stat(self.filename)
+            return True
+        except Exception as e:
+            return False
+
+    def flush(self):
+        self.file.flush()
+
+
 class Yingshaoxo_Dict():
     """
     This dict is based on yingshaoxo hash table algorithm.
