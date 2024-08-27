@@ -1,6 +1,7 @@
 from time import sleep, time
 import os
 
+
 class Terminal_App():
     def __init__(self, height=320, width=240):
         self.height = height
@@ -12,10 +13,6 @@ class Terminal_App():
         self.text_width = int(self.width / self.char_width)
         self.text = [" "] * self.text_height * self.text_width
 
-        #init_text = "Hi"
-        #init_text += "\n\ncontent_view has height and width of:\n"
-        #init_text += "{height}, {width}".format(height=height, width=width)
-        #self._draw_text(0, 0, init_text)
         self.y = 0
         self.x = 1
         self.current_line_buffer = []
@@ -64,10 +61,14 @@ class Terminal_App():
 
                 result = self._run_command("".join(self.current_line_buffer))
                 result = result.strip()
-                self._draw_text(self.y, self.x, result)
-
+                result_text_height = self._get_real_text_height_of_text(result)
                 self.current_line_buffer = []
-                self.y += self._get_real_text_height_of_text(result)
+                if self.y+result_text_height > self.text_height:
+                    # beyound current page, draw in next page
+                    self._clear_screen()
+                self._draw_text(self.y, self.x, result)
+                self.y += result_text_height
+
                 self.x = 0
                 self._start_line_print()
                 return
@@ -114,8 +115,80 @@ class Terminal_App():
             return "\n".join(os.listdir("."))
         elif command == "uname":
             return "yingshaoxo micropython phone linux system 1.0 2024"
+        elif command == "clear":
+            self._clear_screen()
+            return ""
+
         try:
             result = str(eval(command, globals(), locals()))
         except Exception as e:
             result = str(e)
         return result
+
+    def _clear_screen(self):
+        for y_index in range(0, self.text_height):
+            for x_index in range(0, self.text_width):
+                self._draw_text(y_index, x_index, " ")
+        self.y = 0
+
+
+class File_IO:
+    def __init__(self, filename, mode=None):
+        # 'wb' for write bytes but will clear the whole file first, 'w' for write string
+        # 'rb+' for reading bytes and write bytes at any position
+        # 'ab' for appending data at the end
+        self.filename = filename
+
+        if mode == None:
+            if self.exists():
+                mode = "rb+"
+            else:
+                mode = "wb+"
+        self.mode = mode
+
+        print(mode)
+        self.file = open(filename, mode)
+
+    def read(self, size=-1):
+        return self.file.read(size)
+
+    def write(self, data):
+        if 'w' in self.mode or 'a' in self.mode or '+' in self.mode:
+            self.file.write(data)
+
+    def seek(self, offset, whence=None):
+        # where to start: os.SEEK_END, start from end; os.SEEK_SET, start from beginning
+        if whence == None:
+            self.file.seek(offset)
+        else:
+            self.file.seek(offset, whence)
+
+    def seek_from_end(self, negative_offset=0):
+        # only support binary mode
+        self.file.seek(negative_offset, os.SEEK_END)
+
+    def tell(self):
+        # get current file pointer that was set by seek
+        return self.file.tell()
+
+    def close(self):
+        self.file.close()
+
+    def get_size(self):
+        try:
+            return os.path.getsize(self.filename)
+        except Exception as e:
+            info = os.stat(self.filename)
+            filesize = info[6]
+            return filesize
+
+    def exists(self):
+        try:
+            os.stat(self.filename)
+            return True
+        except Exception as e:
+            return False
+
+    def flush(self):
+        self.file.flush()
+

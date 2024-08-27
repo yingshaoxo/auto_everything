@@ -178,7 +178,7 @@ class Animation:
 
 
 class Container:
-    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, center_text=True, parent_height=None, parent_width=None, on_click_function=None, information={}, custom_render_function=None):
+    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, center_text=True, parent_height=None, parent_width=None, on_click_function=None, information={}):
         """
         height: "8" means "8px", "0.5" means "50% of its parent container"
         width: "20" means "20px", "0.2" means "20%"
@@ -209,7 +209,6 @@ class Container:
         self.parent_height = parent_height
         self.parent_width = parent_width
         self.information = information
-        self.custom_render_function = custom_render_function
 
         self.real_property_dict = {}
 
@@ -338,9 +337,6 @@ class Container:
             raw_data.append(one_row)
 
         for component in component_list:
-            if self.custom_render_function != None:
-                self.custom_render_function(component)
-
             top = component["top"]
             left = component["left"]
             height = component["height"]

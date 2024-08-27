@@ -52,15 +52,20 @@ render_as_text_component_backup = content_container._render_as_text_component_li
 def handle_tab_click(tab_name):
     if tab_name == "Files":
         content_container.text="Files view\n\nWhere you can modify files on your disk."
+        content_container.center_text = True
         content_container._render_as_text_component_list = render_as_text_component_backup
         show_or_hide_keyboard(False)
     elif tab_name == "Browser":
         content_container.text="Browser view\n\nWhere you can visit websites."
+        content_container.center_text = True
         content_container._render_as_text_component_list = render_as_text_component_backup
         show_or_hide_keyboard(False)
     elif tab_name == "Terminal":
         #content_container.text="Terminal view\n\nWhere you can use command lines."
+        show_or_hide_keyboard(True)
         content_container.text=""
+        content_container.center_text = False
+        root_container.render_as_text(pure_text=True, one_dimention_text=True)
         from applications.terminal import Terminal_App
         sub_window_height = None
         sub_window_width = None
@@ -91,7 +96,6 @@ def handle_tab_click(tab_name):
                 top_, left_ = 0, 0
             return render_as_text_component_backup(top_, left_)
         content_container._render_as_text_component_list = new_render_as_text_component_function
-        show_or_hide_keyboard(True)
 
 
 keyboard_callback_function_dict = {}

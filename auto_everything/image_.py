@@ -1726,7 +1726,7 @@ char_image_container_cache = {} # 'size+char' as key, image_container as value
 
 
 class Container:
-    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, parent_height=None, parent_width=None, on_click_function=None, information={}):
+    def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, center_text=True, parent_height=None, parent_width=None, on_click_function=None, information={}):
         """
         height: "8" means "8px", "0.5" means "50% of its parent container"
         width: "20" means "20px", "0.2" means "20%"
@@ -1753,6 +1753,7 @@ class Container:
         self.text = text
         self.text_color = text_color
         self.text_size = text_size
+        self.center_text = center_text
         self.parent_height = parent_height
         self.parent_width = parent_width
         self.information = information
@@ -1802,13 +1803,6 @@ class Container:
         maximum_character_number_per_row = int(parent_width / the_width)
         maximum_character_number_per_column = int(parent_height / the_height)
 
-        #if "\n" not in text:
-        #    center_text = True
-        #    horizontal_padding_space_number = int((maximum_character_number_per_row - len(text))/2)
-        #else:
-        #    center_text = False
-        #    horizontal_padding_space_number = 0
-
         # let the text fill the parent_container
         new_text = ""
         for line in text.split("\n"):
@@ -1822,14 +1816,8 @@ class Container:
             new_text += "\n"
         text = new_text.strip()
 
-        #maximum_line_number = int(parent_height / the_height)
-        #if center_text == True:
-        #    vertical_padding_line_number = int((maximum_line_number - text.count("\n"))/2)
-        #else:
-        #    vertical_padding_line_number = 0
-
         # center text
-        if text != "":
+        if text != "" and self.center_text == True:
             real_width = maximum_character_number_per_row
             real_height = maximum_character_number_per_column
             if "\n" in text:
@@ -2029,6 +2017,7 @@ class Container:
                 "height": real_height,
                 "width": real_width,
                 "image": self.image.copy(),
+                "center_text": self.center_text,
             })
         else:
             data_list.append({
@@ -2037,6 +2026,7 @@ class Container:
                 "height": real_height,
                 "width": real_width,
                 "text": self.text,
+                "center_text": self.center_text,
             })
 
         self.real_property_dict["height"] = real_height
@@ -2124,16 +2114,20 @@ class Container:
                 if text == "":
                     continue
 
-                if "\n" in text:
-                    center_text = False
-                    horizontal_padding_space_number = 0
-                else:
-                    center_text = True
-                    horizontal_padding_space_number = int((real_width - len(text))/2)
+                if component["center_text"] == True:
+                    if "\n" in text:
+                        center_text = False
+                        horizontal_padding_space_number = 0
+                    else:
+                        center_text = True
+                        horizontal_padding_space_number = int((real_width - len(text))/2)
 
-                lines = text.split("\n")
-                actual_text_lines = len(lines) + sum([len(line)/real_width for line in lines])
-                vertical_padding_line_number = int((real_height-actual_text_lines) / 2)
+                    lines = text.split("\n")
+                    actual_text_lines = len(lines) + sum([len(line)/real_width for line in lines])
+                    vertical_padding_line_number = int((real_height-actual_text_lines) / 2)
+                else:
+                    horizontal_padding_space_number = 0
+                    vertical_padding_line_number = 0
 
                 index = 0
                 text_length = len(text)
