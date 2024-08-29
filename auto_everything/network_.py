@@ -40,53 +40,156 @@ It seems like, if you can use more line to do the communication at the same time
 
 
 class Universal_Asynchronous_Receiver_And_Transmitter():
-    def __init__(self, device_path):
+    def __init__(self, device_path, baudrate=9600):
         """
         device_path: string
             '/dev/ttyACM0'
+            sudo usermod -a -G dialout <username>
         """
         import os
         import fcntl
+        import termios
+        import struct
         self.os = os
         self.fcntl = fcntl
+        self.termios = termios
+        self.struct = struct
 
         self.device_path = device_path
+        self.baudrate = baudrate
 
-    def read(self, callback_function):
-        fd = self.os.open(self.device_path, self.os.O_RDWR | self.os.O_NOCTTY | self.os.O_NDELAY)
-        self.fcntl.fcntl(fd, self.fcntl.F_SETFL, 0)
+        self.fd = self.os.open(self.device_path, self.os.O_RDWR | self.os.O_NOCTTY)
+        #self.fd = self.os.open(self.device_path, self.os.O_RDWR | self.os.O_NOCTTY | self.os.O_NONBLOCK)
+
+        self.set_baudrate(self.baudrate)
+
+    def set_baudrate(self, baudrate=9600):
+        """
+        baudrate:
+
+        B0        <==> 0x0000
+        B50       <==> 0x0001
+        B75       <==> 0x0002
+        B110      <==> 0x0003
+        B134      <==> 0x0004
+        B150      <==> 0x0005
+        B200      <==> 0x0006
+        B300      <==> 0x0007
+        B600      <==> 0x0008
+        B1200     <==> 0x0009
+        B1800     <==> 0x000a
+        B2400     <==> 0x000b
+        B4800     <==> 0x000c
+        B9600     <==> 0x000d
+        B19200    <==> 0x000e
+        B38400    <==> 0x000f
+        B57600    <==> 0x1001
+        B115200   <==> 0x1002
+        B230400   <==> 0x1003
+        """
+        """
+            struct termios {
+                tcflag_t c_iflag;        /* attrs[0], input mode flags */
+                tcflag_t c_oflag;        /* output mode flags */
+                tcflag_t c_cflag;        /* control mode flags */
+                tcflag_t c_lflag;        /* local mode flags */
+            };
+        or
+            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = orig_attr
+        """
+        attrs = self.termios.tcgetattr(self.fd)
+
+        # set up raw mode, otherwise '\r' will be '\n'
         try:
-            while True:
-                data = self.os.read(fd, 128)
-                if data:
-                    callback_function(data)
+            attrs[0] = attrs[0] & ~(self.termios.INLCR | self.termios.IGNCR | self.termios.ICRNL | self.termios.IGNBRK)
+            if hasattr(self.termios, 'IUCLC'):
+                attrs[0] = attrs[0] & ~self.termios.IUCLC
+            if hasattr(self.termios, 'PARMRK'):
+                attrs[0] = attrs[0] & ~self.termios.PARMRK
+
+            attrs[1] = attrs[1] & ~(self.termios.OPOST | self.termios.ONLCR | self.termios.OCRNL)
+
+            attrs[2] = attrs[2] | (self.termios.CLOCAL | self.termios.CREAD)
+            attrs[2] = attrs[2] & ~self.termios.CBAUD
+            attrs[3] = attrs[3] & ~(self.termios.ICANON | self.termios.ECHO | self.termios.ECHOE | self.termios.ECHOK | self.termios.ECHONL | self.termios.ISIG | self.termios.IEXTEN)
         except Exception as e:
-            os.close(fd)
-            raise e
+            print(e)
+
+        # set baudrate
+        the_baudrate_hex = getattr(self.termios, "B"+str(baudrate))
+        attrs[2] = attrs[2] | the_baudrate_hex
+        #attrs[2] = attrs[2] | self.termios.CS8 #8 bit
+
+        self.termios.tcsetattr(self.fd, self.termios.TCSANOW, attrs)
+
+    def read(self, size=1):
+        # if no data, it will block the process
+        return self.os.read(self.fd, size)
 
     def write(self, data):
-        SERIAL_PORT = self.device_path
-        BAUD_RATE = 9600
+        return self.os.write(self.fd, data)
 
-        fd = self.os.open(SERIAL_PORT, self.os.O_RDWR | self.os.O_NOCTTY | self.os.O_NDELAY)
+    def close(self):
+        self.os.close(self.fd)
 
-        #attrs = self.fcntl.tcgetattr(fd)
-        #attrs[1] = attrs[1] & ~(termios.ICANON | termios.ECHO | termios.ISIG)
-        #attrs[1] = attrs[1] | termios.CS8
-        #attrs[1] = attrs[1] & ~termios.ICANON
-        #attrs[1] = attrs[1] & ~termios.ECHO
-        #attrs[1] = attrs[1] & ~termios.ISIG
-        #attrs[1] = attrs[1] & ~termios.IXON
-        #attrs[2] = attrs[2] & ~termios.CRTSCTS
-        #attrs[3] = BAUD_RATE
-        #self.fcntl.tcsetattr(fd, self.fcntl.TCSANOW, attrs)
 
+class Serial():
+    def __init__(self, port="/dev/ttyACM0", baudrate=9600):
+        self.uart = Universal_Asynchronous_Receiver_And_Transmitter(port, baudrate)
+
+        self._start_read_process()
+
+    def _start_read_process(self):
+        from multiprocessing import Queue, Process
+
+        def _get_input_data_stream(uart, read_queue, signal_queue):
+            try:
+                while True:
+                    one_byte = uart.read(1)
+                    if one_byte: # greater than 0, not None
+                        read_queue.put(one_byte)
+            except Exception as e:
+                print(e)
+                signal_queue.put("error")
+
+        self.read_queue = Queue()
+        self.signal_queue = Queue()
+
+        self.read_process = Process(target=_get_input_data_stream, args=(self.uart, self.read_queue, self.signal_queue))
+        self.read_process.daemon = True
+        self.read_process.start()
+
+    def _make_sure_the_reading_process_is_on(self):
+        if not self.read_process.is_alive():
+            self._start_read_process()
+
+    def read(self, size=1):
+        self._make_sure_the_reading_process_is_on()
+
+        result = bytes()
         try:
-            self.os.write(fd, data)
-            #read_data = self.os.read(fd, 100)
+            for i in range(size):
+                result += self.read_queue.get(True) # will block
         except Exception as e:
-            self.os.close(fd)
-            raise e
+            print(e)
+        #print("read:", result)
+        return result
+
+    def write(self, data):
+        #print("write:", data)
+        return self.uart.write(data)
+
+    def in_waiting(self):
+        # Return the number of bytes in the receive buffer.
+        return self.read_queue.qsize()
+
+    def inWaiting(self):
+        return self.in_waiting()
+
+    def close(self):
+        self.uart.close()
+        if self.read_process.is_alive():
+            self.read_process.kill()
 
 
 if __name__ == "__main__":
