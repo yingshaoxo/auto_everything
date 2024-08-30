@@ -134,13 +134,17 @@ class Universal_Asynchronous_Receiver_And_Transmitter():
 
 
 class Serial():
-    def __init__(self, port="/dev/ttyACM0", baudrate=9600):
+    def __init__(self, port="/dev/ttyACM0", baudrate=9600, timeout=None):
         self.uart = Universal_Asynchronous_Receiver_And_Transmitter(port, baudrate)
+
+        self.timeout = timeout
 
         self._start_read_process()
 
     def _start_read_process(self):
         from multiprocessing import Queue, Process
+        import queue
+        self.queue = queue
 
         def _get_input_data_stream(uart, read_queue, signal_queue):
             try:
@@ -163,28 +167,42 @@ class Serial():
         if not self.read_process.is_alive():
             self._start_read_process()
 
-    def read(self, size=1):
+    def read(self, size=None):
         self._make_sure_the_reading_process_is_on()
+
+        if size == None:
+            if self.timeout == None:
+                size = 1
+            elif self.timeout != None:
+                size = self.available()
+                if size == 0:
+                    return bytes()
+        else:
+            if size <= 0:
+                raise Exception("can't read negative or 0 size")
 
         result = bytes()
         try:
             for i in range(size):
-                result += self.read_queue.get(True) # will block
+                try:
+                    result += self.read_queue.get(True, self.timeout)
+                    # will block, if timeout is None, block until data come, if timeout second is not None, read and return any data before timeout
+                except self.queue.Empty:
+                    break
         except Exception as e:
             print(e)
-        #print("read:", result)
         return result
 
     def write(self, data):
-        #print("write:", data)
         return self.uart.write(data)
 
-    def in_waiting(self):
+    def inWaiting(self):
         # Return the number of bytes in the receive buffer.
         return self.read_queue.qsize()
 
-    def inWaiting(self):
-        return self.in_waiting()
+    def available(self):
+        # Return available bytes number for read()
+        return self.inWaiting()
 
     def close(self):
         self.uart.close()

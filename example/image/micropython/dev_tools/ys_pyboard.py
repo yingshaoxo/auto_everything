@@ -47,10 +47,10 @@ class Pyboard:
             else:
                 self._in_waiting = self.serial.inWaiting
         except Exception as e:
-            print(e)
+            #print(e)
             from auto_everything.network_ import Serial
             self.serial = Serial(serial_device)
-            self._in_waiting = self.serial.in_waiting
+            self._in_waiting = self.serial.inWaiting
 
     def close(self):
         self.serial.close()
