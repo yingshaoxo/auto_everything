@@ -17,6 +17,101 @@ This is used for two line communication, one line for send, another for read. If
 
 Some people also call this method "UART(Universal Asynchronous Receiver/Transmitter)" protocol.
 
+In practice, two device, device_A_tx connect device_B_rx, device_A_rx connect device_B_tx.
+
+But you can also use one line for tx(send) and rx(receive).
+
+Client_A set pin to send_only, client_B set pin to receive_only, client_A send "01010101" to client_B. Then client_A set pin to receive_only, client_B set pin to send_only, client_B send "10101010" to client_A.
+
+It is a loop, data go from A to B, from B to A, but not happen in the same time.
+
+If for a second, that electrical line only changes from 0V to 5V or 5V to 0V 8 times, send 8 0_or_1, send 8 bit, send 1 byte, then we call that line is transmit data in 8 baud_rate.
+
+One bit means 1 0_or_1, one byte means 8 bits or 8 0_or_1, 1 ascii char is 1 byte, 1 unsigned char is 1 byte, 1 unsigned int is also 1 byte.
+
+```python
+# Base function for bit operation written by yingshaoxo
+def int_byte_to_binary_string(a_number):
+    try:
+        return format(a_number, "b")
+    except Exception as e:
+        # yingshaoxo method of Hexadecimal conversion
+        half_number_list = [128, 64, 32, 16, 8, 4, 2, 1]
+        binary_string = ""
+        for one in half_number_list:
+            if a_number >= one:
+                binary_string += "1"
+                a_number -= one
+            else:
+                binary_string += "0"
+        return binary_string
+
+def string_binary_to_int_byte(binary_string):
+    try:
+        return int(binary_string, 2)
+    except Exception as e:
+        half_number_list = [128, 64, 32, 16, 8, 4, 2, 1]
+        the_number = 0
+        index = 0
+        for one in half_number_list:
+            if binary_string[index] == "1":
+                the_number += one
+            index += 1
+        return the_number
+
+
+#（TX）Send client
+import machine
+import time
+
+TX_PIN = machine.Pin(4, machine.Pin.OUT)
+
+def send_bit(bit):
+    TX_PIN.value(bit) # bit is 0 or 1
+    time.sleep_us(500)  # wait for 500/1000 second
+    TX_PIN.value(0)
+
+def send_int_byte(byte):
+    zero_or_one_string = int_byte_to_binary_string(byte)
+    for i in range(8):
+        zero_or_one = int(zero_or_one_string[i])
+        send_bit(zero_or_one) # if that bit is 1, we set pin to 5V, if that bit is 0, we set pin to 0V
+
+def send_string(s):
+    # bytes("hi")[0] is a int between 0 and 128, string is actually a bytes object
+    for char in s:
+        send_int_byte(ord(char)) #ord returns int byte of a char
+
+send_string("Hello")
+
+
+#（RX）Receive client
+import machine
+import time
+
+RX_PIN = machine.Pin(5, machine.Pin.IN)
+
+def receive_bit():
+    time.sleep_us(250)  # wait for 250/1000 second，make sure that line has electricity power
+    return RX_PIN.value() # return 0 or 1
+
+def receive_int_byte():
+    binary_string = ""
+    for _ in range(8):
+        binary_string = str(receive_bit()) + binary_string
+    return string_binary_to_int_byte(binary_string)
+
+def receive_string():
+    received = []
+    while True:
+        byte = receive_int_byte()
+        if byte == chr('\n'):
+            break
+        received.append(byte)
+    return bytes(received)
+
+print(receive_string())
+```
 
 ## SPI(Serial Peripheral Interface)
 SPI protocol can let you do communication for many devices, it needs at least 3 lines. clock line, input line, output line.
@@ -99,7 +194,7 @@ class Universal_Asynchronous_Receiver_And_Transmitter():
         """
         attrs = self.termios.tcgetattr(self.fd)
 
-        # set up raw mode, otherwise '\r' will be '\n'
+        # set up raw mode, otherwise '\r' will become '\n'
         try:
             attrs[0] = attrs[0] & ~(self.termios.INLCR | self.termios.IGNCR | self.termios.ICRNL | self.termios.IGNBRK)
             if hasattr(self.termios, 'IUCLC'):

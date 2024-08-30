@@ -164,7 +164,7 @@ class IO():
         try:
             return format(a_number, "b")
         except Exception as e:
-            # yingshaoxo methdo of Hexadecimal conversion
+            # yingshaoxo method of Hexadecimal conversion
             half_number_list = [[0,128], [0,64], [0,32], [0,16], [0,8], [0,4], [0,2], [0,1]]
             binary_string = ""
             for _, one in half_number_list:
