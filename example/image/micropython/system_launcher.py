@@ -1,4 +1,6 @@
 print("Booted.")
+from gc import mem_free
+print("Has memory of", mem_free()/1024, "KB.")
 from time import sleep, time
 sleep(5)
 print("Ready")

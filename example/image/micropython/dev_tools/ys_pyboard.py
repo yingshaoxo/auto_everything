@@ -30,9 +30,12 @@ This script can also be run directly.  To execute a local script, use:
 """
 
 import time
+import os
+
 
 class PyboardError(BaseException):
     pass
+
 
 class Pyboard:
     def __init__(self, serial_device):
@@ -115,6 +118,134 @@ class Pyboard:
     def get_time(self):
         t = str(self.eval('pyb.RTC().datetime()'), encoding='ascii')[1:-1].split(', ')
         return int(t[4]) * 3600 + int(t[5]) * 60 + int(t[6])
+
+    def run(self, code):
+        result = self.exec(code)
+        if result.endswith(b"\r\n\x04"):
+            result = result[:-3]
+        return result.decode("utf-8", errors="ignore")
+
+    def list_files_and_folders(self, folder_path):
+        script_content = """
+import os
+print(os.listdir("{folder_path}"))
+        """.strip().format(
+            folder_path=folder_path,
+        )
+        data_string = self.run(script_content)
+        return eval(data_string)
+
+    def upload_file(self, source_file_path, target_file_path):
+        if not os.path.exists(source_file_path):
+            raise Exception("File not exists: {}".format(source_file_path))
+        if not os.path.isfile(source_file_path):
+            return
+
+        #if os.path.islink(source_file_path):
+        #    return
+
+        a_file = open(source_file_path, "rb")
+        bytes_data = a_file.read()
+        a_file.close()
+        script_content = """
+import os
+try:
+    os.stat("{folder_path}")
+except Exception as e:
+    folder_path_splits = "{folder_path}".split("/")
+    parent_folder = ""
+    for part in folder_path_splits:
+        try:
+            parent_folder += "/" + part
+            os.mkdir(parent_folder)
+        except Exception as e:
+            pass
+
+the_bytes_list = [{int_byte_list_string}]
+
+a_file = open("{file_path}", "wb")
+a_file.write(bytes(the_bytes_list))
+a_file.close()
+        """.strip().format(
+            int_byte_list_string=",".join([str(one) for one in bytes_data]),
+            file_path=target_file_path,
+            folder_path=os.path.dirname(target_file_path)
+        )
+        self.exec(script_content)
+
+    def delete_file_or_folder(self, target_file_path):
+        script_content = """
+import os
+
+def exists(path):
+    try:
+        os.stat(path)
+        return True
+    except Exception as e:
+        return False
+
+def file_exists(path):
+    try:
+        f = open(path, "r")
+        f.close()
+        return True
+    except Exception as e:
+        return False
+
+def dir_exists(path):
+    try:
+        if os.stat(path)[0] & 0x4000:
+            return True
+        else:
+            return False
+    except Exception as e:
+        return False
+
+def recursive_delete(target_file_path):
+    if not exists(target_file_path):
+        return
+
+    if file_exists(target_file_path):
+        os.remove(target_file_path)
+    elif dir_exists(target_file_path):
+        sub_list = os.listdir(target_file_path)
+        for a_path in sub_list:
+            recursive_delete(target_file_path + "/" + a_path)
+        os.rmdir(target_file_path)
+
+the_target_file_path = "{target_file_path}"
+recursive_delete(the_target_file_path)
+        """.strip().format(
+            target_file_path=target_file_path.rstrip("/"),
+        )
+        self.exec(script_content)
+
+    def sync_folder(self, source_folder, target_folder):
+        from auto_everything.disk import Disk
+        disk = Disk()
+
+        if len(target_folder) != 1:
+            target_folder = target_folder.rstrip("/")
+        if not target_folder.startswith("/"):
+            raise Exception("The target_folder should starts with '/', it is a absolute path")
+        if not source_folder.startswith("./"):
+            raise Exception("The source_folder should starts with './', it is a relative path")
+
+        if not os.path.exists(source_folder):
+            raise Exception("Folder not exists: {}".format(source_folder))
+        if os.path.isfile(source_folder):
+            return
+
+        try:
+            self.delete_file_or_folder(target_folder)
+        except Exception as e:
+            print(e)
+
+        for path in disk.get_files(source_folder, use_gitignore_file=True):
+            if path.startswith("./"):
+                print("In upload:", path)
+                self.upload_file(path, os.path.join(target_folder, path))
+
 
 def execfile(filename, device='/dev/ttyACM0'):
     pyb = Pyboard(device)

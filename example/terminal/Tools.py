@@ -700,6 +700,17 @@ ifdown -v {interface}; ifup -v {interface}
                 print("\n\n_______\n\n")
                 print("I can't find anything.")
 
+    def connect_android(self):
+        print("""
+Do following:
+
+sudo apt install adb fastboot
+rm -fr ~/.android/
+adb kill-server
+adb devices
+adb shell
+        """)
+
     def hi(self):
         self.help()
 
