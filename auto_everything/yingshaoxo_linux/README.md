@@ -16,10 +16,13 @@ In linux, there has a principle: "If you can do things with pure text, don't do 
 In real free linux system, the user always have the highest permission. That is to say, the user can modifying any file in that system. The user can even delete the whole old system and flash (or install) their own new system by doing file copy and paste. Everything is transparent for that user. The user can see and control anything that is running in that system. And user can run any software without limitations.
 
 ### 3. Leave user with more freedom as possible
-In linux system, the system will always power the user. For example, whenever the hardware has some outside interface, linux will let the user has full control over those outside devices. For example, USB devices, Outside microcontroller pins, speakers, microphones, mouse, keyboard, LED screen, CPU frequency, Network lines, so on and on.
+In linux system, the system will always power the user. For example, whenever the hardware has some outside interface, linux will let the user has full control over those outside devices. For example, USB devices, Outside microcontroller pins, speakers, microphones, mouse, keyboard, LED/LCD screen, CPU frequency, Network lines, so on and on.
 
 ### 4. Offline Usable
 In linux, we do not ask our user to connect network to use the system. We don't want to spy on our users. So we basacally have everything inside, you can use those tools without network. For example, the system will have a programming language compiler or intepreter, then the user can write and compile and run their own software as many as they want.
+
+### 5. Less and Core software
+A less than 5MB c compiler and python interpreter is necessary. For other software, unless they can become a loop, self_independent, otherwise, we do not include. What is a self_independent loop? HTTP browser client and HTTP server are two ends software, they must be together. Music MIDI making software and music MIDI player must be together, otherwise, we do not include music player.
 
 
 ## From tech side
@@ -31,13 +34,16 @@ Control big led screen is hard, but control a small ASCII char printer and a sim
 Just give the user full permisson on files and folders. And can run any binary software.
 
 ### 3. ourside device freedom
-Just let the user be able to control the outside device input and output data stream. So that they may write their own hardware driver software.
+Just let the user be able to control the outside device input and output data stream. So that they may write their own hardware driver software. For example, show pictures by using framebuffer pixels rgba array.
 
 ### 4. offline usage
 Make sure all core function is offline usable. And make sure the programming language compiler is fully staticlly compiled and can be used in offline. Normally it is a staticlly compiled gcc and python. You just have to make sure the programming language support local file import without network.
 
 ### 5. small system
 To reduce the system size, you can only have a compiler and python, then load any other tools as source code. You do the compile in the installation time. So the final system size is "compiler_size + command_line_tools_source_code size".
+
+### 6. backward compatibility
+New system must allow old software to run. Otherwise, no new system should get released. New programming language compiler must be able to compile old code, otherwise, no new compiler should get released. New script interpreter such as python must be able to run old script, otherwise, we give up new version of python. For example, if python3 can't run python2 code, we will not include python3, and will always use python2.
 
 
 ## From hardware side
