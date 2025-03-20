@@ -259,7 +259,7 @@ git remote set-url --add --push origin {repo_url}
     def sync_folder_or_file(self, source: str, target: str):
         t.run(f"rsync -v --info=progress2 --partial '{source}' '{target}'")
 
-    def show_space_usage(self, path: str | None):
+    def show_space_usage(self, path: str | None = "./"):
         if path == None:
             path = t.run_command('pwd')
         #path = os.path.abspath(path)
