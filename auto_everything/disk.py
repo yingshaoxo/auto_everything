@@ -344,6 +344,7 @@ class Disk:
         return os.path.join(*path) # type: ignore
 
     def join_paths(self, *path: str) -> str:
+        # in alpine3.15, path like '/home/./hhh.txt' is not a right path.
         return self.concatenate_paths(*path)
 
     def join_relative_paths(self, path1: str, path2: str) -> str:
