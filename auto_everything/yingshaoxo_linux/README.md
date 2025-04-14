@@ -71,3 +71,14 @@ Sometimes, we can't built a x86 CPU or motherboard by ourselves, how do we do? W
 This is just an archetecture or framework, you can even use other small computing devices to finish the whole computer, for example, you can use 5 mobile devices to do the same thing.
 
 > Just think this: what if human network are a computer. You see, some people collect information, some people do decisions based on information, some people save experiment data and history as knowledge base, some poeple work as an interface to make friends with outside world, and they all are belonging to one group.
+
+
+## From software side
+
+Solve the following questions:
+
+1. how to create python3.2 by using pure C from scratch?
+2. how to create a c compiler that similar to gcc from scratch?
+3. how to create a computer that could run a c compiler from scratch?
+4. how to make a better c language that uses english full name for keywords?
+5. how to use python3.2 to make every software you want?

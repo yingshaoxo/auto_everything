@@ -11,7 +11,7 @@ I lost my job for almost 2 years. If you wish to see me alive, please buy me som
 
 <!-- [<img src="https://github.com/yingshaoxo/yingshaoxo/raw/master/become_a_patron_button.png" width="200">](https://www.patreon.com/bePatron?u=45200693) -->
 
-> My package dependence is not stable yet, I am considering switch the base python version back to static python2.7 or tinypy or micropython. (The current one is python3.10, I have a statically amd64 build in: https://gitlab.com/yingshaoxo/use_docker_to_build_static_python3_binary_executable)
+> My package dependence is not stable yet, I am considering switch the base python version back to static python2.7 or tinypy or micropython. (The current one is python3.10.4, I have a statically amd64 build in: https://gitlab.com/yingshaoxo/use_docker_to_build_static_python3_binary_executable)
 
 > But it is hard to make sure everything working fine 20 years later. Because I can't make sure 20 years later you can still buy a hardware that could allow you to run python2.7 or tinypy or old version of micropython. (Maybe you simply can't download a python2.7 binary or source code, or can't compile it since you don't have an old GCC.)
 
