@@ -1,4 +1,4 @@
-from auto_everything.image import GUI, Container
+from auto_everything.image import Container
 from auto_everything.terminal import Terminal, Advanced_Terminal_User_Interface
 terminal = Terminal()
 advanced_terminal_interface = Advanced_Terminal_User_Interface()
@@ -176,7 +176,7 @@ class Chinese_Chess():
                             take_that_pointer(from_pointer, to_pointer)
             elif from_point_information["name"] == "car":
                 if (abs(from_pointer[0] - to_pointer[0]) != 0) and (abs(from_pointer[1] - to_pointer[1]) == 0):
-                    # horizontal move
+                    # vertical move
                     if (from_pointer[0] - to_pointer[0]) > 0:
                         # go up
                         direction = -1
@@ -186,18 +186,18 @@ class Chinese_Chess():
                     if direction == -1:
                         # check if up direction has any other chess point, if so, move is not allowd
                         for i in range(to_pointer[0]+1, from_pointer[0]):
-                            a_point_information = self._get_information_about_a_point([i, to_pointer[1]])
+                            a_point_information = self._get_information_about_a_point([i, from_pointer[1]])
                             if a_point_information["type"] != ".":
                                 return
                     else:
                         # check if up direction has any other chess point, if so, move is not allowd
                         for i in range(from_pointer[0]+1, to_pointer[0]):
-                            a_point_information = self._get_information_about_a_point([i, to_pointer[1]])
+                            a_point_information = self._get_information_about_a_point([i, from_pointer[1]])
                             if a_point_information["type"] != ".":
                                 return
                     take_that_pointer(from_pointer, to_pointer)
                 elif (abs(from_pointer[0] - to_pointer[0]) == 0) and (abs(from_pointer[1] - to_pointer[1]) != 0):
-                    # vertical move
+                    # horizontal move
                     if (from_pointer[1] - to_pointer[1]) > 0:
                         # go left
                         direction = -1
@@ -207,16 +207,54 @@ class Chinese_Chess():
                     if direction == -1:
                         # check if left direction has any other chess point, if so, move is not allowd
                         for i in range(to_pointer[1]+1, from_pointer[1]):
-                            a_point_information = self._get_information_about_a_point([to_pointer[0], i])
+                            a_point_information = self._get_information_about_a_point([from_pointer[0], i])
                             if a_point_information["type"] != ".":
                                 return
                     else:
                         # check if right direction has any other chess point, if so, move is not allowd
                         for i in range(from_pointer[1]+1, to_pointer[1]):
-                            a_point_information = self._get_information_about_a_point([to_pointer[0], i])
+                            a_point_information = self._get_information_about_a_point([from_pointer[0], i])
                             if a_point_information["type"] != ".":
                                 return
                     take_that_pointer(from_pointer, to_pointer)
+            elif from_point_information["name"] == "cannon":
+                from_point_type = self._get_information_about_a_point(from_pointer)["type"]
+                to_point_type = self._get_information_about_a_point(to_pointer)["type"]
+                if from_point_type == to_point_type:
+                    # attack self-team member is not allowed
+                    return
+
+                # only allow vertical or horizontal move
+                if from_pointer[0] != to_pointer[0] and from_pointer[1] != to_pointer[1]:
+                    return
+
+                # vertical direction
+                the_smaller_number = min(to_pointer[0], from_pointer[0])
+                the_bigger_number = max(to_pointer[0], from_pointer[0])
+                # check if vertical direction has more than one chess point, if so, move is not allowd
+                meaningful_pointer_counting = 0
+                for i in range(the_smaller_number, the_bigger_number+1):
+                    a_point_information = self._get_information_about_a_point([i, from_pointer[1]])
+                    if a_point_information["type"] != ".":
+                        meaningful_pointer_counting += 1
+                if meaningful_pointer_counting not in [1, 3]:
+                    # between cannon and target_point, there has more than 1 meaningful point, so drop it
+                    return
+
+                # horizontal direction
+                the_smaller_number = min(to_pointer[1], from_pointer[1])
+                the_bigger_number = max(to_pointer[1], from_pointer[1])
+                # check if horizontal direction has more than one chess point, if so, move is not allowd
+                meaningful_pointer_counting = 0
+                for i in range(the_smaller_number, the_bigger_number+1):
+                    a_point_information = self._get_information_about_a_point([from_pointer[0], i])
+                    if a_point_information["type"] != ".":
+                        meaningful_pointer_counting += 1
+                if meaningful_pointer_counting not in [1, 3]:
+                    # between cannon and target_point, there has more than 1 meaningful point, so drop it
+                    return
+
+                take_that_pointer(from_pointer, to_pointer)
 
     def _handle_choose_action(self):
         empty_slot = False
@@ -309,5 +347,5 @@ class Chinese_Chess():
 
 
 if __name__ == "__main__":
-    chinese_chess = Chinese_Chess()
+    chinese_chess = Chinese_Chess(window_height=270*1.2, window_width=480*1.75)
     chinese_chess.play()
