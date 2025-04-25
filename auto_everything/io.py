@@ -305,6 +305,128 @@ class File_IO:
         self.file.flush()
 
 
+class Yingshaoxo_List():
+    def __init__(self):
+        self.memory_slots_number = 16
+        # create a list with 16 memory slots
+        self.items = [None] * self.memory_slots_number
+        self.length = 0
+
+        self.iteration_not_done = False
+        self._current_iterate_index = 0
+
+    def _copy_old_items_to_new_items_based_on_memory_slots_number(self):
+        new_items = [None] * self.memory_slots_number
+        for i in range(self.length):
+            new_items[i] = self.items[i]
+        self.items = new_items
+
+    def _double_the_memory_slots_number(self):
+        self.memory_slots_number = self.memory_slots_number * 2
+        self._copy_old_items_to_new_items_based_on_memory_slots_number()
+
+    def _cut_half_the_memory_slots_number(self):
+        new_slots_number = max(8, int(self.memory_slots_number / 2))
+        if new_slots_number >= self.length:  # Ensure no data loss
+            self.memory_slots_number = new_slots_number
+            self._copy_old_items_to_new_items_based_on_memory_slots_number()
+
+    def print(self):
+        print("[", end="")
+        for i in range(self.length):
+            print(self.items[i], end="")
+            if i != self.length - 1:
+                print(", ", end="")
+        print("]\n", end="")
+
+    def append(self, an_element):
+        if self.length >= self.memory_slots_number:
+            # need to create a new list with self.memory_slots_number * 2 slots
+            self._double_the_memory_slots_number()
+
+        self.items[self.length] = an_element
+        self.length += 1
+
+    def index(self, an_element):
+        for i in range(self.length):
+            if self.items[i] == an_element:
+                return i
+        return None
+
+    def delete(self, index):
+        if index >= 0 and index < self.length:
+            #del self.items[index]
+            new_items = [None] * self.memory_slots_number
+            new_index = 0
+            for i in range(self.length):
+                if i != index:
+                    new_items[new_index] = self.items[i]
+                    new_index += 1
+            self.items = new_items
+            self.length -= 1
+
+        if self.length < int(self.memory_slots_number / 2):
+            # need to create a new list with self.memory_slots_number / 2 slots
+            self._cut_half_the_memory_slots_number()
+
+    def set(self, index, an_element):
+        if index < 0 or index >= self.length:
+            return False
+        else:
+            self.items[index] = an_element
+            return True
+
+    def get(self, index):
+        if index < 0 or index >= self.length:
+            return None
+        return self.items[index]
+
+    def insert(self, index, an_element):
+        if index < 0 or index >= self.length:
+            return
+
+        if self.length >= self.memory_slots_number:
+            # need to create a new list with self.memory_slots_number * 2 slots
+            self._double_the_memory_slots_number()
+
+        new_items = [None] * self.memory_slots_number
+        new_index = 0
+        for i in range(self.length):
+            if i == index:
+                new_items[new_index] = an_element
+                new_index += 1
+            new_items[new_index] = self.items[i]
+            new_index += 1
+        self.items = new_items
+        self.length += 1
+
+    def sublist(self, start_index, end_index):
+        sub_list = Yingshaoxo_List()
+        if start_index >= 0 and end_index <= self.length and start_index < end_index:
+            for i in range(start_index, end_index):
+                sub_list.append(self.items[i])
+                # better do a copy for those values
+        return sub_list
+
+    def start_iteration(self):
+        # most of the time, it is True
+        self.iteration_not_done = self.length > 0
+        self._current_iterate_index = 0
+
+    def get_next_one(self):
+        if not self.iteration_not_done or self._current_iterate_index >= self.length:
+            self.iteration_not_done = False
+            return None
+
+        an_element = self.items[self._current_iterate_index]
+        self._current_iterate_index += 1
+
+        if self._current_iterate_index >= self.length:
+            self.iteration_not_done = False
+
+        return an_element
+
+
 class Yingshaoxo_Dict():
     """
     This dict is based on yingshaoxo hash table algorithm.
@@ -442,6 +564,8 @@ class MyIO():
 
 
 if __name__ == "__main__":
+    pass
+    """
     io = IO()
     zero_and_one_list = io.bytes_to_binary_zero_and_one(b"123")
     print(zero_and_one_list)
@@ -453,6 +577,7 @@ if __name__ == "__main__":
     int_list = io.bytes_list_to_int_list(new_bytes_list)
     print(int_list)
     """
+    """
     a_dict = Yingshaoxo_Dict()
     print(a_dict.get("hi"))
     a_dict.set("hi", "yingshaoxo")
@@ -461,4 +586,28 @@ if __name__ == "__main__":
     print(a_dict.get("hi"))
     a_dict.delete("hi")
     print(a_dict.get("hi"))
+    """
+    """
+    a_list = Yingshaoxo_List()
+    a_list.print()
+    a_list.append(1)
+    a_list.append(2)
+    a_list.append(3)
+    a_list.print()
+    print(a_list.index(3))
+    a_list.set(2,'hi')
+    a_list.print()
+    a_list.delete(0)
+    a_list.print()
+    a_list.insert(0, 0)
+    a_list.print()
+    print(a_list.get(3))
+    a_list.append(4)
+    a_list.print()
+    a_list.sublist(0,4).print()
+
+    a_list.start_iteration()
+    while (a_list.iteration_not_done):
+        an_element = a_list.get_next_one()
+        print(an_element)
     """
