@@ -51,12 +51,12 @@ ID	Hex	Binary          Char	Description
 31	1F	00011111	US	Unit Separator
 32	20	00100000	space	Space
 33	21	00100001	!	Exclamation mark
-34	22	00100010	"	Double quote
+34	22	00100010	"	Double quotation mark
 35	23	00100011	#	Number
 36	24	00100100	$	Dollar sign
 37	25	00100101	%	Percent
 38	26	00100110	&	Ampersand
-39	27	00100111	'	Single quote
+39	27	00100111	'	Single quotation mark
 40	28	00101000	(	Left parenthesis
 41	29	00101001	)	Right parenthesis
 42	2A	00101010	*	Asterisk

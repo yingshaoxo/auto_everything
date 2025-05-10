@@ -38,12 +38,12 @@ RS	Record Separator
 US	Unit Separator
 space	Space
 !	Exclamation mark
-"	Double quote
+"	Double quotation mark
 #	Sharp
 $	Dollar
 %	Percent
 &	Ampersand
-'	Single quote
+'	Single quotation mark
 (	Left round bracket
 )	Right round bracket
 *	Asterisk
