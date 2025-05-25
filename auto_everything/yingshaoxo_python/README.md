@@ -28,6 +28,8 @@ This design will not work in some strict 1984 programming language, because they
 
 In c, you can define a list with new length in runtime by using memory allocation. That allows you to create infinite variables.
 
+> Anyway, in the end, in Easy programming language, you simply found you can't define a list or dict inside of a list, you can only add string, number, boolean to a list. But it is not that bad, it simplifys the programming. For example, in SQL table, for each row, there only has basic data types, no list or dict exists. But people have used sql to create many software without problems. You can think the sql table as a list of dict. All are basic types. No sub_list in a list, no dict in a list, no list in a dict.
+
 
 ### Handle operations between basic variables
 Since you can modify basic variable types, you can also handle operations like "+", "-" symbols, for example, number or string addition, subtraction.
