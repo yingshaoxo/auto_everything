@@ -2,7 +2,7 @@
 
 Here, I just want to talk about how to make a python based on any programming language.
 
-> A thing to mention is: Why python is 60 times slower than c code? Because for each variable, for example, string variable, it has almost 60 builit_in functions for that variable you create, when you create that variable, it will assign 60 string_related functions to that variable, that process makes python slow. But if you create a string variable without built_in functions, you do things like 'string_join(str1, str2)' or 'string_split(str1, splitor)', then the python speed will be as quick as c.
+> A thing to mention is: **Why python is 60 times slower than c code?** Because for each variable, for example, string variable, it has more data structure than char*. And when we parse the python code, it takes time.
 
 
 ## Easy Programming Language (易语言)
