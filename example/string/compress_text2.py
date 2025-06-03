@@ -13,4 +13,5 @@ print("ratio:", (original_length - new_length)/original_length)
 print("reduced to:", 1 - ((original_length - new_length)/original_length))
 print("OK:", string_.uncompress_text_by_using_yingshaoxo_method(compressed_text) == text)
 
-print(compressed_text[:1000])
+#print(compressed_text[:1000])
+print(compressed_text)

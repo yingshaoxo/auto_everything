@@ -1,7 +1,7 @@
 from auto_everything.string_ import String
 string_ = String()
 
-text = "shit shit what happend \n" * 100
+text = "shit shit what happend " * 100
 original_length = len(text)
 compressed_text = string_.compress_text_by_using_yingshaoxo_method(text, ["shit shit what happend"])
 new_length = len(compressed_text)
