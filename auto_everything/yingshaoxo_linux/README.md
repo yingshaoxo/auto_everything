@@ -70,6 +70,8 @@ Sometimes, we can't built a x86 CPU or motherboard by ourselves, how do we do? W
 
 This is just an archetecture or framework, you can even use other small computing devices to finish the whole computer, for example, you can use 5 mobile devices to do the same thing.
 
+> 'Electronic Ink Screen' could save power, better use it as screen. Because for terminal or shell operations, white and black screen is good enough. (Some people even created 7 color E_ink_screen.)
+
 > Just think this: what if human network are a computer. You see, some people collect information, some people do decisions based on information, some people save experiment data and history as knowledge base, some poeple work as an interface to make friends with outside world, and they all are belonging to one group.
 
 
