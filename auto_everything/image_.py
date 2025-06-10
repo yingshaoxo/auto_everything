@@ -632,7 +632,7 @@ def hsv_to_rgb(image):
             new_image.raw_data[y][x] = [r, g, b, 255]
     return new_image
 
-def rgb_to_black_and_white(image):
+def rgb_to_black_and_white(image, threshold=127):
     new_image = image.copy()
     height, width = new_image.get_shape()
     for y in range(height):
@@ -642,7 +642,7 @@ def rgb_to_black_and_white(image):
             if transparent == 0:
                 continue
             grayscale = max(min(int(0.2989 * red + 0.5870 * green + 0.1140 * blue), 255), 0)
-            if grayscale > 127:
+            if grayscale > threshold:
                 new_pixel = [255,255,255,255]
             else:
                 new_pixel = [0,0,0,255]
@@ -1330,11 +1330,11 @@ class Image:
                 new_image.raw_data[y][x] = new_pixel
         return new_image
 
-    def to_white_and_black(self):
+    def to_white_and_black(self, threshold=127):
         """
         If there only have 2 colors, think about if you save data sequencely without space as seperator, will you save half of storage?
         """
-        return rgb_to_black_and_white(self)
+        return rgb_to_black_and_white(self, threshold=threshold)
 
     def to_mosaic(self, ratio=0.99, kernel_number=12):
         """
