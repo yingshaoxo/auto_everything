@@ -4,6 +4,8 @@ Here, I just want to talk about how to make a python based on any programming la
 
 > A thing to mention is: **Why python is 60 times slower than c code?** Because for each variable, for example, string variable, it has more data structure than char*. And when we parse the python code, it takes time.
 
+> If you think python as a remote controller that translates python code into c actions. You would know that you could actually create a c_interpreter that translates c code into c actions in real time. But no one did this before 2025 year for unknown reason. If you make such an c_interpreter, you would only use gcc for once to generate a binary file, then use that binary file anywhere to run new c code without compiling again.
+
 
 ## Easy Programming Language (易语言)
 Easy Programming Language is a language similar to original VB language in windows system. It is chinese based, but you can use English to do the programming if you like.
@@ -62,6 +64,7 @@ class General_Variable:
     is_dict = False
     is_function = False
     is_class = False
+    type = "whatever"
     name = xxx
     value = xxx
     more_information = {}
