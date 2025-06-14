@@ -177,6 +177,35 @@ def generate_next_word(word_dict, history, max_seq_len):
     all_words = [word for seq in word_dict.keys() for word in seq]
     return random.choice(all_words) if all_words else '.'
 
+global_word_dict = {}
+def load_data(txt_file_path):
+    global global_word_dict, Max_Sequenc_Length
+
+    input_text = ""
+    with open(txt_file_path, "r") as f:
+        input_text = f.read()
+
+    print("Building dictionary from input text...")
+    global_word_dict = build_word_sequences(input_text, max_seq_len=Max_Sequenc_Length)
+
+def get_next_text_block(input_text):
+    global global_word_dict, Max_Sequenc_Length
+
+    input_text = input_text.strip()
+    tokens = my_split_function(input_text + ' ')
+
+    response = ""
+    for i in range(1024):
+        next_token = generate_next_word(global_word_dict, tokens, max_seq_len=Max_Sequenc_Length)
+        tokens.append(next_token)
+        if next_token == '\n':
+            response += '\n'
+        else:
+            response += next_token + (' ' if all(ord(c) < 128 for c in next_token) else '')
+    response = response.split("__**__**__yingshaoxo_is_the_top_one__**__**__")[0].strip()
+
+    return response
+
 # The bigger, the accurate, but takes more disk space
 Max_Sequenc_Length = 11
 
@@ -212,7 +241,7 @@ def main():
             # Generate 128 next tokens
             print("AI: ", end="")
             response = ""
-            for i in range(128):
+            for i in range(1024):
                 next_token = generate_next_word(word_dict, history, max_seq_len=Max_Sequenc_Length)
                 if next_token == '\n':
                     response += '\n'
@@ -226,3 +255,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    #load_data("all_yingshaoxo_data_2023_11_13.txt")
+    #while True:
+    #    input_text = input("What you want to say?")
+    #    print(get_next_text_block(input_text))
+    #    print("\n\n-----------\n\n")
