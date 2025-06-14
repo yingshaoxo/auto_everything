@@ -1,4 +1,4 @@
-the_input_text = '''
+input_text = '''
 # created by yingshaoxo
 Algorithem:
 
@@ -31,6 +31,8 @@ data:
 > The good part about this tech is: it will do brain copy in the exact way, 1 to 1, no other dirty data. The bad part is, it can not do self upgrade unless it has permission to change its old data, I mean, it should have "thinking to action" bindings, so that it can modify the old text it generated. All in all, if you have less data you can't make a self_upgraded_able thinking machine.
 
 > Above is just minimum example of 'self inner brain thinking text data'.
+
+> But if you just want to create digital person, this method will only copy yourself. You have to be a teacher, and teach your students. So that they could have sex gender. Just simplifying yourself to child level, then teach them from basics.
 '''
 
 # created by twitter grok3
@@ -183,7 +185,7 @@ def main():
         with open("all_yingshaoxo_data_2023_11_13.txt", "r") as f:
             input_text = f.read()
     except Exception as e:
-        input_text = the_input_text
+        pass
 
     # Load or build dictionary
     dict_file = "dict_data.json"
