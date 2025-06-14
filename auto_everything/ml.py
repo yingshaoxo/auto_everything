@@ -2665,6 +2665,8 @@ when you use it, use it from bottom to top, use longest sequence to predict the 
 
 > This method was created by yingshaoxo. it only need cpu than gpu. it can beat gpt4 with an old computer if you have big dataset (30GB) and big memory to hold the dict.
 
+**Well, the main problem is relay on the human resources. If I have enough people who can code, I could write 10MB of if-else stuff to handle input_sentence, so that it could generate output_sentence in a reasonable way. If-else to handle meaning group and also use recursive function to do the divide and conquer.**
+
 ### For general AI
 ```
 General AI algorithm:

@@ -33,6 +33,9 @@ data:
 > Above is just minimum example of 'self inner brain thinking text data'.
 
 > But if you just want to create digital person, this method will only copy yourself. You have to be a teacher, and teach your students. So that they could have sex gender. Just simplifying yourself to child level, then teach them from basics.
+
+
+Well, the main problem is relay on the human resources. If I have enough people who can code, I could write 10MB of if-else stuff to handle input_sentence, so that it could generate output_sentence in a reasonable way. If-else to handle meaning group and also use recursive function to do the divide and conquer.
 '''
 
 # created by twitter grok3
