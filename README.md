@@ -19,7 +19,7 @@ I lost my job for almost 2 years. If you wish to see me alive, please buy me som
 
 > Just do a search of "How to build a computer by using basic electronic units? Do not use any other chip or micro_controller." You will simply found there has no answers. Do you live in a free world?
 
-> And also, the 'type system' is a lie, they use the type information to convert python into other typed_programming language. If you really wanted to do it, you have to create a new file for each sub_file, similar to 'terminal_typed.py' or 'disk_typed.py'. And those typed python script will not do the real work, but offer a typed API, the real work has to call functions from 'terminal.py' or 'disk.py' to be done.
+> And also, the 'type system' is a lie, they use the type information to convert python into other typed_programming language. If you really wanted to do it, you have to create a new file for each sub_file, similar to 'typed_terminal.py' or 'typed_disk.py'. And those typed python script will not do the real work, but offer a typed API, the real work has to call functions from 'terminal.py' or 'disk.py' to be done.
 
 #### Installation (For Python == 3.10)
 
