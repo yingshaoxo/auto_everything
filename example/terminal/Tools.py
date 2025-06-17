@@ -554,7 +554,7 @@ ifdown -v {interface}; ifup -v {interface}
 # if you have to use apt to install ifdown or ifup, it means that package can get modified by ubuntu at any time, which means the syntax of /etc/network/interfaces also got changed, which means this method is not working any more. I still remember ubuntu removes ifconfig linux command. now have to use "ip address" to get your host ip, which means ubuntu function is not stable. Let's say fuck to newer version of ubuntu, because they sucks.
         """)
 
-    def serve(self, port):
+    def serve(self, port, single_threading=False):
         #from auto_everything.http_ import Yingshaoxo_Threading_Based_Http_Server, Yingshaoxo_Http_Request
         from auto_everything.http_ import Yingshaoxo_Http_Server, Yingshaoxo_Http_Request
         from time import sleep
@@ -594,8 +594,16 @@ ifdown -v {interface}; ifup -v {interface}
 
                     html_code = "<br>".join(all_list)
                     html_code = '<meta name="viewport" content="width=device-width, initial-scale=1.0">' + html_code
-                    return html_code, {"Accept-Ranges": "bytes"}
+                    if single_threading == False:
+                        return html_code, {"Accept-Ranges": "bytes"}
+                    else:
+                        return html_code
                 else:
+                    if single_threading != False:
+                        with open(real_file_path, "rb") as f:
+                            bytes_data = f.read()
+                        return bytes_data
+
                     full_size = os.path.getsize(real_file_path)
                     if "Range" not in request.headers:
                         with open(real_file_path, "rb") as f:
