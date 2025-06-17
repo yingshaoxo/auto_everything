@@ -21,7 +21,7 @@ def itIsWindows():
     return False
 
 class Tools():
-    def push(self, comment: str):
+    def push(self, comment):
         urls = t.run_command("git remote -v")
         if "git@gitlab.com:" not in urls:
             print("You should also transfer your project to gitlab")
@@ -34,7 +34,7 @@ class Tools():
                 exit()
 
         if "/Work/" in t.run_command("pwd"):
-            t.run(f"""
+            t.run("""
             git config --global user.name "leo.wooyj"
             git config --global user.email "leo.wooyj@finpoints.com"
             #"yingjie.hu@fargowealth.com.hk"
@@ -42,74 +42,74 @@ class Tools():
             git add .
             git commit -m "{comment}"
             git push origin
-            """)
+            """.format(comment=comment))
         else:
-            t.run(f"""
+            t.run("""
             git config --global user.name "yingshaoxo"
             git config --global user.email "yingshaoxo@gmail.com"
 
             git add .
             git commit -m "{comment}"
             git push origin
-            """)
+            """.format(comment=comment))
             return
 
-    def parse(self, url: str):
+    def parse(self, url):
         #export accessToken=""
         if ("https://" in url):
             url = url[len("https://"):]
             accessToken = os.getenv('accessToken')
-            result = f"git clone https://oauth2:{accessToken}@{url}"
+            result = "git clone https://oauth2:{accessToken}@{url}".format(accessToken=accessToken)
             print(result)
-            t.run(f'echo "{result}" | pbcopy')
+            t.run('echo "{result}" | pbcopy'.format(result=result))
 
-    def commit(self, comment: str):
+    def commit(self, comment):
         if "/CS/" in t.run_command("pwd"):
-            t.run(f"""
+            t.run("""
             git config --global user.name "yingshaoxo"
             git config --global user.email "yingshaoxo@gmail.com"
             git add .
             git commit -m "{comment}"
             #git push origin
-            """)
+            """.format(comment=comment))
         else:
-            t.run(f"""
+            t.run("""
             git config --global user.name "yingjie.hu"
             git config --global user.email "yingjie.hu@fargowealth.com.hk"
             git add .
             git commit -m "{comment}"
             #git push origin
-            """)
+            """.format(comment=comment))
 
     def force_push(self):
         branch = "master"
         for s in t.run_command("git branch").split("\n"):
             if "*" in s:
                 branch = s.replace("*", "").strip()
-        t.run(f"""
+        t.run("""
 git push origin {branch} --force
-""")
+""".format(branch=branch))
 
     def force_pull(self):
         branch = "master"
         for s in t.run_command("git branch").split("\n"):
             if "*" in s:
                 branch = s.replace("*", "").strip()
-        t.run(f"""
+        t.run("""
 git fetch --all
 git reset --hard origin/{branch}
 git submodule update --init --recursive
-""")
+""".format(branch=branch))
 
-    def merge_by_hand(self, branch_name: str):
-        t.run(f"""
+    def merge_by_hand(self, branch_name):
+        t.run("""
 git merge --no-ff --no-commit origin/{branch_name}
-""")
+""".format(branch_name=branch_name))
 
-    def delete_branch(self, branch_name: str):
-        t.run(f"""
+    def delete_branch(self, branch_name):
+        t.run("""
 git push origin --delete {branch_name}
-""")
+""".format(branch_name=branch_name))
 
     def undo_commit(self):
         t.run("""
@@ -121,10 +121,10 @@ git reset --mixed HEAD~1
 git reset --hard HEAD^
 """)
 
-    def delete_git_big_git_file(self, filename: str):
-        t.run(f"""
+    def delete_git_big_git_file(self, filename):
+        t.run("""
 bfg --delete-files {filename}
-""")
+""".format(filename=filename))
 
     def delete_macos_ds_store(self):
         files = disk.get_files(".", recursive=True)
@@ -132,7 +132,7 @@ bfg --delete-files {filename}
             if ".DS_Store" in file:
                 try:
                     disk.delete_a_file(file)
-                    print(f"file deleted: {file}")
+                    print("file deleted: {file}".format(file=file))
                 except Exception as e:
                     print(e)
             else:
@@ -141,7 +141,7 @@ bfg --delete-files {filename}
                     if disk.exists(the_real_file_path):
                         try:
                             disk.delete_a_file(file)
-                            print(f"file deleted: {file}")
+                            print("file deleted: {file}".format(file=file))
                         except Exception as e:
                             print(e)
 
@@ -151,7 +151,7 @@ bfg --delete-files {filename}
             if file.endswith(".pyc"):
                 try:
                     disk.delete_a_file(file)
-                    print(f"file deleted: {file}")
+                    print("file deleted: {file}".format(file=file))
                 except Exception as e:
                     print(e)
 
@@ -160,12 +160,12 @@ bfg --delete-files {filename}
             if file.endswith("__pycache__"):
                 try:
                     disk.delete_a_folder(file)
-                    print(f"folder deleted: {file}")
+                    print("folder deleted: {file}".format(file=file))
                 except Exception as e:
                     print(e)
 
-    def sync_with_remote_git_repo(self, repo_url: str):
-        t.run(f"""
+    def sync_with_remote_git_repo(self, repo_url):
+        t.run("""
 # Add a new remote upstream repository
 git remote add upstream {repo_url}
 git remote set-url upstream {repo_url}
@@ -178,19 +178,19 @@ git checkout master && git merge upstream/master  --allow-unrelated-histories
 
 # Sync 2
 git checkout main && git merge upstream/main  --allow-unrelated-histories
-        """)
+        """.format(repo_url=repo_url))
 
-    def add_remote_git_repo_url(self, repo_url: str):
-        t.run(f"""
+    def add_remote_git_repo_url(self, repo_url):
+        t.run("""
 git remote set-url --add --push origin {repo_url}
-        """)
+        """.format(repo_url=repo_url))
 
     def git_abort(self):
-        t.run(f"""
+        t.run("""
         git merge --abort
         """)
 
-    def delete_sub_git_folder(self, path: str = "."):
+    def delete_sub_git_folder(self, path = "."):
         files = disk.get_folder_and_files(folder=path, recursive=True)
         files = [file.path for file in files if file.path.endswith("/.git")]
         files.sort(key=len)
@@ -201,26 +201,26 @@ git remote set-url --add --push origin {repo_url}
             try:
                 disk.delete_a_folder(file)
             except Exception as e:
-                print(f"{file}: ", e)
+                print(file, ": ", e)
                 try:
                     disk.delete_a_file(file)
                 except Exception as e2:
-                    print(f"{file}: ", e2)
-            print(f"Folder got deleted: {file}")
+                    print(file, ": ", e2)
+            print("Folder got deleted: {file}".format(file=file))
         print("done")
 
-    def reset_storage_permission(self, path: str):
+    def reset_storage_permission(self, path):
         if path != "/":
-            t.run(f"""
+            t.run("""
             sudo -S chown -R $(whoami):$(whoami) {path}
             sudo -S chmod g+rw {path}
-            """)
+            """.format(whoami=whoami, path=path))
 
-    def check_port(self, port:str | None=None):
+    def check_port(self, port=None):
         if port == None:
-            t.run(f"sudo -S ss -antpl")
+            t.run("sudo -S ss -antpl")
         else:
-            t.run(f"sudo -S netstat -nlp | grep :{port}")
+            t.run("sudo -S netstat -nlp | grep :{port}".format(port=port))
 
     '''
     def image_compress(self, image=""):
@@ -230,46 +230,46 @@ git remote set-url --add --push origin {repo_url}
             """)  # -gaussian-blur 0.05
     '''
 
-    def repair_disk(self, disk_name: str=""):
+    def repair_disk(self, disk_name=""):
         if disk_name != "":
-            t.run(f"sudo -S umount {disk_name}")
-            t.run(f"sudo -S fsck -p {disk_name}")
-            print(f"\n\nsudo fsck {disk_name}")
+            t.run("sudo -S umount {disk_name}".format(disk_name=disk_name))
+            t.run("sudo -S fsck -p {disk_name}".format(disk_name=disk_name))
+            print("\n\nsudo fsck {disk_name}".format(disk_name=disk_name))
         else:
-            t.run(f"lsblk -p")
-            t.run(f"df -hl")
+            t.run("lsblk -p")
+            t.run("df -hl")
 
-    def pkill(self, name: str):
+    def pkill(self, name):
         t.kill(name)
 
-    def find_port(self, port: str):
-        t.run(f"""
+    def find_port(self, port):
+        t.run("""
             sudo -S lsof -i:{port}
             sudo -S ss -lptn 'sport = :{port}'
-        """)
+        """.format(port=port))
 
-    def find_a_file_by_name(self, regex_expression: str):
+    def find_a_file_by_name(self, regex_expression):
         pwd = t.run_command('pwd') #print working directory
-        t.run(f"find '{pwd}' -type f | grep '{regex_expression}'")
+        t.run("find '{pwd}' -type f | grep '{regex_expression}'".format(pwd=pwd, regex_expression=regex_expression))
 
-    def find_a_file_by_content_string(self, regex_expression: str):
+    def find_a_file_by_content_string(self, regex_expression):
         pwd = t.run_command('pwd')
-        t.run(f"grep -r -e '{regex_expression}' '{pwd}'")
+        t.run("grep -r -e '{regex_expression}' '{pwd}'".format(regex_expression=regex_expression, pwd=pwd))
 
-    def sync_folder_or_file(self, source: str, target: str):
-        t.run(f"rsync -v --info=progress2 --partial '{source}' '{target}'")
+    def sync_folder_or_file(self, source, target):
+        t.run("rsync -v --info=progress2 --partial '{source}' '{target}'".format(source=source, target=target))
 
-    def show_space_usage(self, path: str | None = "./"):
+    def show_space_usage(self, path="./"):
         if path == None:
             path = t.run_command('pwd')
         #path = os.path.abspath(path)
 
-        folder_size_text = t.run_command(f"du -hl -d 1 '{path}'")
+        folder_size_text = t.run_command("du -hl -d 1 '{path}'".format(path=path))
         splits = folder_size_text.split("\n")
         folder_size_text = "\n".join(splits[:-1])
         total_size_line = splits[-1].strip(". ")
 
-        file_size_text = t.run_command(f"ls -p -ahl '{path}' | grep -v /")
+        file_size_text = t.run_command("ls -p -ahl '{path}' | grep -v /".format(path=path))
         splits = file_size_text.split("\n")[1:]
         splits = ["     ".join(re.split(r"\s+", line)[4:][::2][::2]) for line in splits]
         file_size_text = "\n".join(splits)
@@ -282,12 +282,12 @@ git remote set-url --add --push origin {repo_url}
         go mod tidy
         """)
 
-    def my_shell(self, type: str | None=None):
+    def my_shell(self, type=None):
         if type == "x":
-            def command_line_transforming(command: str) -> str:
+            def command_line_transforming(command):
                 return "proxychains4 " + command
         else:
-            def command_line_transforming(command: str) -> str:
+            def command_line_transforming(command):
                 return command
 
         t.debug = False
@@ -315,38 +315,38 @@ git remote set-url --add --push origin {repo_url}
         ]
         print(random.choice(places))
 
-    def show_file_tree(self, level:int | None = None):
+    def show_file_tree(self, level = None):
         if level == None:
             level = 1
         elif level < 1:
             level = 1
-        t.run(f"""
+        t.run("""
         tree -L {level}
-        """)
+        """.format(level=level))
         # files = disk.get_folder_and_files(folder=".")
         # pprint(list(files))
 
-    def find_big_file_and_folders(self, path: str = ".", level=2):
-        t.run(f"""
+    def find_big_file_and_folders(self, path = ".", level=2):
+        t.run("""
         du -a -h --max-depth={level} {path} | sort -h
-        """)
+        """.format(level=level, path=path))
 
-    def start_vnc_service(self, password: str="aaaaaaAAAAAA123456!!!!!!"):
-        t.run(f"""
+    def start_vnc_service(self, password="aaaaaaAAAAAA123456!!!!!!"):
+        t.run("""
         sudo -S apt-get install x11vnc net-tools
         /usr/bin/x11vnc -passwd "{password}" -forever -rfbport 5900
         #sudo snap install novnc
         #novnc
-        """)
+        """.format(password=password))
 
     def clean_docker_garbage(self):
-        t.run(f"""
+        t.run("""
         sudo -S docker container prune
         sudo -S docker image prune
         sudo -S docker system prune -a
         """)
 
-    def fake_storage_backup(self, backup_file_path: str | None=None):
+    def fake_storage_backup(self, backup_file_path=None):
         saving_path = None
         if backup_file_path != None:
             saving_path = backup_file_path
@@ -354,7 +354,7 @@ git remote set-url --add --push origin {repo_url}
             saving_path = "./fake_storage_backup.json"
 
         files = disk.get_folder_and_files(folder=".")
-        data_list: list[Any] = []
+        data_list = []
         for file_or_folder in files:
             data_list.append({
                 "path": file_or_folder.path,
@@ -363,9 +363,9 @@ git remote set-url --add --push origin {repo_url}
 
         with open(saving_path, 'w', encoding="utf-8") as f:
             f.write(json.dumps(data_list, indent=4))
-        print(f"fake backup is done, it is in: {saving_path}")
+        print("fake backup is done, it is in: {saving_path}".format(saving_path=saving_path))
 
-    def fake_storage_recover(self, storage_tree_json_file: str | None=None):
+    def fake_storage_recover(self, storage_tree_json_file=None):
         if (storage_tree_json_file == None):
             storage_tree_json_file = "./fake_storage_backup.json"
             if not disk.exists(storage_tree_json_file):
@@ -402,7 +402,7 @@ git remote set-url --add --push origin {repo_url}
                     disk.delete_a_folder(file)
                 else:
                     disk.delete_a_file(file)
-                print(f"file/folder deleted: {file}")
+                print("file/folder deleted: {file}".format(file=file))
             except Exception as e:
                 print(e)
 
@@ -415,13 +415,13 @@ git remote set-url --add --push origin {repo_url}
                         disk.delete_a_folder(file)
                     else:
                         disk.delete_a_file(file)
-                    print(f"file/folder deleted: {file}")
+                    print("file/folder deleted: {file}".format(file=file))
                 except Exception as e:
                     print(e)
 
     def wake_up_the_light(self):
         while True:
-            t.run(f'vlc --vout none /home/yingshaoxo/Documents/WakeUp.mp3 vlc://quit')
+            t.run('vlc --vout none /home/yingshaoxo/Documents/WakeUp.mp3 vlc://quit')
             sleep(21)
 
     def compress_video(self, video_path, target_path, use_720p=None, use_1080p=None, special=None):
@@ -438,65 +438,66 @@ git remote set-url --add --push origin {repo_url}
             resolution = "1920:1080"
             kb_limit = "1992k"
 
-        t.run(f"""
+        t.run("""
             ffmpeg -i '{video_path}' -c:v libx264 -vf scale={resolution} -r 23.98 -b:v {kb_limit} -c:a copy '{target_path}'
-        """)
+        """.format(video_path=video_path, resolution=resolution, kb_limit=kb_limit, target_path=target_path))
         #ffmpeg -i input.mp4 -c:v libx264 -vf scale=640:360 -r 23.98 -b:v 498k -c:a aac -b:a 128k output.mp4
 
     def compress_video2(self, video_path, target_path):
-        t.run(f"""
+        t.run("""
             ffmpeg -i '{video_path}' -c:v libx264 -vf "scale=320:180" -r 23.98 -b:v 100k -c:a copy '{target_path}'
             #ffmpeg -i '{video_path}' -c:v libx264 -vf scale=320:180 -r 16 -b:v 100k -c:a copy '{target_path}'
-        """)
+        """.format(video_path=video_path, target_path=target_path))
 
     def cut_video(self, video_path, target_path, start_time, end_time):
         """
         start_time or end_time: '01:02' means 1 minute 2 seconds
         """
-        t.run(f"""
+        t.run("""
             ffmpeg -i '{video_path}' -ss {start_time} -to {end_time} -c copy '{target_path}'
-        """)
+        """.format(video_path=video_path, start_time=start_time, end_time=end_time, target_path=target_path))
 
     def get_audio_from_video(self, video_path, audio_path):
-        t.run(f"""
+        t.run("""
             ffmpeg -i '{video_path}' '{audio_path}'
-        """)
+            """.format(video_path=video_path, audio_path=audio_path)
+        )
 
     def get_images_from_video(self, video_path, image_folder):
         image_folder = image_folder.rstrip("/")
-        t.run(f"""
+        t.run("""
             mkdir '{image_folder}'
             ffmpeg -i '{video_path}' '{image_folder}/%d.png'
-        """)
-        video_info = t.run_command(f"ffmpeg -i '{video_path}'")
+        """.format(image_folder=image_folder, video_path=video_path))
+        video_info = t.run_command("ffmpeg -i '{video_path}'".format(video_path=video_path))
         lines = [line for line in video_info.split("\n") if " fps" in line]
         print("\n".join(lines))
 
     def convert_images_to_video(self, image_folder, video_path, frame_rate=None):
         image_folder = image_folder.rstrip("/")
         if frame_rate == None:
-            t.run(f"""
+            t.run("""
                 ffmpeg -f image2 -i '{image_folder}/%d.png' '{video_path}'
-            """)
+            """.format(image_folder=image_folder, video_path=video_path))
         else:
-            t.run(f"""
+            t.run("""
                 ffmpeg -framerate {frame_rate} -i '{image_folder}/%d.png' '{video_path}'
-            """)
+            """.format(frame_rate=frame_rate, image_folder=image_folder, video_path=video_path))
 
     def merge_audio_and_video(self, video_path, audio_path, target_path):
-        t.run(f"""
+        t.run("""
             ffmpeg -i '{video_path}' -i '{audio_path}' -c:v copy -c:a copy '{target_path}'
-        """)
+        """.format(video_path=video_path, audio_path=audio_path, target_path=target_path))
 
     def compress_audio(self, audio_path, target_path, kbps=128):
-        t.run(f"""
+        t.run("""
             ffmpeg -i '{audio_path}' -b:a {kbps}k '{target_path}'
-        """)
+        """.format(audio_path=audio_path, kbps=kbps, target_path=target_path))
 
     def record_screen(self, target_path):
-        t.run(f"""
+        t.run("""
             ffmpeg -video_size 1920x1080 -framerate 25 -f x11grab -i :0 '{target_path}'
-        """)
+        """.format(target_path))
 
         """
         # record with sound
@@ -505,21 +506,21 @@ git remote set-url --add --push origin {repo_url}
         """
 
     def check_battery_power(self):
-        t.run(f"""
+        t.run("""
         cat /sys/class/power_supply/BAT0/capacity
         """)
 
     def check_cpu_frequency(self):
-        t.run(f"""
+        t.run("""
         watch -n.1 "grep 'MHz' /proc/cpuinfo"
         """)
         #apt install tlp
         #systemctl enable tlp
 
     def change_brightness(self, value="400"):
-        t.run(f"""
+        t.run("""
         echo {value} | tee /sys/class/backlight/intel_backlight/brightness
-        """)
+        """.format(value=value))
 
     def connect_wifi(self):
         info = t.run_command("iwconfig")
@@ -531,7 +532,7 @@ git remote set-url --add --push origin {repo_url}
                 break
         print("\n\nDo the following yourself:\n\n")
         sleep(3)
-        print(f"""
+        print("""
 sudo vi /etc/network/interfaces
 # add following code to the bottom
 
@@ -552,7 +553,7 @@ ifdown -v {interface}; ifup -v {interface}
 # if above not work, try reboot or ethernet wire connection, wifi is not reliable. new linux, especially ubuntu23+ is shit. if you rename /usr/bin/python3 to something else, you'll never be able to connect to new wifi.
 # use ubuntu version 16 or lower is fine.
 # if you have to use apt to install ifdown or ifup, it means that package can get modified by ubuntu at any time, which means the syntax of /etc/network/interfaces also got changed, which means this method is not working any more. I still remember ubuntu removes ifconfig linux command. now have to use "ip address" to get your host ip, which means ubuntu function is not stable. Let's say fuck to newer version of ubuntu, because they sucks.
-        """)
+        """.format(interface=interface))
 
     def serve(self, port, single_threading=False):
         #from auto_everything.http_ import Yingshaoxo_Threading_Based_Http_Server, Yingshaoxo_Http_Request
@@ -590,7 +591,7 @@ ifdown -v {interface}; ifup -v {interface}
                     new_request_url = request.url.lstrip("/")
                     if new_request_url != "":
                         new_request_url = "/" + new_request_url
-                    all_list = [f'<a href="{new_request_url}/{file}">{file}</a>' for file in all_list]
+                    all_list = ['<a href="{new_request_url}/{file}">{file}</a>'.format(new_request_url=new_request_url, file=file) for file in all_list]
 
                     html_code = "<br>".join(all_list)
                     html_code = '<meta name="viewport" content="width=device-width, initial-scale=1.0">' + html_code
@@ -622,12 +623,12 @@ ifdown -v {interface}; ifup -v {interface}
                         with open(real_file_path, "rb") as f:
                             f.seek(start_bytes)
                             bytes_data = f.read(end_bytes-start_bytes)
-                        return bytes_data, {"Accept-Ranges": "bytes", "Content-Range": f"bytes {str(start_bytes)}-{str(end_bytes)}/{full_size}"}, "HTTP/1.1 206 Partial Content"
+                        return bytes_data, {"Accept-Ranges": "bytes", "Content-Range": "bytes {start}-{end}/{full_size}".format(start=str(start_bytes), end=str(end_bytes), full_size=full_size)}, "HTTP/1.1 206 Partial Content"
             except Exception as e:
                 print(e)
                 return str(e)
 
-        def special_handler(request: Yingshaoxo_Http_Request):
+        def special_handler(request):
             return "Hello, world, fight for personal freedom."
 
         router = [

@@ -195,7 +195,7 @@ class Terminal:
             return "sh"
         return "bash"
 
-    def __text_to_sh(self, text, wait=False):
+    def __text_to_sh(self, text, wait=False, end_delay="0.1"):
         m = hashlib.sha256()
         m.update(str(datetime.now()).encode("utf-8"))
         m.update(text.encode("utf-8"))
@@ -203,7 +203,7 @@ class Terminal:
         # pre_line = f"cd {self.current_dir}\n\n"
         # text = pre_line + text
         if self.software_exists("sleep", core_function=True):
-            text = text + "\n\n" + "sleep 0.01"
+            text = text + "\n\n" + "sleep " + end_delay
         self._io.write(temp_sh, text)
         if wait == False:
             return "{shell} {path} &".format(shell=self._get_bash_software(), path=temp_sh), temp_sh
@@ -493,6 +493,7 @@ class Terminal:
         # if '\n' in c:
         c = self.fix_path(c)
         old_c = c
+
         if self.debug:
             my_print("\n" + "-" * 20 + "\n")
             my_print(c)
@@ -547,6 +548,11 @@ class Terminal:
             my_print("\n" + "-" * 20 + "\n")
         c, temp_sh = self.__text_to_py(c)
 
+        # we use second version because it will return errors
+        result = self._version2_of_run_command(c, timeout, cwd)
+        self.__remove_temp_sh(temp_sh)
+        return result
+
         args_list = shlex.split(c)
         # my_print(args_list)
         # input("Go on?")
@@ -567,8 +573,10 @@ class Terminal:
             self.__remove_temp_sh(temp_sh)
             return result
         except Exception as e:
+            result = self._version2_of_run_command(c, timeout, cwd)
             self.__remove_temp_sh(temp_sh)
-            return str(e)
+            return result
+            #return str(e)
 
     def run_program(self, name, cwd = None):
         """

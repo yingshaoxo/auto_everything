@@ -21,6 +21,8 @@ I lost my job for almost 2 years. If you wish to see me alive, please buy me som
 
 > And also, the 'type system' is a lie, they use the type information to convert python into other typed_programming language. If you really wanted to do it, you have to create a new file for each sub_file, similar to 'typed_terminal.py' or 'typed_disk.py'. And those typed python script will not do the real work, but offer a typed API, the real work has to call functions from 'terminal.py' or 'disk.py' to be done.
 
+> Can we let our python code runable cross python2.7 to 3.2 to 3.10 and any newer version? The answer is yes. We just have to find a way to use simple syntax to create a wrapper for python, it is like we have used general python to create a new python. Then for any new python code, we use our own python parser or interpreter. It is like "python_whatever_version our_python_interpreter.py the_real_python_script_that_use_unknown_version_syntax.py". (The official python did not do well, because they always change c level syntax parser, that is wrong, they should use python as the first compatible layer, so that the newest python can run python2.7 code without problems.)
+
 #### Installation (For Python == 3.10)
 
 ```bash
@@ -74,6 +76,15 @@ or
 
 poetry add auto_everything==3.9
 # use poetry on care, it won't tell you the path where your package installed
+```
+
+#### Installation (For statically compiled Python3.2)
+```
+cd ~
+git clone https://github.com/yingshaoxo/auto_everything.git
+export PYTHONPATH="/home/xx/auto_everything"
+
+./python3.2_static_amd64.run your_script.py
 ```
 
 <!-- #### Magic

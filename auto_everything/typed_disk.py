@@ -1,5 +1,6 @@
-#from __future__ import annotations
-#from typing import Any, Iterable, List, Tuple
+from __future__ import annotations
+
+from typing import Any, Iterable, List, Tuple
 
 import os
 import re
@@ -15,116 +16,12 @@ import datetime
 import shutil
 from io import BytesIO
 
-#from dataclasses import dataclass
+from dataclasses import dataclass
+import pathlib
 import tempfile
+from pathlib import Path
+import unicodedata
 from fnmatch import fnmatch
-
-import glob
-if sys.version_info[0] == 3 and sys.version_info[1] <= 2:
-    class Path(object):
-        def __init__(self, path):
-            self.path = os.path.normpath(path)
-
-        def __str__(self):
-            return self.path
-
-        def __repr__(self):
-            return "Path('{}')".format(self.path)
-
-        def exists(self):
-            return os.path.exists(self.path)
-
-        def is_file(self):
-            return os.path.isfile(self.path)
-
-        def is_dir(self):
-            return os.path.isdir(self.path)
-
-        def mkdir(self, parents=False, exist_ok=False):
-            if parents:
-                os.makedirs(self.path)
-            else:
-                if not exist_ok and os.path.exists(self.path):
-                    raise OSError("File exists")
-                os.mkdir(self.path)
-
-        def glob(self, pattern):
-            return [Path(p) for p in glob.glob(os.path.join(self.path, pattern))]
-
-        def open(self, mode='r', **kwargs):
-            return open(self.path, mode, **kwargs)
-
-        def unlink(self):
-            os.unlink(self.path)
-
-        def rmdir(self):
-            os.rmdir(self.path)
-
-        @property
-        def parent(self):
-            return Path(os.path.dirname(self.path))
-
-        @property
-        def name(self):
-            return os.path.basename(self.path)
-
-        def with_name(self, name):
-            return Path(os.path.join(os.path.dirname(self.path), name))
-
-        def rename(self, target):
-            os.rename(self.path, target)
-            return Path(target)
-
-        def absolute(self):
-            return Path(os.path.abspath(self.path))
-
-        def __truediv__(self, other):
-            return Path(os.path.join(self.path, str(other)))
-
-        def __div__(self, other):
-            return self.__truediv__(other)
-
-        def read_text(self, encoding='utf-8'):
-            with self.open('r', encoding=encoding) as f:
-                return f.read()
-
-        def write_text(self, text, encoding='utf-8'):
-            with self.open('w', encoding=encoding) as f:
-                f.write(text)
-
-        def stat(self):
-            return os.stat(self.path)
-else:
-    from pathlib import Path
-
-
-def remove_suffix(input_string, suffix):
-    if suffix and input_string.endswith(suffix):
-        return input_string[:-len(suffix)]
-    return input_string
-
-def remove_prefix(input_string, prefix):
-    if prefix and input_string.startswith(prefix):
-        return input_string[len(prefix):]
-    return input_string
-
-def object_deep_copy(obj):
-    if isinstance(obj, (int, float, str, bool, type(None))):
-        return obj
-    elif isinstance(obj, list):
-        return [object_deep_copy(x) for x in obj]
-    elif isinstance(obj, dict):
-        return {k: object_deep_copy(v) for k,v in obj.items()}
-    else:
-        return obj
-
-def object_copy(obj):
-    if isinstance(obj, list):
-        return obj[:]
-    elif isinstance(obj, dict):
-        return obj.copy()
-    return obj
-
 
 from auto_everything.terminal import Terminal
 t = Terminal(debug=True)
@@ -144,34 +41,17 @@ class Common:
         return sub_folder_path
 
 
-class _FileInfo(object):
-    '''
-    @dataclass
-    class _FileInfo:
-        """Data Class for a single file returned by get_files()."""
-        path: str
-        is_folder: bool
-        is_file: bool
-        folder: str
-        name: str
-        level: int
-        # parent: _FileInfo | None = None # You could try to make a global dict[path, _FilelInfo], then iterate twice to set parent
-        children: List[_FileInfo] | None = None
-    '''
-    def __init__(self, path, is_folder, is_file, folder, name, level, children=None):
-        self.path = path
-        self.is_folder = bool(is_folder)
-        self.is_file = bool(is_file)
-        self.folder = folder
-        self.name = name
-        self.level = int(level)
-        self.children = children if children is not None else []
-
-    def __repr__(self):
-        return ("_FileInfo(path={}, is_folder={}, is_file={}, folder={}, name={}, level={}, children={})").format(
-            self.path, self.is_folder, self.is_file,
-            self.folder, self.name, self.level, self.children
-        )
+@dataclass
+class _FileInfo:
+    """Data Class for a single file returned by get_files()."""
+    path: str
+    is_folder: bool
+    is_file: bool
+    folder: str
+    name: str
+    level: int
+    # parent: _FileInfo | None = None # You could try to make a global dict[path, _FilelInfo], then iterate twice to set parent
+    children: List[_FileInfo] | None = None
 
 
 class Sha1():
@@ -245,8 +125,7 @@ class Sha1():
 
         return h0, h1, h2, h3, h4
 
-    def update(self, arg):
-        #(self, arg: bytes | bytearray):
+    def update(self, arg: bytes | bytearray):
         """Update the current digest.
 
         This may be called repeatedly, even after calling digest or hexdigest.
@@ -419,12 +298,12 @@ class Disk:
     """
 
     def __init__(self):
-        self.temp_dir = tempfile.gettempdir()
+        self.temp_dir: str = tempfile.gettempdir()
 
-    def _expand_user(self, path):
-        #(self, path: str | pathlib.PosixPath):
-        new_path = ""
-        if "PosixPath" in str(type(path)):
+    def _expand_user(self, path: str | pathlib.PosixPath):
+        # print(type(path))
+        new_path: str = ""
+        if type(path) == pathlib.PosixPath:
             new_path = str(path.as_posix()) #type: ignore
         else:
             new_path = path  # type: ignore
@@ -433,8 +312,7 @@ class Disk:
                 new_path = os.path.expanduser(new_path)
         return new_path
 
-    def exists(self, path):
-        #(self, path: str) -> bool:
+    def exists(self, path: str) -> bool:
         """
         Check if a file or folder exist.
 
@@ -448,8 +326,7 @@ class Disk:
         #return Path(path).exists()
         #Path("").exists() will return True, which is not correct
 
-    def is_directory(self, path):
-        #(self, path: str) -> bool:
+    def is_directory(self, path: str) -> bool:
         """
         Check if it is a folder.
 
@@ -460,8 +337,7 @@ class Disk:
         """
         return os.path.isdir(path)
 
-    def executable(self, path):
-        #(self, path: str) -> bool:
+    def executable(self, path: str) -> bool:
         """
         Check if a file is executable.
 
@@ -477,17 +353,14 @@ class Disk:
         """
         return os.access(path, os.X_OK)
 
-    def concatenate_paths(self, *path):
-        #(self, *path: str) -> str:
+    def concatenate_paths(self, *path: str) -> str:
         return os.path.join(*path) # type: ignore
 
-    def join_paths(self, *path):
-        #(self, *path: str) -> str:
+    def join_paths(self, *path: str) -> str:
         # in alpine3.15, path like '/home/./hhh.txt' is not a right path.
         return self.concatenate_paths(*path)
 
-    def join_relative_paths(self, path1, path2):
-        #(self, path1: str, path2: str) -> str:
+    def join_relative_paths(self, path1: str, path2: str) -> str:
         """
         Join path like: /aa/bb/cc + .././../d.txt
         This function will only care the second relative path
@@ -502,29 +375,26 @@ class Disk:
         else:
             return self.join_paths(path1, path2)
 
-    def get_current_working_directory(self):
-        #(self) -> str:
+    def get_current_working_directory(self) -> str:
         """
         Similar to bash script: `cwd`
         """
         return os.getcwd()
 
-    def _parse_gitignore_text_to_list(self, gitignore_text):
-        #(self, gitignore_text: str) -> list[str]:
+    def _parse_gitignore_text_to_list(self, gitignore_text: str) -> list[str]:
         ignore_pattern_list = [line for line in gitignore_text.strip().split("\n") if line.strip() != ""]
-        new_ignore_pattern_list = []
+        new_ignore_pattern_list:list[str] = []
         for pattern in ignore_pattern_list:
             if pattern.startswith("#"):
                 continue
             if pattern.endswith("/"):
-                new_ignore_pattern_list.append(remove_suffix(pattern, "/"))
+                new_ignore_pattern_list.append(pattern.removesuffix("/"))
                 new_ignore_pattern_list.append(pattern + "*")
             else:
                 new_ignore_pattern_list.append(pattern)
         return new_ignore_pattern_list
 
-    def _file_match_the_gitignore_rule_list(self, start_folder, file_path, ignore_pattern_list):
-        #(self, start_folder: str, file_path: str, ignore_pattern_list: list[str]):
+    def _file_match_the_gitignore_rule_list(self, start_folder: str, file_path: str, ignore_pattern_list: list[str]):
         if not start_folder.endswith("/"):
             start_folder = start_folder + "/"
         else:
@@ -535,8 +405,8 @@ class Disk:
 
         match = False
         for pattern in ignore_pattern_list:
-            path_a = remove_prefix(file_path, start_folder)
-            patten_b = remove_prefix(pattern, "./")
+            path_a = file_path.removeprefix(start_folder)
+            patten_b = pattern.removeprefix("./")
             if fnmatch(path_a, patten_b):
                 #print(path_a + " | " + patten_b)
                 match = True
@@ -544,8 +414,7 @@ class Disk:
 
         return match
 
-    def get_gitignore_folders_and_files(self, folder, also_return_dot_git_folder=False):
-        #(self, folder: str, also_return_dot_git_folder: bool = False) -> list[str]:
+    def get_gitignore_folders_and_files(self, folder: str, also_return_dot_git_folder: bool = False) -> list[str]:
         """
         return a list of string path, which should get ignored
         """
@@ -565,7 +434,7 @@ class Disk:
                 else:
                     git_folder_list.append(a_git_folder)
 
-                result = t.run_command("git ls-files --other --directory", cwd=a_git_folder).strip()
+                result = t.run_command(f"git ls-files --other --directory", cwd=a_git_folder).strip()
                 if len(result) != 0:
                     if result.lower().startswith("fatal"):
                         continue
@@ -588,8 +457,7 @@ class Disk:
 
         return ignored_files
 
-    def get_gitignore_folders_and_files_by_using_yingshaoxo_method(self, folder, also_return_dot_git_folder=False, include_docker_ignore_file=False):
-        #(self, folder: str, also_return_dot_git_folder: bool = False, include_docker_ignore_file: bool = False) -> list[str]:
+    def get_gitignore_folders_and_files_by_using_yingshaoxo_method(self, folder: str, also_return_dot_git_folder: bool = False, include_docker_ignore_file: bool = False) -> list[str]:
         """
         return a list of path string, which should get ignored
 
@@ -635,7 +503,7 @@ class Disk:
             ignore_pattern_list = list(set(ignore_pattern_list))
             #print(ignore_pattern_list)
 
-            files_and_folders = []
+            files_and_folders: list[_FileInfo] = []
             for filename in items:
                 file_path = os.path.join(folder, filename)
 
@@ -663,7 +531,7 @@ class Disk:
                     level=node.level + 1,
                     children=None
                 )
-                dive(node=new_node, git_ignore_pattern_list=object_copy(ignore_pattern_list))
+                dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list.copy())
                 #files_and_folders.append(
                 #    new_node
                 #)
@@ -678,8 +546,14 @@ class Disk:
 
         return final_path_list
 
-    def get_files(self, folder, recursive=True, type_limiter=None, gitignore_text=None, use_gitignore_file=False):
-        #(self, folder: str, recursive: bool = True, type_limiter: List[str] | None = None, gitignore_text: str|None = None, use_gitignore_file: bool = False) -> List[str]:
+    def get_files(
+        self,
+        folder: str,
+        recursive: bool = True,
+        type_limiter: List[str] | None = None,
+        gitignore_text: str|None = None,
+        use_gitignore_file: bool = False
+    ) -> List[str]:
         """
         Get files as string_path_list recursively under a folder.
 
@@ -695,7 +569,7 @@ class Disk:
             if true, this function will not return any file/folder that matchs .gitignore file rules. And gitignore_text property will lose its effects.
         """
         folder = self._expand_user(folder)
-        assert os.path.exists(folder), "{} is not exist!".format(folder)
+        assert os.path.exists(folder), f"{folder} is not exist!"
 
         if use_gitignore_file == True:
             files = self.get_folder_and_files_with_gitignore(folder=folder, recursive=recursive, return_list_than_tree=True)
@@ -716,10 +590,10 @@ class Disk:
             return new_files
 
         if recursive == True:
-            files = []
+            files:list[str] = []
             for root, dirnames, filenames in os.walk(folder):
                 for filename in filenames:
-                    file = self.join_paths(root, filename)
+                    file:str = self.join_paths(root, filename)
                     if os.path.isfile(file):
                         if type_limiter:
                             p = Path(file)
@@ -747,7 +621,7 @@ class Disk:
         if gitignore_text != None:
             ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=gitignore_text)
 
-            result_files = []
+            result_files:list[str] = []
             for file in files:
                 if self._file_match_the_gitignore_rule_list(
                     start_folder=folder,
@@ -760,7 +634,11 @@ class Disk:
 
         return files
 
-    def get_folders(self, folder, recursive=True):
+    def get_folders(
+        self,
+        folder,
+        recursive = True,
+    ):
         """
         Get folder string list recursively under a folder.
 
@@ -770,7 +648,7 @@ class Disk:
         recursive: bool
         """
         folder = self._expand_user(folder)
-        assert os.path.exists(folder), "{} is not exist!".format(folder)
+        assert os.path.exists(folder), f"{folder} is not exist!"
 
         if recursive == True:
             folder_list = []
@@ -788,8 +666,14 @@ class Disk:
                         folder_list.append(a_folder)
         return folder_list
 
-    def get_folder_and_files(self, folder, recursive=True, type_limiter=None, gitignore_text=None, ignore_symbolic_link=True):
-        #(self, folder: str, recursive: bool=True, type_limiter: List[str] | None=None, gitignore_text: str|None=None, ignore_symbolic_link: bool=True) -> Iterable[_FileInfo]:
+    def get_folder_and_files(
+        self,
+        folder: str,
+        recursive: bool = True,
+        type_limiter: List[str] | None = None,
+        gitignore_text: str|None = None,
+        ignore_symbolic_link: bool = True
+    ) -> Iterable[_FileInfo]:
         """
         Get files recursively under a folder.
 
@@ -803,7 +687,7 @@ class Disk:
             similar to git's .gitignore file, if any file matchs any rule, it won't be inside of the 'return file list'
         """
         folder = self._expand_user(folder)
-        assert os.path.exists(folder), "{} is not exist!".format(folder)
+        assert os.path.exists(folder), f"{folder} is not exist!"
 
         ignore_pattern_list = []
         if gitignore_text != None:
@@ -878,8 +762,7 @@ class Disk:
             if recursive == False:
                 break
 
-    def _super_sort_key_function(self, element):
-        #(self, element: str) -> int:
+    def _super_sort_key_function(self, element: str) -> int:
         text = ""
         for char in element:
             if char.isdigit():
@@ -890,8 +773,14 @@ class Disk:
             return 0
         return int(text[:10])
 
-    def get_folder_and_files_tree(self, folder, reverse=False, type_limiter=None, gitignore_text=None, ignore_symbolic_link=True):
-        #(self, folder: str, reverse: bool=False, type_limiter: List[str] | None=None, gitignore_text: str|None=None, ignore_symbolic_link: bool=True) -> _FileInfo:
+    def get_folder_and_files_tree(
+        self,
+        folder: str,
+        reverse: bool = False,
+        type_limiter: List[str] | None = None,
+        gitignore_text: str|None = None,
+        ignore_symbolic_link: bool = True
+    ) -> _FileInfo:
         """
         Get files and folders recursively under a folder.
         This function will return you a tree object as:
@@ -931,8 +820,7 @@ class Disk:
         if gitignore_text != None:
             ignore_pattern_list = self._parse_gitignore_text_to_list(gitignore_text=gitignore_text)
 
-        def dive(node):
-            #(node: _FileInfo):
+        def dive(node: _FileInfo):
             folder = node.path
 
             if not os.path.isdir(folder):
@@ -942,7 +830,7 @@ class Disk:
             if len(items) == 0:
                 return
 
-            files_and_folders = []
+            files_and_folders: list[_FileInfo] = []
             for filename in items:
                 file_path = os.path.join(folder, filename)
                 if (os.path.isdir(file_path)) or (type_limiter == None) or (Path(file_path).suffix in type_limiter):
@@ -984,8 +872,14 @@ class Disk:
 
         return root
 
-    def get_folder_and_files_with_gitignore(self, folder, recursive=True, include_docker_ignore_file=False, return_list_than_tree=False, ignore_symbolic_link=True):
-        #(self, folder: str, recursive: bool=True, include_docker_ignore_file: bool=False, return_list_than_tree: bool=False, ignore_symbolic_link: bool=True) -> _FileInfo | list[_FileInfo]:
+    def get_folder_and_files_with_gitignore(
+        self,
+        folder: str,
+        recursive: bool = True,
+        include_docker_ignore_file: bool = False,
+        return_list_than_tree: bool = False,
+        ignore_symbolic_link: bool = True
+    ) -> _FileInfo | list[_FileInfo]:
         """
         Get files and folders recursively under a folder.
         This function will return you a tree object as:
@@ -1020,8 +914,7 @@ class Disk:
             children=None
         )
 
-        def dive(node, git_ignore_pattern_list=[]):
-            #(node: _FileInfo, git_ignore_pattern_list: list[str] = []):
+        def dive(node: _FileInfo, git_ignore_pattern_list: list[str] = []):
             folder = node.path
 
             if not os.path.isdir(folder):
@@ -1044,7 +937,7 @@ class Disk:
             ignore_pattern_list = list(set(ignore_pattern_list))
             #print(ignore_pattern_list)
 
-            files_and_folders = []
+            files_and_folders: list[_FileInfo] = []
             for filename in items:
                 file_path = os.path.join(folder, filename)
 
@@ -1069,7 +962,7 @@ class Disk:
                     children=None
                 )
                 if recursive == True:
-                    dive(node=new_node, git_ignore_pattern_list=object_copy(ignore_pattern_list))
+                    dive(node=new_node, git_ignore_pattern_list=ignore_pattern_list.copy())
                 files_and_folders.append(
                     new_node
                 )
@@ -1092,36 +985,31 @@ class Disk:
                 result_list.append(node)
             return result_list[1:]
 
-    def sort_files_by_time(self, files, reverse=False):
-        #(self, files: List[str], reverse: bool = False):
+    def sort_files_by_time(self, files: List[str], reverse: bool = False):
         files.sort(key=os.path.getmtime, reverse=reverse)
         return files
 
-    def get_absolute_path(self, path):
-        #(self, path: str) -> str:
+    def get_absolute_path(self, path: str) -> str:
         if path.startswith("~"):
             path = t.fix_path(path)
 
         return os.path.abspath(path=path)
 
-    def get_stem_and_suffix_of_a_file(self, path):
-        #(self, path: str) -> Tuple[str, str]:
+    def get_stem_and_suffix_of_a_file(self, path: str) -> Tuple[str, str]:
         """
         /hi/you/abc.txt -> ('abc', '.txt')
         """
         p = Path(path)
         return p.stem, p.suffix
 
-    def get_directory_path(self, path):
-        #(self, path: str):
+    def get_directory_path(self, path: str):
         """
         /hi/you/abc.txt -> /hi/you
         """
         path = self._expand_user(path)
         return os.path.dirname(path)
 
-    def get_directory_name(self, path):
-        #(self, path: str):
+    def get_directory_name(self, path: str):
         """
         /hi/you/abc.txt -> you
         /hi/you -> you
@@ -1131,11 +1019,10 @@ class Disk:
             if os.path.isfile(path):
                 path = os.path.dirname(path)
         else:
-            raise Exception("Sorry, I don't know if '{}' is a folder or file, because folder can also has '.' inside.".format(path))
+            raise Exception(f"Sorry, I don't know if '{path}' is a folder or file, because folder can also has '.' inside.")
         return os.path.basename(path)
 
-    def get_parent_directory_name(self, path):
-        #(self, path: str):
+    def get_parent_directory_name(self, path: str):
         """
         /hi/you/abc.txt -> you
         /hi/you -> hi
@@ -1144,8 +1031,7 @@ class Disk:
         path = os.path.dirname(path)
         return os.path.basename(path)
 
-    def get_parent_directory_path(self, path):
-        #(self, path: str):
+    def get_parent_directory_path(self, path: str):
         """
         /hi/you/abc.txt -> /hi/you
         /hi/you -> /hi
@@ -1155,15 +1041,13 @@ class Disk:
         path = os.path.dirname(path)
         return path
 
-    def get_file_name(self, path):
-        #(self, path: str):
+    def get_file_name(self, path: str):
         """
         /hi/you/abc.txt -> abc.txt
         """
         return os.path.split(path)[-1]
 
-    def get_hash_of_a_file(self, path):
-        #(self, path: str) -> str:
+    def get_hash_of_a_file(self, path: str) -> str:
         """
         calculate the blake2s hash string based on the bytes of a file.
 
@@ -1184,8 +1068,7 @@ class Disk:
                 file_hash.update(data)
         return file_hash.hexdigest()
 
-    def get_hash_of_a_file_by_using_yingshaoxo_method(self, path, bytes_data=None, level=1, length=8, seperator="_", with_size=False):
-        #(self, path: str, bytes_data: bytes | None = None, level: int = 1, length: int = 8, seperator: str = "_", with_size: bool = False) -> str:
+    def get_hash_of_a_file_by_using_yingshaoxo_method(self, path: str, bytes_data: bytes | None = None, level: int = 1, length: int = 8, seperator: str = "_", with_size: bool = False) -> str:
         """
         get hash string based on the bytes of a file by using yingshaoxo method.
         this method works because a byte is a integer between (0, 255)
@@ -1267,13 +1150,11 @@ class Disk:
         else:
             return file_hash
 
-    def get_fuzz_hash_by_using_yingshaoxo_method(self, bytes_data, level=256):
-        #(self, bytes_data: bytes, level: int = 256) -> str:
+    def get_fuzz_hash_by_using_yingshaoxo_method(self, bytes_data: bytes, level: int = 256) -> str:
         hash_code = self.get_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=bytes_data, level=level, length=1, seperator="", with_size=True)
         return hash_code
 
-    def get_simple_hash_of_a_file_by_using_yingshaoxo_method(self, path, bytes_data=None, level=256, seperator="_", with_size=False):
-        #(self, path, bytes_data = None, level = 256, seperator = "_", with_size = False):
+    def get_simple_hash_of_a_file_by_using_yingshaoxo_method(self, path, bytes_data = None, level = 256, seperator = "_", with_size = False):
         """
         get simple hash string based on the bytes of a file by using yingshaoxo method.
         this method works because a byte is a integer between (0, 255)
@@ -1319,8 +1200,7 @@ class Disk:
             result = str(all_size) + seperator + result
         return result
 
-    def get_hash_of_a_file_by_using_sha1(self, path):
-        #(self, path: str) -> str:
+    def get_hash_of_a_file_by_using_sha1(self, path: str) -> str:
         """
         get the sha1 hash string based on the bytes of a file.
 
@@ -1341,8 +1221,7 @@ class Disk:
                 file_hash.update(data)
         return file_hash.hexdigest()
 
-    def get_hash_of_a_folder(self, folder_path, print_log=False):
-        #(self, folder_path: str, print_log: bool = False) -> str:
+    def get_hash_of_a_folder(self, folder_path: str, print_log: bool = False) -> str:
         """
         get the sha1 hash string for a folder.
 
@@ -1376,8 +1255,7 @@ class Disk:
 
         return general_hash.hexdigest()
 
-    def get_hash_of_a_path(self, path):
-        #(self, path: str) -> str:
+    def get_hash_of_a_path(self, path: str) -> str:
         """
         calculate the blake2s hash string based on path name.
 
@@ -1390,10 +1268,9 @@ class Disk:
         file_hash.update(path.encode(encoding="UTF-8"))
         return file_hash.hexdigest()
 
-    def get_safe_name(self, filename, replace_chars=" ", english_only=True):
-        #(self, filename: str, replace_chars: str = " ") -> str:
+    def get_safe_name(self, filename: str, replace_chars: str = " ") -> str:
         """
-        get a valid file name by doing a replacement.
+        get a valid file name by doing a replacement. (English only)
 
         Parameters
         ----------
@@ -1402,43 +1279,32 @@ class Disk:
         replace_chars: string
             chars in replace_chars will be replaced by '_'.
         """
-        # Basic ASCII letters and digits
-        safe_chars = "-_." + string.ascii_letters + string.digits
+        valid_filename_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+        whitelist = valid_filename_chars
+        char_limit = 255
 
-        # Characters that are always unsafe in filenames
-        unsafe_symbols = '|/\\*:"?<>'
+        # replace spaces
+        for r in replace_chars:
+            filename = filename.replace(r, "_")
 
-        # Combine all characters to be replaced
-        to_replace = set(unsafe_symbols + replace_chars)
+        # keep only valid ascii chars
+        cleaned_filename = (
+            unicodedata.normalize("NFKD", filename).encode("ASCII", "ignore").decode()
+        )
 
-        # Process each character
-        result = []
-        for char in filename:
-            if char in to_replace:
-                result.append('_')
-            elif char in safe_chars:
-                result.append(char)
-            else:
-                if english_only == True:
-                    char = "H" + format(ord(char), 'x') + "_"
-                result.append(char)
+        # keep only whitelisted chars
+        cleaned_filename = "".join(c for c in cleaned_filename if c in whitelist)
+        if len(cleaned_filename) > char_limit:
+            print(
+                "Warning, filename truncated because it was over {}. Filenames may no longer be unique".format(
+                    char_limit
+                )
+            )
+        return cleaned_filename[:char_limit]
 
-        cleaned = ''.join(result)
-
-        # Windows reserved names check
-        windows_reserved = [
-            'CON', 'PRN', 'AUX', 'NUL',
-            'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
-            'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
-        ]
-
-        if cleaned.upper() in windows_reserved:
-            cleaned = '_' + cleaned
-
-        return cleaned
-
-    def get_file_size(self, path, level="B", bytes_size=None):
-        #(self, path: str | None, level: str="B", bytes_size: int | None=None) -> int | None:
+    def get_file_size(
+        self, path: str | None, level: str = "B", bytes_size: int | None = None
+    ) -> int | None:
         """
         Get file size in the unit of  B, KB, MB.
         Parameters
@@ -1454,7 +1320,7 @@ class Disk:
             if path != None:
                 path = self._expand_user(path)
                 file = Path(path)
-                assert file.exists(), "{} is not exist!".format(path)
+                assert file.exists(), f"{path} is not exist!"
                 bytes_size = file.stat().st_size
             else:
                 raise Exception("You should give me a file_path or bytes_size")
@@ -1467,8 +1333,7 @@ class Disk:
         else:
             return bytes_size
 
-    def get_folder_size(self, path, level="B"):
-        #(self, path: str, level: str = "B") -> int:
+    def get_folder_size(self, path: str, level: str = "B") -> int:
         """
         Get folder size in the unit of  B, KB, MB.
         Parameters
@@ -1503,21 +1368,20 @@ class Disk:
 
     def compress_a_file(self, input_file_path, output_file_path):
         if not t.software_exists("tar"):
-            raise Exception("Compress requires your linux has 'tar'")
+            raise Exception(f"Compress requires your linux has 'tar'")
         if not output_file_path.endswith(".tar.gz"):
-            raise Exception("The output_file_path should ends with '.tar.gz', the full name should be 'xxx.tar.gz'")
-        t.run("tar -czvf '{output_file_path}' '{input_file_path}'".format(output_file_path=output_file_path, input_file_path=input_file_path))
+            raise Exception(f"The output_file_path should ends with '.tar.gz', the full name should be 'xxx.tar.gz'")
+        t.run(f"tar -czvf '{output_file_path}' '{input_file_path}'")
 
     def uncompress_a_file(self, input_file_path, output_folder):
         if not t.software_exists("tar"):
-            raise Exception("Compress requires your linux has 'tar'")
+            raise Exception(f"Compress requires your linux has 'tar'")
         if not input_file_path.endswith(".tar.gz"):
-            raise Exception("The input_file_path should ends with '.tar.gz', the full name should be 'xxx.tar.gz'")
-        t.run("mkdir -p '{output_folder}'".format(output_folder=output_folder))
-        t.run("tar -xzvf '{input_file_path}' -C '{output_folder}'".format(input_file_path=input_file_path, output_folder=output_folder))
+            raise Exception(f"The input_file_path should ends with '.tar.gz', the full name should be 'xxx.tar.gz'")
+        t.run(f"mkdir -p '{output_folder}'")
+        t.run(f"tar -xzvf '{input_file_path}' -C '{output_folder}'")
 
-    def compress(self, input_folder_path, output_zip_path, file_format="zip"):
-        #(self, input_folder_path: str, output_zip_path: str, file_format: str = "zip") -> str:
+    def compress(self, input_folder_path: str, output_zip_path: str, file_format: str = "zip") -> str:
         """
         compress files to a target.
 
@@ -1534,9 +1398,9 @@ class Disk:
         output_zip_path = self._expand_user(output_zip_path)
 
         if not self.exists(input_folder_path):
-            raise Exception("The input_folder_path '{}' should exists.".format(input_folder_path))
+            raise Exception(f"The input_folder_path '{input_folder_path}' should exists.")
         if not self.is_directory(input_folder_path):
-            raise Exception("The input_folder_path '{}' should be an folder.".format(input_folder_path))
+            raise Exception(f"The input_folder_path '{input_folder_path}' should be an folder.")
 
         output_folder = self.get_directory_path(output_zip_path)
         self.create_a_folder(folder_path=output_folder)
@@ -1552,8 +1416,7 @@ class Disk:
 
         return output_zip_path
 
-    def uncompress(self, compressed_file_path, extract_folder_path, file_format="zip"):
-        #(self, compressed_file_path: str, extract_folder_path: str, file_format: str = "zip") -> bool:
+    def uncompress(self, compressed_file_path: str, extract_folder_path: str, file_format: str = "zip") -> bool:
         """
         uncompress a file.
 
@@ -1571,7 +1434,7 @@ class Disk:
             extract_folder_path = self._expand_user(extract_folder_path)
 
             if not self.exists(compressed_file_path):
-                raise Exception("The compressed_file_path '{}' should exists.".format(compressed_file_path))
+                raise Exception(f"The compressed_file_path '{compressed_file_path}' should exists.")
             if not self.exists(extract_folder_path):
                 self.create_a_folder(folder_path=extract_folder_path)
 
@@ -1579,7 +1442,7 @@ class Disk:
 
             return True
         except Exception as e:
-            print("error: {}".format(e))
+            print(f"error: {e}")
             return False
         # path = self._expand_user(path)
         # folder = self._expand_user(folder)
@@ -1605,8 +1468,7 @@ class Disk:
         # except Exception as e:
         #     raise e
 
-    def get_the_temp_dir(self):
-        #(self) -> str:
+    def get_the_temp_dir(self) -> str:
         """
         Get system level temporary folder. It's normally `/tmp/`
         """
@@ -1622,8 +1484,7 @@ class Disk:
         temp_folder_path = os.path.join(self.temp_dir, m.hexdigest()[:27])
         return temp_folder_path
 
-    def get_a_temp_file_path(self, filename):
-        #(self, filename: str):
+    def get_a_temp_file_path(self, filename: str):
         """
         We'll add a hash_string before the filename, so you can use this file path without any worry
         """
@@ -1634,22 +1495,19 @@ class Disk:
         tempFilePath = os.path.join(self.temp_dir, m.hexdigest()[:10] + suffix)
         return tempFilePath
 
-    def create_a_new_folder_under_home(self, folder_name):
-        #(self, folder_name: str):
-        folder_path = self._expand_user("~/{}".format(folder_name))
+    def create_a_new_folder_under_home(self, folder_name: str):
+        folder_path = self._expand_user(f"~/{folder_name}")
         if not os.path.exists(folder_path):
             # os.mkdir(folder_path)
-            t.run_command("mkdir -p {}".format(folder_path))
+            t.run_command(f"mkdir -p {folder_path}")
         return folder_path
 
-    def get_bytesio_from_a_file(self, filepath):
-        #(self, filepath: str) -> BytesIO:
+    def get_bytesio_from_a_file(self, filepath: str) -> BytesIO:
         with open(filepath, "rb") as fh:
             buffer = BytesIO(fh.read())
         return buffer
 
-    def get_part_of_a_file_in_bytesio_format_from_a_file(self, file_path, file_segment_size_in_bytes, segment_number):
-        #(self, file_path: str, file_segment_size_in_bytes: int, segment_number: int) -> BytesIO:
+    def get_part_of_a_file_in_bytesio_format_from_a_file(self, file_path: str, file_segment_size_in_bytes: int, segment_number: int) -> BytesIO:
         if segment_number <= 0:
             raise Exception("segment_number should be > 0, for example, 1")
         with open(file_path, "rb") as fh:
@@ -1658,43 +1516,36 @@ class Disk:
             buffer = BytesIO(fh.read(file_segment_size_in_bytes))
         return buffer
 
-    def save_bytesio_to_file(self, bytes_io, file_path):
-        #(self, bytes_io: BytesIO, file_path: str):
+    def save_bytesio_to_file(self, bytes_io: BytesIO, file_path: str):
         bytes_io.seek(0)
         with open(file_path, "wb") as f:
             f.write(bytes_io.read())
 
-    def base64_to_bytesio(self, base64_string):
-        #(self, base64_string: str):
+    def base64_to_bytesio(self, base64_string: str):
         splits = base64_string.split(",")
         if len(splits) == 2:
             base64_string = splits[1]
         img_data = base64.b64decode(base64_string)
         return BytesIO(img_data)
 
-    def bytesio_to_base64(self, bytes_io):
-        #(self, bytes_io: BytesIO):
+    def bytesio_to_base64(self, bytes_io: BytesIO):
         bytes_io.seek(0)
         return base64.b64encode(bytes_io.getvalue()).decode()
 
-    def bytes_to_base64(self, bytes_data):
-        #(self, bytes_data: bytes):
+    def bytes_to_base64(self, bytes_data: bytes):
         return base64.b64encode(bytes_data).decode()
 
-    def base64_to_bytes(self, base64_string):
-        #(self, base64_string: str):
+    def base64_to_bytes(self, base64_string: str):
         splits = base64_string.split(",")
         if len(splits) == 2:
             base64_string = splits[1]
         img_data = base64.b64decode(base64_string)
         return img_data
 
-    def hex_to_bytes(self, hex_string):
-        #(self, hex_string: str):
+    def hex_to_bytes(self, hex_string: str):
         return bytes.fromhex(hex_string)
 
-    def bytes_to_hex(self, bytes_data):
-        #(self, bytes_data: bytes):
+    def bytes_to_hex(self, bytes_data: bytes):
         return bytes_data.hex()
 
     def int_byte_to_binary_string(self, a_number):
@@ -1710,18 +1561,15 @@ class Disk:
         """
         return int(binary_string, 2)
 
-    def remove_a_file(self, file_path):
-        #(self, file_path: str):
+    def remove_a_file(self, file_path: str):
         file_path = self._expand_user(file_path)
         if self.exists(file_path):
             os.remove(file_path)
 
-    def delete_a_file(self, file_path):
-        #(self, file_path: str):
+    def delete_a_file(self, file_path: str):
         self.remove_a_file(file_path=file_path)
 
-    def move_a_file(self, source_file_path, target_file_path):
-        #(self, source_file_path: str, target_file_path: str):
+    def move_a_file(self, source_file_path: str, target_file_path: str):
         source_file_path = self._expand_user(source_file_path)
         target_file_path = self._expand_user(target_file_path)
         if source_file_path == target_file_path:
@@ -1732,8 +1580,7 @@ class Disk:
             os.remove(target_file_path)
         os.rename(source_file_path, target_file_path)
 
-    def move_a_folder(self, source_folder_path, target_folder_path):
-        #(self, source_folder_path: str, target_folder_path: str):
+    def move_a_folder(self, source_folder_path: str, target_folder_path: str):
         source_folder_path = self._expand_user(source_folder_path)
         target_folder_path = self._expand_user(target_folder_path)
         if source_folder_path == target_folder_path:
@@ -1744,8 +1591,7 @@ class Disk:
             self.delete_a_folder(target_folder_path)
         os.rename(source_folder_path, target_folder_path)
 
-    def copy_a_file(self, source_file_path, target_file_path):
-        #(self, source_file_path: str, target_file_path: str):
+    def copy_a_file(self, source_file_path: str, target_file_path: str):
         source_file_path = self._expand_user(source_file_path)
         target_file_path = self._expand_user(target_file_path)
         if source_file_path == target_file_path:
@@ -1753,20 +1599,17 @@ class Disk:
         self.create_a_folder(self.get_directory_path(target_file_path))
         shutil.copyfile(source_file_path, target_file_path)
 
-    def convert_bytes_to_bytesio(self, bytes_data):
-        #(self, bytes_data: bytes) -> BytesIO:
+    def convert_bytes_to_bytesio(self, bytes_data: bytes) -> BytesIO:
         bytes_io = BytesIO()
         bytes_io.write(bytes_data)
         bytes_io.seek(0)
         return bytes_io
 
-    def create_a_folder(self, folder_path):
-        #(self, folder_path: str):
+    def create_a_folder(self, folder_path: str):
         folder_path = self._expand_user(folder_path)
         Path(folder_path).mkdir(parents=True, exist_ok=True)
 
-    def copy_a_folder(self, source_folder_path, target_folder_path, use_gitignore_file=False):
-        #(self, source_folder_path: str, target_folder_path: str, use_gitignore_file: bool = False):
+    def copy_a_folder(self, source_folder_path: str, target_folder_path: str, use_gitignore_file: bool = False):
         source_folder_path = self._expand_user(source_folder_path)
         target_folder_path = self._expand_user(target_folder_path)
 
@@ -1800,19 +1643,17 @@ class Disk:
             except Exception as e:
                 print(e)
 
-    def delete_a_folder(self, folder_path):
-        #(self, folder_path: str):
+    def delete_a_folder(self, folder_path: str):
         folder_path = self._expand_user(folder_path)
         if (self.exists(folder_path)):
             shutil.rmtree(path=folder_path)
 
-    def fake_folder_backup(self, backup_folder, backup_saving_file_path=None):
-        #(self, backup_folder: str, backup_saving_file_path: str | None=None) -> list[Any]:
+    def fake_folder_backup(self, backup_folder: str, backup_saving_file_path: str | None=None) -> list[Any]:
         saving_path = None
         if backup_saving_file_path != None:
             saving_path = backup_saving_file_path
         files = self.get_folder_and_files(folder=backup_folder)
-        data_list = []
+        data_list: list[Any] = []
         for file_or_folder in files:
             data_list.append({
                 "path": file_or_folder.path,
@@ -1821,13 +1662,12 @@ class Disk:
         if (saving_path != None):
             with open(saving_path, 'w', encoding="utf-8") as f:
                 f.write(json.dumps(data_list, indent=4))
-            print("fake backup is done, it is in: {}".format(saving_path))
+            print(f"fake backup is done, it is in: {saving_path}")
         return data_list
 
-    def fake_folder_recover(self, backup_saving_file_path):
-        #(self, backup_saving_file_path: str):
+    def fake_folder_recover(self, backup_saving_file_path: str):
         if not disk.exists(backup_saving_file_path):
-            raise Exception("file does not exists: {}".format(backup_saving_file_path))
+            raise Exception(f"file does not exists: {backup_saving_file_path}")
         with open(backup_saving_file_path, 'r', encoding='utf-8') as f:
             raw_json = f.read()
             json_object = json.loads(raw_json)
@@ -1843,8 +1683,7 @@ class Disk:
                 print(path)
         print("\nfake recover is done, sir.")
 
-    def read_bytes_from_file(self, file_path):
-        #(self, file_path: str) -> bytes:
+    def read_bytes_from_file(self, file_path: str) -> bytes:
         """
         read bytes from a file
 
@@ -1857,8 +1696,7 @@ class Disk:
             result = f.read()
         return result
 
-    def write_bytes_into_file(self, file_path, content):
-        #(self, file_path: str, content: bytes):
+    def write_bytes_into_file(self, file_path: str, content: bytes):
         """
         write bytes into a file
 
@@ -1871,8 +1709,7 @@ class Disk:
         with open(file_path, 'wb') as f:
             f.write(content)
 
-    def convert_file_suffix_end_to_lowercase(self, source_folder):
-        #(self, source_folder: str):
+    def convert_file_suffix_end_to_lowercase(self, source_folder: str):
         files = list(disk.get_files(source_folder, recursive=True))
         for file in files:
             file = disk.get_absolute_path(file)
@@ -1884,8 +1721,7 @@ class Disk:
                         new_file = file[:-len(end)] + end.lower()
                         disk.move_a_file(source_file_path=file, target_file_path=new_file)
 
-    def compress_bytes_by_using_yingshaoxo_method(self, bytes_data, window_length=1024):
-        #(self, bytes_data, window_length=1024) -> bytes:
+    def compress_bytes_by_using_yingshaoxo_method(self, bytes_data, window_length=1024) -> bytes:
         """
         A joke: A extreme compression method would be magnet torrent, a x GB file can be 'uncompressed' by a magnet hash link string.
 
@@ -1997,7 +1833,7 @@ class Store:
     def __initialize_SQL(self):
         import sqlite3 as sqlite3
 
-        self._SQL_DATA_FILE = os.path.join(self._store_folder, "{}.db".format(self._store_name))
+        self._SQL_DATA_FILE = os.path.join(self._store_folder, f"{self._store_name}.db")
         self._sql_conn = sqlite3.connect(self._SQL_DATA_FILE, check_same_thread=False)
 
         def regular_expression(expression_string, item):
@@ -2010,12 +1846,12 @@ class Store:
 
         self._sql_cursor = self._sql_conn.cursor()
         self._sql_cursor.execute(
-            """CREATE TABLE IF NOT EXISTS {}
-                    (key TEXT, value TEXT)""".format(self._store_name)
+            f"""CREATE TABLE IF NOT EXISTS {self._store_name}
+                    (key TEXT, value TEXT)"""
         )
 
     def __initialize_a_json(self):
-        self._JSON_DATA_FILE = os.path.join(self._store_folder, "{}.json".format(self._store_name))
+        self._JSON_DATA_FILE = os.path.join(self._store_folder, f"{self._store_name}.json")
         with open(self._JSON_DATA_FILE, "w") as f:
             f.write(json.dumps({}))
 
@@ -2030,7 +1866,7 @@ class Store:
             except Exception as e:
                 print(e)
                 raise Exception(
-                    "The value you gave me is not a json object: {}".format(str(value))
+                    f"The value you gave me is not a json object: {str(value)}"
                 )
         return value
 
@@ -2067,7 +1903,7 @@ class Store:
         if self.use_sql == True:
             rows = []
             for row in self._sql_cursor.execute(
-                "SELECT * FROM {} ORDER BY key".format(self._store_name)
+                f"SELECT * FROM {self._store_name} ORDER BY key"
             ):
                 rows.append((row[0], self.__active_json_value(row[1])))
             return rows
@@ -2087,7 +1923,7 @@ class Store:
 
         if self.use_sql == True:
             results = self._sql_cursor.execute(
-                'SELECT EXISTS(SELECT 1 FROM {} WHERE key="{}" LIMIT 1)'.format(self._store_name, key)
+                f'SELECT EXISTS(SELECT 1 FROM {self._store_name} WHERE key="{key}" LIMIT 1)'
             )
             if self._sql_cursor.fetchone()[0] > 0:
                 return True
@@ -2113,7 +1949,7 @@ class Store:
 
         if self.use_sql == True:
             self._sql_cursor.execute(
-                "SELECT * FROM {} WHERE key=?".format(self._store_name), (key,)
+                f"SELECT * FROM {self._store_name} WHERE key=?", (key,)
             )
             result = self._sql_cursor.fetchone()
             if result:
@@ -2142,10 +1978,10 @@ class Store:
         if self.use_sql == True:
             if self.has_key(key):
                 self._sql_cursor.execute(
-                    "UPDATE {} SET value=? WHERE key=?".format(self._store_name), (value, key)
+                    f"UPDATE {self._store_name} SET value=? WHERE key=?", (value, key)
                 )
             else:
-                command = """ INSERT INTO {} VALUES(?,?) """.format(self._store_name)
+                command = f""" INSERT INTO {self._store_name} VALUES(?,?) """
                 self._sql_cursor.execute(command, (key, value))
             self._sql_conn.commit()
         else:
@@ -2166,7 +2002,7 @@ class Store:
         if self.use_sql == True:
             if self.has_key(key):
                 self._sql_cursor.execute(
-                    "DELETE FROM {} WHERE key=?".format(self._store_name), (key,)
+                    f"DELETE FROM {self._store_name} WHERE key=?", (key,)
                 )
 
             self._sql_conn.commit()
@@ -2180,7 +2016,7 @@ class Store:
         empty the store
         """
         if self.use_sql == True:
-            self._sql_cursor.execute("DELETE FROM {}".format(self._store_name))
+            self._sql_cursor.execute(f"DELETE FROM {self._store_name}")
             self._sql_conn.commit()
         else:
             self._save_json_dict({})
@@ -2198,8 +2034,7 @@ class Dart_File_Hard_Encoder_And_Decoder:
         self._io = IO()
         self._json = json
 
-    def _get_content_json_string(self, source_folder):
-        #(self, source_folder: str) -> str:
+    def _get_content_json_string(self, source_folder: str) -> str:
         files = self._disk.get_folder_and_files(folder=source_folder, recursive=True)
         object_list = []
         for file in files:
@@ -2219,8 +2054,7 @@ class Dart_File_Hard_Encoder_And_Decoder:
             object_list.append(an_object)
         return json.dumps(object_list)
 
-    def generate(self, source_folder, generated_file_path="lib/built_in_files.dart"):
-        #(self, source_folder: str, generated_file_path="lib/built_in_files.dart"):
+    def generate(self, source_folder: str, generated_file_path="lib/built_in_files.dart"):
         template1 = """
 import 'dart:convert';
 import 'dart:io';
@@ -2315,9 +2149,9 @@ Future<void> release_all_built_in_files(String parent_folder_path) async {
 
         content_string = self._get_content_json_string(source_folder=source_folder)
 
-        middle_content = '''
-        String the_json_data_that_honors_yingshaoxo = """{}""";
-        '''.format(content_string).strip()
+        middle_content = f'''
+        String the_json_data_that_honors_yingshaoxo = """{content_string}""";
+        '''.strip()
 
         self._io.write(file_path=generated_file_path, content=template1 + "\n\n" + middle_content + "\n\n" + template2)
 

@@ -1,5 +1,5 @@
-#from typing import Any, Callable
-#from dataclasses import dataclass
+from typing import Any, Callable
+from dataclasses import dataclass
 
 import os
 import socket
@@ -12,79 +12,19 @@ _The_Text_Encoding_ = "UTF-8"
 _The_Text_Encoding_Lower_ = "utf-8"
 
 
-def fullmatch(pattern, string, flags=0):
-    """Python 3.2 compatible re.fullmatch implementation"""
-    match = re.match(pattern, string, flags)
-    if match and match.span()[1] == len(string):
-        return match
-    return None
-if not hasattr(re, 'fullmatch'):
-    re.fullmatch = fullmatch
-
-
-class Yingshaoxo_Http_Request:
-    """
-    @dataclass()
-    class Yingshaoxo_Http_Request():
-        socket_connection: Any
-        socket_address: Any
-        context: Any
-        host: str
-        method: str
-        url: str
-        url_arguments: dict
-        headers: dict
-        payload: Any # or None
-        # payload can be bytes, or dict or string or None
-        # for Yingshaoxo_Http_Server, it will always bytes or dict
-    """
-    def __init__(
-        self,
-        socket_connection,
-        socket_address,
-        context,
-        host,
-        method,
-        url,
-        url_arguments,
-        headers,
-        payload=None
-    ):
-        self.socket_connection = socket_connection
-        self.socket_address = socket_address
-        self.context = context
-        self.host = host
-        self.method = method
-        self.url = url
-        self.url_arguments = url_arguments
-        self.headers = headers
-        self.payload = payload
-
-    def __repr__(self):
-        return (("Yingshaoxo_Http_Request(" +
-                "socket_connection={}, " +
-                "socket_address={}, " +
-                "context={}, host={}, " +
-                "method={}, url={}, " +
-                "url_arguments={}, " +
-                "headers={}, payload={})").format(
-                    self.socket_connection,
-                    self.socket_address,
-                    self.context,
-                    self.host,
-                    self.method,
-                    self.url,
-                    self.url_arguments,
-                    self.headers,
-                    self.payload))
-
-    def __eq__(self, other):
-        if not isinstance(other, Yingshaoxo_Http_Request):
-            return False
-        return all(
-            getattr(self, attr) == getattr(other, attr)
-            for attr in self.__dict__
-        )
+@dataclass()
+class Yingshaoxo_Http_Request():
+    socket_connection: Any
+    socket_address: Any
+    context: Any
+    host: str
+    method: str
+    url: str
+    url_arguments: dict
+    headers: dict
+    payload: Any # or None
+    # payload can be bytes, or dict or string or None
+    # for Yingshaoxo_Http_Server, it will always bytes or dict
 
 
 try:
@@ -133,13 +73,13 @@ def _handle_socket_request(socket_connection, socket_address, context, router, h
                     pass
 
         if (method == None or url == None or http_standards == None):
-            print("Unkonw http request:\n"+raw_http_request.strip())
+            print(f"Unkonw http request:\n{raw_http_request.strip()}")
             exit()
         else:
             pass
 
         if (method == "OPTIONS"):
-            response = """
+            response = f"""
 HTTP/1.1 200 OK
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Methods: *
@@ -209,8 +149,10 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
 
         url = unquote(url)
         print(host, method, url)
+        #print(f"headers:\n{headers_dict}")
+        #print(f"payload:\n{payload}")
         raw_response = None
-        response = "HTTP/1.1 500 Server error\r\n\r\n".lstrip()
+        response = f"HTTP/1.1 500 Server error\r\n\r\n".lstrip()
 
         response_first_line = "HTTP/1.1 200 OK"
         response_header_dict = None
@@ -250,27 +192,27 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
 
         response_header_text = ""
         if response_header_dict != None:
-            response_header_text += "\n" + "\n".join(["{key}: {value}".format(key=key, value=value) for key,value in response_header_dict.items()])
+            response_header_text += "\n" + "\n".join([f"{key}: {value}" for key,value in response_header_dict.items()])
 
         if type(raw_response) == str:
             if method == "POST":
                 text_type = "text/plain"
             else:
                 text_type = "text/html"
-            response = """
+            response = f"""
 {response_first_line}
 Content-Type: {text_type}; charset={_The_Text_Encoding_}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
-""".format(response_first_line=response_first_line, text_type=text_type, _The_Text_Encoding_=_The_Text_Encoding_, response_header_text=response_header_text, raw_response=raw_response).strip()
+""".strip()
         elif type(raw_response) == dict:
             raw_response = json.dumps(raw_response, indent=4)
             json_length = len(raw_response)
-            response = """
+            response = f"""
 {response_first_line}
 Content-Type: application/json; charset={_The_Text_Encoding_}
 Content-Length: {json_length}{response_header_text}
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
-            """.format(response_first_line=response_first_line, _The_Text_Encoding_=_The_Text_Encoding_, json_length=json_length, response_header_text=response_header_text, raw_response=raw_response).strip()
+            """.strip()
         elif type(raw_response) == bytes:
             bytes_length = len(raw_response)
 
@@ -285,29 +227,29 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
                 the_content_type = "text/plain"
 
             if the_content_type != None:
-                response = """
+                response = f"""
 {response_first_line}
 Content-Type: {the_content_type}; charset={_The_Text_Encoding_}
 Content-Length: {bytes_length}{response_header_text}
-Access-Control-Allow-Origin: *\r\n\r\n""".format(response_first_line=response_first_line, the_content_type=the_content_type, _The_Text_Encoding_=_The_Text_Encoding_, bytes_length=bytes_length, response_header_text=response_header_text).lstrip()
+Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             else:
-                response = """
+                response = f"""
 {response_first_line}
 Content-Length: {bytes_length}{response_header_text}
-Access-Control-Allow-Origin: *\r\n\r\n""".format(response_first_line=response_first_line, bytes_length=bytes_length, response_header_text=response_header_text).lstrip()
+Access-Control-Allow-Origin: *\r\n\r\n""".lstrip()
             response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
             #response += raw_response
             socket_connection.sendall(response)
             socket_connection.sendall(raw_response)
         else:
-            response = "HTTP/1.1 500 Server error\r\n\r\nNo router for {url}".format(url=url).strip()
+            response = f"HTTP/1.1 500 Server error\r\n\r\nNo router for {url}".strip()
 
         if type(response) == str:
             response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
             socket_connection.sendall(response)
     except Exception as e:
         print(e)
-        response = "HTTP/1.1 200 OK\r\n\r\nservice error: {e}".format(e=e).strip()
+        response = f"HTTP/1.1 200 OK\r\n\r\nservice error: {e}".strip()
         response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
         socket_connection.sendall(response)
     finally:
@@ -316,12 +258,10 @@ Access-Control-Allow-Origin: *\r\n\r\n""".format(response_first_line=response_fi
         exit()
 
 
-def _yingshaoxo_home_handler_example(request):
-    #(request: Yingshaoxo_Http_Request) -> dict:
+def _yingshaoxo_home_handler_example(request: Yingshaoxo_Http_Request) -> dict:
     return {"message": "Hello, world, fight for inner peace."}
 
-def _yingshaoxo_special_handler_example(request):
-    #(request: Yingshaoxo_Http_Request) -> dict:
+def _yingshaoxo_special_handler_example(request: Yingshaoxo_Http_Request) -> dict:
     return "Hello, world, fight for personal freedom."
 
 _yingshaoxo_router_example = [
@@ -331,7 +271,7 @@ _yingshaoxo_router_example = [
 
 
 class Yingshaoxo_Http_Server():
-    def __init__(self, router):
+    def __init__(self, router: Any):
         """
         router: dict or list
             a dict where key is the url regex, value is a function like "def handle_function(request: Yingshaoxo_Http_Request) -> str|dict"
@@ -344,20 +284,19 @@ class Yingshaoxo_Http_Server():
         self.context = multiprocess_manager.dict()
         self.router = router
 
-    def start(self, host="0.0.0.0", port=80, html_folder_path="", serve_html_under_which_url="/"):
-        #(self, host:str="0.0.0.0", port:int=80, html_folder_path:str="", serve_html_under_which_url:str="/"):
+    def start(self, host:str = "0.0.0.0", port:int = 80, html_folder_path: str="", serve_html_under_which_url: str="/"):
         try:
             handle_get_file_url = None
             if (html_folder_path != ""):
                 if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
-                    def handle_get_file_url(sub_url) -> Any:
+                    def handle_get_file_url(sub_url: str) -> Any:
                         # there has a bug, if the file is bigger than memory, it returns nothing: https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
                         # we can also let the user download http://real_file#1MB_01, http://real_file#1MB_02, we are the one who decide how big a part file should be, we return part of bytes of a file
                         sub_url = sub_url.strip("/")
                         sub_url = sub_url.lstrip(serve_html_under_which_url)
                         if sub_url == '':
                             sub_url = 'index.html'
-                        real_file_path = os.path.join(html_folder_path, sub_url)
+                        real_file_path = f"{os.path.join(html_folder_path, sub_url)}"
                         if os.path.exists(real_file_path) and os.path.isfile(real_file_path):
                             with open(real_file_path, mode="rb") as f:
                                 the_data = f.read()
@@ -366,14 +305,14 @@ class Yingshaoxo_Http_Server():
                             return None
                         return the_data
                 else:
-                    print("Error: You should give me an absolute html_folder_path than {html_folder_path}".format(html_folder_path=html_folder_path))
+                    print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
 
             server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             server.bind((host, port))
             server.listen(1)
 
-            print("Service is on http://{host}:{port}".format(host=host, port=port))
+            print(f"Service is on http://{host}:{port}")
 
             process_list = []
 
@@ -408,7 +347,7 @@ class Yingshaoxo_Http_Server():
 
 
 class Yingshaoxo_Threading_Based_Http_Server():
-    def __init__(self, router):
+    def __init__(self, router: dict):
         """
         router: dict or list
             a dict where key is the url regex, value is a function like "def handle_function(request: Yingshaoxo_Http_Request) -> str|dict"
@@ -424,8 +363,7 @@ class Yingshaoxo_Threading_Based_Http_Server():
         self.context = dict()
         self.router = router
 
-    def _get_headers_dict_from_string(self, headers):
-        #(self, headers: str) -> dict:
+    def _get_headers_dict_from_string(self, headers: str) -> dict:
         dic = {}
         for line in headers.split("\n"):
             if line.startswith(("GET", "POST")):
@@ -434,8 +372,7 @@ class Yingshaoxo_Threading_Based_Http_Server():
             dic[line[:point_index].strip()] = line[point_index+1:].strip()
         return dic
 
-    def start(self, host="0.0.0.0", port=80, html_folder_path="", serve_html_under_which_url="/"):
-        #(self, host:str="0.0.0.0", port:int=80, html_folder_path:str="", serve_html_under_which_url:str="/"):
+    def start(self, host:str = "0.0.0.0", port: int = 80, html_folder_path: str="", serve_html_under_which_url: str="/"):
         def handle_file_request_url(sub_url: str) -> Any:
             return b'Hi there, this website is using yrpc (Yingshaoxo remote procedure control module).'
 
@@ -446,22 +383,26 @@ class Yingshaoxo_Threading_Based_Http_Server():
                     sub_url = sub_url.lstrip(serve_html_under_which_url)
                     if sub_url == '':
                         sub_url = 'index.html'
-                    real_file_path = os.path.join(html_folder_path, sub_url)
+                    real_file_path = f"{os.path.join(html_folder_path, sub_url)}"
                     if os.path.exists(real_file_path) and os.path.isfile(real_file_path):
                         with open(real_file_path, mode="rb") as f:
                             the_data = f.read()
                     else:
                         #return None #instead return None, return index.html for single app page
                         sub_url = 'index.html'
-                        real_file_path = os.path.join(html_folder_path, sub_url)
+                        real_file_path = f"{os.path.join(html_folder_path, sub_url)}"
                         with open(real_file_path, mode="rb") as f:
                             the_data = f.read()
                     return the_data
             else:
-                print("Error: You should give me an absolute html_folder_path than {html_folder_path}".format(html_folder_path=html_folder_path))
+                print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
 
-        def handle_any_url(method, sub_url, headers, payload=None):
-            #(method: str, sub_url: str, headers: dict, payload: Any = None) -> tuple[bytes, Any]:
+        def handle_any_url(method: str, sub_url: str, headers: dict, payload: Any = None) -> tuple[bytes, Any]:
+            #sub_url = sub_url.strip("/")
+            #sub_url = sub_url.replace("{identity_name}", "", 1)
+            #sub_url = sub_url.strip("/")
+            #request_url = sub_url.split("/")[0].strip()
+
             raw_response = None
 
             sub_url = unquote(sub_url)
@@ -501,7 +442,7 @@ class Yingshaoxo_Threading_Based_Http_Server():
                     break
 
             if raw_response == None:
-                raw_response = "No API url matchs '{sub_url}'".format(sub_url=sub_url)
+                raw_response = f"No API url matchs '{sub_url}'"
 
             raw_type = str
             if type(raw_response) == str:
@@ -591,7 +532,7 @@ class Yingshaoxo_Threading_Based_Http_Server():
         # invoking server
         http = ThreadedHTTPServer(server_address, WebRequestHandler)
 
-        print("The website is running at: http://127.0.0.1:{port}/".format(port=port))
+        print(f"The website is running at: http://127.0.0.1:{port}/")
 
         http.serve_forever()
 
@@ -846,8 +787,7 @@ class Yingshaoxo_Http_Client():
             return self.backup_client.post(url, data=data, headers=header_dict)
 
 
-def run_a_command_with_hot_load(watch_path, hotload_command):
-    #(watch_path: str, hotload_command: str):
+def run_a_command_with_hot_load(watch_path: str, hotload_command: str):
     """
     watch_path: a folder you want to watch, whenever some of those file get changed, the hotload_command will get re executed
     hotload_command: a bash command to start the server, for example, "python3 main.py"
