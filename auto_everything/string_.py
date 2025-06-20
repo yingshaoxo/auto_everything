@@ -4,6 +4,8 @@ from typing import Any
 from auto_everything.disk import Disk
 disk = Disk()
 
+import random
+
 
 class String:
     def __init__(self):
@@ -339,6 +341,42 @@ class String:
         start_index = page_number*page_size
         end_index = start_index + page_size
         return result_list[start_index:end_index]
+
+    def _get_sub_sentence_list_from_end_to_begin_and_begin_to_end(self, input_text, no_single_char=True):
+        input_text = input_text.strip()
+        full_length = len(input_text)
+        result_list = []
+        for i in range(full_length):
+            end_to_begin_sub_string = input_text[i:]
+            begin_to_end_sub_string = input_text[:-i]
+            if no_single_char == True:
+                if len(end_to_begin_sub_string) > 1:
+                    result_list.append(end_to_begin_sub_string)
+                if len(begin_to_end_sub_string) > 1:
+                    result_list.append(begin_to_end_sub_string)
+            else:
+                result_list.append(end_to_begin_sub_string)
+                result_list.append(begin_to_end_sub_string)
+        result_list_2 = []
+        for one in result_list:
+            if one not in result_list_2:
+                result_list_2.append(one)
+        return result_list_2
+
+    def search_text_in_text_list_by_using_long_sub_sentence(self, search_text, source_text_list):
+        longest_first_sub_sentence_list = self._get_sub_sentence_list_from_end_to_begin_and_begin_to_end(search_text)
+        useful_source_text_list = []
+        for sub_sentence in longest_first_sub_sentence_list:
+            for one in source_text_list:
+                if sub_sentence in one:
+                    useful_source_text_list.append(one)
+            if len(useful_source_text_list) != 0:
+                return useful_source_text_list
+        return []
+
+    def search_text_in_text_list_by_using_long_sub_sentence_and_only_return_one_text(self, search_text, source_text_list):
+        result_list = self.search_text_in_text_list_by_using_long_sub_sentence(search_text, source_text_list)
+        return random.choice(result_list) if (len(result_list) > 0) else 'Not found'
 
     def get_fuzz_match_text_from_text_list(self, input_text: str, text_list: list[str], target_score: float | None = None, quick_mode: bool = False, input_sub_string_list: list[str] | None = None) -> tuple[str, str, str]:
         """
