@@ -350,7 +350,7 @@ class Yingshaoxo_Http_Server():
             handle_get_file_url = None
             if (html_folder_path != ""):
                 if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
-                    def handle_get_file_url(sub_url) -> Any:
+                    def handle_get_file_url(sub_url):
                         # there has a bug, if the file is bigger than memory, it returns nothing: https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
                         # we can also let the user download http://real_file#1MB_01, http://real_file#1MB_02, we are the one who decide how big a part file should be, we return part of bytes of a file
                         sub_url = sub_url.strip("/")
@@ -436,12 +436,12 @@ class Yingshaoxo_Threading_Based_Http_Server():
 
     def start(self, host="0.0.0.0", port=80, html_folder_path="", serve_html_under_which_url="/"):
         #(self, host:str="0.0.0.0", port:int=80, html_folder_path:str="", serve_html_under_which_url:str="/"):
-        def handle_file_request_url(sub_url: str) -> Any:
+        def handle_file_request_url(sub_url):
             return b'Hi there, this website is using yrpc (Yingshaoxo remote procedure control module).'
 
         if (html_folder_path != ""):
             if os.path.exists(html_folder_path) and os.path.isdir(html_folder_path):
-                def handle_file_request_url(sub_url: str) -> Any:
+                def handle_file_request_url(sub_url):
                     sub_url = sub_url.strip("/")
                     sub_url = sub_url.lstrip(serve_html_under_which_url)
                     if sub_url == '':
@@ -601,10 +601,12 @@ class Yingshaoxo_Http_Client_Backup():
         from auto_everything.network import Network
         self._network = Network()
 
-    def get(self, url: str, headers: dict = None, return_bytes: bool = False):
+    def get(self, url, headers=None, return_bytes=False):
+        #(self, url: str, headers: dict = None, return_bytes: bool = False):
         return self._network.send_a_get_request(url, headers, return_bytes=return_bytes)
 
-    def post(self, url: str, data: dict, headers: dict = None):
+    def post(self, url, data, headers=None):
+        #(self, url: str, data: dict, headers: dict = None):
         return self._network.send_a_post(url, data, headers)
 
 
