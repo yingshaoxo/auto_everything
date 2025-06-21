@@ -258,17 +258,18 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
             else:
                 text_type = "text/html"
             response = """
-{response_first_line}
-Content-Type: {text_type}; charset={_The_Text_Encoding_}{response_header_text}
+{response_first_line}\r
+Content-Type: {text_type}; charset={_The_Text_Encoding_}{response_header_text}\r
+Content-Length: {message_length}\r
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
-""".format(response_first_line=response_first_line, text_type=text_type, _The_Text_Encoding_=_The_Text_Encoding_, response_header_text=response_header_text, raw_response=raw_response).strip()
+""".format(response_first_line=response_first_line, text_type=text_type, _The_Text_Encoding_=_The_Text_Encoding_, response_header_text=response_header_text, raw_response=raw_response, message_length=len(raw_response)).strip()
         elif type(raw_response) == dict:
             raw_response = json.dumps(raw_response, indent=4)
             json_length = len(raw_response)
             response = """
-{response_first_line}
-Content-Type: application/json; charset={_The_Text_Encoding_}
-Content-Length: {json_length}{response_header_text}
+{response_first_line}\r
+Content-Type: application/json; charset={_The_Text_Encoding_}\r
+Content-Length: {json_length}{response_header_text}\r
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
             """.format(response_first_line=response_first_line, _The_Text_Encoding_=_The_Text_Encoding_, json_length=json_length, response_header_text=response_header_text, raw_response=raw_response).strip()
         elif type(raw_response) == bytes:
@@ -286,14 +287,14 @@ Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
 
             if the_content_type != None:
                 response = """
-{response_first_line}
-Content-Type: {the_content_type}; charset={_The_Text_Encoding_}
-Content-Length: {bytes_length}{response_header_text}
+{response_first_line}\r
+Content-Type: {the_content_type}; charset={_The_Text_Encoding_}\r
+Content-Length: {bytes_length}{response_header_text}\r
 Access-Control-Allow-Origin: *\r\n\r\n""".format(response_first_line=response_first_line, the_content_type=the_content_type, _The_Text_Encoding_=_The_Text_Encoding_, bytes_length=bytes_length, response_header_text=response_header_text).lstrip()
             else:
                 response = """
-{response_first_line}
-Content-Length: {bytes_length}{response_header_text}
+{response_first_line}\r
+Content-Length: {bytes_length}{response_header_text}\r
 Access-Control-Allow-Origin: *\r\n\r\n""".format(response_first_line=response_first_line, bytes_length=bytes_length, response_header_text=response_header_text).lstrip()
             response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
             #response += raw_response
@@ -303,6 +304,15 @@ Access-Control-Allow-Origin: *\r\n\r\n""".format(response_first_line=response_fi
             response = "HTTP/1.1 500 Server error\r\n\r\nNo router for {url}".format(url=url).strip()
 
         if type(response) == str:
+            """
+            # standard http1.1
+
+            'HTTP/1.1 200 OK\r\n' +
+            'Content-Length: 100\r\n' +
+            'Content-Type: text/html\r\n\r\n' +
+
+            'the real information'
+            """
             response = response.encode(_The_Text_Encoding_Lower_, errors="ignore")
             socket_connection.sendall(response)
     except Exception as e:
