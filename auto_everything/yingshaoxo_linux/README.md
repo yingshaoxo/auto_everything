@@ -45,6 +45,9 @@ To reduce the system size, you can only have a compiler and python, then load an
 ### 6. backward compatibility
 New system must allow old software to run. Otherwise, no new system should get released. New programming language compiler must be able to compile old code, otherwise, no new compiler should get released. New script interpreter such as python must be able to run old script, otherwise, we give up new version of python. For example, if python3 can't run python2 code, we will not include python3, and will always use python2.
 
+### 7. network implementation
+The user can use pins to connect their own network devices. (pins are micro_controller pins) There are so many network method. Free to do whatever you like, wire or wireless, one line or two line or 4 lines, nobody cares. As for IP/HTTP proxy implementation, just make sure the proxy can be customized to change 'source_ip to target_ip', change 'source_ip:port to another_ip:different_port'. The IP here can be a HTTP address. All in all, since you have handled a package to another person to process, that package should be fully change_able for that person.
+
 
 ## From hardware side
 
