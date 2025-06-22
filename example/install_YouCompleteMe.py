@@ -313,6 +313,9 @@ else:
     set background=light
 
     let g:ycm_global_ycm_extra_conf = '~/.vim/.ycm_extra_conf.py'
+
+    "let vim select and copy possible"
+    set mouse-=a
     """
     with open(t.fix_path("~/.vimrc"), "w", encoding="utf-8") as f:
         f.write(vimrc)
