@@ -68,3 +68,5 @@ Recursive programming is a key tech method here. divide and conquer is a key tec
 > Create a hard coding dog or worm is easier than making a digital human, because those low level animal only has basic condition and action model, for example, when dog hungry dog finds food to eat.
 
 > 感觉做强人工智能类似于做 翻译(图像/文字等多媒体翻译为更简单的文本) + 查找数据库的文本 + RPG文字游戏一直调用自己的function + 编程语言解释器
+
+> 你甚至可以设置分年龄制度，每个数据片都带年龄参数，在机器人20岁时，优先调用20岁的数据，如果找不到，就调用19岁的数据，直到0岁还找不到数据，就不处理这个condition。这样也可以避免有人改function版本，导致整体项目崩溃。每年，你都有新的机会重构某个function或代码片段。
