@@ -214,7 +214,7 @@ Max_Sequenc_Length = 11
 
 def main():
     try:
-        with open("all_yingshaoxo_data_2023_11_13.txt", "r") as f:
+        with open("all_yingshaoxo_data_2023_11_13.txt", "r", encoding="utf-8") as f:
             input_text = f.read()
     except Exception as e:
         pass

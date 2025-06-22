@@ -323,7 +323,7 @@ Access-Control-Allow-Origin: *\r\n\r\n""".format(response_first_line=response_fi
     finally:
         socket_connection.shutdown(1)
         socket_connection.close()
-        exit()
+        #exit() #todo: need to know if this has to run or not
 
 
 def _yingshaoxo_home_handler_example(request):
@@ -356,6 +356,7 @@ class Yingshaoxo_Http_Server():
 
     def start(self, host="0.0.0.0", port=80, html_folder_path="", serve_html_under_which_url="/"):
         #(self, host:str="0.0.0.0", port:int=80, html_folder_path:str="", serve_html_under_which_url:str="/"):
+        process_list = []
         try:
             handle_get_file_url = None
             if (html_folder_path != ""):
@@ -384,8 +385,6 @@ class Yingshaoxo_Http_Server():
             server.listen(1)
 
             print("Service is on http://{host}:{port}".format(host=host, port=port))
-
-            process_list = []
 
             while True:
                 socket_connection, socket_address = server.accept()
