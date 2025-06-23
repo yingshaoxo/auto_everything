@@ -526,9 +526,11 @@ def execute_code(code):
     import json
     # For example, execute python code. 
     previous_info_code = f"""
-        memory_dict = json.loads('{json.dumps(global_memory_dict)}')
+import json
+memory_dict = json.loads('{json.dumps(global_memory_dict)}')
     """
-    result = terminal.run_python_code(previous_info_code + code)
+    mixed_code = previous_info_code + code
+    result = terminal.run_python_code(mixed_code)
     return result
 
 while True:
@@ -541,4 +543,84 @@ while True:
     print(result)
 
     update_global_dict_based_on_new_information("my_answer_and_experiment_result:\n" + result)
+```
+
+or 
+
+```
+yingshaoxo's creation, how to create strong AI from basics:
+(yingshaoxo的小发明 之 定义一种强人工智能数据格式:)
+
+```
+memory_dict = {}
+
+____
+
+
+condition description 1, walk on street
+
+
+action code, including if else, if found a garbage, throw it into garbage bin.
+
+_____
+
+
+condition description 2, have a drink on hand
+
+
+action code, drink it. change memory dict to remember the drink has been eatten.
+
+___
+
+
+condition description 3, have nothing to do
+
+
+just close eyes, have a sleep first. then go around to find interesting things
+
+___
+
+
+somebody ask your name
+
+
+say you are yingshaoxo. run_condition("show your appreciation").
+
+___
+
+
+need to show your appreciation
+
+
+say thank you
+
+___
+
+
+...a 100MB text data, the actions is actually code that binds to real body actions. and it will also do some calculation along the way, because it has to determine how to do those actions based on input data...
+
+```
+
+Now you have seperated condition and actions database, you can make a loop to continuely do actions based on new condition and let your bot to do some actions to change the environment and their memory.
+
+This is how simple the strong AI algorithm is, it is all about good data.
+
+Creat a bot that replay human normal action is easy, the hard part is replay learning process. The action should contain some code that changes its own database. The bot has to learn what is good, what is bad. It has to learn from some experience and experiments.
+
+For one condition, there could have multiple actions, choose one randomly.
+
+All in all, this method is all about "use code to simulate human thinking, and do record and replay actions".
+
+Recursive programming is a key tech method here. divide and conquer is a key tech method here.
+
+> 制作一条硬编码的狗或者毛毛虫 显然比 制作一个硬编码的人 简单很多
+
+> Create a hard coding dog or worm is easier than making a digital human, because those low level animal only has basic condition and action model, for example, when dog hungry dog finds food to eat.
+
+> 感觉做强人工智能类似于做 翻译(图像/文字等多媒体翻译为更简单的文本) + 查找数据库的文本 + RPG文字游戏一直调用自己的function + 编程语言解释器
+
+> 你甚至可以设置分年龄制度，每个数据片都带年龄参数，在机器人20岁时，优先调用20岁的数据，如果找不到，就调用19岁的数据，直到0岁还找不到数据，就不处理这个condition。这样也可以避免有人改function版本，导致整体项目崩溃。每年，你都有新的机会重构某个function或代码片段。
+
+
+就我个人来讲，我肯定没有这么好的记忆力，不能记得我在10岁时面对一个情景应该干什么事情。但机器人记得清清楚楚，几乎不会做重复劳动。看起来机器人就是有优越性，轻轻松松可以有几TB的记忆与技能知识库。
 ```
