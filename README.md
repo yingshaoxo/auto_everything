@@ -551,7 +551,7 @@ or
 yingshaoxo's creation, how to create strong AI from basics:
 (yingshaoxo的小发明 之 定义一种强人工智能数据格式:)
 
-```
+#```
 memory_dict = {}
 
 ____
@@ -599,7 +599,7 @@ ___
 
 ...a 100MB text data, the actions is actually code that binds to real body actions. and it will also do some calculation along the way, because it has to determine how to do those actions based on input data...
 
-```
+#```
 
 Now you have seperated condition and actions database, you can make a loop to continuely do actions based on new condition and let your bot to do some actions to change the environment and their memory.
 
