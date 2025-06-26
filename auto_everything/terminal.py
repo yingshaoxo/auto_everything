@@ -816,6 +816,7 @@ class Terminal:
             if force:
                 self.run_command("kill -s SIGKILL {num}".format(num=pid))
                 self.run_command("pkill {name}".format(name=name))
+                self.run_command("pkill -f {name}".format(name=name))
             else:
                 self.run_command("kill -s SIGINT {num}".format(num=pid))
                 # os.kill(pid, signal.SIGINT) #This is typically initiated by pressing Ctrl+C
