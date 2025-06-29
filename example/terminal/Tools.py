@@ -439,8 +439,8 @@ git remote set-url --add --push origin {repo_url}
             input("Does it looks fine for you? If so, hit enter.")
 
             disk.delete_a_folder(target_code_folder)
-            disk.copy_a_folder(a_code_folder, target_code_folder, use_gitignore_file=False)
-            self.delete_git_and_gitignore_file(target_folder=target_code_folder, also_delete_git_folder=True)
+            disk.copy_a_folder(a_code_folder, target_code_folder, use_gitignore_file=True)
+            #self.delete_git_and_gitignore_file(target_folder=target_code_folder, also_delete_git_folder=True)
 
     def wake_up_the_light(self):
         while True:

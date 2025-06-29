@@ -602,7 +602,7 @@ class Disk:
                 else:
                     git_folder_list.append(a_git_folder)
 
-                result = t.run_command("git ls-files --other --directory", cwd=a_git_folder).strip()
+                result = t.run_command("git ls-files --other --ignored --exclude-standard --directory", cwd=a_git_folder).strip()
                 if len(result) != 0:
                     if result.lower().startswith("fatal"):
                         continue
