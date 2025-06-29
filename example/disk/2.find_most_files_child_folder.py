@@ -22,16 +22,17 @@ def print_report(parent_folder, max_folder, max_files, folder_stats):
     print("Total folders scanned: {}".format(len(folder_stats)))
     print("Folder with most files: {}".format(max_folder))
     print("Number of files: {}".format(max_files))
-    print("\nTop 5 folders by file count:")
+    print("\nTop 10 folders by file count:")
     print("-"*30)
 
-    sorted_folders = sorted(folder_stats.items(), key=lambda x: x[1], reverse=True)[:5]
+    sorted_folders = sorted(folder_stats.items(), key=lambda x: x[1], reverse=True)[:10]
     for folder, count in sorted_folders:
         print("{}: {} files".format(folder, count))
 
 if __name__ == "__main__":
     #parent_folder = raw_input("Enter parent folder path: ")
     parent_folder = "/home/yingshaoxo/Disk/Sync_Folder/Yingshaoxo_Data/Core/Small_Core/My_Code/"
+    #parent_folder = "/home/yingshaoxo/Disk/Sync_Folder/Yingshaoxo_Data/Core/Small_Core/My_Code_Mini/"
 
     if not os.path.exists(parent_folder):
         print("Error: Folder does not exist")
