@@ -549,6 +549,8 @@ class Disk:
     def _parse_gitignore_text_to_list(self, gitignore_text):
         #(self, gitignore_text: str) -> list[str]:
         ignore_pattern_list = [line for line in gitignore_text.strip().split("\n") if line.strip() != ""]
+        if "__pycache__/" not in ignore_pattern_list:
+            ignore_pattern_list.append("__pycache__/")
         new_ignore_pattern_list = []
         for pattern in ignore_pattern_list:
             if pattern.startswith("#"):
