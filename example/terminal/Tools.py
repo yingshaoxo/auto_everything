@@ -389,13 +389,18 @@ git remote set-url --add --push origin {repo_url}
 
         print("\nfake recover is done, sir.")
 
-    def delete_git_and_gitignore_file(self, also_delete_git_folder=True):
+    def delete_git_and_gitignore_file(self, target_folder=None, also_delete_git_folder=True):
         """
         Current git has problems with historical big data.
         They should create a function that deletes everything that inside .gitignore in history record
         So the final git folder could be very small
         """
-        files = disk.get_gitignore_folders_and_files(".", also_return_dot_git_folder=also_delete_git_folder)
+        if target_folder == None:
+            target_folder = "./"
+
+        files = disk.get_gitignore_folders_and_files(target_folder, also_return_dot_git_folder=also_delete_git_folder)
+        #print(files)
+        #exit()
         for file in files:
             try:
                 if disk.is_directory(file):
@@ -418,6 +423,24 @@ git remote set-url --add --push origin {repo_url}
                     print("file/folder deleted: {file}".format(file=file))
                 except Exception as e:
                     print(e)
+
+    def save_code_repository_to_yingshaoxo_disk(self, a_code_folder="./"):
+        a_code_folder = disk.get_absolute_path(a_code_folder)
+        if a_code_folder and disk.exists(a_code_folder):
+            base_yingshaoxo_disk_code_folder = "/home/yingshaoxo/Disk/Sync_Folder/Yingshaoxo_Data/Core/Small_Core/My_Code/"
+            folder_name = disk.get_directory_name(a_code_folder)
+            if folder_name == "":
+                print("something is wrong")
+                exit()
+            target_code_folder = base_yingshaoxo_disk_code_folder + folder_name
+
+            print("source_folder:", a_code_folder)
+            print("target_folder:", target_code_folder)
+            input("Does it looks fine for you? If so, hit enter.")
+
+            disk.delete_a_folder(target_code_folder)
+            disk.copy_a_folder(a_code_folder, target_code_folder, use_gitignore_file=False)
+            self.delete_git_and_gitignore_file(target_folder=target_code_folder, also_delete_git_folder=True)
 
     def wake_up_the_light(self):
         while True:
