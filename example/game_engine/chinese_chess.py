@@ -1,3 +1,6 @@
+# base created by: yingshaoxo
+# horse, elephant, general, guard created by: github copilot sonnet3.5
+
 from auto_everything.image import Container
 from auto_everything.terminal import Terminal, Advanced_Terminal_User_Interface
 terminal = Terminal()
@@ -90,11 +93,58 @@ class Chinese_Chess():
     def do_an_action(self, action):
         """
         action: [pointer_from, pointer_to]
+        Allows external control of piece movement
         """
-        pass
+        if not isinstance(action, list) or len(action) != 2:
+            return False
+
+        from_pointer, to_pointer = action
+        if not (isinstance(from_pointer, list) and isinstance(to_pointer, list)):
+            return False
+
+        if not (len(from_pointer) == 2 and len(to_pointer) == 2):
+            return False
+
+        # Validate coordinates are within bounds
+        for coord in from_pointer + to_pointer:
+            if not isinstance(coord, int):
+                return False
+
+        if not (0 <= from_pointer[0] < self.height and 0 <= from_pointer[1] < self.width):
+            return False
+        if not (0 <= to_pointer[0] < self.height and 0 <= to_pointer[1] < self.width):
+            return False
+
+        # Move the piece
+        self.pointer = from_pointer
+        self.choose_pointer = from_pointer
+        self._focus_or_unfocus_on_current_pointer()
+        self._attack(from_pointer, to_pointer)
+        self.choose_pointer = None
+        return True
 
     def is_win(self):
-        pass
+        """
+        Check if either player has won by capturing the opponent's general
+        Returns: None if no winner, "red" if red wins, "black" if black wins
+        """
+        red_general_found = False
+        black_general_found = False
+
+        for y in range(self.height):
+            for x in range(self.width):
+                info = self._get_information_about_a_point([y, x])
+                if info["name"] == "general":
+                    if info["type"] == "red":
+                        red_general_found = True
+                    else:
+                        black_general_found = True
+
+        if not black_general_found:
+            return "red"
+        if not red_general_found:
+            return "black"
+        return None
 
     def _clear_screen(self):
         print("\n" * 100)
@@ -254,6 +304,88 @@ class Chinese_Chess():
                     # between cannon and target_point, there has more than 1 meaningful point, so drop it
                     return
 
+                take_that_pointer(from_pointer, to_pointer)
+            elif from_point_information["name"] == "horse":
+                # Horse moves in L shape: 2 steps in one direction and 1 step perpendicular
+                dx = abs(to_pointer[1] - from_pointer[1])
+                dy = abs(to_pointer[0] - from_pointer[0])
+                if not ((dx == 2 and dy == 1) or (dx == 1 and dy == 2)):
+                    return
+                
+                # Check if there's a piece blocking the horse's path
+                if dx == 2:
+                    # Moving horizontally first
+                    block_x = from_pointer[1] + (1 if to_pointer[1] > from_pointer[1] else -1)
+                    block_info = self._get_information_about_a_point([from_pointer[0], block_x])
+                    if block_info["type"] != ".":
+                        return
+                else:
+                    # Moving vertically first
+                    block_y = from_pointer[0] + (1 if to_pointer[0] > from_pointer[0] else -1)
+                    block_info = self._get_information_about_a_point([block_y, from_pointer[1]])
+                    if block_info["type"] != ".":
+                        return
+                
+                take_that_pointer(from_pointer, to_pointer)
+                
+            elif from_point_information["name"] == "elephant":
+                # Elephant moves exactly 2 steps diagonally
+                dx = abs(to_pointer[1] - from_pointer[1])
+                dy = abs(to_pointer[0] - from_pointer[0])
+                if dx != 2 or dy != 2:
+                    return
+                
+                # Check the point in between (blocking point)
+                mid_y = (from_pointer[0] + to_pointer[0]) // 2
+                mid_x = (from_pointer[1] + to_pointer[1]) // 2
+                block_info = self._get_information_about_a_point([mid_y, mid_x])
+                if block_info["type"] != ".":
+                    return
+                
+                # Check if elephant crosses the river (not allowed)
+                if from_point_information["type"] == "red" and to_pointer[0] < 4:
+                    return
+                if from_point_information["type"] == "black" and to_pointer[0] > 3:
+                    return
+                
+                take_that_pointer(from_pointer, to_pointer)
+                
+            elif from_point_information["name"] == "guard":
+                # Guard moves 1 step diagonally within palace
+                dx = abs(to_pointer[1] - from_pointer[1])
+                dy = abs(to_pointer[0] - from_pointer[0])
+                if dx != 1 or dy != 1:
+                    return
+                
+                # Check palace boundaries (3x3 area)
+                if to_pointer[1] < 3 or to_pointer[1] > 5:
+                    return
+                if from_point_information["type"] == "red":
+                    if to_pointer[0] < 5 or to_pointer[0] > 7:
+                        return
+                else:  # black
+                    if to_pointer[0] < 0 or to_pointer[0] > 2:
+                        return
+                
+                take_that_pointer(from_pointer, to_pointer)
+                
+            elif from_point_information["name"] == "general":
+                # General moves 1 step orthogonally within palace
+                dx = abs(to_pointer[1] - from_pointer[1])
+                dy = abs(to_pointer[0] - from_pointer[0])
+                if not ((dx == 1 and dy == 0) or (dx == 0 and dy == 1)):
+                    return
+                
+                # Check palace boundaries (3x3 area)
+                if to_pointer[1] < 3 or to_pointer[1] > 5:
+                    return
+                if from_point_information["type"] == "red":
+                    if to_pointer[0] < 5 or to_pointer[0] > 7:
+                        return
+                else:  # black
+                    if to_pointer[0] < 0 or to_pointer[0] > 2:
+                        return
+                
                 take_that_pointer(from_pointer, to_pointer)
 
     def _handle_choose_action(self):
