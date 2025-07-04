@@ -1,5 +1,5 @@
-#from __future__ import annotations
-#from typing import Any
+from __future__ import annotations
+from typing import Any
 
 from auto_everything.disk import Disk
 disk = Disk()
@@ -11,14 +11,20 @@ class String:
     def __init__(self):
         pass
 
-    def capitalize_the_first_character_of_a_string(self, text):
-    #(self, text: str) -> str:
+    def capitalize_the_first_character_of_a_string(self, text: str) -> str:
         if len(text) == 0:
             return text
         return text[0].capitalize() + text[1:]
 
-    def remove_all_special_characters_from_a_string(self, text, allow_numbers=True, allow_ascii_lowercase_characters=True, allow_ascii_uppercase_characters=True, allow_whitespace=False, allow_punctuation=False, white_list_characters=''):
-    #(self, text: str, allow_numbers: bool = True, allow_ascii_lowercase_characters: bool = True, allow_ascii_uppercase_characters: bool = True, allow_whitespace: bool = False, allow_punctuation: bool = False, white_list_characters: str = '') -> str:
+    def remove_all_special_characters_from_a_string(self,
+        text: str,
+        allow_numbers: bool = True,
+        allow_ascii_lowercase_characters: bool = True,
+        allow_ascii_uppercase_characters: bool = True,
+        allow_whitespace: bool = False,
+        allow_punctuation: bool = False,
+        white_list_characters: str = ''
+    ) -> str:
         import string as built_in_string_module
 
         new_text = ""
@@ -53,8 +59,7 @@ class String:
 
         return new_text
 
-    def is_keywords_in_text(self, keywords, text, lower_case=True):
-    #(self, keywords: list[str], text: str, lower_case: bool = True) -> bool:
+    def is_keywords_in_text(self, keywords: list[str], text: str, lower_case: bool = True) -> bool:
         if lower_case == False:
             for key in keywords:
                 if key not in text:
@@ -84,8 +89,7 @@ class String:
             a_dict[key] = int(a_dict[key]/max_counting*99)
         return sequence_list, a_dict
 
-    def compare_two_sentences(self, sentence1, sentence2, using_yingshaoxo_method=True):
-    #(self, sentence1: str, sentence2: str, using_yingshaoxo_method: bool = True) -> float:
+    def compare_two_sentences(self, sentence1: str, sentence2: str, using_yingshaoxo_method: bool = True) -> float:
         """
         return similarity, from `0.0` to `1.0`, 1 means equal, 0 means no relate.
 
@@ -130,8 +134,7 @@ class String:
             ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
             return ratio
 
-    def get_similarity_score_of_two_sentence_by_position_match(self, sentence1, sentence2):
-    #(self, sentence1: str, sentence2: str) -> float:
+    def get_similarity_score_of_two_sentence_by_position_match(self, sentence1: str, sentence2: str) -> float:
         """
         It returns a float in range of [0, 1], 1 means equal.
         This is a extreamly quick method.
@@ -177,8 +180,7 @@ class String:
             result = (result + self.get_similarity_score_of_two_sentence_by_substring(sentence2, sentence1, end=True, minimum_substring_length=minimum_substring_length)) / 2
         return result
 
-    def get_string_match_rating_level(self, input_text, text, lower_case=True):
-    #(self, input_text: str, text: str, lower_case: bool = True) -> float:
+    def get_string_match_rating_level(self, input_text: str, text: str, lower_case: bool = True) -> float:
         """
         The higher, the more likely two string are equal
         We assume input_text length less than text, normally input_text is a search text
@@ -210,8 +212,7 @@ class String:
 
         return counting/(negative_counting+counting)
 
-    def get_fuzz_hash(self, text, level=128, seperator="_"):
-    #(self, text: str, level: int = 128, seperator="_") -> str:
+    def get_fuzz_hash(self, text: str, level: int = 128, seperator="_") -> str:
         """
         Compress long text into 128 char long text, so that you could use it to compare similarity.
         It works better with get_similarity_score_of_two_sentence_by_position_match(hash1, hash2)
@@ -227,8 +228,7 @@ class String:
         hash_code = disk.get_simple_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=level, seperator=seperator, with_size=False)
         return hash_code
 
-    def get_all_sub_string(self, text, get_less=False):
-    #(self, text: str, get_less: bool = False) -> list[str]:
+    def get_all_sub_string(self, text: str, get_less: bool = False) -> list[str]:
         if get_less == False:
             all_substring = []
             for index in range(len(text)):
@@ -250,8 +250,7 @@ class String:
                             all_substring.add(the_sub_string)
             return list(all_substring)
 
-    def get_common_string_list_in_text(self, text, get_less=True, only_return_longest=False):
-    #(self, text, get_less: bool = True, only_return_longest: bool = False) -> list[str]:
+    def get_common_string_list_in_text(self, text, get_less: bool = True, only_return_longest: bool = False) -> list[str]:
         all_sub_string_list = list(set(self.get_all_sub_string(text, get_less=get_less)))
         repeated_text_list = []
         for one in all_sub_string_list:
@@ -277,8 +276,7 @@ class String:
         else:
             return repeated_text_list
 
-    def get_repeated_string_in_text_by_using_sub_window(self, text, window_length=4):
-    #(self, text, window_length=4) -> dict[str, int]:
+    def get_repeated_string_in_text_by_using_sub_window(self, text, window_length=4) -> dict[str, int]:
         text_length = len(text)
 
         cache_dict = dict()
@@ -306,8 +304,7 @@ class String:
 
         return new_dict
 
-    def get_changed_part_of_a_text(self, before_text, after_text, no_change_position_placeholder=" "):
-    #(self, before_text: str, after_text: str, no_change_position_placeholder: str=" ") -> str:
+    def get_changed_part_of_a_text(self, before_text: str, after_text: str, no_change_position_placeholder: str=" ") -> str:
         length = len(before_text)
         after_text = after_text[:length]
         result = ""
@@ -320,8 +317,7 @@ class String:
                 result += another_sentence_char
         return result
 
-    def search_text_in_text_list(self, input_text, text_list, page_size=10, page_number=0, block_keyword_list=[]):
-    #(self, input_text: str, text_list: list[str], page_size: int = 10, page_number: int = 0, block_keyword_list: list[str] = []) -> list[str]:
+    def search_text_in_text_list(self, input_text: str, text_list: list[str], page_size: int = 10, page_number: int = 0, block_keyword_list: list[str] = []) -> list[str]:
         """
         It returns all matched text as a list
         """
@@ -382,12 +378,7 @@ class String:
         result_list = self.search_text_in_text_list_by_using_long_sub_sentence(search_text, source_text_list)
         return random.choice(result_list) if (len(result_list) > 0) else 'Not found'
 
-    #def search_text_in_text_folder(self, search_text, search_folder_path, full_source_text=None, sample_number_for_each_search=100000, type_limiter=[".txt", ".md"]):
-    #    # we simply get source text list by using "source_txt".split("\n"), then do search for 100000 per time.
-    #    pass
-
-    def get_fuzz_match_text_from_text_list(self, input_text, text_list, target_score=None, quick_mode=False, input_sub_string_list=None):
-    #(self, input_text: str, text_list: list[str], target_score: float | None = None, quick_mode: bool = False, input_sub_string_list: list[str] | None = None) -> tuple[str, str, str]:
+    def get_fuzz_match_text_from_text_list(self, input_text: str, text_list: list[str], target_score: float | None = None, quick_mode: bool = False, input_sub_string_list: list[str] | None = None) -> tuple[str, str, str]:
         """
         It returns [previous_text, matched_text, next_text]
         """
@@ -458,8 +449,7 @@ class String:
             next_text = text_list[top_index+1]
         return previous_text, text_list[top_index], next_text
 
-    def get_common_text_in_text_list(self, text_list, frequency=7, keywords_mode=False, get_less=True):
-    #(self, text_list: list[str], frequency: int = 7, keywords_mode: bool = False, get_less: bool = True) -> dict[str, dict[str, Any]]:
+    def get_common_text_in_text_list(self, text_list: list[str], frequency: int = 7, keywords_mode: bool = False, get_less: bool = True) -> dict[str, dict[str, Any]]:
         """
         It will return a dict, where common part string is key, index list is value
         """
@@ -507,14 +497,12 @@ class String:
                     final_dict.update({sub_string: {"counting": counting, "index_list": index_list}})
         return final_dict
 
-    def get_meaning_group_dict_in_text_list(self, text_list, get_less=True, level=2, code_parse_mode=False):
-    #(self, text_list: list[str], get_less: bool = True, level: int = 2, code_parse_mode: bool = False) -> dict[str, int]:
+    def get_meaning_group_dict_in_text_list(self, text_list: list[str], get_less: bool = True, level: int = 2, code_parse_mode: bool = False) -> dict[str, int]:
         """
         text_list = ["How are you A.", "How are you B."]
         It returns ["How are you"]
         """
-        def get_common_beginning(a_list):
-        #(a_list: list[str]) -> str:
+        def get_common_beginning(a_list: list[str]) -> str:
             length_list = [len(one) for one in a_list]
             common_part = ""
             for index in range(min(length_list)):
@@ -525,8 +513,7 @@ class String:
                     break
             return common_part
 
-        def get_common_endding(a_list):
-        #(a_list: list[str]) -> str:
+        def get_common_endding(a_list: list[str]) -> str:
             a_list = [one[::-1] for one in a_list]
             return get_common_beginning(a_list)[::-1]
 
@@ -595,8 +582,7 @@ class String:
 
         return global_dict
 
-    def compress_text_by_using_yingshaoxo_method(self, text, common_part_list=[]):
-    #(self, text, common_part_list=[]) -> str:
+    def compress_text_by_using_yingshaoxo_method(self, text, common_part_list=[]) -> str:
         """
         Example: (the real output is a more compact string)
 
@@ -714,8 +700,7 @@ class String:
 
         return new_dict_text + "_____777_____yingshaoxo_____777_____" + special_char_1.join(new_data_list)
 
-    def uncompress_text_by_using_yingshaoxo_method(self, text):
-    #(self, text) -> str:
+    def uncompress_text_by_using_yingshaoxo_method(self, text) -> str:
         """
         Example: (the real input is a more compact string)
 
