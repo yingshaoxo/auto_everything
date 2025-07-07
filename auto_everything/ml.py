@@ -1,3 +1,12 @@
+"""
+yingshaoxo:
+
+Maybe you should drop those deep learning framework that hides real good data behind.
+
+Because later it will generates large size of garbage data as "model", and you are using it. It takes too much space and hard to reuse to create new database based software.
+"""
+
+
 from typing import Any
 import random
 import os
