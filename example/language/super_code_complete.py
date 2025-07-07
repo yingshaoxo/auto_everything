@@ -210,7 +210,7 @@ def get_next_text_block(input_text):
     return response
 
 # The bigger, the accurate, but takes more disk space
-Max_Sequenc_Length = 11
+Max_Sequenc_Length = 7
 
 def main():
     try:
