@@ -157,4 +157,8 @@ def convert_files(a_folder):
             print(file)
             time.sleep(3)
 
-convert_files("./Sex")
+the_folder = "./Sex"
+print(the_folder)
+
+input("Is this the folder you want to process? (25minutes+ long video to short video)")
+convert_files(the_folder)

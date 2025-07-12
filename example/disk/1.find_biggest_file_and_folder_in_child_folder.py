@@ -62,7 +62,7 @@ def print_report(parent_folder, top_files, top_folders):
 
 if __name__ == "__main__":
     #parent_folder = raw_input("Enter parent folder path: ").strip()
-    parent_folder = "/home/yingshaoxo/Disk/Sync_Folder/Yingshaoxo_Data/Core/Small_Core/My_Code/"
+    parent_folder = "/home/yingshaoxo/Disk/Sync_Folder/Yingshaoxo_Data/"
     if not os.path.exists(parent_folder):
         print("Error: Folder does not exist")
         exit()
