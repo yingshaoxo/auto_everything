@@ -80,7 +80,8 @@ class Python():
         if variable_dict == None:
             variable_dict = {'__builtins__': __builtins__}
         else:
-            variable_dict.update({'__builtins__': __builtins__})
+            if "__builtins__" not in variable_dict:
+                variable_dict.update({'__builtins__': __builtins__})
 
         class Mini_Python():
             def __init__(self, the_variable_dict):
