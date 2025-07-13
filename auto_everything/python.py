@@ -71,6 +71,81 @@ class Python():
         """
         self._os.uninstall_python_package(package_name)
 
+    def create_mini_python(self, variable_dict=None):
+        import sys
+        import json
+        from io import StringIO
+        from multiprocessing import Process, Queue
+
+        if variable_dict == None:
+            variable_dict = {'__builtins__': __builtins__}
+        else:
+            variable_dict.update({'__builtins__': __builtins__})
+
+        class Mini_Python():
+            def __init__(self, the_variable_dict):
+                self.the_variable_dict = the_variable_dict
+
+            def _handle_python_call(self, operation, json_args, eval_only=True):
+                try:
+                    args = json.loads(json_args)
+
+                    for i, arg in enumerate(args):
+                        self.the_variable_dict['data_{0}'.format(i)] = arg
+
+                    if eval_only == True:
+                        result = eval(operation, self.the_variable_dict)
+                    else:
+                        exec(operation, self.the_variable_dict)
+                        result = None
+
+                    return json.dumps(result)
+                except Exception as e:
+                    return json.dumps({'error': str(e)})
+
+            def inject_python(self, code, *args):
+                # you can define some global functions and variables here
+                try:
+                    jsonArgs = json.dumps(args)
+                    result = self._handle_python_call(code, jsonArgs, eval_only=False)
+                    return json.loads(result)
+                except Exception as e:
+                    return {"error": str(e)}
+
+            def eval_python(self, code, *args):
+                # you can evaluate an expression here
+                try:
+                    jsonArgs = json.dumps(args)
+                    result = self._handle_python_call(code, jsonArgs, eval_only=True)
+                    return json.loads(result)
+                except Exception as e:
+                    return {"error": str(e)}
+
+            def _real_run_code(self, code_str, output_q):
+                old_stdout = sys.stdout
+                sys.stdout = StringIO()
+                try:
+                    exec(code_str, self.the_variable_dict)
+                    output_q.put(sys.stdout.getvalue())
+                except Exception as e:
+                    output_q.put("error: " + str(e))
+                finally:
+                    sys.stdout = old_stdout
+
+            def run_code(self, code, timeout=20):
+                output_q = Queue()
+                p = Process(target=self._real_run_code, args=(code, output_q))
+                p.start()
+                p.join(timeout)
+
+                if p.is_alive():
+                    p.terminate()
+                    return "error: Process timeout"
+
+                return output_q.get()
+
+        return Mini_Python(variable_dict)
+
     def reactive(self, old_dict):
         #(self, old_dict: dict):
         """

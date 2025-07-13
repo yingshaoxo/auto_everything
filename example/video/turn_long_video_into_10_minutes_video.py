@@ -94,7 +94,8 @@ def get_file_size(video_file):
 def convert_video_into_10_minutes(input_video_path, output_video_path):
     seconds = get_video_length_in_seconds(input_video_path)
     if seconds <= 60 * 25:
-        return
+        if disk.get_file_size(input_video_path, "MB") <= 400:
+            return
 
     file_extension = input_video_path.split(".")[-1]
 
