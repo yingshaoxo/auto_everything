@@ -12,8 +12,12 @@ def convert_video_into_720p(input_video_path, output_video_path, use_720p=True):
         resolution = "1920:1080"
         kb_limit = "1120k"
 
+    #combine_command = """
+    #    ffmpeg -i '{video_path}' -c:v libx264 -vf scale={resolution} -r 23.98 -b:v {kb_limit} -c:a copy '{target_path}'
+    #""".format(video_path=input_video_path, resolution=resolution, kb_limit=kb_limit, target_path=output_video_path)
+
     combine_command = """
-            ffmpeg -i '{video_path}' -c:v libx264 -vf scale={resolution} -r 23.98 -b:v {kb_limit} -c:a copy '{target_path}'
+        ffmpeg -i '{video_path}' -c:v libx264 -vf "scale={resolution}:flags=neighbor" -r 23.98 -b:v {kb_limit} -c:a copy '{target_path}'
     """.format(video_path=input_video_path, resolution=resolution, kb_limit=kb_limit, target_path=output_video_path)
 
     terminal.run(combine_command, wait=True)
@@ -29,7 +33,7 @@ def convert_files(a_folder, use_720p=True):
             print(file)
             time.sleep(3)
 
-the_folder = "./TV_shows/copy"
+the_folder = "./TV_shows/test"
 print(the_folder)
 input("Is this folder you want to compress?")
 
