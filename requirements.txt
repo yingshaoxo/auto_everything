@@ -1,9 +1,9 @@
 psutil
 fire
-librosa
-pydub
-numpy
-moviepy
+librosa==0.9.1
+pydub==0.25.1
+numpy==1.24.0
+moviepy==1.0.2
 vosk
 opencv-python
 pyautogui

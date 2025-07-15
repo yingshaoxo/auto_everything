@@ -1,4 +1,3 @@
-#!/usr/bin/env /Users/yingshaoxo/Library/Caches/pypoetry/virtualenvs/auto-everything-_Gc1gPdN-py3.10/bin/python
 import inquirer
 import os
 from auto_everything.base import Terminal, Python
@@ -15,7 +14,8 @@ disk = Disk()
 t.debug = True
 
 
-RootDIR = "/Users/yingshaoxo/Movies/Videos"
+RootDIR = "~/Videos"
+RootDIR = os.path.abspath(os.path.expanduser(RootDIR))
 
 
 class Tools:
@@ -224,5 +224,5 @@ class Tools:
         video.fix_corrupt_videos_in_a_folder(path)
 
 
-py.fire(Tools)
+py.fire2(Tools)
 py.make_it_global_runnable(executable_name="Video")

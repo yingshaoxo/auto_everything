@@ -9,55 +9,41 @@ python = Python()
 
 import numpy as np
 
-import torch
-import torchaudio
-from speechbrain.pretrained import SpectralMaskEnhancement, SepformerSeparation, WaveformEnhancement
-
-from df import enhance as audio_deep_filter_enhance_module
 
 class DeepAudio:
     def __init__(self):
-        # self._spectral_mask_enhancement_model = SpectralMaskEnhancement.from_hparams(
-        #     source="speechbrain/metricgan-plus-voicebank",
-        #     savedir="pretrained_models/metricgan-plus-voicebank",
-        # )
-
-        # self._sepformer_wham16k_enhancement_model = SepformerSeparation.from_hparams(
-        #     source="speechbrain/sepformer-wham16k-enhancement", 
-        #     savedir='pretrained_models/sepformer-wham16k-enhancement')
+        pass
+        '''
+        from speechbrain.pretrained import WaveformEnhancement
         self._mtl_mimic_voicebank = WaveformEnhancement.from_hparams(
             source="speechbrain/mtl-mimic-voicebank",
             savedir="pretrained_models/mtl-mimic-voicebank",
         )
+        '''
 
+    '''
     def speech_enhancement_with_speechbrain(self,
             source_audio_path,
             target_audio_path,
             sample_rate=16000
         ):
-
-        # # Load and add fake batch dimension
-        # noisy = self._spectral_mask_enhancement_model.load_audio(
-        #     source_audio_path
-        # ).unsqueeze(0)
-        # # Add relative length tensor
-        # enhanced = self._spectral_mask_enhancement_model.enhance_batch(noisy, lengths=torch.tensor([1.]))
-        # # Saving enhanced signal on disk
-        # torchaudio.save(target_audio_path, enhanced.cpu(), sample_rate) # type: ignore    
-
-        # enhanced = self._sepformer_wham16k_enhancement_model.separate_file(path=source_audio_path) 
-        # torchaudio.save(target_audio_path, enhanced[:, :, 0].detach().cpu(), sample_rate) # type: ignore
+        import torch
+        import torchaudio
 
         enhanced = self._mtl_mimic_voicebank.enhance_file(
             filename=source_audio_path,
             # output_filename=target_audio_path
         )
         torchaudio.save(target_audio_path, enhanced.unsqueeze(0).cpu(), sample_rate=sample_rate, channels_first=True) # type: ignore
+    '''
 
     def speech_enhancement_with_deepFilterNet(self,
         source_audio_path,
         target_audio_path,
     ):
+        #deepfilternet==0.5.6
+        from df import enhance as audio_deep_filter_enhance_module
+
         model, df_state, suffix = audio_deep_filter_enhance_module.init_df(
             None,
             post_filter=False,

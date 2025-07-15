@@ -1,3 +1,8 @@
+# moviepy==1.0.2
+# numpy==1.24.0
+# librosa==0.9.1
+# pydub==0.25.1
+# vosk~=0.3.45
 import moviepy.video.fx.all as vfx
 from moviepy.editor import VideoFileClip, concatenate_videoclips, AudioFileClip #type: ignore
 import shutil
@@ -8,16 +13,10 @@ import os
 import math
 import multiprocessing
 import json
-
-# import pyaudio
-# import sys
-# import wave
 import subprocess
 
-# import torchaudio
-# import torch
-# from speechbrain.dataio.dataio import read_audio
-from speechbrain.pretrained import SepformerSeparation as separator
+# speechbrain==1.0.3
+#from speechbrain.pretrained import SepformerSeparation as separator
 
 from typing import Any, List, Tuple
 
@@ -1845,17 +1844,17 @@ class DeepVideo:
             disk.uncompress(zip_file.as_posix(), self.vosk_model_folder.as_posix())
 
         # handle speech brain
-        speech_model_data_saving_folder = (
-            self.config_folder
-            / Path("speechbrain")
-            / Path("pretrained_models/sepformer-whamr-enhancement")
-        )
-        if not os.path.exists(speech_model_data_saving_folder):
-            t.run_command(f"mkdir -p {speech_model_data_saving_folder}")
-        self.speechbrain_sepformer_voice_enhancement_model = separator.from_hparams( #type: ignore
-            source="speechbrain/sepformer-whamr-enhancement",
-            savedir=speech_model_data_saving_folder,
-        )
+        #speech_model_data_saving_folder = (
+        #    self.config_folder
+        #    / Path("speechbrain")
+        #    / Path("pretrained_models/sepformer-whamr-enhancement")
+        #)
+        #if not os.path.exists(speech_model_data_saving_folder):
+        #    t.run_command(f"mkdir -p {speech_model_data_saving_folder}")
+        #self.speechbrain_sepformer_voice_enhancement_model = separator.from_hparams( #type: ignore
+        #    source="speechbrain/sepformer-whamr-enhancement",
+        #    savedir=speech_model_data_saving_folder,
+        #)
 
     '''
     def remove_noise_from_video(self):
@@ -2313,6 +2312,7 @@ class DeepVideo:
 
         return parts[1:]
     
+    '''
     def improve_the_quality_of_human_voice_inside_of_a_video(
         self, 
         source_video_path: str,
@@ -2353,6 +2353,7 @@ class DeepVideo:
         disk.remove_a_file(target_audio_path)
 
         done()
+    '''
 
     def blurPornGraphs(self, source_video_path: str, target_video_path: str):
         # useless
