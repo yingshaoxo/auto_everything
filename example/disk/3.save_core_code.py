@@ -17,7 +17,7 @@ disk = Disk()
 file_folder = "/home/yingshaoxo/Disk/Sync_Folder/Yingshaoxo_Data/Core/Small_Core/My_Code/"
 target_folder = "/home/yingshaoxo/Disk/Sync_Folder/Yingshaoxo_Data/Core/Small_Core/My_Code_Mini/"
 
-type_limiter = [".txt", ".md", ".py", ".h", ".c", ".cpp", ".js", ".ts", ".vue", ".sh", ".html", ".scss", ".css", ".json", ".proto", ".dart", ".go", ".yaml", ".php", ".rs", ".toml", ".cc", ".yml", ".lua", ".htm", ".vim", ".hero", ".java", ".sql_command", ".kt", ".CPP", ".less", ".cs"]
+type_limiter = [".txt", ".md", ".py", ".h", ".c", ".cpp", ".js", ".cjs", ".ts", ".vue", ".sh", ".html", ".scss", ".css", ".json", ".proto", ".dart", ".go", ".yaml", ".php", ".rs", ".toml", ".cc", ".yml", ".lua", ".htm", ".vim", ".hero", ".java", ".sql_command", ".kt", ".CPP", ".less", ".cs"]
 type_limiter2 = [one.lower() for one in type_limiter]
 type_limiter3 = [one.upper() for one in type_limiter]
 files = disk.get_files(file_folder, True, type_limiter=type_limiter + type_limiter2 + type_limiter3)
