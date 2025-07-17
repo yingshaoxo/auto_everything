@@ -689,10 +689,18 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
     new_image.resize(original_height, original_width)
     return new_image
 
-def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1, fill_transparent=False, pre_process=False):
+def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1, fill_transparent=False, pre_process=False, gaussian_blur=False, max_kernel=50):
     """
     You could do the mean for each pixel by using "scale up until edge line", but that speed is very slow.
     You can also use circle than square, it is more accurate.
+    """
+    """
+    #1. get many sub_image, from big kernel to small kernel, check if it has edge line, if so, ignore it
+    #2. do not handle area repeatedly by using a cache image
+    """
+    """
+    So far, this is not that good, it should use one of the old color than creating a new average color
+    And the quality of this function highly related to the edge line detection function, but my version is not that good, maybe use hsv's h value to detect edge line would be better
     """
     a_image = a_image.copy()
     old_height, old_width = a_image.get_shape()
@@ -707,11 +715,13 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
         a_image = a_image.get_balanced_image()
 
     if pre_process == True:
-        edge_image = a_image.to_edge_line(downscale_ratio=2)
+        edge_image = a_image.to_edge_line(downscale_ratio=2, gaussian_blur=gaussian_blur)
     else:
-        edge_image = a_image.to_edge_line(downscale_ratio=1)
+        edge_image = a_image.to_edge_line(downscale_ratio=1, gaussian_blur=gaussian_blur)
 
-    for kernel in [1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 25, 50, 100]:
+    #kernel_list = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 15, 20, 25, 50, 100]
+    kernel_list = list(reversed(list(range(1, max_kernel))))
+    for kernel in kernel_list:
         step_height = int(height/kernel)
         step_width = int(width/kernel)
         for y in range(step_height):
@@ -732,6 +742,18 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
                         break
 
                 if ok_for_mean == True:
+                    already_processed = False
+                    temp_sub_image = new_image.get_inner_image(start_y, end_y, start_x, end_x)
+                    for row in temp_sub_image.raw_data:
+                        for r,g,b,a in row:
+                            if a == 255:
+                                already_processed = True
+                                break
+                        if already_processed == True:
+                            break
+                    if already_processed == True:
+                        continue
+
                     sub_image = a_image.get_inner_image(start_y, end_y, start_x, end_x)
                     all_r, all_g, all_b, _ = 0,0,0,0
                     counting = 0
@@ -757,41 +779,10 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
                             new_image.raw_data[y1][x1] = [r,g,b,a_image.raw_data[y1][x1][3]]
 
     if fill_transparent == True:
-        kernel = 5
-        step_height = int(height/kernel)
-        step_width = int(width/kernel)
-        for y in range(step_height):
-            for x in range(step_width):
-                start_y = y * kernel
-                end_y = start_y + kernel
-                start_x = x * kernel
-                end_x = start_x + kernel
-
-                sub_image = new_image.get_inner_image(start_y, end_y, start_x, end_x)
-                all_r, all_g, all_b, _ = 0,0,0,0
-                counting = 0
-                for row in sub_image.raw_data:
-                    for pixel in row:
-                        r,g,b,a = pixel
-                        if a != 0:
-                            all_r += r
-                            all_g += g
-                            all_b += b
-                            counting += 1
-                if counting != 0:
-                    r = min(max(round(all_r/counting),0),255)
-                    g = min(max(round(all_g/counting),0),255)
-                    b = min(max(round(all_b/counting),0),255)
-                else:
-                    r,g,b,_ = a_image.raw_data[y][x]
-
-                for y1 in range(start_y, end_y):
-                    for x1 in range(start_x, end_x):
-                        if y1 < 0 or y1 >= height or x1 < 0 or x1 >= width:
-                            continue
-                        if new_image.raw_data[y1][x1][3] != 0:
-                            continue
-                        new_image.raw_data[y1][x1] = [r,g,b,255]
+        for y, row in enumerate(new_image.raw_data):
+            for x, color in enumerate(row):
+                if color[3] == 0:
+                    new_image.raw_data[y][x] = a_image.raw_data[y][x]
 
     new_image.resize(old_height, old_width)
     return new_image
@@ -1238,6 +1229,9 @@ class Image:
         return a_image
 
     def get_6_color_simplified_image(self, balance=False, free_mode=False, animation_mode=False, greyscale_mode=False, accurate_mode=False, kernel=11):
+        """
+        (free_mode=True, animation_mode=True) normally gives better result
+        """
         a_image = self.copy()
         backup_image = a_image.copy()
 
@@ -1255,8 +1249,12 @@ class Image:
 
         return a_image
 
-    def get_simplified_image_based_on_mean_square_and_edge_line(self, downscale_ratio=1, fill_transparent=False):
-        return get_simplified_image_by_using_mean_square_and_edge_line(self, downscale_ratio=downscale_ratio, fill_transparent=fill_transparent)
+    def get_simplified_image_based_on_mean_square_and_edge_line(self, downscale_ratio=1, fill_transparent=True, gaussian_blur=True, max_kernel=50):
+        return get_simplified_image_by_using_mean_square_and_edge_line(self, downscale_ratio=downscale_ratio, fill_transparent=fill_transparent, gaussian_blur=gaussian_blur, max_kernel=max_kernel)
+
+    def get_simplified_image_based_on_edge_and_average_color(self, max_kernel=50):
+        result = get_simplified_image_by_using_mean_square_and_edge_line(self.copy(), fill_transparent=True, gaussian_blur=True, max_kernel=max_kernel).get_6_color_simplified_image(free_mode=True, animation_mode=True, kernel=50)
+        return result
 
     def get_simplified_image_in_a_slow_way(self, ratio=0.7):
         """
