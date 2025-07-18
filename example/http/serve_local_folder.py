@@ -20,19 +20,34 @@ def home_handler(request):
         if os.path.isdir(real_file_path):
             files = os.listdir("." + request.url)
 
-            folders = [file for file in files if "." not in file]
-            files = [file for file in files if "." in file]
+            if "index.html" not in files:
+                folders = [file for file in files if "." not in file]
+                files = [file for file in files if "." in file]
 
-            folders.sort()
-            files.sort()
+                folders.sort()
+                files.sort()
 
-            all_list = folders + files
-            new_request_url = request.url.lstrip("/")
-            if new_request_url != "":
-                new_request_url = "/" + new_request_url
-            all_list = [f'<a href="{new_request_url}/{file}">{file}</a>' for file in all_list]
+                all_list = folders + files
+                new_request_url = request.url.strip("/")
+                if new_request_url != "":
+                    new_request_url = "/" + new_request_url
 
-            html_code = "<br>".join(all_list)
+                new_all_list = []
+                for file in all_list:
+                    target_path = new_request_url + "/" + file
+                    if os.path.isdir("." + target_path):
+                        target_path += "/"
+                        new_all_list.append('<a href="{the_path}">{file}</a>'.format(the_path=target_path, file=file))
+                    else:
+                        new_all_list.append('<a href="{the_path}">{file}</a>'.format(the_path=target_path, file=file))
+                all_list = new_all_list
+
+                html_code = "<br>".join(all_list)
+                html_code = '<meta name="viewport" content="width=device-width, initial-scale=1.0">' + html_code
+            else:
+                with open(os.path.join(real_file_path, "index.html"), "r") as f:
+                    html_code = f.read()
+
             return html_code
         else:
             with open(real_file_path, "rb") as f:

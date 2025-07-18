@@ -605,20 +605,34 @@ ifdown -v {interface}; ifup -v {interface}
                 if os.path.isdir(real_file_path):
                     files = os.listdir("." + request.url)
 
-                    folders = [file for file in files if "." not in file]
-                    files = [file for file in files if "." in file]
+                    if "index.html" not in files:
+                        folders = [file for file in files if "." not in file]
+                        files = [file for file in files if "." in file]
 
-                    folders.sort()
-                    files.sort()
+                        folders.sort()
+                        files.sort()
 
-                    all_list = folders + files
-                    new_request_url = request.url.lstrip("/")
-                    if new_request_url != "":
-                        new_request_url = "/" + new_request_url
-                    all_list = ['<a href="{new_request_url}/{file}">{file}</a>'.format(new_request_url=new_request_url, file=file) for file in all_list]
+                        all_list = folders + files
+                        new_request_url = request.url.strip("/")
+                        if new_request_url != "":
+                            new_request_url = "/" + new_request_url
 
-                    html_code = "<br>".join(all_list)
-                    html_code = '<meta name="viewport" content="width=device-width, initial-scale=1.0">' + html_code
+                        new_all_list = []
+                        for file in all_list:
+                            target_path = new_request_url + "/" + file
+                            if os.path.isdir("." + target_path):
+                                target_path += "/"
+                                new_all_list.append('<a href="{the_path}">{file}</a>'.format(the_path=target_path, file=file))
+                            else:
+                                new_all_list.append('<a href="{the_path}">{file}</a>'.format(the_path=target_path, file=file))
+                        all_list = new_all_list
+
+                        html_code = "<br>".join(all_list)
+                        html_code = '<meta name="viewport" content="width=device-width, initial-scale=1.0">' + html_code
+                    else:
+                        with open(os.path.join(real_file_path, "index.html"), "r") as f:
+                            html_code = f.read()
+
                     if single_threading == False:
                         return html_code, {"Accept-Ranges": "bytes"}
                     else:
@@ -633,7 +647,28 @@ ifdown -v {interface}; ifup -v {interface}
                     if "Range" not in request.headers:
                         with open(real_file_path, "rb") as f:
                             bytes_data = f.read()
-                        return bytes_data, {"Accept-Ranges": "bytes"}
+                        return_headers = {"Accept-Ranges": "bytes"}
+                        if real_file_path.endswith(".css"):
+                            return_headers["content-type"] = "text/css"
+                        elif real_file_path.endswith(".js"):
+                            return_headers["content-type"] = "text/javascript"
+                        elif real_file_path.endswith(".htm"):
+                            return_headers["content-type"] = "text/html"
+                        elif real_file_path.endswith(".md") or real_file_path.endswith(".txt"):
+                            return_headers["content-type"] = "text/plain"
+                        elif real_file_path.endswith(".json"):
+                            return_headers["content-type"] = "application/json"
+                        elif real_file_path.endswith(".pdf"):
+                            return_headers["content-type"] = "application/pdf"
+                        elif real_file_path.endswith(".xml"):
+                            return_headers["content-type"] = "text/xml"
+                        elif real_file_path.endswith(".gif"):
+                            return_headers["content-type"] = "image/gif"
+                        elif real_file_path.endswith(".png"):
+                            return_headers["content-type"] = "image/png"
+                        elif real_file_path.endswith(".jpg") or real_file_path.endswith(".jpeg"):
+                            return_headers["content-type"] = "image/jpeg"
+                        return bytes_data, return_headers
                     else:
                         range = request.headers["Range"]
                         range_data = range.split("=")[1]
@@ -650,7 +685,8 @@ ifdown -v {interface}; ifup -v {interface}
                         return bytes_data, {"Accept-Ranges": "bytes", "Content-Range": "bytes {start}-{end}/{full_size}".format(start=str(start_bytes), end=str(end_bytes), full_size=full_size)}, "HTTP/1.1 206 Partial Content"
             except Exception as e:
                 print(e)
-                return str(e)
+                first_line = "HTTP/1.1 404 "
+                return "", {}, first_line+str(e)
 
         def special_handler(request):
             return "Hello, world, fight for personal freedom."
