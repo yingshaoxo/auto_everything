@@ -14,7 +14,8 @@ print()
 
 start = now()
 
-image_2 = an_image.get_6_color_simplified_image(free_mode=True, kernel=11)
+#image_2 = an_image.get_6_color_simplified_image(free_mode=True, kernel=11)
+image_2 = an_image.get_simplified_image_based_on_edge_and_average_color()
 image_2.save_image_to_file_path("/home/yingshaoxo/Downloads/hero2_pure_color.png")
 print("pure color image output done")
 

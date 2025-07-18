@@ -707,7 +707,7 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
     new_image.resize(original_height, original_width)
     return new_image
 
-def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1, fill_transparent=False, pre_process=False, gaussian_blur=False, max_kernel=50):
+def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1, fill_transparent=False, pre_process=False, gaussian_blur=False, max_kernel=50, edge_line_image=None):
     """
     You could do the mean for each pixel by using "scale up until edge line", but that speed is very slow.
     You can also use circle than square, it is more accurate.
@@ -718,7 +718,7 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
     """
     """
     The quality of this function highly related to the edge line detection function, but my version is not that good
-    todo: merge multiple around squares (2D boxs).
+    todo: merge multiple around squares (2D boxs). I think the sliding_window tech is a way to do this. we can even ignore the edge, directly do 5x5 kernel sub_image merge if they have similar average color. left_to_right and up_to_down.
     """
     a_image = a_image.copy()
     old_height, old_width = a_image.get_shape()
@@ -732,10 +732,13 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
         a_image = a_image.get_gaussian_blur_image(2, bug_version=False)
         a_image = a_image.get_balanced_image()
 
-    if pre_process == True:
-        edge_image = a_image.to_edge_line(downscale_ratio=2, gaussian_blur=gaussian_blur)
+    if edge_line_image == None:
+        if pre_process == True:
+            edge_image = a_image.to_edge_line(downscale_ratio=2, gaussian_blur=gaussian_blur)
+        else:
+            edge_image = a_image.to_edge_line(downscale_ratio=1, gaussian_blur=gaussian_blur)
     else:
-        edge_image = a_image.to_edge_line(downscale_ratio=1, gaussian_blur=gaussian_blur)
+        edge_image = edge_line_image
 
     #kernel_list = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 15, 20, 25, 50, 100]
     kernel_list = list(reversed(list(range(1, max_kernel))))
@@ -1268,13 +1271,14 @@ class Image:
 
         return a_image
 
-    def get_simplified_image_based_on_mean_square_and_edge_line(self, downscale_ratio=1, fill_transparent=True, gaussian_blur=True, max_kernel=50):
+    def get_simplified_image_based_on_mean_square_and_edge_line(self, downscale_ratio=1, fill_transparent=True, gaussian_blur=True, max_kernel=50, edge_line_image=None):
         # normally if you use this function 2 times for a picture, you will get a good picture
-        return get_simplified_image_by_using_mean_square_and_edge_line(self, downscale_ratio=downscale_ratio, fill_transparent=fill_transparent, gaussian_blur=gaussian_blur, max_kernel=max_kernel)
+        return get_simplified_image_by_using_mean_square_and_edge_line(self, downscale_ratio=downscale_ratio, fill_transparent=fill_transparent, gaussian_blur=gaussian_blur, max_kernel=max_kernel, edge_line_image=edge_line_image)
 
-    def get_simplified_image_based_on_edge_and_average_color(self, max_kernel=50):
-        result = get_simplified_image_by_using_mean_square_and_edge_line(self.copy(), fill_transparent=True, gaussian_blur=True, max_kernel=max_kernel).get_6_color_simplified_image(free_mode=True, animation_mode=True, kernel=50)
-        return result
+    def get_simplified_image_based_on_edge_and_average_color(self, max_kernel=5):
+        edge_line = self.to_edge_line(downscale_ratio=1, gaussian_blur=True)
+        result_image = self.get_6_color_simplified_image(free_mode=True, kernel=11).get_simplified_image_based_on_mean_square_and_edge_line(max_kernel=max_kernel, edge_line_image=edge_line)
+        return result_image
 
     def get_simplified_image_in_a_slow_way(self, ratio=0.7):
         """
