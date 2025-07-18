@@ -567,11 +567,17 @@ def single_pixel_to_6_main_type_color(pixel, free_mode=False, animation_mode=Fal
         a = 255
     new_color = [0, 0, 0, 0]
     h,s,v = single_pixel_rgb_to_hsv(r, g, b)
+
     black_gate = 30
     white_gate = 18
     if animation_mode == True:
         black_gate = 0
         white_gate = 0
+    if free_mode == True and animation_mode == False and greyscale_mode == False:
+        # keep more color than white and black
+        black_gate = 25
+        white_gate = 12
+
     if v < (black_gate/100) * 255:
         # black
         new_color = [0,0,0,255]
@@ -649,6 +655,18 @@ def rgb_to_black_and_white(image, threshold=127):
             new_image.raw_data[y][x] = new_pixel
     return new_image
 
+def _get_color_difference_distance(color1, color2, mode="rgb"):
+    if mode == "rgb":
+        return (abs(color1[0]-color2[0]) + abs(color1[1]-color2[1]) + abs(color1[2]-color2[2]))/3
+    elif mode == "hsv_only_h":
+        color1 = single_pixel_rgb_to_hsv(color1[0], color1[1], color1[2])
+        color2 = single_pixel_rgb_to_hsv(color2[0], color2[1], color2[2])
+        return abs(color1[0]-color2[0])
+    elif mode == "hsv_only_h_s":
+        color1 = single_pixel_rgb_to_hsv(color1[0], color1[1], color1[2])
+        color2 = single_pixel_rgb_to_hsv(color2[0], color2[1], color2[2])
+        return (abs(color1[0]-color2[0]) + abs(color1[1]-color2[1]))/2
+
 def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_distance=15, downscale_ratio=3, gaussian_blur=False):
     """
     yingshaoxo: You can use Canny method, but I think it is hard to understand and implement.
@@ -699,8 +717,8 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
     #2. do not handle area repeatedly by using a cache image
     """
     """
-    So far, this is not that good, it should use one of the old color than creating a new average color
-    And the quality of this function highly related to the edge line detection function, but my version is not that good, maybe use hsv's h value to detect edge line would be better
+    The quality of this function highly related to the edge line detection function, but my version is not that good
+    todo: merge multiple around squares (2D boxs).
     """
     a_image = a_image.copy()
     old_height, old_width = a_image.get_shape()
@@ -1230,7 +1248,8 @@ class Image:
 
     def get_6_color_simplified_image(self, balance=False, free_mode=False, animation_mode=False, greyscale_mode=False, accurate_mode=False, kernel=11):
         """
-        (free_mode=True, animation_mode=True) normally gives better result
+        (free_mode=True, animation_mode=True) normally gives better result for animation
+        (free_mode=True, kernel=11) normally gives better result for normal image
         """
         a_image = self.copy()
         backup_image = a_image.copy()
@@ -1250,6 +1269,7 @@ class Image:
         return a_image
 
     def get_simplified_image_based_on_mean_square_and_edge_line(self, downscale_ratio=1, fill_transparent=True, gaussian_blur=True, max_kernel=50):
+        # normally if you use this function 2 times for a picture, you will get a good picture
         return get_simplified_image_by_using_mean_square_and_edge_line(self, downscale_ratio=downscale_ratio, fill_transparent=fill_transparent, gaussian_blur=gaussian_blur, max_kernel=max_kernel)
 
     def get_simplified_image_based_on_edge_and_average_color(self, max_kernel=50):
@@ -1298,12 +1318,16 @@ class Image:
         return get_simplified_image_in_an_accurate_way(self, level, extreme_color_number, predefined_color_list)
 
     def get_simplified_image_in_a_quick_way(self, level=25):
+        """
+        level: int
+            The lower, the more simplified. better >= 3
+        """
         return get_simplified_image_in_a_quick_way(self, level)
 
     def get_simplified_image_in_a_extreme_quick_way(self, level=15, raw=False):
         """
         level: int
-            The higher, the more simplified
+            The lower, the more simplified. better >= 2
 
         We know rgb value is in (0,255), but we don't need that many color to represent things. So we use [0,5] range values for rgb. So all color we could get is 5x5x5x6=750. 750 colors is good enough. --- author: yingshaoxo
         """

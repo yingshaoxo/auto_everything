@@ -2371,7 +2371,7 @@ class Yingshaoxo_Image_Transformer():
 
         return image
 
-    def scale_up_image_by_using_yingshaoxo_method(self, image, scale_x=3, speed_mode=True):
+    def scale_up_image_by_using_yingshaoxo_method(self, image, scale_x=3, speed_mode=False):
         image = image.copy()
 
         height, width = image.get_shape()
