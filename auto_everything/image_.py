@@ -808,6 +808,55 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
     new_image.resize(old_height, old_width)
     return new_image
 
+def simplify_color_by_merge_sub_image(input_image, kernel=3, similarity_gate=0.6):
+    def real_process(the_input_image):
+        height, width = the_input_image.get_shape()
+        the_output_image = the_input_image.copy()
+
+        step_height = int(height/kernel)
+        step_width = int(width/kernel)
+        for y in range(step_height):
+            previous_sub_image = None
+            previous_sub_image_average_color = None
+            for x in range(step_width):
+                start_y = y * kernel
+                end_y = start_y + kernel
+                start_x = x * kernel
+                end_x = start_x + kernel
+
+                temp_sub_image = the_input_image.get_inner_image(start_y, end_y, start_x, end_x)
+
+                handled = False
+                if previous_sub_image != None:
+                    similarity = previous_sub_image.compare(temp_sub_image)
+                    if similarity >= similarity_gate:
+                        handled = True
+                        for y1 in range(start_y, end_y):
+                            for x1 in range(start_x, end_x):
+                                if y1 < 0 or y1 >= height or x1 < 0 or x1 >= width:
+                                    continue
+                                if the_output_image.raw_data[y1][x1][3] == 255:
+                                    the_output_image.raw_data[y1][x1] = previous_sub_image_average_color
+
+                if handled == False:
+                    previous_sub_image = temp_sub_image
+                    previous_sub_image_average_color = previous_sub_image.get_average_color()
+                    for y1 in range(start_y, end_y):
+                        for x1 in range(start_x, end_x):
+                            if y1 < 0 or y1 >= height or x1 < 0 or x1 >= width:
+                                continue
+                            if the_output_image.raw_data[y1][x1][3] == 255:
+                                the_output_image.raw_data[y1][x1] = previous_sub_image_average_color
+        return the_output_image
+
+    output_image = real_process(input_image)
+    #output_image.rotate()
+    #output_image = real_process(output_image)
+    #output_image.rotate_back()
+    #output_image = real_process(output_image)
+
+    return output_image
+
 def make_a_line_between_two_points(point_a, point_b):
     y1, x1 = point_a
     y2, x2 = point_b
@@ -1154,6 +1203,25 @@ class Image:
 
         return similarity
 
+    def get_average_color(self):
+        # return a rgba pixel: [r,g,b,a]
+        counting = 0
+        r,g,b,a = 0,0,0,0
+        for row in self.raw_data:
+            for pixel in row:
+                if pixel[3] == 255:
+                    counting += 1
+                    r += pixel[0]
+                    g += pixel[1]
+                    b += pixel[2]
+        if counting > 0:
+            r = int(r/counting)
+            g = int(g/counting)
+            b = int(b/counting)
+            return [r,g,b,255]
+        else:
+            return [255,255,255,0]
+
     def to_hsv(self):
         self = rgb_to_hsv(self)
         return self
@@ -1276,9 +1344,17 @@ class Image:
         return get_simplified_image_by_using_mean_square_and_edge_line(self, downscale_ratio=downscale_ratio, fill_transparent=fill_transparent, gaussian_blur=gaussian_blur, max_kernel=max_kernel, edge_line_image=edge_line_image)
 
     def get_simplified_image_based_on_edge_and_average_color(self, max_kernel=5):
+        # think this as an upgrade of 'mean_square_and_edge_line' usage
         edge_line = self.to_edge_line(downscale_ratio=1, gaussian_blur=True)
         result_image = self.get_6_color_simplified_image(free_mode=True, kernel=11).get_simplified_image_based_on_mean_square_and_edge_line(max_kernel=max_kernel, edge_line_image=edge_line)
         return result_image
+
+    def get_simplified_image_by_merge_sub_image(self, kernel=1, similarity_gate=0.6, extreme_mode=False):
+        # normally this will compress png picture to 7 times smaller in a way that you can't see
+        if extreme_mode == False:
+            return simplify_color_by_merge_sub_image(self, kernel=kernel, similarity_gate=similarity_gate)
+        else:
+            return simplify_color_by_merge_sub_image(self, kernel=kernel, similarity_gate=similarity_gate).get_6_color_simplified_image(free_mode=True, animation_mode=True)
 
     def get_simplified_image_in_a_slow_way(self, ratio=0.7):
         """
