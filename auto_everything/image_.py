@@ -1349,12 +1349,16 @@ class Image:
         result_image = self.get_6_color_simplified_image(free_mode=True, kernel=11).get_simplified_image_based_on_mean_square_and_edge_line(max_kernel=max_kernel, edge_line_image=edge_line)
         return result_image
 
-    def get_simplified_image_by_merge_sub_image(self, kernel=1, similarity_gate=0.6, extreme_mode=False):
+    def get_simplified_image_by_merge_sub_image(self, kernel=1, similarity_gate=0.6, extreme_mode=False, extreme_mode2=False):
         # normally this will compress png picture to 7 times smaller in a way that you can't see
-        if extreme_mode == False:
-            return simplify_color_by_merge_sub_image(self, kernel=kernel, similarity_gate=similarity_gate)
-        else:
+        if extreme_mode == True:
             return simplify_color_by_merge_sub_image(self, kernel=kernel, similarity_gate=similarity_gate).get_6_color_simplified_image(free_mode=True, animation_mode=True)
+        elif extreme_mode2 == True:
+            output_image = self.get_simplified_image()
+            output_image = simplify_color_by_merge_sub_image(output_image, kernel=1, similarity_gate=0.7).get_simplified_image().get_6_color_simplified_image(free_mode=True, kernel=30).get_6_color_simplified_image(free_mode=True, animation_mode=True, kernel=30)
+            return output_image
+        else:
+            return simplify_color_by_merge_sub_image(self, kernel=kernel, similarity_gate=similarity_gate)
 
     def get_simplified_image_in_a_slow_way(self, ratio=0.7):
         """
