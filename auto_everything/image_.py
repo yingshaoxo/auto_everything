@@ -808,52 +808,62 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
     new_image.resize(old_height, old_width)
     return new_image
 
-def simplify_color_by_merge_sub_image(input_image, kernel=3, similarity_gate=0.6):
+def simplify_color_by_merge_sub_image(input_image, kernel=3, similarity_gate=0.6, deep_mode=False):
+    # maybe implementing a sliding-window algorithm for pixel level move and smooth would be better
     def real_process(the_input_image):
         height, width = the_input_image.get_shape()
         the_output_image = the_input_image.copy()
 
         step_height = int(height/kernel)
         step_width = int(width/kernel)
-        for y in range(step_height):
-            previous_sub_image = None
-            previous_sub_image_average_color = None
-            for x in range(step_width):
-                start_y = y * kernel
-                end_y = start_y + kernel
-                start_x = x * kernel
-                end_x = start_x + kernel
+        for x_moving in range(kernel):
+            for y in range(step_height):
+                previous_sub_image = None
+                previous_sub_image_average_color = None
+                previous_sub_image_position = None
+                for x in range(step_width):
+                    start_y = y * kernel
+                    end_y = start_y + kernel
+                    start_x = x * kernel + x_moving
+                    end_x = start_x + kernel
 
-                temp_sub_image = the_input_image.get_inner_image(start_y, end_y, start_x, end_x)
+                    temp_sub_image = the_input_image.get_inner_image(start_y, end_y, start_x, end_x)
 
-                handled = False
-                if previous_sub_image != None:
-                    similarity = previous_sub_image.compare(temp_sub_image)
-                    if similarity >= similarity_gate:
-                        handled = True
-                        for y1 in range(start_y, end_y):
-                            for x1 in range(start_x, end_x):
-                                if y1 < 0 or y1 >= height or x1 < 0 or x1 >= width:
-                                    continue
-                                if the_output_image.raw_data[y1][x1][3] == 255:
-                                    the_output_image.raw_data[y1][x1] = previous_sub_image_average_color
+                    handled = False
+                    if previous_sub_image != None:
+                        similarity = previous_sub_image.compare(temp_sub_image)
+                        if similarity >= similarity_gate:
+                            handled = True
+                            sub_image_position_list = [
+                                [start_y, end_y, start_x, end_x],
+                                previous_sub_image_position,
+                            ]
+                            for start_y, end_y, start_x, end_x in sub_image_position_list:
+                                for y1 in range(start_y, end_y):
+                                    for x1 in range(start_x, end_x):
+                                        if y1 < 0 or y1 >= height or x1 < 0 or x1 >= width:
+                                            continue
+                                        if the_output_image.raw_data[y1][x1][3] == 255:
+                                            the_output_image.raw_data[y1][x1] = previous_sub_image_average_color
 
-                if handled == False:
-                    previous_sub_image = temp_sub_image
-                    previous_sub_image_average_color = previous_sub_image.get_average_color()
-                    for y1 in range(start_y, end_y):
-                        for x1 in range(start_x, end_x):
-                            if y1 < 0 or y1 >= height or x1 < 0 or x1 >= width:
-                                continue
-                            if the_output_image.raw_data[y1][x1][3] == 255:
-                                the_output_image.raw_data[y1][x1] = previous_sub_image_average_color
+                    if handled == False:
+                        previous_sub_image = temp_sub_image
+                        previous_sub_image_average_color = previous_sub_image.get_average_color()
+                        previous_sub_image_position = [start_y, end_y, start_x, end_x]
+
         return the_output_image
 
     output_image = real_process(input_image)
-    #output_image.rotate()
-    #output_image = real_process(output_image)
-    #output_image.rotate_back()
-    #output_image = real_process(output_image)
+
+    if deep_mode == True:
+        output_image.rotate()
+        output_image = real_process(output_image)
+        output_image.rotate()
+        output_image = real_process(output_image)
+        output_image.rotate()
+        output_image = real_process(output_image)
+        output_image.rotate()
+        output_image = real_process(output_image)
 
     return output_image
 
@@ -1356,9 +1366,10 @@ class Image:
 
     def get_simplified_image_by_merge_sub_image(self, kernel=1, similarity_gate=0.6, extreme_mode=False, extreme_mode2=False):
         # normally this will compress png picture to 7 times smaller in a way that you can't see
-        if extreme_mode == True:
+        # 'extreme_mode=True' will give you an animation image, and that mode will give different image each time, not stable but looks good
+        if extreme_mode2 == True:
             return simplify_color_by_merge_sub_image(self, kernel=kernel, similarity_gate=similarity_gate).get_6_color_simplified_image(free_mode=True, animation_mode=True)
-        elif extreme_mode2 == True:
+        elif extreme_mode == True:
             output_image = self.get_simplified_image()
             output_image = simplify_color_by_merge_sub_image(output_image, kernel=1, similarity_gate=0.7).get_simplified_image().get_6_color_simplified_image(free_mode=True, kernel=30).get_6_color_simplified_image(free_mode=True, animation_mode=True, kernel=30)
             return output_image
