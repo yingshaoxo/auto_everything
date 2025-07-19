@@ -671,7 +671,7 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
     """
     yingshaoxo: You can use Canny method, but I think it is hard to understand and implement.
 
-    todo: Currently this is using pixel, but it should use 2x2 or 3x3 or 5x5 kernel sub_image to determine if there has a line or not.
+    the 'min_color_distance' paramater is really important for this to work well
     """
     a_image = a_image.copy()
     original_height, original_width = a_image.get_shape()
@@ -707,7 +707,7 @@ def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_dist
     new_image.resize(original_height, original_width)
     return new_image
 
-def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1, fill_transparent=False, pre_process=False, gaussian_blur=False, max_kernel=50, edge_line_image=None):
+def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_ratio=1, fill_transparent=False, pre_process=False, gaussian_blur=False, max_kernel=50, edge_line_image=None, min_color_distance=15):
     """
     You could do the mean for each pixel by using "scale up until edge line", but that speed is very slow.
     You can also use circle than square, it is more accurate.
@@ -734,9 +734,9 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
 
     if edge_line_image == None:
         if pre_process == True:
-            edge_image = a_image.to_edge_line(downscale_ratio=2, gaussian_blur=gaussian_blur, gaussian_kernel=1)
+            edge_image = a_image.to_edge_line(downscale_ratio=2, gaussian_blur=gaussian_blur, gaussian_kernel=1, min_color_distance=min_color_distance)
         else:
-            edge_image = a_image.to_edge_line(downscale_ratio=1, gaussian_blur=gaussian_blur, gaussian_kernel=1)
+            edge_image = a_image.to_edge_line(downscale_ratio=1, gaussian_blur=gaussian_blur, gaussian_kernel=1, min_color_distance=min_color_distance)
     else:
         edge_image = edge_line_image
 
@@ -1339,13 +1339,18 @@ class Image:
 
         return a_image
 
-    def get_simplified_image_based_on_mean_square_and_edge_line(self, downscale_ratio=1, fill_transparent=True, gaussian_blur=True, max_kernel=50, edge_line_image=None):
-        # normally if you use this function 2 times for a picture, you will get a good picture
-        return get_simplified_image_by_using_mean_square_and_edge_line(self, downscale_ratio=downscale_ratio, fill_transparent=fill_transparent, gaussian_blur=gaussian_blur, max_kernel=max_kernel, edge_line_image=edge_line_image)
+    def get_simplified_image_based_on_mean_square_and_edge_line(self, downscale_ratio=1, fill_transparent=True, gaussian_blur=True, max_kernel=50, edge_line_image=None, min_color_distance=15):
+        """
+        the higher the max_kernel, the smaller size the final image would be
+        the smaller the min_color_distance, the better quality the final image would be
 
-    def get_simplified_image_based_on_edge_and_average_color(self, max_kernel=20):
+        # normally if you use this function 2 times for a picture, you will get a good picture
+        """
+        return get_simplified_image_by_using_mean_square_and_edge_line(self, downscale_ratio=downscale_ratio, fill_transparent=fill_transparent, gaussian_blur=gaussian_blur, max_kernel=max_kernel, edge_line_image=edge_line_image, min_color_distance=min_color_distance)
+
+    def get_simplified_image_based_on_edge_and_average_color(self, max_kernel=100, min_color_distance=12):
         # think this as an upgrade of 'mean_square_and_edge_line' usage
-        edge_line = self.to_edge_line(downscale_ratio=1, gaussian_blur=True, gaussian_kernel=1)
+        edge_line = self.to_edge_line(downscale_ratio=1, gaussian_blur=True, gaussian_kernel=1, min_color_distance=min_color_distance)
         result_image = self.get_6_color_simplified_image(free_mode=True, kernel=11).get_simplified_image_based_on_mean_square_and_edge_line(max_kernel=max_kernel, edge_line_image=edge_line)
         return result_image
 
