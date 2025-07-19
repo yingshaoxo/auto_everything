@@ -667,18 +667,18 @@ def _get_color_difference_distance(color1, color2, mode="rgb"):
         color2 = single_pixel_rgb_to_hsv(color2[0], color2[1], color2[2])
         return (abs(color1[0]-color2[0]) + abs(color1[1]-color2[1]))/2
 
-def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_distance=15, downscale_ratio=3, gaussian_blur=False):
+def get_edge_lines_of_a_image_by_using_yingshaoxo_method(a_image, min_color_distance=15, downscale_ratio=3, gaussian_blur=False, gaussian_kernel=2):
     """
     yingshaoxo: You can use Canny method, but I think it is hard to understand and implement.
 
-    Need a erosion algorithm in here.
+    todo: Currently this is using pixel, but it should use 2x2 or 3x3 or 5x5 kernel sub_image to determine if there has a line or not.
     """
     a_image = a_image.copy()
     original_height, original_width = a_image.get_shape()
 
     a_image = a_image.resize(int(original_height/downscale_ratio), int(original_width/downscale_ratio))
-    if gaussian_blur == True:
-        a_image = a_image.get_gaussian_blur_image(2, bug_version=False)
+    if gaussian_blur != False:
+        a_image = a_image.get_gaussian_blur_image(gaussian_kernel, bug_version=False)
 
     old_height, old_width = a_image.get_shape()
     new_image = a_image.create_an_image(old_height, old_width, [0,0,0,0])
@@ -734,9 +734,9 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
 
     if edge_line_image == None:
         if pre_process == True:
-            edge_image = a_image.to_edge_line(downscale_ratio=2, gaussian_blur=gaussian_blur)
+            edge_image = a_image.to_edge_line(downscale_ratio=2, gaussian_blur=gaussian_blur, gaussian_kernel=1)
         else:
-            edge_image = a_image.to_edge_line(downscale_ratio=1, gaussian_blur=gaussian_blur)
+            edge_image = a_image.to_edge_line(downscale_ratio=1, gaussian_blur=gaussian_blur, gaussian_kernel=1)
     else:
         edge_image = edge_line_image
 
@@ -1230,8 +1230,8 @@ class Image:
         self = hsv_to_rgb(self)
         return self
 
-    def to_edge_line(self, min_color_distance=15, downscale_ratio=2, gaussian_blur=False):
-        return get_edge_lines_of_a_image_by_using_yingshaoxo_method(self, min_color_distance=min_color_distance, downscale_ratio=downscale_ratio, gaussian_blur=gaussian_blur)
+    def to_edge_line(self, min_color_distance=15, downscale_ratio=2, gaussian_blur=False, gaussian_kernel=2):
+        return get_edge_lines_of_a_image_by_using_yingshaoxo_method(self, min_color_distance=min_color_distance, downscale_ratio=downscale_ratio, gaussian_blur=gaussian_blur, gaussian_kernel=gaussian_kernel)
 
     def to_greyscale(self):
         return self.get_6_color_simplified_image(balance=True, free_mode=True, animation_mode=True, greyscale_mode=True)
@@ -1343,9 +1343,9 @@ class Image:
         # normally if you use this function 2 times for a picture, you will get a good picture
         return get_simplified_image_by_using_mean_square_and_edge_line(self, downscale_ratio=downscale_ratio, fill_transparent=fill_transparent, gaussian_blur=gaussian_blur, max_kernel=max_kernel, edge_line_image=edge_line_image)
 
-    def get_simplified_image_based_on_edge_and_average_color(self, max_kernel=5):
+    def get_simplified_image_based_on_edge_and_average_color(self, max_kernel=20):
         # think this as an upgrade of 'mean_square_and_edge_line' usage
-        edge_line = self.to_edge_line(downscale_ratio=1, gaussian_blur=True)
+        edge_line = self.to_edge_line(downscale_ratio=1, gaussian_blur=True, gaussian_kernel=1)
         result_image = self.get_6_color_simplified_image(free_mode=True, kernel=11).get_simplified_image_based_on_mean_square_and_edge_line(max_kernel=max_kernel, edge_line_image=edge_line)
         return result_image
 
