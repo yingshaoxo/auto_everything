@@ -3,6 +3,8 @@ disk = Disk()
 from auto_everything.terminal import Terminal_User_Interface
 terminal_user_interface = Terminal_User_Interface()
 
+# I think there has a better way to do the file encryption, just split the file to 10 parts, and add them in reverse order, simple and easy.
+
 def encrypt_the_bytes(original_bytes):
     prefix_bytes = bytes(("yingshaoxo_is_the_best"*1).encode("utf-8"))
     return prefix_bytes + original_bytes
