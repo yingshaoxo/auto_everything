@@ -1421,6 +1421,7 @@ class Image:
 
     def get_simplified_image_by_merge_sub_image(self, kernel=1, similarity_gate=0.6, extreme_mode=False, extreme_mode2=False):
         # normally this will compress png picture to 7 times smaller in a way that you can't see
+        # you can use 'kernel=1, similarity_gate=0.01' to get 30 times smaller size image, but human can see the image without problem
         # 'extreme_mode=True' will give you an animation image, and that mode will give different image each time, not stable but looks good
         if extreme_mode2 == True:
             return simplify_color_by_merge_sub_image(self, kernel=kernel, similarity_gate=similarity_gate).get_6_color_simplified_image(free_mode=True, animation_mode=True)
