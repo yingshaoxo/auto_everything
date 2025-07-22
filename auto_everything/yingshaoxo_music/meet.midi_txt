@@ -1,0 +1,58 @@
+# This is the yingshaoxo version midi file, it is splited by lines, '-7' means 'lower 1 level 7', '+1' means 'higher 1 level 1', '--7' means 'lower 2 level 7'.
+
+# You should ignore '# string' and parse other music notes in sequence way, where space is a short pause time interval, new line is a longer pause time interval.
+
+# In real machine recorded yingshaoxo midi, there should use '(0.5)' to represent pause time interval, the float number inside '()' is seconds.
+
+
+
+# 听见 冬天 的离开
+53 52 321
+
+# 我在 某年某月 醒过来
+1-7 -6-71-7 123
+
+# 我想 我等 我期待
+53 52 321
+
+# 未来 却不能 因此 安排
+1-7 -6-71 -71 21
+
+# 阴天 傍晚 车窗外
+53 52 321
+
+# 未来 有一个人 在等待
+1-7 -6-71-7 123
+
+# 向左 向右 向前看
+53 5+2 +17+1
+
+# 爱要 拐几个弯 才会来
+1-7 -6-71-7 121
+
+# 我遇见谁 会有 怎样的 对白
+567+1 7+1 765 65
+
+# 我等的人 他在 多远的 未来
+1234 34 512 33
+
+# 我听见风 来自 地铁 和人海
+567+1 7+1+2+1 +2+35
+
+# 我排着队 拿着 爱的 号码牌
+1234 34 32 1-71
+
+# 我往前飞 飞过 一片 时间海
+567+1 7+1+2+1 765
+
+# 我们也曾 在爱情里 受伤害
+1234 3451 165
+
+# 我看着路 梦的入口 有点窄
+567+1 7+1+2+1 +2+35
+
+# 我遇见你 是最美丽 的意外
+1234 3451 231
+
+# 总有一天 我的谜底 会揭开
+567+1 7+176 545

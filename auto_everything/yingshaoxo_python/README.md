@@ -168,3 +168,5 @@ You never think you can create a programming language without using computer, ri
 For example, if you want to let a person to drink water. The code is "drink water now". But after the translation, it becomes "Hi, how are you? I think you should drink some water, it is good for your body health.".
 
 If the instruction is working, that person should drink water, but if it does not work, you have to try to translate the source code to some other sentence, for example: "I just poisoned you, I won't tell you if you drink that water, the poison would be gone".
+
+> This section somehow tells you how to code human brain or how to code human thinking with 'natural language'.
