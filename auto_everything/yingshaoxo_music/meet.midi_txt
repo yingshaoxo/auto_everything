@@ -2,7 +2,7 @@
 
 # You should ignore '# string' and parse other music notes in sequence way, where space is a short pause time interval, new line is a longer pause time interval.
 
-# In real machine recorded yingshaoxo midi, there should use '(0.5)' to represent pause time interval, the float number inside '()' is seconds.
+# In real machine recorded yingshaoxo midi, there should use '(0.5)' to represent pause time interval, the float number inside '()' is seconds. use '[0.2]' to represent how long a sound note should remain.
 
 
 
