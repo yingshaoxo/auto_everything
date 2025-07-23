@@ -21,4 +21,4 @@ So in the end a music can be written as:
 5544 332 5544 332
 ```
 
-A more complicated example can be seen in 'meet.midi_txt'
+A more complicated example can be seen in 'meet.midi.txt'

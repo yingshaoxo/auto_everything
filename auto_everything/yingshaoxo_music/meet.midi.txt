@@ -5,6 +5,8 @@
 # In real machine recorded yingshaoxo midi, there should use '(0.5)' to represent pause time interval, the float number inside '()' is seconds. use '[0.2]' to represent how long a sound note should remain.
 
 
+# song_name: “遇见”, singer: "孙燕姿(female)", words_author: "易家扬", melody_author: "林一峰"
+
 
 # 听见 冬天 的离开
 53 52 321
