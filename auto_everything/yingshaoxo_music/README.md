@@ -15,7 +15,7 @@ So in the end a music can be written as:
 ```
 # There has more pause interval between music notes, but I choose to not show them in here to simplify things.
 
-1[0.2]1[0.2]1[0.2]
+1[0.2]1[0.2]1[0.2](1.0)
 
 1155 665 4433 221 (1.0)
 5544 332 5544 332
