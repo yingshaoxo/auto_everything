@@ -10,6 +10,8 @@ People already uses numbers to represent different frequency of sound. For examp
 
 Based on that, I suggest '-7' means 'lower 1 level 7', '+1' means 'higher 1 level 1', '--7' means 'lower 2 level 7'. And use '(0.5)' to represent pause time interval, the float number inside '()' is seconds. And use '[0.2]' to represent how long a sound note should remain or keep.
 
+And for multiple_sound that should play togather at the same time, we use '+1_+2 +1_+2 +2_+3 +2_+3 +3_+4'.
+
 So in the end a music can be written as:
 
 ```
