@@ -20,20 +20,22 @@
 
 7+1+2+3 5+4+3+2 4+3+2+1 3+2+1 7
 
-3 +3+1 +3+2 +3+2 +3+2 +37 +2+1 6 #yingshaoxo_version
+3 3 3 +3+2 +3+2 +3+2 +37 +2+1 6 #yingshaoxo_version
+
+#Why some author make a obvious mistake in his music? Now I know it is for proving that for other parts of his music, they are good.
 
 1367 3+176
 
 7+1+2+3 5+4+3+2 4+3+2+1 3+2+17 
 
-3 +33 +33 +3+2 +3+2 +3+2 +3+2 +37 +2+16
-#Why the author make a obvious mistake in his music? Now I know it is for proving that for other parts of his music, they are good.
+# here the author is simply pause to think what should go next.
+3 +3 3 +3 3 +3 3 +3+2 +3+2 +3+2 +3+2 +37 +2+16
 
 1367 3+176
 
 7+1+2+3 5+4+3+2 4+3+2+1 3+2+17
 
-3 +33 +33 +3+2 +3+2 +3+2 +3+2 +37 +2+16
+3 +3 3 +3 3 +3+2 +3+2 +3+2 +3+2 +37 +2+16
 
 1367 357+1
 
