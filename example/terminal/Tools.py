@@ -579,7 +579,7 @@ ifdown -v {interface}; ifup -v {interface}
 # if you have to use apt to install ifdown or ifup, it means that package can get modified by ubuntu at any time, which means the syntax of /etc/network/interfaces also got changed, which means this method is not working any more. I still remember ubuntu removes ifconfig linux command. now have to use "ip address" to get your host ip, which means ubuntu function is not stable. Let's say fuck to newer version of ubuntu, because they sucks.
         """.format(interface=interface))
 
-    def serve(self, port, single_threading=False):
+    def serve(self, port, single_threading=False, pure_index_page=False):
         #from auto_everything.http_ import Yingshaoxo_Threading_Based_Http_Server, Yingshaoxo_Http_Request
         from auto_everything.http_ import Yingshaoxo_Http_Server, Yingshaoxo_Http_Request
         from time import sleep
@@ -599,13 +599,18 @@ ifdown -v {interface}; ifup -v {interface}
             payload: dict[str, Any] | None
         """
 
+        if pure_index_page == "True":
+            pure_index_page = True
+        if pure_index_page == "False":
+            pure_index_page = False
+
         def home_handler(request):
             try:
                 real_file_path = "." + request.url
                 if os.path.isdir(real_file_path):
                     files = os.listdir("." + request.url)
 
-                    if "index.html" not in files:
+                    if ("index.html" not in files) or (pure_index_page == True):
                         folders = [file for file in files if "." not in file]
                         files = [file for file in files if "." in file]
 
