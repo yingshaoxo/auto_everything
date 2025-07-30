@@ -133,6 +133,8 @@ It has full control over anything, it can slow down the CPU frequency in real_ti
 (It could connect radio wireless network or WiFi network, but I choose not to do it because it saves power.)
 ```
 
+> But this is not a forever solution, because one day you will not be able to buy a micro_controller that has freedom unless you create it by yourself...
+
 ## Basic API
 
 #### Import
