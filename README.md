@@ -107,6 +107,32 @@ https://yingshaoxo.github.io/auto_everything -->
 
 ---
 
+#### I give you A Mobile Phone Project as a gift
+
+https://github.com/yingshaoxo/auto_everything/tree/dev/example/image/micropython
+
+or
+
+Click this: [free mobile phone project link](./example/image/micropython/README.md)
+
+Why I create this python based phone project?
+
+```
+没有开机自启程序，并让程序完全控制屏幕与键盘输入的新计算机，你就不用买了。没有自由，浪费生命与钱。
+
+After a few search, I got one information: there has no phone on the market that support running a software or application at power_on boot time. In other words, I can't just create a software to take over the control of the old system. If I could, I can just create a software as my own new system for that phone. 
+
+So you have to use Raspberry Pi to do the creation, but it takes too much power compared to a normal phone. (raspberry pi CPU is hot when running, especially when you use WiFi version)
+
+In the end, it just remind me how good my old phone project works, it uses "yd_rp2040_lite_pi_pico as mother_board, ili9341 as touch and display screen". All in all, it is a micropython micro_controller based phone project.
+
+(esp32 is bad, because it is hot and takes too much power when use WiFi. And I doubt if you can really turn the WiFi down.)
+
+It has full control over anything, it can slow down the CPU frequency in real_time. It can turn on or off screen in real time. So it will save power as much as possible.
+
+(It could connect radio wireless network or WiFi network, but I choose not to do it because it saves power.)
+```
+
 ## Basic API
 
 #### Import
