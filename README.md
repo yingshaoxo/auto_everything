@@ -107,13 +107,13 @@ https://yingshaoxo.github.io/auto_everything -->
 
 ---
 
-#### I give you A Mobile Phone Project as a gift
+#### I give you my 'Free Mobile Phone Project' as a gift
 
 https://github.com/yingshaoxo/auto_everything/tree/dev/example/image/micropython
 
 or
 
-Click this: [free mobile phone project link](./example/image/micropython/README.md)
+Click this: [Free Mobile Phone Project](./example/image/micropython/README.md)
 
 Why I create this python based phone project?
 
