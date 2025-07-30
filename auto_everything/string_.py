@@ -227,6 +227,24 @@ class String:
         hash_code = disk.get_simple_hash_of_a_file_by_using_yingshaoxo_method("", bytes_data=text.encode("utf-8"), level=level, seperator=seperator, with_size=False)
         return hash_code
 
+    def get_hash(self, text, length=5, jump_length=None):
+        # get super good hash by using super simple method
+        # another way is to get a simplified sentence by using human
+        if jump_length == None:
+            text_length = len(text)
+            jump_length = int(text_length / length) + 1
+            if jump_length > 0:
+                result = text[::jump_length]
+            else:
+                result = text
+        else:
+            result = text[::jump_length]
+
+        if len(result) < length:
+            result += ' ' * (length - len(result))
+        result = result[:length]
+        return result
+
     def get_all_sub_string(self, text, get_less=False):
     #(self, text: str, get_less: bool = False) -> list[str]:
         if get_less == False:
