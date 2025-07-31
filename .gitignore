@@ -1,6 +1,7 @@
 *.pyc
 
 poetry.lock
+__pycache__/
 
 blackhole/
 test_docs/
