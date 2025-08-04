@@ -768,6 +768,7 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
                     for row in temp_sub_image.raw_data:
                         for r,g,b,a in row:
                             if a == 255:
+                                # todo: may have a bug here
                                 already_processed = True
                                 break
                         if already_processed == True:
@@ -808,8 +809,10 @@ def get_simplified_image_by_using_mean_square_and_edge_line(a_image, downscale_r
     new_image.resize(old_height, old_width)
     return new_image
 
-def simplify_color_by_merge_sub_image(input_image, kernel=3, similarity_gate=0.6, deep_mode=False):
+def simplify_color_by_merge_sub_image(input_image, kernel=3, similarity_gate=0.6, deep_mode=False, edge_line_image=None):
     # maybe implementing a sliding-window algorithm for pixel level move and smooth would be better
+    # maybe you need a dataset of sub_images, so you can determine if a sub_image is the same with another or not. It is a 1 and 0 question.
+    # kernel=2, similarity_gate=0.3 is also fine for compression
     def real_process(the_input_image):
         height, width = the_input_image.get_shape()
         the_output_image = the_input_image.copy()
@@ -826,6 +829,19 @@ def simplify_color_by_merge_sub_image(input_image, kernel=3, similarity_gate=0.6
                     end_y = start_y + kernel
                     start_x = x * kernel + x_moving
                     end_x = start_x + kernel
+
+                    if edge_line_image != None:
+                        edge_sub_image = edge_line_image.get_inner_image(start_y, end_y, start_x, end_x)
+                        ok_for_mean = True
+                        for row in edge_sub_image.raw_data:
+                            for r,g,b,a in row:
+                                if a == 255:
+                                    ok_for_mean = False
+                                    break
+                            if ok_for_mean == False:
+                                break
+                        if ok_for_mean == False:
+                            continue
 
                     temp_sub_image = the_input_image.get_inner_image(start_y, end_y, start_x, end_x)
 
@@ -921,6 +937,53 @@ def simplify_color_by_merge_sub_image_using_sliding_window(input_image, kernel=3
         output_image = real_process(output_image)
 
     return output_image
+
+def optimal_blur(input_image, kernel=8, similarity_gate=0.1):
+    # You just have to loop 2x2 kernel and 3x3 kernel, if the 4 pixel are similar to a threshold, then make them become the most frequent pixel among the 4 pixels. 3x3 is the same. We do not handle all square, only handle those who has similar colors. So it will not become gaussian_blur.
+    a_image = input_image.copy()
+    old_height, old_width = a_image.get_shape()
+
+    new_image = input_image.copy() #a_image.create_an_image(height, width, [0,0,0,0])
+    difference_gate = 1 - similarity_gate
+
+    kernel_list = [kernel]
+    for kernel in kernel_list:
+        step_height = int(height/kernel)
+        step_width = int(width/kernel)
+        for y in range(step_height):
+            for x in range(step_width):
+                start_y = y * kernel
+                end_y = start_y + kernel
+                start_x = x * kernel
+                end_x = start_x + kernel
+
+                ok_for_mean = True
+                sub_image = a_image.get_inner_image(start_y, end_y, start_x, end_x)
+                first_color = sub_image.raw_data[0][0]
+                for row in sub_image.raw_data:
+                    if ok_for_mean == False:
+                        break
+                    for r,g,b,a in row:
+                        if a == 0:
+                            ok_for_mean = False
+                            break
+                        difference = (abs(first_color[0]-r) + abs(first_color[1]-g) + abs(first_color[2]-b)) / 3
+                        difference = difference / 255
+                        if difference < difference_gate:
+                            ok_for_mean = True
+                        else:
+                            ok_for_mean = False
+                            break
+
+                if ok_for_mean == True:
+                    for y1 in range(start_y, end_y):
+                        for x1 in range(start_x, end_x):
+                            if y1 < 0 or y1 >= height or x1 < 0 or x1 >= width:
+                                continue
+                            r,g,b,a = first_color
+                            new_image.raw_data[y1][x1] = [r,g,b,a_image.raw_data[y1][x1][3]]
+
+    return new_image
 
 def make_a_line_between_two_points(point_a, point_b):
     y1, x1 = point_a
@@ -1419,7 +1482,7 @@ class Image:
         result_image = self.get_6_color_simplified_image(free_mode=True, kernel=11).get_simplified_image_based_on_mean_square_and_edge_line(max_kernel=max_kernel, edge_line_image=edge_line)
         return result_image
 
-    def get_simplified_image_by_merge_sub_image(self, kernel=1, similarity_gate=0.6, extreme_mode=False, extreme_mode2=False):
+    def get_simplified_image_by_merge_sub_image(self, kernel=1, similarity_gate=0.6, extreme_mode=False, extreme_mode2=False, edge_line_image=None):
         # normally this will compress png picture to 7 times smaller in a way that you can't see
         # you can use 'kernel=1, similarity_gate=0.01' to get 30 times smaller size image, but human can see the image without problem
         # 'extreme_mode=True' will give you an animation image, and that mode will give different image each time, not stable but looks good
@@ -1427,10 +1490,10 @@ class Image:
             return simplify_color_by_merge_sub_image(self, kernel=kernel, similarity_gate=similarity_gate).get_6_color_simplified_image(free_mode=True, animation_mode=True)
         elif extreme_mode == True:
             output_image = self.get_simplified_image()
-            output_image = simplify_color_by_merge_sub_image(output_image, kernel=1, similarity_gate=0.7).get_simplified_image().get_6_color_simplified_image(free_mode=True, kernel=30).get_6_color_simplified_image(free_mode=True, animation_mode=True, kernel=30)
+            output_image = simplify_color_by_merge_sub_image(output_image, kernel=1, similarity_gate=0.7, edge_line_image=edge_line_image).get_simplified_image().get_6_color_simplified_image(free_mode=True, kernel=30).get_6_color_simplified_image(free_mode=True, animation_mode=True, kernel=30)
             return output_image
         else:
-            return simplify_color_by_merge_sub_image(self, kernel=kernel, similarity_gate=similarity_gate)
+            return simplify_color_by_merge_sub_image(self, kernel=kernel, similarity_gate=similarity_gate, edge_line_image=edge_line_image)
 
     def get_simplified_image_by_merge_sub_image_using_sliding_window(self, kernel=3, similarity_gate=0.9, extreme_mode=False):
         # this method is slow, kernel == 3 or 5 is fine, but beyound that, slow
@@ -1528,6 +1591,10 @@ class Image:
         It removes ratio big pixels for each 8x8 sub_image, for example ratio=0.6 means remove 60% noise pixels from 8x8 sub_image
         """
         return to_mosaic(self, ratio, kernel_number)
+
+    def blur(self, kernel=8):
+        # if kernel bigger, mosaic bigger
+        return optimal_blur(self, kernel=kernel)
 
     def change_image_style(self, target_image, simple_mode=False, random_mode=False, random_numbers=None):
         """
