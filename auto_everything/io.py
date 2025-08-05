@@ -529,6 +529,110 @@ class Yingshaoxo_Dict():
             return a_dict.has_key(key)
 
 
+try:
+    import os
+    import pickle
+    import tempfile
+
+    class Disk_Dict():
+        """
+        # author: baidu deepseek v3
+
+        # needs: yingshaoxo
+
+            Is there a disk_dict in python that can the place of dict, allow using dict on the hard drive to reduce memory usage?
+
+            I looked at some packages, but they all have dependencies, which is unreliable. I need a single-file, no-dependency python file. I don't need type annotations; Can this thing take up almost 0 memory? My data keys are also super large, so nothing can be in memory; everything must rely on the disk.
+
+            Can you let the following code support "a b c d e f g ..." sub_folder split? So the search speed of key will increase, and will bypass the max_files number a folder can save problem.
+
+            Can you create your own hash method than using hashlib or zlib? the python hashlib is not stable according to my experience.
+        """
+        __slots__ = ('_path', '_depth')
+
+        def __init__(self, path=None, depth=2):
+            self._path = path or tempfile.mkdtemp(prefix='diskdict_')
+            self._depth = depth
+            os.makedirs(self._path, exist_ok=True)
+
+        def _custom_hash(self, data):
+            """Custom hash function using basic byte operations"""
+            if isinstance(data, str):
+                data = data.encode('utf-8')
+            elif not isinstance(data, bytes):
+                data = pickle.dumps(data)
+
+            # Simple hash algorithm using XOR and shifts
+            hash_val = 0x811c9dc5  # FNV offset basis
+            for byte in data:
+                hash_val ^= byte
+                hash_val = (hash_val * 0x01000193) & 0xffffffff  # FNV prime
+
+            # Convert to hex string
+            return '{:08x}'.format(hash_val)
+
+        def _get_subfolder_path(self, key_hash):
+            path = self._path
+            for i in range(self._depth):
+                path = os.path.join(path, key_hash[i*2:(i+1)*2])
+            return path
+
+        def _key_path(self, key):
+            key_hash = self._custom_hash(key)
+            base_path = self._get_subfolder_path(key_hash)
+            os.makedirs(base_path, exist_ok=True)
+            return os.path.join(base_path, key_hash)
+
+        def __setitem__(self, key, value):
+            base_path = self._key_path(key)
+            with open(base_path + '.key', 'wb') as f:
+                pickle.dump(key, f)
+            with open(base_path + '.val', 'wb') as f:
+                pickle.dump(value, f)
+
+        def __getitem__(self, key):
+            base_path = self._key_path(key)
+            try:
+                with open(base_path + '.key', 'rb') as f:
+                    disk_key = pickle.load(f)
+                if disk_key != key:
+                    raise KeyError(key)
+                with open(base_path + '.val', 'rb') as f:
+                    return pickle.load(f)
+            except FileNotFoundError:
+                raise KeyError(key)
+
+        def __delitem__(self, key):
+            base_path = self._key_path(key)
+            try:
+                os.remove(base_path + '.key')
+                os.remove(base_path + '.val')
+            except FileNotFoundError:
+                raise KeyError(key)
+
+        def __contains__(self, key):
+            try:
+                self[key]
+                return True
+            except KeyError:
+                return False
+
+        def clear(self):
+            for root, _, files in os.walk(self._path):
+                for fname in files:
+                    if fname.endswith(('.key', '.val')):
+                        os.remove(os.path.join(root, fname))
+
+        def __iter__(self):
+            for root, _, files in os.walk(self._path):
+                for fname in files:
+                    if fname.endswith('.key'):
+                        with open(os.path.join(root, fname), 'rb') as f:
+                            yield pickle.load(f)
+except Exception as e:
+    print(e)
+
+
 class MyIO():
     def __init__(self):
         import io
