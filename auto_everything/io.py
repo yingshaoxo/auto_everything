@@ -532,7 +532,7 @@ class Yingshaoxo_Dict():
 try:
     import os
     import pickle
-    import tempfile
+    #import tempfile
 
     class Disk_Dict():
         """
@@ -547,11 +547,14 @@ try:
             Can you let the following code support "a b c d e f g ..." sub_folder split? So the search speed of key will increase, and will bypass the max_files number a folder can save problem.
 
             Can you create your own hash method than using hashlib or zlib? the python hashlib is not stable according to my experience.
+
+            I suggest do not use pickle, but json, because pure text uses less space.
         """
         __slots__ = ('_path', '_depth')
 
-        def __init__(self, path=None, depth=2):
-            self._path = path or tempfile.mkdtemp(prefix='diskdict_')
+        def __init__(self, path, depth=2):
+            #self._path = path or tempfile.mkdtemp(prefix='diskdict_')
+            self._path = path
             self._depth = depth
             os.makedirs(self._path, exist_ok=True)
 

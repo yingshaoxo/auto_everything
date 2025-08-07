@@ -112,9 +112,12 @@ git push origin --delete {branch_name}
 """.format(branch_name=branch_name))
 
     def undo_commit(self):
-        t.run("""
+        # there has a bug related to "~", the run will replace '~' into '/home/username'
+        command = """
 git reset --mixed HEAD~1
-""")
+"""
+        t.run(command)
+        print("\n\n\ntry:\n" + command)
 
     def undo_changes(self):
         t.run("""
