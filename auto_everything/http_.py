@@ -257,15 +257,16 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                 text_type = "text/plain"
             else:
                 text_type = "text/html"
+            the_raw_response_bytes_length = len(raw_response.encode(_The_Text_Encoding_Lower_, errors="ignore"))
             response = """
 {response_first_line}\r
 Content-Type: {text_type}; charset={_The_Text_Encoding_}{response_header_text}\r
 Content-Length: {message_length}\r
 Access-Control-Allow-Origin: *\r\n\r\n{raw_response}
-""".format(response_first_line=response_first_line, text_type=text_type, _The_Text_Encoding_=_The_Text_Encoding_, response_header_text=response_header_text, raw_response=raw_response, message_length=len(raw_response)).strip()
+""".format(response_first_line=response_first_line, text_type=text_type, _The_Text_Encoding_=_The_Text_Encoding_, response_header_text=response_header_text, raw_response=raw_response, message_length=the_raw_response_bytes_length).strip()
         elif type(raw_response) == dict:
             raw_response = json.dumps(raw_response, indent=4)
-            json_length = len(raw_response)
+            json_length = len(raw_response.encode(_The_Text_Encoding_Lower_, errors="ignore"))
             response = """
 {response_first_line}\r
 Content-Type: application/json; charset={_The_Text_Encoding_}\r
