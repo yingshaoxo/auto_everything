@@ -257,7 +257,8 @@ Access-Control-Allow-Headers: *\r\n\r\ndone
                 text_type = "text/plain"
             else:
                 text_type = "text/html"
-            the_raw_response_bytes_length = len(raw_response.encode(_The_Text_Encoding_Lower_, errors="ignore"))
+            #the_raw_response_bytes_length = len(raw_response.encode(_The_Text_Encoding_Lower_, errors="ignore")) # this cause bug in xp chrome 49
+            the_raw_response_bytes_length = len(raw_response)
             response = """
 {response_first_line}\r
 Content-Type: {text_type}; charset={_The_Text_Encoding_}{response_header_text}\r
