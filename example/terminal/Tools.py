@@ -582,7 +582,7 @@ ifdown -v {interface}; ifup -v {interface}
 # if you have to use apt to install ifdown or ifup, it means that package can get modified by ubuntu at any time, which means the syntax of /etc/network/interfaces also got changed, which means this method is not working any more. I still remember ubuntu removes ifconfig linux command. now have to use "ip address" to get your host ip, which means ubuntu function is not stable. Let's say fuck to newer version of ubuntu, because they sucks.
         """.format(interface=interface))
 
-    def serve(self, port, single_threading=False, pure_index_page=False):
+    def serve(self, port, single_threading=False, pure_index_page=True):
         #from auto_everything.http_ import Yingshaoxo_Threading_Based_Http_Server, Yingshaoxo_Http_Request
         from auto_everything.http_ import Yingshaoxo_Http_Server, Yingshaoxo_Http_Request
         from time import sleep
