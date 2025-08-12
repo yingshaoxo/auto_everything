@@ -555,11 +555,30 @@ class Disk:
         for pattern in ignore_pattern_list:
             if pattern.startswith("#"):
                 continue
+
+            new_ignore_pattern_list.append(pattern)
+
+            if pattern.startswith("/"):
+                pattern = pattern[1:]
             if pattern.endswith("/"):
-                new_ignore_pattern_list.append(remove_suffix(pattern, "/"))
-                new_ignore_pattern_list.append(pattern + "*")
-            else:
+                # such as 'a_folder/', it now becomes ["a_folder/", "a_folder/*"]
                 new_ignore_pattern_list.append(pattern)
+                new_ignore_pattern_list.append(pattern + "*")
+            elif ("." not in pattern) and (not pattern.endswith("/")):
+                # such as 'a_folder', it now becomes ["a_folder/", "a_folder/*"]
+                new_ignore_pattern_list.append(pattern + "/")
+                new_ignore_pattern_list.append(pattern + "/*")
+            elif pattern.startswith("."):
+                # such as '.a_folder', it now becomes [".a_folder/", ".a_folder/*"]
+                new_ignore_pattern_list.append(pattern + "/")
+                new_ignore_pattern_list.append(pattern + "/*")
+
+            if pattern.endswith("/"):
+                new_ignore_pattern_list.append(pattern[:-1])
+            new_ignore_pattern_list.append(pattern)
+
+        new_ignore_pattern_list = list(set(new_ignore_pattern_list))
+        new_ignore_pattern_list.sort()
         return new_ignore_pattern_list
 
     def _file_match_the_gitignore_rule_list(self, start_folder, file_path, ignore_pattern_list):
@@ -573,14 +592,23 @@ class Disk:
             file_path = file_path[2:]
 
         match = False
+        path_a = remove_prefix(file_path, start_folder)
         for pattern in ignore_pattern_list:
-            path_a = remove_prefix(file_path, start_folder)
             patten_b = remove_prefix(pattern, "./")
             if fnmatch(path_a, patten_b):
                 #print(path_a + " | " + patten_b)
                 match = True
                 break
 
+            # why the direct name match is actually works better? if "file_or_folder_name" == "file_or_folder_name"
+            if path_a == pattern:
+                match = True
+                break
+
+        #if (".gradle" in path_a):
+        #    print(ignore_pattern_list)
+        #print(path_a)
+        #print(file_path, match)
         return match
 
     def get_gitignore_folders_and_files(self, folder, also_return_dot_git_folder=False):

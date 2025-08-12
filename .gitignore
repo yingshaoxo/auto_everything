@@ -1,4 +1,6 @@
 *.pyc
+docs/
+service/
 
 poetry.lock
 __pycache__/
