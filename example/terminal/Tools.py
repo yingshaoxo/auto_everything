@@ -124,6 +124,13 @@ git reset --mixed HEAD~1
 git reset --hard HEAD^
 """)
 
+    def git_difference(self):
+        t.run("""
+git status
+git status -s
+""")
+        print("\nGet more information by using: git diff")
+
     def delete_git_big_git_file(self, filename):
         t.run("""
 bfg --delete-files {filename}
@@ -709,6 +716,9 @@ ifdown -v {interface}; ifup -v {interface}
         yingshaoxo_http_server.start(host = "0.0.0.0", port = int(port))
 
     def find_string(self, search_string, start_from=0):
+        t.run("grep -R '{}'".format(search_string))
+        print()
+
         start_from = int(start_from)
         files = disk.get_files(folder="./", recursive=True, use_gitignore_file=True)
         counting = 0
