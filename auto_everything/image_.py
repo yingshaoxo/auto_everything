@@ -270,73 +270,73 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extreme_color_number=
     better use a simple resize to get main_color_list, for example, extreme_color_number == 9, then we have to resize the image to 3x3 to get 9 main colors.
     """
     new_image = self.copy()
-
-    main_color_set = set()
-
-    def get_main_color_for_a_sub_window(pixel_list):
-        counting_dict = {}
-        a_list = []
-        for color in pixel_list:
-            color = [str(one) for one in color]
-            color = ",".join(color)
-            if color in counting_dict.keys():
-                counting_dict[color] += 1
-            else:
-                counting_dict[color] = 1
-        sort_items = list(counting_dict.items())
-        sort_items.sort(key=lambda x: -x[1])
-        color_list_length = len(sort_items)
-
-        target = None
-        index = 0
-        while True:
-            color, counting = sort_items[index]
-            if color in main_color_set:
-                pass
-            else:
-                main_color_set.add(color)
-                target = color
-                break
-            index += 1
-            if index >= color_list_length:
-                break
-        return target
-
-    def get_main_color_list_from_set():
-        main_color_list = [[int(each) for each in one.split(",")] for one in main_color_set]
-        return main_color_list
-
     height, width = new_image.get_shape()
-    #kernel_number = 30
-    kernel_number = int((64/1920) * width)
-    sub_image_pixel_numbers = kernel_number * kernel_number
-    height_step_number = int(height/kernel_number)
-    width_step_number = int(width/kernel_number)
-    for y_ in range(height_step_number):
-        y_start = y_ * kernel_number
-        y_end = y_start + kernel_number
-        if y_end >= height:
-            y_end = height - 1
-        for x_ in range(width_step_number):
-            x_start = x_ * kernel_number
-            x_end = x_start + kernel_number
-            if x_end >= width:
-                x_end = width - 1
-            index_list = [None] * sub_image_pixel_numbers
-            real_pixel_list = [None] * sub_image_pixel_numbers
-            counting = 0
-            for y_index in range(y_start, y_end):
-                for x_index in range(x_start, x_end):
-                    pixel = new_image.raw_data[y_index][x_index]
-                    index_list[counting] = [y_index, x_index]
-                    real_pixel_list[counting] = pixel
-                    counting += 1
-            real_sub_image_pixel_numbers = counting
-            index_list = [one for one in index_list if one != None]
-            real_pixel_list = [one for one in real_pixel_list if one != None]
-            get_main_color_for_a_sub_window(real_pixel_list)
 
     if predefined_color_list == None:
+        main_color_set = set()
+
+        def get_main_color_for_a_sub_window(pixel_list):
+            counting_dict = {}
+            a_list = []
+            for color in pixel_list:
+                color = [str(one) for one in color]
+                color = ",".join(color)
+                if color in counting_dict.keys():
+                    counting_dict[color] += 1
+                else:
+                    counting_dict[color] = 1
+            sort_items = list(counting_dict.items())
+            sort_items.sort(key=lambda x: -x[1])
+            color_list_length = len(sort_items)
+
+            target = None
+            index = 0
+            while True:
+                color, counting = sort_items[index]
+                if color in main_color_set:
+                    pass
+                else:
+                    main_color_set.add(color)
+                    target = color
+                    break
+                index += 1
+                if index >= color_list_length:
+                    break
+            return target
+
+        def get_main_color_list_from_set():
+            main_color_list = [[int(each) for each in one.split(",")] for one in main_color_set]
+            return main_color_list
+
+        #kernel_number = 30
+        kernel_number = int((64/1920) * width)
+        sub_image_pixel_numbers = kernel_number * kernel_number
+        height_step_number = int(height/kernel_number)
+        width_step_number = int(width/kernel_number)
+        for y_ in range(height_step_number):
+            y_start = y_ * kernel_number
+            y_end = y_start + kernel_number
+            if y_end >= height:
+                y_end = height - 1
+            for x_ in range(width_step_number):
+                x_start = x_ * kernel_number
+                x_end = x_start + kernel_number
+                if x_end >= width:
+                    x_end = width - 1
+                index_list = [None] * sub_image_pixel_numbers
+                real_pixel_list = [None] * sub_image_pixel_numbers
+                counting = 0
+                for y_index in range(y_start, y_end):
+                    for x_index in range(x_start, x_end):
+                        pixel = new_image.raw_data[y_index][x_index]
+                        index_list[counting] = [y_index, x_index]
+                        real_pixel_list[counting] = pixel
+                        counting += 1
+                real_sub_image_pixel_numbers = counting
+                index_list = [one for one in index_list if one != None]
+                real_pixel_list = [one for one in real_pixel_list if one != None]
+                get_main_color_for_a_sub_window(real_pixel_list)
+
         main_color_list = get_main_color_list_from_set()
         if extreme_color_number != None:
             from functools import cmp_to_key
@@ -371,7 +371,7 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extreme_color_number=
             if pixel_string in new_pixel_dict:
                 new_pixel = new_pixel_dict[pixel_string]
             else:
-                new_pixel = pixel
+                new_pixel = old_pixel
                 minimum_distance = 99999
                 for safe_color in main_color_list:
                     #difference = ((old_pixel[0] - safe_color[0])**2 + (old_pixel[1] - safe_color[1])**2 + (old_pixel[2] - safe_color[2])**2 + (old_pixel[3] - safe_color[3])**2) ** 0.5
@@ -383,6 +383,30 @@ def get_simplified_image_in_an_accurate_way(self, level=2, extreme_color_number=
             new_image.raw_data[y][x] = new_pixel
 
     return new_image
+
+def get_simplified_image_by_using_edge_line_around_color(a_image, max_color_number=98):
+    # This function works better than get_simplified_image() because it will always output the same image with constant process speed
+    edge_image = a_image.to_edge_line(downscale_ratio=1, gaussian_blur=True, gaussian_kernel=1, min_color_distance=15)
+    height, width = a_image.get_shape()
+    color_set = set()
+    for y in range(height):
+        for x in range(width):
+            edge_pixel = edge_image.raw_data[y][x]
+            if edge_pixel[3] == 255:
+                point_list = [[y,x-1], [y,x+2]]
+                for point in point_list:
+                    if (point[0] >= 0 and point[0] < height) and (point[1] >= 0 and point[1] < width):
+                        pixel = tuple(a_image.raw_data[point[0]][point[1]])
+                        color_set.add(pixel)
+    predefined_color_list = list(color_set)
+
+    from functools import cmp_to_key
+    def compare_color(color1, color2):
+        difference = (abs(color1[0] - color2[0]) + abs(color1[1] - color2[1]) + abs(color1[2] - color2[2]) + abs(color1[3] - color2[3])) / 4
+        return difference
+    predefined_color_list = list(sorted(predefined_color_list, key=cmp_to_key(compare_color)))[-max_color_number:]
+
+    return get_simplified_image_in_an_accurate_way(a_image, predefined_color_list=predefined_color_list)
 
 def get_simplified_image_in_a_quick_way(self, level=25):
     """
@@ -941,7 +965,7 @@ def simplify_color_by_merge_sub_image_using_sliding_window(input_image, kernel=3
 def optimal_blur(input_image, kernel=8, similarity_gate=0.1):
     # You just have to loop 2x2 kernel and 3x3 kernel, if the 4 pixel are similar to a threshold, then make them become the most frequent pixel among the 4 pixels. 3x3 is the same. We do not handle all square, only handle those who has similar colors. So it will not become gaussian_blur.
     a_image = input_image.copy()
-    old_height, old_width = a_image.get_shape()
+    height, width = a_image.get_shape()
 
     new_image = input_image.copy() #a_image.create_an_image(height, width, [0,0,0,0])
     difference_gate = 1 - similarity_gate
@@ -1593,7 +1617,7 @@ class Image:
         return to_mosaic(self, ratio, kernel_number)
 
     def blur(self, kernel=8):
-        # if kernel bigger, mosaic bigger
+        # if kernel bigger, mosaic bigger. This method produce less size image than normal mosaic. Better just use it to process background, leave human picture layer unchanged.
         return optimal_blur(self, kernel=kernel)
 
     def change_image_style(self, target_image, simple_mode=False, random_mode=False, random_numbers=None):
