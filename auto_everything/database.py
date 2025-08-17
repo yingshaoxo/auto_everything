@@ -553,6 +553,15 @@ class Database_Of_Yingshaoxo:
                 #return None
         ```
         """
+        """
+        todo: Maybe the one_row_dict_handler can be a string, which has a function named one_row_dict_handler, similar to:
+            code_that_can_send_to_database = '''
+                def one_row_dict_handler(a_dict_as_row):
+                    return None
+            '''
+            exec(code_that_can_send_to_database)
+            # now you can run one_row_dict_handler() in database process remotely.
+        """
         if self.global_multiprocessing_shared_dict != None:
             self._wait_until_unlock()
             self.global_multiprocessing_shared_dict[self._the_key_for_the_lock_of_memory_data] = True
