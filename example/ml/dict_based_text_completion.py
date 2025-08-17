@@ -160,7 +160,7 @@ def save_dict_to_json(word_dict, filename="dict_data.json"):
     json_dict = {str(k): list(v) for k, v in word_dict.items()}
     with open(filename, 'w') as f:
         json.dump(json_dict, f)
-    print(f"Saved dictionary to {filename}")
+    print("Saved dictionary to " + filename)
 
 def load_dict_from_json(filename="dict_data.json"):
     """Load dictionary from JSON file, converting string keys to tuples and lists to sets."""
@@ -257,7 +257,7 @@ def main():
     #    word_dict = build_word_sequences(input_text, max_seq_len=Max_Sequence_Length)
     #    save_dict_to_json(word_dict, dict_file)
     #else:
-    #    print(f"Loaded dictionary from {dict_file}")
+    #    print("Loaded dictionary")
 
     print("Building dictionary from input text...")
     word_dict = build_word_sequences(input_text, max_seq_len=Max_Sequence_Length)
