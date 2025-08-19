@@ -2668,6 +2668,8 @@ class Yingshaoxo_Text_Completor():
         response = ""
         while len(response) < how_many_character_you_want:
             temp_response = down_side_complete(input_text)
+            if len(temp_response) == 0:
+                break
             response += temp_response
             input_text += temp_response
             if temp_response.endswith(end_string):
@@ -2699,6 +2701,8 @@ class Yingshaoxo_Text_Completor():
         response = ""
         while len(response) < how_many_character_you_want:
             temp_response = down_side_complete(input_text)
+            if len(temp_response) == 0:
+                break
             response += temp_response
             input_text += temp_response
             if temp_response.endswith(end_string):
@@ -2788,6 +2792,8 @@ class Yingshaoxo_Text_Completor():
         response = ""
         while len(response) < how_many_character_you_want:
             temp_response = the_real_function(input_text, level)
+            if len(temp_response) == 0:
+                break
             response += temp_response
             input_text += temp_response
 
