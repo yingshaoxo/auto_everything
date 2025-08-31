@@ -743,50 +743,74 @@ ifdown -v {interface}; ifup -v {interface}
                 pass
         print("not found")
 
-    def code_helper(self):
-        documentation = py.generate_documentation_for_a_python_project("./", "/tmp/doc.md", just_return_string=True)
-        parts = documentation.split("\n\n_______\n\n")
+    def code_helper(self, old=False):
+        if old != False:
+            documentation = py.generate_documentation_for_a_python_project("./", "/tmp/doc.md", just_return_string=True)
+            parts = documentation.split("\n\n_______\n\n")
 
-        previous_input_text = None
-        start_from = 0
-        while True:
-            input_text = input("\n\n_______\n\nWhat you want to search? (n for next)\n").strip()
-            if len(input_text) != 1:
-                previous_input_text = input_text
-                start_from = 0
-            else:
-                start_from += 1
-                if previous_input_text == None:
-                    continue
-                input_text = previous_input_text
-            os.system("clear")
+            previous_input_text = None
+            start_from = 0
+            while True:
+                input_text = input("\n\n_______\n\nWhat you want to search? (n for next)\n").strip()
+                if len(input_text) != 1:
+                    previous_input_text = input_text
+                    start_from = 0
+                else:
+                    start_from += 1
+                    if previous_input_text == None:
+                        continue
+                    input_text = previous_input_text
+                os.system("clear")
 
-            counting = 0
-            found_index = None
-            the_lines = None
-            for part in parts:
-                if input_text in part:
-                    lines = part.split("\n")
-                    for index, line in enumerate(lines):
-                        if input_text in line and line.strip()[0] not in ["#", '"', "'"]:
-                            if counting >= start_from:
-                                found_index = index
-                                the_lines = lines
-                                break
-                            counting += 1
-                if found_index != None:
-                    next_text = "\n".join(the_lines[found_index:found_index + 20])
+                counting = 0
+                found_index = None
+                the_lines = None
+                for part in parts:
+                    if input_text in part:
+                        lines = part.split("\n")
+                        for index, line in enumerate(lines):
+                            if input_text in line and line.strip()[0] not in ["#", '"', "'"]:
+                                if counting >= start_from:
+                                    found_index = index
+                                    the_lines = lines
+                                    break
+                                counting += 1
+                    if found_index != None:
+                        next_text = "\n".join(the_lines[found_index:found_index + 20])
+                        print("\n\n_______\n\n")
+
+                        class_lines = [line for line in list(reversed(the_lines[:found_index])) if line.strip().startswith("class ")]
+                        if len(class_lines) > 0:
+                            print(class_lines[0] + "\n")
+
+                        print(next_text.strip("`"))
+                        break
+                if found_index == None:
                     print("\n\n_______\n\n")
+                    print("I can't find anything.")
+        else:
+            from auto_everything.ml import Yingshaoxo_Text_Completor
+            yingshaoxo_text_completor = Yingshaoxo_Text_Completor()
+            from auto_everything.disk import Disk
+            disk = Disk()
 
-                    class_lines = [line for line in list(reversed(the_lines[:found_index])) if line.strip().startswith("class ")]
-                    if len(class_lines) > 0:
-                        print(class_lines[0] + "\n")
+            type_limiter = [".txt", ".midi_txt", ".md", ".py", ".h", ".c", ".cpp", ".js", ".cjs", ".ts", ".vue", ".sh", ".html", ".scss", ".css", ".json", ".proto", ".dart", ".go", ".yaml", ".php", ".rs", ".toml", ".cc", ".yml", ".lua", ".htm", ".vim", ".hero", ".java", ".sql_command", ".kt", ".CPP", ".less", ".cs"]
+            #type_limiter = [".txt", ".midi_txt", ".md", ".py", ".h", ".c", ".js", ".sh", ".html", ".proto", ".dart", ".go", ".vim", ".hero", ".java", ".kt"]
+            #type_limiter = [".txt", ".md", ".py", ".sh"]
+            files = disk.get_files("./", True, type_limiter=type_limiter)
+            source_text = ""
+            for file_path in files:
+                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                    text = f.read()
+                    source_text += text + "\n\nxxx___xxx\n\n"
 
-                    print(next_text.strip("`"))
-                    break
-            if found_index == None:
-                print("\n\n_______\n\n")
-                print("I can't find anything.")
+            while True:
+                input_text = input("What you want to know: ")
+                response = yingshaoxo_text_completor.get_next_text_by_pure_text(source_text, input_text, how_many_character_you_want=612, level=64, complete_how_many_character_for_each_time=None)
+                if response:
+                    response = response.split("\n\nxxx___xxx\n\n")[0]
+                    print("Result: \n\n" + input_text + response)
+                    print("\n\n_______\n\n")
 
     def connect_android(self):
         print("""
