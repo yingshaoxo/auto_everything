@@ -20,8 +20,8 @@ from auto_everything.terminal import Terminal_User_Interface
 terminal_user_interface = Terminal_User_Interface()
 
 disk_A_path = "/home/yingshaoxo/Disk/Sync_Folder/Yingshaoxo_Data/"
-disk_B_path = "/media/yingshaoxo/yingshaoxo/Yingshaoxo_Data/"
-temp_folder = "/media/yingshaoxo/yingshaoxo/temp_folder/"
+disk_B_path = "/media/yingshaoxo/The Atlantis/Yingshaoxo_Data/"
+temp_folder = "/media/yingshaoxo/The Atlantis/temp_folder/"
 
 def get_file_and_folder(source_folder_path=None):
     files = disk.get_folder_and_files(folder=source_folder_path)

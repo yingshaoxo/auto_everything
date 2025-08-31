@@ -2678,10 +2678,13 @@ class Yingshaoxo_Text_Completor():
 
         return response
 
-    def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64):
+    def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None):
         """
         This method is the best so far, if you have big memory.
         """
+        if complete_how_many_character_for_each_time == None:
+            complete_how_many_character_for_each_time = level
+
         end_string = "[*|end|*]"
 
         def down_side_complete(the_input_text):
@@ -2692,7 +2695,7 @@ class Yingshaoxo_Text_Completor():
                 the_length_of_splits = len(the_splits)
                 if the_length_of_splits >= 2:
                     index = random.randint(1, the_length_of_splits-1)
-                    target_text = the_splits[index][:level]
+                    target_text = the_splits[index][:complete_how_many_character_for_each_time]
                     return target_text
                 else:
                     pass
@@ -2804,6 +2807,96 @@ class Yingshaoxo_Text_Completor():
 
     def get_next_text_by_using_sqlite_dict(self, sqlite_path, input_text, level=7, how_many_character_you_want=100):
         pass
+
+    def _split_string_into_word_list(self, string):
+        words = string.replace("\n", " ").split(" ")
+        new_words = []
+        for word in words:
+            if word.strip(''' \n1234567890-=_+()*&^%$#@!`~qwertyuiop{}|[]\asdfghjk;':"zxcvbnm,./<>?QWERTYUIOPASDFGHJKLZXCVBNM''') == "":
+                # english
+                new_words.append(word)
+            else:
+                # chinese
+                new_words += list(word)
+        return new_words
+
+    def _get_background_string_similarity(self, string_1, string_2):
+        # return similarity, from `0.0` to `1.0`, 1 means equal, 0 means no relate.
+        # Actually, this function should shoose the better one, it has to know if which string is better.
+        char_set_1 = set(self._split_string_into_word_list(string_1))
+        char_set_2 = set(self._split_string_into_word_list(string_2))
+        common_char_set = char_set_1 & char_set_2
+        all_char_set = char_set_1 | char_set_2
+        later_part = len(all_char_set)
+        if later_part != 0:
+            similarity = len(common_char_set) / later_part
+        else:
+            similarity = 0
+        return similarity
+
+    def get_next_text_creatively_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, use_background_context_window=False, complete_how_many_character_for_each_time=None):
+        """
+        A slow method.
+
+        This method will force to choice from two result for each next_word_completion, by default, it will choose randomly.
+        It may do the choise based on content background.
+        Creativety is not easy to get. It has to have a lot of text data, larger than 100MB.
+
+        The background context match method is:
+            1. __________---next_text
+            2. "__________" represent the background text, if 1000 words has 500 words match sequently, then the background matchs. Or you could use other fuzz match method.
+            3. "---" mens the end small part of input_text, it must full match by using "==". So the complete words will be a continus thing.
+            4. The length of the background is normally a paramater called "context_window_length".
+        """
+        if complete_how_many_character_for_each_time == None:
+            complete_how_many_character_for_each_time = level
+
+        end_string = "[*|end|*]"
+        if use_background_context_window == True:
+            if len(input_text) > level:
+                background_text = input_text[:-level]
+                background_context_window_length = len(background_text)
+            else:
+                use_background_context_window = False
+
+        def down_side_complete(the_input_text):
+            for right_side_index in range(0, level):
+                right_side_sub_string = the_input_text[right_side_index:]
+
+                the_splits = source_text.split(right_side_sub_string)
+                the_length_of_splits = len(the_splits)
+                if the_length_of_splits >= 3:
+                    if use_background_context_window == False:
+                        index = random.randint(1, the_length_of_splits-1)
+                        #target_text = the_splits[index][:int(level/2)]
+                        target_text = the_splits[index][:complete_how_many_character_for_each_time]
+                        return target_text
+                    else:
+                        a_check_list = []
+                        for background_index in range(0, the_length_of_splits-1): #[from_a, to_b_minus_1)
+                            temp_background_string = the_splits[background_index][-background_context_window_length:]
+                            similarity = self._get_background_string_similarity(temp_background_string, background_text)
+                            a_check_list.append([similarity, background_index+1])
+                        a_check_list.sort(key=lambda item: -item[0])
+                        #target_text = the_splits[a_check_list[0][1]][:int(level/2)]
+                        target_text = the_splits[a_check_list[0][1]][:complete_how_many_character_for_each_time]
+                        return target_text
+                else:
+                    pass
+            return " " + end_string
+
+        response = ""
+        while len(response) < how_many_character_you_want:
+            temp_response = down_side_complete(input_text)
+            if len(temp_response) == 0:
+                break
+            response += temp_response
+            input_text += temp_response
+            if temp_response.endswith(end_string):
+                response = response[:-len(end_string)]
+                break
+
+        return response
 
 
 class Yingshaoxo_Strong_AI():
