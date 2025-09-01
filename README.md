@@ -1,4 +1,4 @@
-# auto_everything
+# auto_everything (Half is better, 98% machine + 2% human work)
 
 Linux automation
 
