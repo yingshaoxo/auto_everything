@@ -2681,6 +2681,7 @@ class Yingshaoxo_Text_Completor():
     def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None):
         """
         This method is the best so far, if you have big memory.
+        It will only return what it got in database. We respect original author content.
         """
         if complete_how_many_character_for_each_time == None:
             complete_how_many_character_for_each_time = level
@@ -2808,11 +2809,20 @@ class Yingshaoxo_Text_Completor():
     def get_next_text_by_using_sqlite_dict(self, sqlite_path, input_text, level=7, how_many_character_you_want=100):
         pass
 
+    def _is_punctuation(self, string):
+        return string in ",.!?;:，。；：!？ \n-=_+()*&^%$#@!`~{}|[]'/<>"
+
+    def _is_ascii(self, string):
+        return string.strip(''' \n1234567890-=_+()*&^%$#@!`~qwertyuiop{}|[]\asdfghjk;':"zxcvbnm,./<>?QWERTYUIOPASDFGHJKLZXCVBNM''') == ""
+
+    def _is_alphabet(self, string):
+        return string.strip('''abcdefghijklmnopqrstuvwxyzQWERTYUIOPASDFGHJKLZXCVBNM''') == ""
+
     def _split_string_into_word_list(self, string):
         words = string.replace("\n", " ").split(" ")
         new_words = []
         for word in words:
-            if word.strip(''' \n1234567890-=_+()*&^%$#@!`~qwertyuiop{}|[]\asdfghjk;':"zxcvbnm,./<>?QWERTYUIOPASDFGHJKLZXCVBNM''') == "":
+            if self._is_alphabet(word):
                 # english
                 new_words.append(word)
             else:
@@ -2834,9 +2844,26 @@ class Yingshaoxo_Text_Completor():
             similarity = 0
         return similarity
 
-    def get_next_text_creatively_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, use_background_context_window=False, complete_how_many_character_for_each_time=None):
+    def _leave_first_sub_string(self, string):
+        # abandand: english until not_alphabet, chinese next character
+        # it should complete until [,.!?;:，。；：!？space \n]
+        if len(string) > 1:
+            first_char = string[0]
+            if self._is_punctuation(first_char):
+                return first_char
+            else:
+                temp_string = first_char
+                for char in string[1:]:
+                    if self._is_punctuation(char):
+                        return temp_string
+                    else:
+                        temp_string += char
+                return temp_string
+        return string
+
+    def get_next_text_creatively_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, use_background_context_window=False, complete_how_many_character_for_each_time=None, debug_stream_print=False):
         """
-        A slow method.
+        A slow method. But more creative, it return something that is not in the database.
 
         This method will force to choice from two result for each next_word_completion, by default, it will choose randomly.
         It may do the choise based on content background.
@@ -2848,9 +2875,7 @@ class Yingshaoxo_Text_Completor():
             3. "---" mens the end small part of input_text, it must full match by using "==". So the complete words will be a continus thing.
             4. The length of the background is normally a paramater called "context_window_length".
         """
-        if complete_how_many_character_for_each_time == None:
-            complete_how_many_character_for_each_time = level
-
+        # maybe background context is not important, you can simply let the chat history in top of database.
         end_string = "[*|end|*]"
         if use_background_context_window == True:
             if len(input_text) > level:
@@ -2868,8 +2893,11 @@ class Yingshaoxo_Text_Completor():
                 if the_length_of_splits >= 3:
                     if use_background_context_window == False:
                         index = random.randint(1, the_length_of_splits-1)
-                        #target_text = the_splits[index][:int(level/2)]
-                        target_text = the_splits[index][:complete_how_many_character_for_each_time]
+                        if complete_how_many_character_for_each_time != None:
+                            target_text = the_splits[index][:complete_how_many_character_for_each_time]
+                        else:
+                            target_text = the_splits[index][:level]
+                            target_text = self._leave_first_sub_string(target_text)
                         return target_text
                     else:
                         a_check_list = []
@@ -2878,16 +2906,25 @@ class Yingshaoxo_Text_Completor():
                             similarity = self._get_background_string_similarity(temp_background_string, background_text)
                             a_check_list.append([similarity, background_index+1])
                         a_check_list.sort(key=lambda item: -item[0])
-                        #target_text = the_splits[a_check_list[0][1]][:int(level/2)]
-                        target_text = the_splits[a_check_list[0][1]][:complete_how_many_character_for_each_time]
+                        if complete_how_many_character_for_each_time != None:
+                            target_text = the_splits[a_check_list[0][1]][:complete_how_many_character_for_each_time]
+                        else:
+                            target_text = the_splits[a_check_list[0][1]][:level]
+                            target_text = self._leave_first_sub_string(target_text)
                         return target_text
                 else:
                     pass
             return " " + end_string
 
+        if debug_stream_print == True:
+            print(input_text, end="", flush=True)
+
         response = ""
         while len(response) < how_many_character_you_want:
             temp_response = down_side_complete(input_text)
+            if debug_stream_print == True:
+                print(temp_response, end="", flush=True)
+                time.sleep(0.1)
             if len(temp_response) == 0:
                 break
             response += temp_response

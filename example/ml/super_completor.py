@@ -32,8 +32,8 @@ if __name__ == "__main__":
     source_text = read_text_files_recursively("./", type_limiter=[".txt", ".py"], recursively=False)
     yingshaoxo_text_completor = Yingshaoxo_Text_Completor()
 
-    lines = yingshaoxo_text_completor.get_source_text_lines(source_text)
-    lines = source_text.split("__**__**__yingshaoxo_is_the_top_one__**__**__")
+    #lines = yingshaoxo_text_completor.get_source_text_lines(source_text)
+    #lines = source_text.split("__**__**__yingshaoxo_is_the_top_one__**__**__")
 
     while True:
         input_text = input("What you want to say: ")
