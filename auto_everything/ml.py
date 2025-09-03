@@ -2874,6 +2874,8 @@ class Yingshaoxo_Text_Completor():
             2. "__________" represent the background text, if 1000 words has 500 words match sequently, then the background matchs. Or you could use other fuzz match method.
             3. "---" mens the end small part of input_text, it must full match by using "==". So the complete words will be a continus thing.
             4. The length of the background is normally a paramater called "context_window_length".
+
+        This method can be quick if you use web_search_engine pure_text result, it will jump 10 top website to re_mix a fine text that well answered your question.
         """
         # maybe background context is not important, you can simply let the chat history in top of database.
         end_string = "[*|end|*]"
