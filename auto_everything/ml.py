@@ -2678,6 +2678,32 @@ class Yingshaoxo_Text_Completor():
 
         return response
 
+    def _is_punctuation(self, string, more_punctuation="跟讲在有要地的着和便等就让了说想被到是只给几买干从个为以然问没回对先者出也之能上下么儿很会"):
+        return string in (",.!?;:，。；：!？ \n-=_+()*&^%$#@!`~{}|[]'/<>" + more_punctuation)
+
+    def _is_ascii(self, string):
+        return string.strip(''' \n1234567890-=_+()*&^%$#@!`~qwertyuiop{}|[]\asdfghjk;':"zxcvbnm,./<>?QWERTYUIOPASDFGHJKLZXCVBNM''') == ""
+
+    def _is_alphabet(self, string):
+        return string.strip('''abcdefghijklmnopqrstuvwxyzQWERTYUIOPASDFGHJKLZXCVBNM''') == ""
+
+    def _leave_first_sub_string(self, string):
+        # abandand: english until not_alphabet, chinese next character
+        # it should complete until [,.!?;:，。；：!？space \n]
+        if len(string) > 1:
+            first_char = string[0]
+            if self._is_punctuation(first_char):
+                return first_char
+            else:
+                temp_string = first_char
+                for char in string[1:]:
+                    if self._is_punctuation(char):
+                        return temp_string + char
+                    else:
+                        temp_string += char
+                return temp_string
+        return string
+
     def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None):
         """
         This method is the best so far, if you have big memory.
@@ -2691,6 +2717,9 @@ class Yingshaoxo_Text_Completor():
         def down_side_complete(the_input_text):
             for right_side_index in range(0, level):
                 right_side_sub_string = the_input_text[right_side_index:]
+
+                if len(right_side_sub_string) == 0:
+                    return " " + end_string
 
                 the_splits = source_text.split(right_side_sub_string)
                 the_length_of_splits = len(the_splits)
@@ -2712,6 +2741,67 @@ class Yingshaoxo_Text_Completor():
             if temp_response.endswith(end_string):
                 response = response[:-len(end_string)]
                 break
+
+        return response
+
+    def get_next_most_frequent_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None, debug_stream_print=False, get_only_one_word=False):
+        """
+        This will only return the one from two most frequent result.
+        """
+        if complete_how_many_character_for_each_time == None:
+            complete_how_many_character_for_each_time = level
+
+        end_string = "[*|end|*]"
+
+        def down_side_complete(the_input_text):
+            for right_side_index in range(0, level):
+                right_side_sub_string = the_input_text[right_side_index:]
+
+                if len(right_side_sub_string) == 0:
+                    return " " + end_string
+
+                the_splits = source_text.split(right_side_sub_string)
+                the_length_of_splits = len(the_splits)
+                if the_length_of_splits >= 3:
+                    next_word_dict = {}
+                    for index in range(1, the_length_of_splits-1):
+                        next_string = the_splits[index][:complete_how_many_character_for_each_time]
+                        next_word = self._leave_first_sub_string(next_string)
+                        if next_word not in next_word_dict.keys():
+                            next_word_dict[next_word] = 1
+                        else:
+                            next_word_dict[next_word] += 1
+                    next_word_items = list(next_word_dict.items())
+                    next_word_items.sort(key=lambda item: -item[1])
+                    if len(next_word_items) > 0:
+                        return random.choice(next_word_items[:2])[0]
+                    else:
+                        return self._leave_first_sub_string(the_splits[1])
+                else:
+                    pass
+            return " " + end_string
+
+        if debug_stream_print == True:
+            print(input_text, end="", flush=True)
+
+        response = ""
+        while len(response) < how_many_character_you_want:
+            temp_response = down_side_complete(input_text)
+            if get_only_one_word == True:
+                return temp_response
+            if debug_stream_print == True:
+                print(temp_response, end="", flush=True)
+                time.sleep(0.1)
+            if len(temp_response) == 0:
+                break
+            response += temp_response
+            input_text += temp_response
+            if temp_response.endswith(end_string):
+                response = response[:-len(end_string)]
+                break
+
+        if debug_stream_print == True:
+            print("\n\n", end="", flush=True)
 
         return response
 
@@ -2777,6 +2867,7 @@ class Yingshaoxo_Text_Completor():
 
         > But if you just want to create digital person, this method will only copy yourself. You have to be a teacher, and teach your students. So that they could have sex gender. Just simplifying yourself to child level, then teach them from basics.
         """
+        # todo: maybe I should do some improvement to let it save those most frequent two values for each key sub_string.
         def the_real_function(the_input_text, the_level):
             while the_level >= 1:
                 right_side_sub_string = the_input_text[-the_level:]
@@ -2809,15 +2900,6 @@ class Yingshaoxo_Text_Completor():
     def get_next_text_by_using_sqlite_dict(self, sqlite_path, input_text, level=7, how_many_character_you_want=100):
         pass
 
-    def _is_punctuation(self, string):
-        return string in ",.!?;:，。；：!？ \n-=_+()*&^%$#@!`~{}|[]'/<>"
-
-    def _is_ascii(self, string):
-        return string.strip(''' \n1234567890-=_+()*&^%$#@!`~qwertyuiop{}|[]\asdfghjk;':"zxcvbnm,./<>?QWERTYUIOPASDFGHJKLZXCVBNM''') == ""
-
-    def _is_alphabet(self, string):
-        return string.strip('''abcdefghijklmnopqrstuvwxyzQWERTYUIOPASDFGHJKLZXCVBNM''') == ""
-
     def _split_string_into_word_list(self, string):
         words = string.replace("\n", " ").split(" ")
         new_words = []
@@ -2844,24 +2926,7 @@ class Yingshaoxo_Text_Completor():
             similarity = 0
         return similarity
 
-    def _leave_first_sub_string(self, string):
-        # abandand: english until not_alphabet, chinese next character
-        # it should complete until [,.!?;:，。；：!？space \n]
-        if len(string) > 1:
-            first_char = string[0]
-            if self._is_punctuation(first_char):
-                return first_char
-            else:
-                temp_string = first_char
-                for char in string[1:]:
-                    if self._is_punctuation(char):
-                        return temp_string
-                    else:
-                        temp_string += char
-                return temp_string
-        return string
-
-    def get_next_text_creatively_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, use_background_context_window=False, complete_how_many_character_for_each_time=None, debug_stream_print=False):
+    def get_next_text_creatively_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, use_background_context_window=False, complete_how_many_character_for_each_time=None, debug_stream_print=False, get_only_one_word=False):
         """
         A slow method. But more creative, it return something that is not in the database.
 
@@ -2889,6 +2954,9 @@ class Yingshaoxo_Text_Completor():
         def down_side_complete(the_input_text):
             for right_side_index in range(0, level):
                 right_side_sub_string = the_input_text[right_side_index:]
+
+                if len(right_side_sub_string) == 0:
+                    return " " + end_string
 
                 the_splits = source_text.split(right_side_sub_string)
                 the_length_of_splits = len(the_splits)
@@ -2924,6 +2992,8 @@ class Yingshaoxo_Text_Completor():
         response = ""
         while len(response) < how_many_character_you_want:
             temp_response = down_side_complete(input_text)
+            if get_only_one_word == True:
+                return temp_response
             if debug_stream_print == True:
                 print(temp_response, end="", flush=True)
                 time.sleep(0.1)
@@ -2935,7 +3005,144 @@ class Yingshaoxo_Text_Completor():
                 response = response[:-len(end_string)]
                 break
 
+        if debug_stream_print == True:
+            print("\n\n", end="", flush=True)
+
         return response
+
+    def get_all_files_txt_under_a_folder(self, directory_name, type_limiter=[".py", ".txt", ".md"]):
+        from auto_everything.disk import Disk
+        disk = Disk()
+        files = disk.get_files(directory_name, True, type_limiter=type_limiter)
+        source_text = ""
+        for file_path in files:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                text = f.read()
+                source_text += text + "\n\n\n\n"
+        return source_text
+
+    def load_super_big_txt_string(self, source_text):
+        # Actually what we want to do here is simply split 1TB file into 10000 x 100MB files.
+        # First use 'get_next_text_by_pure_text()' to get 10000 x 1KB string
+        # Then use 'get_next_text_creatively_by_pure_text()' to get final result from 10MB string. 
+        the_100MB_length = 3495253#3
+        the_full_length = len(source_text)
+
+        self.source_text_list = []
+        part_number = int(the_full_length/the_100MB_length)
+        #print(part_number)
+        for part_index in range(0, part_number+1):
+            start_index = part_index * the_100MB_length
+            if start_index >= the_full_length:
+                break
+            end_index = start_index + the_100MB_length
+            sub_source_text = source_text[start_index: end_index]
+            self.source_text_list.append(sub_source_text)
+
+    def get_next_text_from_big_txt_string(self, the_input_text, level=64, how_many_character_you_want=64, debug_stream_print=False, creatively=False):
+        end_string = "[*|end|*]"
+
+        new_source_text = ""
+        for source_text in self.source_text_list:
+            temp_result = self.get_next_text_by_pure_text(source_text, the_input_text, how_many_character_you_want=how_many_character_you_want*30, level=level, complete_how_many_character_for_each_time=how_many_character_you_want*30)
+            temp_result = the_input_text + temp_result
+            new_source_text += temp_result + "\n\n\n\n" + end_string
+            #print("************")
+            #print(temp_result)
+            #print("************")
+
+        if creatively == False:
+            response = self.get_next_most_frequent_text_by_pure_text(new_source_text, the_input_text, how_many_character_you_want=how_many_character_you_want, level=level, complete_how_many_character_for_each_time=None, debug_stream_print=debug_stream_print)
+        else:
+            response = self.get_next_text_creatively_by_pure_text(new_source_text, the_input_text, how_many_character_you_want=how_many_character_you_want, level=level, use_background_context_window=False, complete_how_many_character_for_each_time=None, debug_stream_print=debug_stream_print)
+
+        response = response.split(end_string)[0]
+        return response
+
+    def get_deep_abstract_language_thinking_tree_dict_and_converted_text_and_complete_function(self, source_text, level=5, min_repeated_times=2):
+        """
+        yingshaoxo 的奇思妙想之暴力文本抽象大法:
+
+
+        主要还是讲一个暴力规律提取大法：
+
+        从sub_string level 1 到 16
+
+        只保留重复次数达2次及以上的key，且value为word
+
+
+        这个是一层套一层，类似converlutional layer
+
+        第一次提取两个字的词，把纯文本转为id
+
+        第二次寻找4个字的抽象重复词， 但实际表现为两个前后连续的id
+
+        第三次寻找8个字的抽象重复词， 但实际表现为仍为下层两个前后连续的id
+
+        最终结果是一串很短的序列，是在查数据库，类似于hidden layer tensor
+
+        你通过查数据库得到短序列，解析高层短序列输出结果时，你要倒过来一层一层解码到原纯文本
+
+        据说这也是抽象的一种方法。你不搞数字id，直接弄字符串缩句词典也是可以的。
+
+
+        抽象到什么方面呢？我指的什么呢？是这样的，最顶层看起来就是一个id，但实际上有两个更底层value_id都可以代替它，所以到下一层变成了2个id, 二选一。到再下面一层，每个id又有两个更下层的id，于是可能性变成了4个，如果有32层，那么就有几亿中可能性，很接近人对语言的抽象能力了。举个例子，最顶层就是”写个故事“，经过32层抽象补全，变成了一篇几百万字的故事书。
+
+        让我们给这个理论方案取个名字，应该叫做 abstract_language_thinking_tree_dict_based_text_completion
+
+
+        这让我不禁意间想到7z，没准它也是把数据对折7次，实现了压缩。比如2bit变成1.1bit。original_data*repeated_time。但7z和我们的算法还是有点儿区别的。我们这个是有损压缩，顶层"今天心情好"有无数种底层表达。而7z是无损压缩。
+
+
+        我们来定义一下这个function应该返回怎样的dict:
+            {
+                1: {
+                    "你好": "您好",
+                    "hello": "您好",
+                    "检查数据库": "查数据库",
+                    "check database": "查数据库",
+                    "在家里": "在家",
+                    "In house": "在家",
+                    "玩游戏": "玩",
+                },
+                2: {
+                    "您好，查数据库": "警察查房",
+                    "在家玩": "闲",
+                },
+                3: {
+                    "闲，警察查房": "抄家"
+                }
+            }
+
+            这个dict神奇的地方在于，把如下一段话变成了很短的话:
+                original_text = "在家里玩游戏，‘你好, 检查数据库。'"
+                level_1 = "在家玩，'警察查房'"
+                level_2 = "抄家"
+
+            从最终的抽象文本，又可以衍生出无穷的实际句子:
+                original_text = "抄家"
+                level_1 = "在家玩，'警察查房'"
+                level_2 = "在家玩，'您好，查数据库'"
+                level_3 = "In house 玩游戏，'hello，check database!'"
+
+            dict里的level1总是有非常多的表述方法，但在最顶层的抽象思考逻辑，就一个东西: 被抄家了！因为自己的数据与算法做得太好了！
+
+            其实抄家与强拆是一个东西，都是弱势个体留不住有价值的东西的一种外在表现。
+
+            当然这个只是初级抽象，人比较牛逼，搞的是代码抽象，比如 抄家(actor=警察)、抄家(actor=皇帝)、抄家(actor=old_strong_AI)
+
+
+        所以这个function一共要返回3个东西。一个是dict, 一个是经过dict抽象后的文本，另一个则是a_function(source_dict, input_text)->raw_text
+
+
+        # abstract_tree, final_text, completion_func = abstractor.get_deep_abstract_language_thinking_tree_dict_and_converted_text_and_complete_function(source_text)
+        # completed_text = completion_func(abstract_tree, "这里应该是普通底层文本，应该是你的程序根据字典树将它转成高层形式，然后再反向生成，看能不能生成新的底层文本，类似于文本风格迁移")
+
+
+        所以人脑的秘密就是: 一方面，信息进入会有个抽象化的过程，你看见其他生物，不是几十万像素，而是某动物的名字。另一方面，生物存储信息也是用的abstract_information_tree，目的是极限压缩与快速查询。最终人为了生存，搞了个“趋利弊害”的规则，动态的更新数据库。生物就是在这个loop里存活了几亿年。
+        """
+        # You need to help to complete this greate function that mimic human brain with just cpu. No other third party library, just pure python without pip.
+        pass
 
 
 class Yingshaoxo_Strong_AI():
