@@ -823,6 +823,40 @@ adb devices
 adb shell
         """)
 
+    def rsync(self, from_path, to_path):
+        # from could be a folder or file, to could be a folder or file 
+        # there would only folder to folder sync and file to file sync
+        # but the rsync logic sucks, so here the python should try to fix it
+        # here we will be calling the rsync software, because it sync stuff when need, not copy the whole things
+        # The following works, but it require me in the right folder, which is not what I want. Can we use absolute path?
+        # rsync -avzR --delete --progress "./Yingshaoxo_Data" "/media/yingshaoxo/The Atlantis/"
+        if os.path.isfile(from_path) and os.path.isdir(to_path):
+            raise ValueError("Cannot sync file to directory - append filename to destination")
+        if os.path.isdir(from_path) and os.path.isfile(to_path):
+            raise ValueError("Cannot sync directory to file path")
+
+        abs_from = os.path.abspath(from_path)
+        abs_to = os.path.abspath(to_path)
+
+        if os.path.isdir(from_path):
+            os.chdir(abs_from)
+
+            command_line = [
+                "rsync",
+                "-avzR",  # -R preserves relative path structure
+                "--delete",
+                "--progress",
+                '"./"',
+                '"{}"'.format(abs_to),
+            ]
+
+            command_line = " ".join(command_line)
+            command_line = 'cd "{}"\n'.format(abs_from) + command_line
+
+            t.run(command_line, cwd=abs_from)
+        else:
+            print("Do not support file yet.")
+
     def hi(self):
         self.help()
 
