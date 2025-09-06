@@ -1216,7 +1216,11 @@ class Yingshaoxo_Text_Generator():
             return self.text_source_data[found_dict[random_key]["end"]-how_long_the_text_you_want_to_get:found_dict[random_key]["end"]+how_long_the_text_you_want_to_get], found_dict[random_key]["following"]
         else:
             if use_fuzz_search == False:
-                return self.search_and_get_following_text(input_text = input_text[len(input_text)//2+1:], quick_mode = True, use_fuzz_search = True, how_long_the_text_you_want_to_get = how_long_the_text_you_want_to_get)
+                if len(input_text) > 8:
+                    start_index = len(input_text)//2+1
+                else:
+                    start_index = 2
+                return self.search_and_get_following_text(input_text = input_text[start_index:], quick_mode = True, use_fuzz_search = True, how_long_the_text_you_want_to_get = how_long_the_text_you_want_to_get)
             else:
                 if (self.debug_mode):
                     print("Using fuzz searching...")
@@ -1269,7 +1273,11 @@ class Yingshaoxo_Text_Generator():
                     possibility_list.sort(key=lambda item: item["relative_counting"], reverse=True)
                     return self.text_source_data[possibility_list[0]['end']-how_long_the_text_you_want_to_get:possibility_list[0]['end']+how_long_the_text_you_want_to_get], possibility_list[0]["following"]
                 else:
-                    return self.search_and_get_following_text(input_text = input_text[len(input_text)//2+1:], quick_mode = quick_mode, use_fuzz_search = use_fuzz_search, how_long_the_text_you_want_to_get = how_long_the_text_you_want_to_get)
+                    if len(input_text) > 8:
+                        start_index = len(input_text)//2+1
+                    else:
+                        start_index = 2
+                    return self.search_and_get_following_text(input_text = input_text[start_index:], quick_mode = quick_mode, use_fuzz_search = use_fuzz_search, how_long_the_text_you_want_to_get = how_long_the_text_you_want_to_get)
 
     def search_and_get_following_text_in_a_exact_way(self, input_text: str, quick_mode: bool = False, use_fuzz_search: bool = True, extremly_accrate_mode: bool = False, how_long_the_text_you_want_to_get: int = 1024, also_want_the_current_line: bool = False) -> str:
         context, following_text = self.search_and_get_following_text(input_text=input_text, quick_mode=quick_mode, use_fuzz_search=use_fuzz_search, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
@@ -1376,7 +1384,10 @@ class Yingshaoxo_Text_Generator():
             if found_start_index == -1:
                 # didn't found
                 if quck_mode == True:
-                    input_text = input_text[len(input_text)//2+1:]
+                    if len(input_text) > 4:
+                        input_text = input_text[len(input_text)//2+1:]
+                    else:
+                        input_text = input_text[1:]
                 else:
                     input_text = input_text[1:]
                 return real_next_code_generation(input_text=input_text, how_long_the_text_you_want_to_get=how_long_the_text_you_want_to_get)
@@ -1410,8 +1421,10 @@ class Yingshaoxo_Text_Generator():
             found_start_index = text_source_data.find(input_text, start_index)
             if found_start_index == -1:
                 # didn't found
-                input_text = input_text[len(input_text)//2+1:]
-                #input_text = input_text[1:]
+                if len(input_text) >= 6:
+                    input_text = input_text[len(input_text)//2+1:]
+                else:
+                    input_text = input_text[1:]
                 return normal_next_code_finding(input_text=input_text)
             else:
                 start = found_start_index
