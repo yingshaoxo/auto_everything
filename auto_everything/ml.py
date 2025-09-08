@@ -88,65 +88,267 @@ class Yingshaoxo_Text_Preprocessor():
                 special_punctuations = special_punctuations.replace(char, "")
 
         result_list = []
+
         index = 0
         temp_string = ""
-        last_punctuation_flag =True
-        if len(input_text) > 0:
-            if input_text[-1] in special_punctuations:
-                last_punctuation_flag = True
-            else:
-                last_punctuation_flag = False
-        is_punctuation = True
-        while True:
-            current_char = input_text[index]
-
-            if current_char in special_punctuations:
-                is_punctuation = True
-            else:
-                is_punctuation = False
-
-            if last_punctuation_flag != is_punctuation:
-                if last_punctuation_flag == True:
-                    result_list.append({
-                        "language": "punctuation",
-                        "text": temp_string
-                    })
-                else:
+        while index < len(input_text):
+            char = input_text[index]
+            if char in special_punctuations:
+                if temp_string != "":
                     result_list.append({
                         "language": "not_punctuation",
                         "text": temp_string
                     })
-                temp_string = ""
-
-            last_punctuation_flag = is_punctuation
-            temp_string += current_char
-
-            index += 1
-            if index >= len(input_text):
-                break
-
-        if len(result_list) > 0:
-            if result_list[0]["text"] == "":
-                result_list = result_list[1:]
-        if temp_string != "":
-            is_punctuation = True
-            if temp_string[-1] in special_punctuations:
-                is_punctuation = True
-            else:
-                is_punctuation = False
-
-            if is_punctuation == True:
                 result_list.append({
                     "language": "punctuation",
-                    "text": temp_string
+                    "text": char
                 })
+                temp_string = ""
             else:
-                result_list.append({
-                    "language": "language",
-                    "text": temp_string
-                })
+                temp_string += char
+            index += 1
+        if temp_string != "":
+            result_list.append({
+                "language": "not_punctuation",
+                "text": temp_string
+            })
 
         return result_list
+
+        #if input_text.strip() == "":
+        #    return []
+
+        #if not_include_punctuations != "":
+        #    for char in not_include_punctuations:
+        #        special_punctuations = special_punctuations.replace(char, "")
+
+        #result_list = []
+        #index = 0
+        #temp_string = ""
+        #last_punctuation_flag =True
+        #if len(input_text) > 0:
+        #    if input_text[-1] in special_punctuations:
+        #        last_punctuation_flag = True
+        #    else:
+        #        last_punctuation_flag = False
+        #is_punctuation = True
+        #while True:
+        #    current_char = input_text[index]
+
+        #    if current_char in special_punctuations:
+        #        is_punctuation = True
+        #    else:
+        #        is_punctuation = False
+
+        #    if last_punctuation_flag != is_punctuation:
+        #        if last_punctuation_flag == True:
+        #            result_list.append({
+        #                "language": "punctuation",
+        #                "text": temp_string
+        #            })
+        #        else:
+        #            result_list.append({
+        #                "language": "not_punctuation",
+        #                "text": temp_string
+        #            })
+        #        temp_string = ""
+
+        #    last_punctuation_flag = is_punctuation
+        #    temp_string += current_char
+
+        #    index += 1
+        #    if index >= len(input_text):
+        #        break
+
+        #if len(result_list) > 0:
+        #    if result_list[0]["text"] == "":
+        #        result_list = result_list[1:]
+        #if temp_string != "":
+        #    is_punctuation = True
+        #    if temp_string[-1] in special_punctuations:
+        #        is_punctuation = True
+        #    else:
+        #        is_punctuation = False
+
+        #    if is_punctuation == True:
+        #        result_list.append({
+        #            "language": "punctuation",
+        #            "text": temp_string
+        #        })
+        #    else:
+        #        result_list.append({
+        #            "language": "language",
+        #            "text": temp_string
+        #        })
+
+        #return result_list
+
+    def get_sub_string_segment_dict_in_a_stable_way(self, text, use_strip=True):
+        """
+        So far, 简单的分词、短语分词，只能拿来做翻译。先翻译长的，然后短的。
+
+        从下面可以看到，我们可以利用人工提取的词典，把超级复杂的句子，化简为常用500单词英语的句子，这样就可以直接写if-else的处理逻辑了，超级简单。
+
+        因为我们采用了dict，所以翻译速度无穷快。
+
+        {
+            "1": {
+                "吃": "eat",
+                "喝": "drink",
+                "？": "?",
+                "，": ",",
+                "。": ".",
+            },
+            "2": {
+                "开心": "happy",
+                "高兴": "happy",
+            },
+            "3": {
+                "心情好": "happy",
+                "好心情": "happy",
+            },
+            "4": {
+                "心情大好": "happy",
+            },
+            "5": {
+                "心情好极了": "happy",
+            },
+            "6": {
+                "超级超级开心": "happy",
+            }
+        }
+
+
+        If you have a primary school language book, you will get a lot of short sub_sentences. Use university language book to get long sub_sentences. When you translate, use longer sub_sentence first, then replace short sub_sentence. From left to rigt, step by step using hash_dict to do the translation. It would be very quick and accurate.
+
+        How to get sub_sentences? Use punctuation to do the spliting. all sub_sentences that does not have punctuation are good sub_sentences.
+
+        从日常对话也可以提取出子字符串，想象对话中间的停顿为空格: 我感觉...你今天...很漂亮。
+        """
+        segment_list = []
+
+        temp_segment_list = self.split_string_into_list_by_punctuations(text)
+        for segment in temp_segment_list:
+            if segment["language"] == "punctuation":
+                punctuation = segment["text"]
+                segment_list.append(punctuation)
+            else:
+                segment_string = segment["text"]
+                segment_list.append(segment_string)
+
+        sub_string_dict = {}
+        def add_sub_string_to_dict(sub_string):
+            length_string = str(len(sub_string))
+            if length_string not in sub_string_dict:
+                sub_string_dict[length_string] = dict({sub_string: 1})
+            else:
+                if sub_string not in sub_string_dict[length_string]:
+                    sub_string_dict[length_string][sub_string] = 1
+                else:
+                    sub_string_dict[length_string][sub_string] += 1
+
+        for sub_string in segment_list:
+            if use_strip == True:
+                sub_string = sub_string.strip()
+            add_sub_string_to_dict(sub_string)
+
+        return sub_string_dict
+
+    def cut_half_longer_sub_string_in_sub_string_dict(self, sub_string_dict, limit_length=4, frequency_limit=2, with_frequency_check=False):
+        """
+        Another method: generally update sub_string dict, start from the first character, find if it exists in later string, if so, add it to our dict. and looking for that character+next_character sub_string, if that sub_string in the following text, also add it to sub_string dict. For each line, we will cut the first n string that appears in out sub_string dict.
+        Genrally speaking, it will add all sub_string that appears 2 times. and it will try to find new longer sub_string based on old sub_string. The heading line character will always be added into our dict if its not exists before.
+        This method will require people to define a splitor. (Here it is new line. A not accurate one is 100 long chrarcter context window. in natural world, the splitor is the pause time or stop time)
+
+        分词的目的: 得到一堆短序列。然后重复的也有很多，你需要手动搞一个"同义词典"，把可替换的相似的词或者短语，替换为最简单的那个。这样当你得到原始时代的最直白的表述，通常是"你饿吗？"、“你渴吗？”、"你想睡觉吗?"，你就可以通过简单的if-else进行处理。
+        """
+        limit_length += 1
+        we_did_changes = False
+
+        def add_sub_string_to_dict(sub_string):
+            length_string = str(len(sub_string))
+            if length_string not in sub_string_dict:
+                sub_string_dict[length_string] = dict({sub_string: 1})
+            else:
+                if sub_string not in sub_string_dict[length_string]:
+                    sub_string_dict[length_string][sub_string] = 1
+                else:
+                    sub_string_dict[length_string][sub_string] += 1
+
+        keys_list = [int(one) for one in sub_string_dict.keys()]
+        keys_list.sort(reverse=True)
+        #max_length_for_key = keys_list[0]
+        for number_key in keys_list:
+            if number_key <= limit_length:
+                break
+
+            string_key = str(number_key)
+            a_sub_string_dict_that_has_same_length = sub_string_dict[string_key]
+            so_called_keys = list(a_sub_string_dict_that_has_same_length.keys())
+
+            if len(so_called_keys) == 0:
+                del sub_string_dict[string_key]
+                continue
+
+            for sub_string in so_called_keys:
+                old_sub_string = sub_string
+                changed = False
+                length = len(sub_string)
+                for sub_line_length in range(2, length+1):
+                    sub_line = sub_string[:sub_line_length]
+                    temp_sub_string_dict_for_specific_length = sub_string_dict.get(str(sub_line_length))
+                    if temp_sub_string_dict_for_specific_length == None:
+                        continue
+                    else:
+                        if sub_line not in temp_sub_string_dict_for_specific_length.keys():
+                            continue
+                        else:
+                            if with_frequency_check == True:
+                                old_frequency = temp_sub_string_dict_for_specific_length[sub_line]
+                                add_sub_string_to_dict(sub_line) # add one frequency
+                                if old_frequency >= len(sub_line): # we trust those who appears more times
+                                    sub_string = sub_string[len(sub_line):]
+                                    changed = True
+                                    we_did_changes = True
+                                    break
+                            else:
+                                add_sub_string_to_dict(sub_line) # add one frequency
+                                sub_string = sub_string[len(sub_line):]
+                                changed = True
+                                we_did_changes = True
+                                break
+                if changed == True:
+                    add_sub_string_to_dict(sub_string)
+                    del a_sub_string_dict_that_has_same_length[old_sub_string]
+
+        if we_did_changes == True:
+            sub_string_dict = self.cut_half_longer_sub_string_in_sub_string_dict(sub_string_dict)
+
+        keys_list = [int(one) for one in sub_string_dict.keys()]
+        keys_list.sort(reverse=True)
+        for number_key in keys_list:
+            string_key = str(number_key)
+
+            if number_key > limit_length-1:
+                del sub_string_dict[string_key]
+                continue
+
+            if string_key not in sub_string_dict:
+                continue
+
+            a_sub_string_dict_that_has_same_length = sub_string_dict[string_key]
+            so_called_keys = list(a_sub_string_dict_that_has_same_length.keys())
+            for key in so_called_keys:
+                old_frequency = a_sub_string_dict_that_has_same_length[key]
+                if old_frequency < frequency_limit:
+                    del a_sub_string_dict_that_has_same_length[key]
+
+            a_sub_string_dict_that_has_same_length = sub_string_dict[string_key]
+            so_called_keys = list(a_sub_string_dict_that_has_same_length.keys())
+            if len(so_called_keys) == 0:
+                del sub_string_dict[string_key]
+
+        return sub_string_dict
 
     def split_string_into_english_and_not_english_list(self, input_text):
         """
@@ -1927,7 +2129,13 @@ class Yingshaoxo_Speech_Recognizer():
 class Yingshaoxo_Translator():
     """
     translation is kind of 1:1 task
-    if you have a super big dataset, you replace longest sentence first, you'll get 100% accurate translation
+    if you have a super big dataset, if you replace longest sub_sentence first, you'll get 100% accurate translation
+
+    If you have a primary school language book, you will get a lot of short sub_sentences. Use university language book to get long sub_sentences. When you translate, use longer sub_sentence first, then replace short sub_sentence. From left to rigt, step by step using hash_dict to do the translation. It would be very quick and accurate.
+
+    How to get sub_sentences? Use punctuation to do the spliting. all sub_sentences that does not have punctuation are good sub_sentences.
+
+    从日常对话也可以提取出子字符串，想象对话中间的停顿为空格: 我感觉...你今天...很漂亮。
     """
     def __init__(self):
         # pip install dl-translate
@@ -2691,6 +2899,10 @@ class Yingshaoxo_Text_Completor():
 
         return response
 
+    def _is_connector(self, string):
+        splits = "the of is and to in that we for an are by be as on with can if from which you it this then at have all not one has or that 的 了 和 是 就 都 而 及 与 着 或 一个 沒有 是否 我們 你們 妳們 他們 她們".split(" ")
+        return string in splits
+
     def _is_punctuation(self, string, more_punctuation="跟讲在有要地的着和便等就让了说想被到是只给几买干从个为以然问没回对先者出也之能上下么儿很会还这"):
         return string in (",.!?;:，。；：!？ \n-=_+()*&^%$#@!`~{}|[]'/<>" + more_punctuation)
 
@@ -2711,6 +2923,7 @@ class Yingshaoxo_Text_Completor():
             try:
                 import jieba
                 jieba.setLogLevel(20)
+                #keywords = list(jieba.cut(input_text, cut_all=False))
                 keywords = list(jieba.cut_for_search(input_text))
             except Exception as e:
                 print(e)
@@ -2813,13 +3026,16 @@ class Yingshaoxo_Text_Completor():
         else:
             return handle_it(source_text)
 
-    def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None, complete_by_word=False, use_background=False):
+    def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None, complete_by_word=False, use_background=False, creatively=False):
         """
         This method is the best so far, if you have big memory.
         It will only return what it got in database. We respect original author content.
 
         I think those super_AI actually uses database data, then use abstract_language_tree to represent the old data in a new way, similar to language style change.
         """
+        if creatively == True:
+            print("Why don't you delete this piece of response data from your database? Then it will return a new result.")
+
         if complete_how_many_character_for_each_time == None:
             complete_how_many_character_for_each_time = level
 
@@ -2859,9 +3075,31 @@ class Yingshaoxo_Text_Completor():
                 break
 
         if use_background == False:
-            return response
+            return response[:how_many_character_you_want]
         else:
-            return response + "\n\nFrefrence:\n" + source_text.strip()[:512]
+            return response[:how_many_character_you_want] + "\n\nFrefrence:\n" + source_text.strip()[:512]
+
+    def get_next_text_creatively(self, source_text, input_text, how_many_character_you_want=200, level=64):
+        fake_source_text = str(source_text)
+
+        response = ""
+        while len(response) < how_many_character_you_want:
+            temp_response = self.get_next_text_by_pure_text(fake_source_text, input_text, how_many_character_you_want=int(level/2), level=64, complete_how_many_character_for_each_time=level, complete_by_word=False, use_background=False, creatively=False)
+            old_temp_response = temp_response
+            temp_response = self._leave_first_sub_string(temp_response)
+            print(temp_response, end="", flush=True)
+            time.sleep(0.2)
+            if len(temp_response) == 0:
+                break
+            if temp_response.strip() == "":
+                break
+            old_pattern = old_temp_response[len(temp_response)-1:]
+            fake_source_text = fake_source_text.replace(old_pattern, "")
+            # need to change a lot of code to use find_string to replace only that place next text
+            response += temp_response
+            input_text += temp_response
+
+        return response
 
     def search_long_background_context_by_using_multiprocess(self, source_text, input_text, keyword_list=None, source_text_splitor=None, return_text=True):
         # super quick
@@ -3317,19 +3555,348 @@ class Yingshaoxo_Text_Completor():
         # You need to help to complete this greate function that mimic human brain with just cpu. No other third party library, just pure python without pip.
         pass
 
-    def accurate_and_slow_completion(self, source_text, input_text, how_many_character_you_want=200):
-        """
-        1. first you do context search to get a list of data
-        2. then you search all text followed by 'previous word'
-        3. you get most frequent next word
-        4. you use that word as 'previous word'
-        5. search until you can't find two result from context search
-        """
-        pass
-
     def directly_search_next_string_in_disk_file(self, file_path, input_text):
         # just think the disk as 100MB_text_bytes + the_input_text, you search context in 100MB, and full match the_input_text.
         pass
+
+    def get_repeated_sub_string_dict_from_text_stream_from_zero(self, source_text, level=32, minimum_frequency=3):
+        """
+        Another method: generally update sub_string dict, start from the first character, find if it exists in later string, if so, add it to our dict. and looking for that character+next_character sub_string, if that sub_string in the following text, also add it to sub_string dict. For each line, we will cut the first n string that appears in out sub_string dict.
+        Genrally speaking, it will add all sub_string that appears 2 times. and it will try to find new longer sub_string based on old sub_string. The heading line character will always be added into our dict if its not exists before.
+        This method will require people to define a splitor. (Here it is new line. A not accurate one is 100 long chrarcter context window. in natural world, the splitor is the pause time or stop time)
+        看起来，这个我在做的function在实现一个伟大的任务: 从连续的事件中找规律，先从小规律找起，逐渐找到大规律。有了规律，以后查数据库就可以预测未来。
+
+        分词的目的: 得到一堆短序列。然后重复的也有很多，你需要手动搞一个"同义词典"，把可替换的相似的词或者短语，替换为最简单的那个。这样当你得到原始时代的最直白的表述，通常是"你饿吗？"、“你渴吗？”、"你想睡觉吗?"，你就可以通过简单的if-else进行处理。
+        """
+        global add_new_counting
+
+        sub_string_dict = {}
+        add_new_counting = 0
+        def add_sub_string_to_dict(sub_string):
+            global add_new_counting
+            length_string = str(len(sub_string))
+            if length_string not in sub_string_dict:
+                sub_string_dict[length_string] = dict({sub_string: 1})
+            else:
+                if sub_string not in sub_string_dict[length_string]:
+                    sub_string_dict[length_string][sub_string] = 1
+                    add_new_counting += 1
+                else:
+                    sub_string_dict[length_string][sub_string] += 1
+        def delete_some_low_frequency_data(the_frequency_gate=None):
+            if the_frequency_gate != None:
+                for length_key in list(sub_string_dict.keys()):
+                    each_dict = sub_string_dict[length_key]
+                    sub_string_key_list = list(each_dict.keys())
+                    for sub_string_key in sub_string_key_list:
+                        old_frequency = each_dict[sub_string_key]
+                        if old_frequency < the_frequency_gate:
+                            del each_dict[sub_string_key]
+            else:
+                # cut half lower frequency sub_string
+                for length_key in list(sub_string_dict.keys()):
+                    each_dict = sub_string_dict[length_key]
+                    key_and_frequency_items = list(each_dict.items())
+                    if len(key_and_frequency_items) > 20000:
+                        key_and_frequency_items.sort(key=lambda items: -items[1])
+                        for key, value in key_and_frequency_items[int(len(key_and_frequency_items)/2):]:
+                            del each_dict[key]
+
+        length = len(source_text)
+        for current_level in range(2, level):
+            index = 0
+            temp_line = ""
+            while index < length:
+                sub_string = source_text[index: index+current_level]
+                if len(sub_string) == 0:
+                    index += 1
+                    continue
+                add_sub_string_to_dict(sub_string)
+                index += int(len(sub_string)/2)
+                if add_new_counting > 10000000:
+                    delete_some_low_frequency_data()
+                    add_new_counting = 0
+                    print("refactor the dict... cut frequency lower than ...")
+                index += 1
+
+        delete_some_low_frequency_data(minimum_frequency)
+
+        return sub_string_dict
+
+    def use_repeated_sub_string_dict_to_generate_next_string(self, sub_string_dict, input_text, level=32, how_many_character_you_want=200, creatively=False):
+        possible_length = 1
+        if creatively == True:
+            possible_length = 3
+
+        sub_string_length_keys = [int(one) for one in list(sub_string_dict.keys())]
+        sub_string_length_keys.sort(reverse=True)
+
+        def search_string_in_dict(input_text):
+            possible_result = []
+            for number_length_key in sub_string_length_keys:
+                string_length_key = str(number_length_key)
+                for key, _ in sub_string_dict[string_length_key].items():
+                    if input_text in key:
+                        splits = key.split(input_text)
+                        if len(splits) >= 2:
+                            result = input_text.join(splits[1:])
+                            if len(result) != 0:
+                                possible_result.append(result)
+                                #return result
+                    if len(possible_result) >= possible_length:
+                        break
+                if len(possible_result) >= possible_length:
+                    break
+            if len(possible_result) >=possible_length:
+                return random.choice(possible_result)
+            return None
+
+        def get_next_words(input_text):
+            for level_index in reversed(list(range(1, min(len(input_text)+1, level)))):
+                search_string = input_text[-level_index:]
+                result = search_string_in_dict(search_string)
+                if result == None:
+                    continue
+                else:
+                    return result
+            return None
+
+        print(input_text, end="", flush=True)
+        response = ""
+        while len(response) < how_many_character_you_want:
+            temp_response = get_next_words(input_text)
+            if temp_response == None:
+                break
+            print(temp_response, end="", flush=True)
+            time.sleep(0.1)
+            response += temp_response
+            input_text += temp_response
+        print("\n\n", end="", flush=True)
+
+        return response
+
+    def get_magic_language_tree_dict_from_text(self, source_text, splitor=None):
+        """
+        1. 整个数据还是用10个segment的window来平滑处理。
+        2. 建立多个频率池子，每次只取前50%。最终只存第5层的频率内容(未完成)
+        3. 最终我们用这个数据时，还是用long level sub_string full match in dict的方法，只不过用上了tree去加速和减少干扰概率
+
+        你找重复数据时，可以建几个临时池子，只取频率最高的前50%， 20%， 10%， 5%， 1%。
+        """
+        #import resource
+        #def get_current_process_memory():
+        #    # return MB
+        #    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+
+        stop_key_list = ['_c_']
+        def delete_low_frequency_words(the_dict, gate):
+            all_child_keys = list(the_dict.keys())
+            all_child_keys = [one for one in all_child_keys if one not in stop_key_list]
+            if len(all_child_keys) == 0:
+                    return
+            all_child_frequency = [the_dict[key]["_c_"] for key in all_child_keys]
+            all_child_items = [[key, all_child_frequency[index]] for index, key in enumerate(all_child_keys)]
+            for key, frequency in all_child_items:
+                if frequency < gate:
+                    del the_dict[key]
+                else:
+                    delete_low_frequency_words(the_dict[key], gate)
+
+        def add_sub_string_to_dict(the_dict, the_list):
+            if len(the_list) == 0:
+                return
+
+            element = the_list[0]
+
+            if element not in the_dict:
+                the_dict[element] = dict({"_c_": 1})
+            else:
+                the_dict[element]["_c_"] += 1
+                add_sub_string_to_dict(the_dict[element], the_list[1:])
+
+        if splitor == None:
+            lines = yingshaoxo_text_preprocessor.split_string_into_list_by_punctuations(source_text)
+            lines = [one["text"] for one in lines]
+        else:
+            lines = source_text.split(splitor)
+
+        window_length = 10
+        sub_string_dict = {}
+        counting = 0
+        for line_index in range(0, len(lines)-window_length):
+            temp_segment_list = lines[line_index: line_index + window_length]
+            string_level_index = str(len(temp_segment_list[0]))
+            if string_level_index not in sub_string_dict:
+                sub_string_dict[string_level_index] = {}
+            add_sub_string_to_dict(sub_string_dict[string_level_index], temp_segment_list)
+
+            counting += 1
+            if counting >= 100000:
+                print("reduce dict size by deleting low frequency words...")
+                #current_memory_in_mb = get_current_process_memory()
+                #print("current_memory:", current_memory_in_mb, " MB")
+                #if current_memory_in_mb >= 2000:
+                for sub_dict in sub_string_dict.values():
+                    delete_low_frequency_words(sub_dict, 2)
+
+                counting = 0
+
+        return sub_string_dict
+
+    def use_magic_language_tree_dict_to_generate_next_string(self, magic_language_tree_dict, input_text, level=32, frequency_gate=0.4, how_many_character_you_want=200):
+        """
+        You could loop the tree deeper when you do search. Root level, 2 level, 3 level, ...
+
+        Or you can use word cloud with background context search to get exactly result from database. just similar to search engine.
+        """
+        stop_key_list = ['_c_']
+
+        def get_next_words(the_dict, input_text, how_many_character_you_want, root_level=True):
+            if root_level == True:
+                for level_index in reversed(list(range(1, min(len(input_text)+1, level+1)))):
+                    search_string = input_text[-level_index:]
+                    search_string_length_string = str(len(search_string))
+                    real_dict = the_dict.get(search_string_length_string)
+                    if real_dict == None:
+                        continue
+                    result_dict = real_dict.get(search_string)
+                    if result_dict == None:
+                        continue
+                    else:
+                        all_child_keys = list(result_dict.keys())
+                        all_child_keys = [one for one in all_child_keys if one not in stop_key_list]
+                        all_child_frequency = [result_dict[key]["_c_"] for key in all_child_keys]
+                        all_child_items = [[key, all_child_frequency[index]] for index, key in enumerate(all_child_keys)]
+                        all_child_items.sort(key=lambda item: -item[1])
+                        all_child_items = all_child_items[:int(frequency_gate*len(all_child_items))]
+                        target_list = all_child_items
+                        if len(target_list) == 0:
+                            continue
+                        else:
+                            one = random.choice(target_list)
+                            one = one[0]
+                            if len(one) < how_many_character_you_want:
+                                temp_result = get_next_words(result_dict[one], input_text="", how_many_character_you_want=how_many_character_you_want, root_level=False)
+                                if temp_result == None:
+                                    return one
+                                else:
+                                    one += temp_result
+                            return one
+                return None
+            else:
+                all_child_keys = list(the_dict.keys())
+                all_child_keys = [one for one in all_child_keys if one not in stop_key_list]
+                all_child_frequency = [the_dict[key]["_c_"] for key in all_child_keys]
+                all_child_items = [[key, all_child_frequency[index]] for index, key in enumerate(all_child_keys)]
+                all_child_items.sort(key=lambda item: -item[1])
+                all_child_items = all_child_items[:int(frequency_gate*len(all_child_items))]
+                target_list = all_child_items
+                if len(target_list) == 0:
+                    return None
+                else:
+                    one = random.choice(target_list)
+                    one = one[0]
+                    return one
+
+        print(input_text, end="", flush=True)
+        response = ""
+        while len(response) < how_many_character_you_want:
+            temp_response = get_next_words(magic_language_tree_dict, input_text, how_many_character_you_want, root_level=True)
+            if temp_response == None:
+                break
+            print(temp_response, end="", flush=True)
+            time.sleep(0.1)
+            response += temp_response
+            input_text += temp_response
+        print("\n\n", end="", flush=True)
+
+        return response
+
+    def get_high_frequency_sub_string_dict_from_text(self, source_text, level=8, frequency_gate=3):
+        """
+        We want to have a simple structure. { "7": {7_len_key: [counting, next_7_len_value]} }
+
+        看起来像是我们保存了一个高频词典，方便快速查询。如果有right_sub_string查不到，我们就查原纯文本得到之后的文本。。。
+
+        有句话叫做一级查询，查dict，二期查询，查sentence by loop and find_string
+
+        This function similar to offline big AI model. (The original text data is 21 times smaller)
+
+        Suggest test with 2MB diary text. This is a argument change game, different size text need different arguments.
+        """
+        sub_string_dict = {}
+
+        def delete_low_frequency_words(the_dict, gate):
+            for key, value_list in list(the_dict.items()):
+                if value_list[0] < gate:
+                    del the_dict[key]
+
+        def add_sub_string_to_dict(the_dict, sub_string, next_string):
+            if sub_string not in the_dict:
+                the_dict[sub_string] = [1, next_string]
+            else:
+                the_dict[sub_string][0] += 1
+
+        counting = 0
+        for level_number in range(1, level+1):
+            for char_index in range(0, len(source_text)-level_number):
+                sub_string = source_text[char_index: char_index+level_number]
+                next_string = source_text[char_index+level_number: char_index+level_number+level_number]
+
+                if len(sub_string) != level_number:
+                    continue
+                if len(next_string) != level_number:
+                    continue
+
+                string_level_index = str(len(sub_string))
+                if string_level_index not in sub_string_dict:
+                    sub_string_dict[string_level_index] = {}
+                add_sub_string_to_dict(sub_string_dict[string_level_index], sub_string, next_string)
+
+                counting += 1
+                if counting >= 10000000:
+                    print("reduce dict size by deleting low frequency words...")
+                    for sub_dict in sub_string_dict.values():
+                        delete_low_frequency_words(sub_dict, frequency_gate)
+                    counting = 0
+
+        for sub_dict in sub_string_dict.values():
+            delete_low_frequency_words(sub_dict, frequency_gate)
+
+        return sub_string_dict
+
+    def use_high_frequency_sub_string_dict_to_generate_next_string(self, high_frequency_sub_string_dict, input_text, level=8, frequency_gate=2, how_many_character_you_want=200):
+        # level: longer, more accurate, bascially we are find string in dict database
+        # frequency_gate: int
+        # If you want to have a creative one, add one random character after input_text.
+        def get_next_words(the_dict, input_text):
+            for level_index in reversed(list(range(0, level+1))):
+                search_string = input_text[-level_index:]
+                search_string_length_string = str(len(search_string))
+                real_dict = the_dict.get(search_string_length_string)
+                if real_dict == None:
+                    continue
+                result = real_dict.get(search_string)
+                if result == None:
+                    continue
+                if result[0] < frequency_gate:
+                    continue
+                return result[1]
+            return None
+
+        print(input_text, end="", flush=True)
+        response = ""
+        while len(response) < how_many_character_you_want:
+            temp_response = get_next_words(high_frequency_sub_string_dict, input_text)
+            if temp_response == None:
+                break
+            print(temp_response, end="", flush=True)
+            time.sleep(0.1)
+            response += temp_response
+            input_text += temp_response
+        print("\n\n", end="", flush=True)
+
+        return response
 
 
 class Yingshaoxo_Strong_AI():
