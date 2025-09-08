@@ -3683,6 +3683,9 @@ class Yingshaoxo_Text_Completor():
 
         你找重复数据时，可以建几个临时池子，只取频率最高的前50%， 20%， 10%， 5%， 1%。
         """
+        from auto_everything.ml import Yingshaoxo_Text_Preprocessor
+        yingshaoxo_text_preprocessor = Yingshaoxo_Text_Preprocessor()
+
         #import resource
         #def get_current_process_memory():
         #    # return MB

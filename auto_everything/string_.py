@@ -530,6 +530,8 @@ class String:
         """
         text_list = ["How are you A.", "How are you B."]
         It returns ["How are you"]
+
+        todo: this function has bug in tail extract, it will not resort the source_list by using tail string.
         """
         def get_common_beginning(a_list):
         #(a_list: list[str]) -> str:
@@ -612,6 +614,70 @@ class String:
             del global_dict[""]
 
         return global_dict
+
+    def get_all_level_1_meaning_group_dict_in_text_list(self, text_list):
+        text_list_copy = text_list.copy()
+
+        sub_string_dict = {}
+
+        def add_sub_string_to_dict(sub_string):
+            length_string = str(len(sub_string))
+            if length_string not in sub_string_dict:
+                sub_string_dict[length_string] = dict({sub_string: 1})
+            else:
+                if sub_string not in sub_string_dict[length_string]:
+                    sub_string_dict[length_string][sub_string] = 1
+                else:
+                    sub_string_dict[length_string][sub_string] += 1
+
+        cache_string = ""
+
+        while True:
+            text_list_copy.sort(key=lambda a_string: a_string)
+            temp_sub_string_dict = self.get_meaning_group_dict_in_text_list(text_list_copy, get_less=True)
+            sub_string_list = list(temp_sub_string_dict.keys())
+
+            text_list_copy.sort(key=lambda a_string: a_string[::-1])
+            temp_sub_string_dict_2 = self.get_meaning_group_dict_in_text_list(text_list_copy, get_less=True)
+            sub_string_list_2 = list(temp_sub_string_dict_2.keys())
+
+            sub_string_list = list(set(sub_string_list + sub_string_list_2))
+
+            if len(sub_string_list) == 0:
+                break
+            _cache_string = str(sub_string_list)
+            if _cache_string == cache_string:
+                # meet the end, no new words
+                for sub_string in sub_string_list:
+                    add_sub_string_to_dict(sub_string)
+                for sub_string in text_list_copy:
+                    add_sub_string_to_dict(sub_string)
+                break
+            else:
+                cache_string = _cache_string
+
+            for sub_string in sub_string_list:
+                add_sub_string_to_dict(sub_string)
+
+            new_text_list = []
+            for line in text_list:
+                length = len(line)
+                for sub_line_length in range(1, length+1):
+                    sub_line = line[:sub_line_length]
+                    temp_word_dict_for_specific_length = sub_string_dict.get(str(sub_line_length))
+                    if temp_word_dict_for_specific_length == None:
+                        continue
+                    else:
+                        if sub_line not in temp_word_dict_for_specific_length.keys():
+                            continue
+                        else:
+                            line = line[len(sub_line):]
+                            break
+                new_text_list.append(line)
+
+            text_list_copy = new_text_list
+
+        return sub_string_dict
 
     def compress_text_by_using_yingshaoxo_method(self, text, common_part_list=[]):
     #(self, text, common_part_list=[]) -> str:
