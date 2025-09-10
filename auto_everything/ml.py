@@ -14,6 +14,7 @@ import re
 import json
 import random
 import math
+import time
 
 from auto_everything.terminal import Terminal, Terminal_User_Interface
 from auto_everything.disk import Disk, Store
@@ -3026,7 +3027,7 @@ class Yingshaoxo_Text_Completor():
         else:
             return handle_it(source_text)
 
-    def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None, complete_by_word=False, use_background=False, creatively=False):
+    def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None, return_one_word=False, use_background=False, creatively=False):
         """
         This method is the best so far, if you have big memory.
         It will only return what it got in database. We respect original author content.
@@ -3056,8 +3057,6 @@ class Yingshaoxo_Text_Completor():
                 if the_length_of_splits >= 2:
                     index = random.randint(1, the_length_of_splits-1)
                     target_text = the_splits[index][:complete_how_many_character_for_each_time]
-                    if complete_by_word == True:
-                        target_text = self._leave_first_sub_string(target_text)
                     return target_text
                 else:
                     pass
@@ -3066,6 +3065,8 @@ class Yingshaoxo_Text_Completor():
         response = ""
         while len(response) < how_many_character_you_want:
             temp_response = down_side_complete(input_text)
+            if return_one_word == True:
+                return self._leave_first_sub_string(temp_response)
             if len(temp_response) == 0:
                 break
             response += temp_response
@@ -3084,7 +3085,7 @@ class Yingshaoxo_Text_Completor():
 
         response = ""
         while len(response) < how_many_character_you_want:
-            temp_response = self.get_next_text_by_pure_text(fake_source_text, input_text, how_many_character_you_want=int(level/2), level=64, complete_how_many_character_for_each_time=level, complete_by_word=False, use_background=False, creatively=False)
+            temp_response = self.get_next_text_by_pure_text(fake_source_text, input_text, how_many_character_you_want=int(level/2), level=64, complete_how_many_character_for_each_time=level, use_background=False, creatively=False)
             old_temp_response = temp_response
             temp_response = self._leave_first_sub_string(temp_response)
             print(temp_response, end="", flush=True)
@@ -3125,8 +3126,8 @@ class Yingshaoxo_Text_Completor():
             sub_source_text = source_text[start_index: end_index]
 
             result = pool.apply_async(
-                self.search_long_background_context_by_using_keywords,
-                args=(sub_source_text, input_text, keyword_list, source_text_splitor)
+                self.get_next_text_by_pure_text,
+                args=(sub_source_text, input_text, 512, 64, 512, False, False, False)
             )
             results.append(result)
 
@@ -3137,12 +3138,171 @@ class Yingshaoxo_Text_Completor():
         for result in results:
             sub_result = result.get()
             if sub_result != "":
-                final_results.append(sub_result)
+                final_results.append(input_text + sub_result)
 
         if return_text == False:
             return final_results
         else:
-            return "\n\n-------\n\n".join(final_results)
+            return "\n\n__**__**__yingshaoxo_is_the_top_one__**__**__\n\n".join(final_results)
+
+    def get_magic_language_tree_dict_from_text(self, source_text, char_level=True, window_length=8):
+        """
+        This will be used for context background information extraction.
+
+        2MB text: window_length == 11
+        20KB text: window_length == 32
+        """
+        """
+        tree的目的: 加速和减少干扰概率
+
+        你找重复数据时，可以建几个临时池子，只取频率最高的前50%， 20%， 10%， 5%， 1%。
+        """
+        from auto_everything.ml import Yingshaoxo_Text_Preprocessor
+        yingshaoxo_text_preprocessor = Yingshaoxo_Text_Preprocessor()
+
+        stop_key_list = ['_c_']
+        def delete_low_frequency_words(the_dict, gate):
+            return # delete will cause the bot can't create new stuff
+
+            all_child_keys = list(the_dict.keys())
+            all_child_keys = [one for one in all_child_keys if one not in stop_key_list]
+            if len(all_child_keys) == 0:
+                    return
+            all_child_frequency = [the_dict[key]["_c_"] for key in all_child_keys]
+            all_child_items = [[key, all_child_frequency[index]] for index, key in enumerate(all_child_keys)]
+            for key, frequency in all_child_items:
+                if frequency < gate:
+                    del the_dict[key]
+                else:
+                    delete_low_frequency_words(the_dict[key], gate)
+
+        def add_sub_string_to_dict(the_dict, the_list):
+            if len(the_list) == 0:
+                return
+
+            element = the_list[0]
+            if element not in the_dict:
+                the_dict[element] = dict({"_c_": 1})
+            else:
+                the_dict[element]["_c_"] += 1
+            add_sub_string_to_dict(the_dict[element], the_list[1:])
+
+        if char_level == False:
+            lines = yingshaoxo_text_preprocessor.split_string_into_list_by_punctuations(source_text)
+            lines = [one["text"] for one in lines]
+        else:
+            #splitor = " "
+            lines = list(source_text)
+
+        sub_string_dict = {}
+        counting = 0
+        for line_index in range(0, len(lines)-window_length):
+            temp_segment_list = lines[line_index: line_index + window_length]
+            add_sub_string_to_dict(sub_string_dict, temp_segment_list)
+
+            counting += 1
+            if counting >= 1000000:
+                print("reduce dict size by deleting low frequency words...")
+                #current_memory_in_mb = get_current_process_memory()
+                #print("current_memory:", current_memory_in_mb, " MB")
+                #if current_memory_in_mb >= 2000:
+                delete_low_frequency_words(sub_string_dict, 2)
+                counting = 0
+
+        delete_low_frequency_words(sub_string_dict, 2)
+
+        return sub_string_dict
+
+    def use_magic_language_tree_dict_to_generate_next_string(self, magic_language_tree_dict, input_text, window_length=8, frequency_gate=1.0, how_many_character_you_want=300, char_level=True):
+        """
+        You can use word_cloud with background context search to get 100 similar result from database. Then let this function to generate something useful.
+
+        This function similar to gpt2 AI model.
+        """
+        from auto_everything.ml import Yingshaoxo_Text_Preprocessor
+        yingshaoxo_text_preprocessor = Yingshaoxo_Text_Preprocessor()
+
+        def get_segments(input_text):
+            if char_level == False:
+                segments = yingshaoxo_text_preprocessor.split_string_into_list_by_punctuations(input_text)
+                segments = [one["text"] for one in segments]
+            else:
+                #splitor = " "
+                segments = list(input_text)
+            return segments
+
+        stop_key_list = ['_c_']
+
+        def trace_words_to_get_sub_dict(the_dict, word_list):
+            if len(word_list) == 0:
+                return the_dict
+            else:
+                element = word_list[0]
+                if element in the_dict:
+                    return trace_words_to_get_sub_dict(the_dict[element], word_list[1:])
+                else:
+                    return None
+
+        def get_next_words(the_dict):
+            result_string = ""
+
+            all_child_keys = list(the_dict.keys())
+            all_child_keys = [one for one in all_child_keys if one not in stop_key_list]
+            all_child_frequency = [the_dict[key]["_c_"] for key in all_child_keys]
+            all_child_items = [[key, all_child_frequency[index]] for index, key in enumerate(all_child_keys)]
+            all_child_items.sort(key=lambda item: -item[1])
+            all_child_items = all_child_items[:max(int(frequency_gate*len(all_child_items)), 1)]
+            target_list = all_child_items
+            if len(target_list) == 0:
+                return result_string
+            else:
+                one = random.choice(target_list)
+                one = one[0]
+                return result_string + one + get_next_words(the_dict[one])
+
+            return result_text
+
+        def error_fix_search(input_text):
+            return random.choice(list(input_text))
+
+        print(input_text, end="", flush=True)
+        response = ""
+        while len(response) < how_many_character_you_want:
+            segments = get_segments(input_text)[-int(window_length/2):] # get right half as input
+
+            temp_a_dict = trace_words_to_get_sub_dict(magic_language_tree_dict, segments)
+            while temp_a_dict == None:
+                segments = segments[1:] # try less words right half if it is not in tree
+                if len(segments) == 0:
+                    temp_a_dict = None
+                    break
+                temp_a_dict = trace_words_to_get_sub_dict(magic_language_tree_dict, segments)
+            if temp_a_dict == None:
+                break
+            else:
+                temp_response = get_next_words(temp_a_dict)
+                if temp_response == None:
+                    break
+                if temp_response == "":
+                    break
+
+            print(temp_response, end="", flush=True)
+            time.sleep(0.1)
+            response += temp_response
+            input_text += temp_response
+
+        print("\n\n", end="", flush=True)
+
+        return response
+
+    def one_shoot_next_text_generation_by_using_magic_tree_from_context_string(self, context_text, input_text, frequency_gate=1.0):
+        """
+        Why don't you use sqlite to search input_text[-32:] result, to get a list of similar text. Then pass that string as context_text to this function.
+        """
+        context_text = context_text[-30000:]
+        the_dict = self.get_magic_language_tree_dict_from_text(context_text, char_level=True)
+        response = self.use_magic_language_tree_dict_to_generate_next_string(the_dict, input_text, char_level=True, frequency_gate=frequency_gate)
+        return response
 
     def get_next_most_frequent_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None, debug_stream_print=False, get_only_one_word=False):
         """
@@ -3421,55 +3581,6 @@ class Yingshaoxo_Text_Completor():
                 source_text += text + "\n\n\n\n"
         return source_text
 
-    def load_super_big_txt_string(self, source_text):
-        # Actually what we want to do here is simply split 1TB file into 10000 x 100MB files.
-        # First use 'get_next_text_by_pure_text()' to get 10000 x 1KB string
-        # Then use 'get_next_text_creatively_by_pure_text()' to get final result from 10MB string. 
-        the_100MB_length = 3495253#3
-        the_full_length = len(source_text)
-
-        self.source_text_list = []
-        part_number = int(the_full_length/the_100MB_length)
-        #print(part_number)
-        for part_index in range(0, part_number+1):
-            start_index = part_index * the_100MB_length
-            if start_index >= the_full_length:
-                break
-            end_index = start_index + the_100MB_length
-            sub_source_text = source_text[start_index: end_index]
-            self.source_text_list.append(sub_source_text)
-
-    def get_next_text_from_big_txt_string(self, the_input_text, level=64, how_many_character_you_want=64, debug_stream_print=False, creatively=False):
-        import multiprocessing
-
-        pool = multiprocessing.Pool()
-        results = []
-        for source_text in self.source_text_list:
-            result = pool.apply_async(
-                self.get_next_text_by_pure_text,
-                args=(source_text, the_input_text, how_many_character_you_want*30, level, how_many_character_you_want*30)
-            )
-            results.append(result)
-        pool.close()
-        pool.join()
-
-        end_string = "[*|end|*]"
-        new_source_text = ""
-        final_results = []
-        for result in results:
-            temp_result = result.get()
-            if temp_result != "":
-                temp_result = the_input_text + temp_result
-                new_source_text += temp_result + "\n\n\n\n" + end_string
-
-        if creatively == False:
-            response = self.get_next_most_frequent_text_by_pure_text(new_source_text, the_input_text, how_many_character_you_want=how_many_character_you_want, level=level, complete_how_many_character_for_each_time=None, debug_stream_print=debug_stream_print)
-        else:
-            response = self.get_next_text_creatively_by_pure_text(new_source_text, the_input_text, how_many_character_you_want=how_many_character_you_want, level=level, use_background_context_window=False, complete_how_many_character_for_each_time=None, debug_stream_print=debug_stream_print)
-
-        response = response.split(end_string)[0]
-        return response
-
     def get_deep_abstract_language_thinking_tree_dict_and_converted_text_and_complete_function(self, source_text, level=5, min_repeated_times=2):
         """
         yingshaoxo 的奇思妙想之暴力文本抽象大法:
@@ -3556,7 +3667,7 @@ class Yingshaoxo_Text_Completor():
         pass
 
     def directly_search_next_string_in_disk_file(self, file_path, input_text):
-        # just think the disk as 100MB_text_bytes + the_input_text, you search context in 100MB, and full match the_input_text.
+        # just think the disk file as 1kb_text_bytes + the_input_text + 2kb_text_bytes, you search contextbackground string within 3KB, and other generation method to generate the_input_text.
         pass
 
     def get_repeated_sub_string_dict_from_text_stream_from_zero(self, source_text, level=32, minimum_frequency=3):
@@ -3675,146 +3786,6 @@ class Yingshaoxo_Text_Completor():
 
         return response
 
-    def get_magic_language_tree_dict_from_text(self, source_text, splitor=None):
-        """
-        1. 整个数据还是用10个segment的window来平滑处理。
-        2. 建立多个频率池子，每次只取前50%。最终只存第5层的频率内容(未完成)
-        3. 最终我们用这个数据时，还是用long level sub_string full match in dict的方法，只不过用上了tree去加速和减少干扰概率
-
-        你找重复数据时，可以建几个临时池子，只取频率最高的前50%， 20%， 10%， 5%， 1%。
-        """
-        from auto_everything.ml import Yingshaoxo_Text_Preprocessor
-        yingshaoxo_text_preprocessor = Yingshaoxo_Text_Preprocessor()
-
-        #import resource
-        #def get_current_process_memory():
-        #    # return MB
-        #    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
-
-        stop_key_list = ['_c_']
-        def delete_low_frequency_words(the_dict, gate):
-            all_child_keys = list(the_dict.keys())
-            all_child_keys = [one for one in all_child_keys if one not in stop_key_list]
-            if len(all_child_keys) == 0:
-                    return
-            all_child_frequency = [the_dict[key]["_c_"] for key in all_child_keys]
-            all_child_items = [[key, all_child_frequency[index]] for index, key in enumerate(all_child_keys)]
-            for key, frequency in all_child_items:
-                if frequency < gate:
-                    del the_dict[key]
-                else:
-                    delete_low_frequency_words(the_dict[key], gate)
-
-        def add_sub_string_to_dict(the_dict, the_list):
-            if len(the_list) == 0:
-                return
-
-            element = the_list[0]
-
-            if element not in the_dict:
-                the_dict[element] = dict({"_c_": 1})
-            else:
-                the_dict[element]["_c_"] += 1
-                add_sub_string_to_dict(the_dict[element], the_list[1:])
-
-        if splitor == None:
-            lines = yingshaoxo_text_preprocessor.split_string_into_list_by_punctuations(source_text)
-            lines = [one["text"] for one in lines]
-        else:
-            lines = source_text.split(splitor)
-
-        window_length = 10
-        sub_string_dict = {}
-        counting = 0
-        for line_index in range(0, len(lines)-window_length):
-            temp_segment_list = lines[line_index: line_index + window_length]
-            string_level_index = str(len(temp_segment_list[0]))
-            if string_level_index not in sub_string_dict:
-                sub_string_dict[string_level_index] = {}
-            add_sub_string_to_dict(sub_string_dict[string_level_index], temp_segment_list)
-
-            counting += 1
-            if counting >= 100000:
-                print("reduce dict size by deleting low frequency words...")
-                #current_memory_in_mb = get_current_process_memory()
-                #print("current_memory:", current_memory_in_mb, " MB")
-                #if current_memory_in_mb >= 2000:
-                for sub_dict in sub_string_dict.values():
-                    delete_low_frequency_words(sub_dict, 2)
-
-                counting = 0
-
-        return sub_string_dict
-
-    def use_magic_language_tree_dict_to_generate_next_string(self, magic_language_tree_dict, input_text, level=32, frequency_gate=0.4, how_many_character_you_want=200):
-        """
-        You could loop the tree deeper when you do search. Root level, 2 level, 3 level, ...
-
-        Or you can use word cloud with background context search to get exactly result from database. just similar to search engine.
-        """
-        stop_key_list = ['_c_']
-
-        def get_next_words(the_dict, input_text, how_many_character_you_want, root_level=True):
-            if root_level == True:
-                for level_index in reversed(list(range(1, min(len(input_text)+1, level+1)))):
-                    search_string = input_text[-level_index:]
-                    search_string_length_string = str(len(search_string))
-                    real_dict = the_dict.get(search_string_length_string)
-                    if real_dict == None:
-                        continue
-                    result_dict = real_dict.get(search_string)
-                    if result_dict == None:
-                        continue
-                    else:
-                        all_child_keys = list(result_dict.keys())
-                        all_child_keys = [one for one in all_child_keys if one not in stop_key_list]
-                        all_child_frequency = [result_dict[key]["_c_"] for key in all_child_keys]
-                        all_child_items = [[key, all_child_frequency[index]] for index, key in enumerate(all_child_keys)]
-                        all_child_items.sort(key=lambda item: -item[1])
-                        all_child_items = all_child_items[:int(frequency_gate*len(all_child_items))]
-                        target_list = all_child_items
-                        if len(target_list) == 0:
-                            continue
-                        else:
-                            one = random.choice(target_list)
-                            one = one[0]
-                            if len(one) < how_many_character_you_want:
-                                temp_result = get_next_words(result_dict[one], input_text="", how_many_character_you_want=how_many_character_you_want, root_level=False)
-                                if temp_result == None:
-                                    return one
-                                else:
-                                    one += temp_result
-                            return one
-                return None
-            else:
-                all_child_keys = list(the_dict.keys())
-                all_child_keys = [one for one in all_child_keys if one not in stop_key_list]
-                all_child_frequency = [the_dict[key]["_c_"] for key in all_child_keys]
-                all_child_items = [[key, all_child_frequency[index]] for index, key in enumerate(all_child_keys)]
-                all_child_items.sort(key=lambda item: -item[1])
-                all_child_items = all_child_items[:int(frequency_gate*len(all_child_items))]
-                target_list = all_child_items
-                if len(target_list) == 0:
-                    return None
-                else:
-                    one = random.choice(target_list)
-                    one = one[0]
-                    return one
-
-        print(input_text, end="", flush=True)
-        response = ""
-        while len(response) < how_many_character_you_want:
-            temp_response = get_next_words(magic_language_tree_dict, input_text, how_many_character_you_want, root_level=True)
-            if temp_response == None:
-                break
-            print(temp_response, end="", flush=True)
-            time.sleep(0.1)
-            response += temp_response
-            input_text += temp_response
-        print("\n\n", end="", flush=True)
-
-        return response
-
     def get_high_frequency_sub_string_dict_from_text(self, source_text, level=8, frequency_gate=3):
         """
         We want to have a simple structure. { "7": {7_len_key: [counting, next_7_len_value]} }
@@ -3823,7 +3794,7 @@ class Yingshaoxo_Text_Completor():
 
         有句话叫做一级查询，查dict，二期查询，查sentence by loop and find_string
 
-        This function similar to offline big AI model. (The original text data is 21 times smaller)
+        This function similar to gpt1 AI model. (The original text data is 21 times smaller)
 
         Suggest test with 2MB diary text. This is a argument change game, different size text need different arguments.
         """
