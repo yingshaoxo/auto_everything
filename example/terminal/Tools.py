@@ -224,7 +224,7 @@ git remote set-url --add --push origin {repo_url}
             t.run("""
             sudo -S chown -R $(whoami):$(whoami) {path}
             sudo -S chmod g+rw {path}
-            """.format(whoami=whoami, path=path))
+            """.format(path=path))
 
     def check_port(self, port=None):
         if port == None:

@@ -383,6 +383,8 @@ class Yingshaoxo_Http_Server():
 
             server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            #server.settimeout(3) #seconds
+            #server.setblocking(True) #EasyProgrammingLanguage has built-in TCP server and client UI_widget, you have to set this to work with them.
             server.bind((host, port))
             server.listen(1)
 

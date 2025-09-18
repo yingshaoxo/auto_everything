@@ -529,6 +529,80 @@ class Yingshaoxo_Dict():
             return a_dict.has_key(key)
 
 
+class Yingshaoxo_Pure_String_Dict():
+    def __init__(self):
+        self.raw_string = ""
+        self._init_splitor()
+
+    def _init_splitor(self, splitor1=".#line#.", splitor2="|#colon#|"):
+        self.splitor1 = splitor1
+        self.splitor2 = splitor2
+
+    def set_value_by_key(self, key, value):
+        if self.has_key(key):
+            # modifying
+            search_string = self.splitor1 + key + self.splitor2
+            index1 = self.raw_string.find(search_string)
+            if index1 == -1:
+                return
+            self.raw_string = self.raw_string[:index1] + value + self.raw_string[index1+len(value):]
+        else:
+            # add new
+            self.raw_string += self.splitor1 + key + self.splitor2 + value
+
+    def has_key(self, key):
+        if (self.splitor1 + key + self.splitor2) in self.raw_string:
+            return True
+        else:
+            return False
+
+    def get_value_by_key(self, key):
+        search_string = self.splitor1 + key + self.splitor2
+        index1 = self.raw_string.find(search_string)
+        if index1 == -1:
+            return None
+        rest_string = self.raw_string[index1 + len(search_string):]
+        index2 = rest_string.find(self.splitor1)
+        if index2 == -1:
+            return rest_string
+        else:
+            return rest_string[:index2]
+
+    def delete_a_key(self, key):
+        search_string = self.splitor1 + key + self.splitor2
+        index1 = self.raw_string.find(search_string)
+        if index1 == -1:
+            return
+
+        rest_string = self.raw_string[index1 + len(search_string):]
+        index2 = rest_string.find(self.splitor1)
+        if index2 == -1:
+            self.raw_string = self.raw_string[:index1]
+        else:
+            self.raw_string = self.raw_string[:index1] + rest_string[index2:]
+
+    def get_keys(self):
+        lines = self.raw_string.split(self.splitor1)
+        elements = []
+        for line in lines[1:]:
+            a_key = line.split(self.splitor2)[0]
+            elements.append(a_key)
+        return elements
+
+    def get_keys_and_values(self):
+        lines = self.raw_string.split(self.splitor1)
+        elements = []
+        for line in lines[1:]:
+            elements.append(line.split(self.splitor2))
+        return elements
+
+    def dumps(self):
+        return self.raw_string
+
+    def loads(self, a_string):
+        self.raw_string = a_string
+
+
 try:
     import os
     import pickle
