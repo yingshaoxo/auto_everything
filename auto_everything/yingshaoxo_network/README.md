@@ -6,7 +6,7 @@ What channel you use to transmit data? All channel that could pass information.
 
 > For example, in IP network, device_ID is equal to IP address. Data is a list of byte, called bytes. A byte is a int number between 0 and 255. A byte can also be eight 0 and 1. For example, 00000001.
 
-> Why they do not use 0 to 99 to represent a byte? It could also work as a list of int in C programming language. 0 to 99 can represent alphabet_plus_punctuation language very well.
+> Why they do not use 0 to 99 to represent a byte? It could also work as a list of int in C programming language. 0 to 99 can represent alphabet_plus_number_plus_punctuation language very well.
 
 ## Let's define a simple network
 
