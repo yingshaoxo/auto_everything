@@ -162,7 +162,9 @@ class IO():
         For a byte or ascii number in range of [0,255], the binary_string should have 8 chracters, similar to 01100100
         """
         try:
-            return format(a_number, "b")
+            binary_string = format(a_number, "b")
+            heading_zero = (8 - len(binary_string)) * '0'
+            return heading_zero + binary_string
         except Exception as e:
             # yingshaoxo method of Hexadecimal conversion
             half_number_list = [[0,128], [0,64], [0,32], [0,16], [0,8], [0,4], [0,2], [0,1]]

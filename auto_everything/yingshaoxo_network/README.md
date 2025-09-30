@@ -40,4 +40,4 @@ So the data may look like: `computer_a:computer_b:length_plus_bytes_sum_string:c
 
 Do encryption for the data, so only you and another person you want to connect knows how to do decryption to get the real data.
 
-A simple encrption would be: `电脑_1:电脑_2:当前时间xx任务ID:html:访问英少xo的网站`. By doing so, only chinese could know what I have sent and how to edit it. If someone use English to edit it, I would know it is a fake one.
+A simple encryption would be: `电脑_1:电脑_2:当前时间xx任务ID:html:访问英少xo的网站`. By doing so, only chinese could know what I have sent and how to edit it. If someone use English to edit it, I would know it is a fake one.

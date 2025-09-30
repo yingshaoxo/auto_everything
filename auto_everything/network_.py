@@ -305,7 +305,93 @@ class Serial():
             self.read_process.kill()
 
 
+class General_Communication_System():
+    def __init__(self):
+        self._listen_char = ""
+        self._listen_data = []
+
+    def send(self, bytes_data, send_zero_function, send_one_function):
+        for number_zero_to_255 in bytes_data:
+            zero_and_one_string = self._int_byte_to_binary_string(number_zero_to_255)
+            for signal in zero_and_one_string:
+                if signal == "0":
+                    send_zero_function()
+                elif signal == "1":
+                    send_one_function()
+
+    def get_zero_input(self):
+        self._listen_char += "0"
+
+    def get_one_input(self):
+        self._listen_char += "1"
+
+    def _convert_listen_char_to_listen_data(self):
+        if len(self._listen_char) >= 8:
+            a_zero_and_one_string = self._listen_char[:8]
+            a_byte_interger = self._string_binary_to_int_byte(a_zero_and_one_string)
+            self._listen_data.append(a_byte_interger)
+            self._listen_char = self._listen_char[8:]
+            return True
+        return False
+
+    def receive(self):
+        while self._convert_listen_char_to_listen_data():
+            pass
+
+        try:
+            received_data = bytes(self._listen_data)
+        except Exception as e:
+            print(e)
+            received_data = [one for one in self._listen_data]
+
+        self._listen_data = []
+
+        return received_data
+
+    def _int_byte_to_binary_string(self, a_number):
+        """
+        For a byte or ascii number in range of [0,255], the binary_string should have 8 chracters, similar to 01100100
+        """
+        try:
+            binary_string = format(a_number, "b")
+            heading_zero = (8 - len(binary_string)) * '0'
+            return heading_zero + binary_string
+        except Exception as e:
+            # yingshaoxo method of Hexadecimal conversion
+            half_number_list = [128, 64, 32, 16, 8, 4, 2, 1]
+            binary_string = ""
+            for one in half_number_list:
+                if a_number >= one:
+                    binary_string += "1"
+                    a_number -= one
+                else:
+                    binary_string += "0"
+            return binary_string
+
+    def _string_binary_to_int_byte(self, binary_string):
+        """
+        For a byte or ascii number in range of [0,255], the binary_string should have 8 chracters, similar to 01100100
+        Which means a byte has 8 characters. The binary_string length you gave to me should be 8.
+        """
+        try:
+            return int(binary_string, 2)
+        except Exception as e:
+            half_number_list = [128, 64, 32, 16, 8, 4, 2, 1]
+            the_number = 0
+            index = 0
+            for one in half_number_list:
+                if binary_string[index] == "1":
+                    the_number += one
+                index += 1
+            return the_number
+
+
 if __name__ == "__main__":
     uart = Universal_Asynchronous_Receiver_And_Transmitter(device_path="/dev/ttyUSB0")
     #uart.read(print)
     #uart.write(b"abcd\n")
+
+    #communicator = General_Communication_System()
+    #communicator.send(b"ab", communicator.get_zero_input, communicator.get_one_input)
+    #data = communicator.receive()
+    #print(data)
