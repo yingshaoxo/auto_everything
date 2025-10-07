@@ -3,13 +3,59 @@
 
 from auto_everything.disk import Disk
 disk = Disk()
-
 import random
 
 
 class String:
     def __init__(self):
         pass
+
+    def hard_core_string_pattern_search(self, source_text, pattern, unknown_symbol="xxx", end_mark="\n"):
+        """
+        pattern:
+            This is a xxx story.
+            xxx mother is xxx.
+            The tree is located in xxx
+        If the start and end if not xxx, then that will be the return string start and end characters.
+
+        yingshaoxo: Just think if you search 10KB string from a 1TB sqlite database, then use this function to do things like "What is human? xxx.".
+        """
+        should_exists_pattern_part_sequence = pattern.split(unknown_symbol)
+        should_exists_pattern_part_sequence = [one for one in should_exists_pattern_part_sequence if one != ""]
+
+        part_list = source_text.split(end_mark)
+        result_list = []
+        for part in part_list:
+            # if pattern matchs the part, it will return that part by adding it to result_list
+            # Do not use regex expression. We want to use pure python.
+            ok = True
+            for one in should_exists_pattern_part_sequence:
+                if one not in part:
+                    ok = False
+                    break
+            if ok == False:
+                continue
+            if ok == True:
+                ok = True
+                # we have to check the order of the should_exists_pattern_sequence, the order OK, it is OK
+                last_index = -1
+                for one in should_exists_pattern_part_sequence:
+                    index = part.find(one)
+                    if index <= last_index:
+                        ok = False
+                        break
+                    last_index = index
+                if ok == False:
+                    continue
+                if ok == True:
+                    if not pattern.startswith(unknown_symbol):
+                        beginning = should_exists_pattern_part_sequence[0]
+                        part = beginning + beginning.join(part.split(beginning)[1:])
+                    if not pattern.endswith(unknown_symbol):
+                        end = should_exists_pattern_part_sequence[-1]
+                        part = end.join(part.split(end)[:-1]) + end
+                    result_list.append(part)
+        return result_list
 
     def capitalize_the_first_character_of_a_string(self, text):
     #(self, text: str) -> str:

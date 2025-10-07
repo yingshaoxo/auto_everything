@@ -605,111 +605,139 @@ class Yingshaoxo_Pure_String_Dict():
         self.raw_string = a_string
 
 
-try:
-    import os
-    import pickle
-    #import tempfile
+class Redis_Style_Disk_String_Dict():
+    """
+    # author: baidu deepseek v3
 
-    class Disk_Dict():
-        """
-        # author: baidu deepseek v3
+    # needs: yingshaoxo
 
-        # needs: yingshaoxo
+        Is there a disk_dict in python that can the place of dict, allow using dict on the hard drive to reduce memory usage?
 
-            Is there a disk_dict in python that can the place of dict, allow using dict on the hard drive to reduce memory usage?
+        I looked at some packages, but they all have dependencies, which is unreliable. I need a single-file, no-dependency python file. I don't need type annotations; Can this thing take up almost 0 memory? My data keys are also super large, so nothing can be in memory; everything must rely on the disk.
 
-            I looked at some packages, but they all have dependencies, which is unreliable. I need a single-file, no-dependency python file. I don't need type annotations; Can this thing take up almost 0 memory? My data keys are also super large, so nothing can be in memory; everything must rely on the disk.
+        Can you let the following code support "a b c d e f g ..." sub_folder split? So the search speed of key will increase, and will bypass the max_files number a folder can save problem.
 
-            Can you let the following code support "a b c d e f g ..." sub_folder split? So the search speed of key will increase, and will bypass the max_files number a folder can save problem.
+        Can you create your own hash method than using hashlib or zlib? the python hashlib is not stable according to my experience.
 
-            Can you create your own hash method than using hashlib or zlib? the python hashlib is not stable according to my experience.
+        Can you make the whole class not rely on pickle? Can you just save and read pure string? We also do not need json. You can assume all stuff we save is str type, you can also use str() to force do a conversion if you like.
 
-            I suggest do not use pickle, but json, because pure text uses less space.
-        """
-        __slots__ = ('_path', '_depth')
+        We actually need a disk dict that supports putting another dict in dict. It is like the value can be a value or key_list.
+    """
+    __slots__ = ('_path', '_depth')
 
-        def __init__(self, path, depth=2):
-            #self._path = path or tempfile.mkdtemp(prefix='diskdict_')
-            self._path = path
-            self._depth = depth
-            os.makedirs(self._path, exist_ok=True)
+    def __init__(self, path, depth=8):
+        self._path = path
+        self._depth = depth
+        os.makedirs(self._path, exist_ok=True)
 
-        def _custom_hash(self, data):
-            """Custom hash function using basic byte operations"""
-            if isinstance(data, str):
-                data = data.encode('utf-8')
-            elif not isinstance(data, bytes):
-                data = pickle.dumps(data)
+    def _custom_hash(self, data):
+        """FNV-1a hash implementation using format()"""
+        if not isinstance(data, str):
+            data = str(data)
+        data = data.encode('utf-8')
 
-            # Simple hash algorithm using XOR and shifts
-            hash_val = 0x811c9dc5  # FNV offset basis
-            for byte in data:
-                hash_val ^= byte
-                hash_val = (hash_val * 0x01000193) & 0xffffffff  # FNV prime
+        fnv_prime = 0x01000193
+        hash_val = 0x811c9dc5
 
-            # Convert to hex string
-            return '{:08x}'.format(hash_val)
+        for byte in data:
+            hash_val ^= byte
+            hash_val = (hash_val * fnv_prime) & 0xffffffff
 
-        def _get_subfolder_path(self, key_hash):
-            path = self._path
-            for i in range(self._depth):
-                path = os.path.join(path, key_hash[i*2:(i+1)*2])
-            return path
+        return '{0:08x}'.format(hash_val)
 
-        def _key_path(self, key):
-            key_hash = self._custom_hash(key)
-            base_path = self._get_subfolder_path(key_hash)
-            os.makedirs(base_path, exist_ok=True)
-            return os.path.join(base_path, key_hash)
+    def _get_subfolder_path(self, key_hash):
+        """Build nested folder structure"""
+        path = self._path
+        for i in range(self._depth):
+            path = os.path.join(path, key_hash[i*2:(i+1)*2])
+        return path
 
-        def __setitem__(self, key, value):
-            base_path = self._key_path(key)
-            with open(base_path + '.key', 'wb') as f:
-                pickle.dump(key, f)
-            with open(base_path + '.val', 'wb') as f:
-                pickle.dump(value, f)
+    def _key_path(self, key):
+        """Generate complete filesystem path"""
+        key_hash = self._custom_hash(key)
+        base_path = self._get_subfolder_path(key_hash)
+        os.makedirs(base_path, exist_ok=True)
+        return os.path.join(base_path, key_hash)
 
-        def __getitem__(self, key):
-            base_path = self._key_path(key)
-            try:
-                with open(base_path + '.key', 'rb') as f:
-                    disk_key = pickle.load(f)
-                if disk_key != key:
-                    raise KeyError(key)
-                with open(base_path + '.val', 'rb') as f:
-                    return pickle.load(f)
-            except FileNotFoundError:
+    def __setitem__(self, key, value):
+        """Store key-value pair"""
+        if not isinstance(key, str):
+            key = str(key)
+        if not isinstance(value, str):
+            value = str(value)
+
+        base_path = self._key_path(key)
+        temp_path = '{0}.tmp'.format(base_path)
+        final_key_path = '{0}.key'.format(base_path)
+        final_val_path = '{0}.val'.format(base_path)
+
+        try:
+            with open(temp_path, 'w', encoding='utf-8') as f:
+                f.write(key)
+            os.replace(temp_path, final_key_path)
+
+            with open(temp_path, 'w', encoding='utf-8') as f:
+                f.write(value)
+            os.replace(temp_path, final_val_path)
+        except Exception:
+            try: os.remove(temp_path)
+            except: pass
+            raise
+
+    def __getitem__(self, key):
+        """Retrieve value by key"""
+        if not isinstance(key, str):
+            key = str(key)
+
+        base_path = self._key_path(key)
+        try:
+            with open('{0}.key'.format(base_path), 'r', encoding='utf-8') as f:
+                disk_key = f.read()
+            if disk_key != key:
                 raise KeyError(key)
 
-        def __delitem__(self, key):
-            base_path = self._key_path(key)
-            try:
-                os.remove(base_path + '.key')
-                os.remove(base_path + '.val')
-            except FileNotFoundError:
-                raise KeyError(key)
+            with open('{0}.val'.format(base_path), 'r', encoding='utf-8') as f:
+                return f.read()
+        except FileNotFoundError:
+            raise KeyError(key)
 
-        def __contains__(self, key):
-            try:
-                self[key]
-                return True
-            except KeyError:
-                return False
+    def __delitem__(self, key):
+        """Delete key-value pair"""
+        if not isinstance(key, str):
+            key = str(key)
 
-        def clear(self):
-            for root, _, files in os.walk(self._path):
-                for fname in files:
-                    if fname.endswith(('.key', '.val')):
-                        os.remove(os.path.join(root, fname))
+        base_path = self._key_path(key)
+        try:
+            os.remove('{0}.key'.format(base_path))
+            os.remove('{0}.val'.format(base_path))
+        except FileNotFoundError:
+            raise KeyError(key)
 
-        def __iter__(self):
-            for root, _, files in os.walk(self._path):
-                for fname in files:
-                    if fname.endswith('.key'):
-                        with open(os.path.join(root, fname), 'rb') as f:
-                            yield pickle.load(f)
-except Exception as e:
-    print(e)
+    def __contains__(self, key):
+        """Check if key exists"""
+        try:
+            self[key]
+            return True
+        except KeyError:
+            return False
+
+    def clear(self):
+        """Remove all stored items"""
+        for root, _, files in os.walk(self._path):
+            for fname in files:
+                if fname.endswith(('.key', '.val')):
+                    os.remove(os.path.join(root, fname))
+
+    def __iter__(self):
+        """Iterate through all keys"""
+        for root, _, files in os.walk(self._path):
+            for fname in files:
+                if fname.endswith('.key'):
+                    try:
+                        with open(os.path.join(root, fname), 'r', encoding='utf-8') as f:
+                            yield f.read()
+                    except UnicodeDecodeError:
+                        continue
 
 
 class MyIO():

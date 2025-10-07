@@ -3131,6 +3131,12 @@ class Yingshaoxo_Text_Completor():
             )
             results.append(result)
 
+            #result = pool.apply_async(
+            #    self.get_next_text_by_pure_text,
+            #    args=(sub_source_text, input_text[:-1], 512, 64, 512, False, False, False)
+            #)
+            #results.append(result)
+
         pool.close()
         pool.join()
 
@@ -3213,7 +3219,7 @@ class Yingshaoxo_Text_Completor():
 
         return sub_string_dict
 
-    def use_magic_language_tree_dict_to_generate_next_string(self, magic_language_tree_dict, input_text, window_length=8, frequency_gate=1.0, how_many_character_you_want=300, char_level=True):
+    def use_magic_language_tree_dict_to_generate_next_string(self, magic_language_tree_dict, input_text, window_length=8, frequency_gate=1.0, how_many_character_you_want=128, char_level=True):
         """
         You can use word_cloud with background context search to get 100 similar result from database. Then let this function to generate something useful.
 
@@ -3265,7 +3271,7 @@ class Yingshaoxo_Text_Completor():
         def error_fix_search(input_text):
             return random.choice(list(input_text))
 
-        print(input_text, end="", flush=True)
+        #print(input_text, end="", flush=True)
         response = ""
         while len(response) < how_many_character_you_want:
             segments = get_segments(input_text)[-int(window_length/2):] # get right half as input
@@ -3286,22 +3292,22 @@ class Yingshaoxo_Text_Completor():
                 if temp_response == "":
                     break
 
-            print(temp_response, end="", flush=True)
+            #print(temp_response, end="", flush=True)
             time.sleep(0.1)
             response += temp_response
             input_text += temp_response
 
-        print("\n\n", end="", flush=True)
+        #print("\n\n", end="", flush=True)
 
         return response
 
-    def one_shoot_next_text_generation_by_using_magic_tree_from_context_string(self, context_text, input_text, frequency_gate=1.0):
+    def one_shoot_next_text_generation_by_using_magic_tree_from_context_string(self, context_text, input_text, frequency_gate=1.0, window_length=8):
         """
         Why don't you use sqlite to search input_text[-32:] result, to get a list of similar text. Then pass that string as context_text to this function.
         """
         context_text = context_text[-30000:]
-        the_dict = self.get_magic_language_tree_dict_from_text(context_text, char_level=True)
-        response = self.use_magic_language_tree_dict_to_generate_next_string(the_dict, input_text, char_level=True, frequency_gate=frequency_gate)
+        the_dict = self.get_magic_language_tree_dict_from_text(context_text, char_level=True, window_length=window_length)
+        response = self.use_magic_language_tree_dict_to_generate_next_string(the_dict, input_text, char_level=True, frequency_gate=frequency_gate, window_length=window_length)
         return response
 
     def get_next_most_frequent_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None, debug_stream_print=False, get_only_one_word=False):
@@ -3871,6 +3877,284 @@ class Yingshaoxo_Text_Completor():
         print("\n\n", end="", flush=True)
 
         return response
+
+    def auto_pattern_dict_finding_process(self, source_dict):
+        """
+        Step 1:
+            1. first, it will look for 11 character long sub_sentence that appears 2 times.
+            2. then, it will look for 10 character long sub_sentence that appears 2 times.
+            3. then, it will look for 9 character long sub_sentence that appears 2 times.
+            ...
+            n. then, it will look for 1 character long sub_sentence that appears 2 times.
+            it adds those sub_string as key_string in a dict
+
+        Step 2:
+            1. it will loop all those key_string, to find the next longest common characters. If there has no common character, it will save next 1 character as value. If there has common character, it will save 'next common characters + 1 new character' as value.
+
+        Step 3:
+            when you generate things, you randomly choice one from dict, from longest key to shortest key.
+
+        This method needs a lot of storage but easy for people to understand.
+        """
+        pass
+
+    def get_simplified_magic_language_tree_dict_from_text_list(self, source_text_list, target_dict_folder_path):
+        """
+        source_text_list can be [source_text]
+
+        1. per two line as a input_string. "a\nb\nc" -> ["a\nb", "b\na"]
+        2. every segement sub_sentence that split by punctuation will be input_string. "a: b, c." -> [a, b, c]
+        3. every 4 char as input_sub_string.
+        4. you can make 4 dict or put them togather.
+        5. if you feel complex, try to use "divide by 2" thinking to get many sub_string but not all sub_string to reduce data.
+
+        When you search, search longest string dict first.
+        """
+        from auto_everything.ml import Yingshaoxo_Text_Preprocessor
+        yingshaoxo_text_preprocessor = Yingshaoxo_Text_Preprocessor()
+        from auto_everything.disk import Disk
+        disk = Disk()
+        import json
+        import os
+        import sys
+        sys.setrecursionlimit(99999)
+        # or you can use {key: "another_dict_id"} to make sure each dict has only 9 depth.
+        max_line_length = 1024
+        ensure_ascii = False
+
+        def add_sub_string_to_dict(the_dict, the_list):
+            index = 0
+            length = len(the_list)
+            temp_dict = the_dict
+            while index < length:
+                element = the_list[index]
+                if element not in temp_dict:
+                    temp_dict[element] = dict()
+                temp_dict = temp_dict[element]
+                index += 1
+
+        disk.create_a_folder(target_dict_folder_path)
+
+        # sentence_level dict
+        target_file_path = os.path.join(target_dict_folder_path, "1.sentence_level_dict.json")
+        sentence_level_dict = {}
+        if os.path.exists(target_file_path):
+            with open(target_file_path, "r", encoding="utf-8") as f:
+                temp_text = f.read()
+            sentence_level_dict = json.loads(temp_text)
+
+        for a_text in source_text_list:
+            lines = a_text.strip().split("\n")
+            lines = [line for line in lines if line.strip() != ""]
+            for line_index in range(0, len(lines)-2):
+                two_line_text = "\n".join(lines[line_index:line_index+3])
+                add_sub_string_to_dict(sentence_level_dict, two_line_text[:max_line_length])
+
+        with open(target_file_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(sentence_level_dict, ensure_ascii=ensure_ascii))
+        print("sentence_level_dict process done")
+
+        # segment_sentence_level dict
+        target_file_path = os.path.join(target_dict_folder_path, "2.segments_level_dict.json")
+        segments_level_dict = {}
+        if os.path.exists(target_file_path):
+            with open(target_file_path, "r", encoding="utf-8") as f:
+                temp_text = f.read()
+            segments_level_dict = json.loads(temp_text)
+
+        for a_text in source_text_list:
+            a_text = a_text.strip()
+            segments = yingshaoxo_text_preprocessor.split_string_into_list_by_punctuations(a_text)
+            segments = [one["text"] for one in segments]
+            for segment in segments:
+                add_sub_string_to_dict(segments_level_dict, segment[:max_line_length])
+
+        with open(target_file_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(segments_level_dict, ensure_ascii=ensure_ascii))
+        print("segments_level_dict process done")
+
+        # character_level dict
+        target_file_path = os.path.join(target_dict_folder_path, "3.character_level_dict.json")
+        character_level_dict = {}
+        if os.path.exists(target_file_path):
+            with open(target_file_path, "r", encoding="utf-8") as f:
+                temp_text = f.read()
+            character_level_dict = json.loads(temp_text)
+
+        window_length = 4
+        for a_text in source_text_list:
+            a_text = a_text.strip()
+            for char_index in range(0, len(a_text)-window_length):
+                char_window_list = a_text[char_index: char_index + window_length]
+                add_sub_string_to_dict(character_level_dict, char_window_list)
+
+        with open(target_file_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(character_level_dict, ensure_ascii=ensure_ascii))
+        print("character_level_dict process done")
+
+    #def crazy_get_simplified_magic_language_tree_dict_from_text_list(self, source_text_list, target_dict_folder_path):
+    #    from auto_everything.ml import Yingshaoxo_Text_Preprocessor
+    #    yingshaoxo_text_preprocessor = Yingshaoxo_Text_Preprocessor()
+    #    from auto_everything.disk import Disk
+    #    disk = Disk()
+    #    import json
+    #    import os
+    #    import sys
+    #    sys.setrecursionlimit(99999)
+    #    # or you can use {key: "another_dict_id"} to make sure each dict has only 9 depth.
+    #    max_line_length = 1024
+    #    ensure_ascii = False
+
+    #    def add_sub_string_to_dict(the_dict, the_list):
+    #        index = 0
+    #        length = len(the_list)
+    #        temp_dict = the_dict
+    #        while index < length:
+    #            element = the_list[index]
+    #            if element not in temp_dict:
+    #                temp_dict[element] = dict()
+    #            temp_dict = temp_dict[element]
+    #            index += 1
+
+    #    disk.create_a_folder(target_dict_folder_path)
+
+    #    # character_level dict
+    #    target_file_path = os.path.join(target_dict_folder_path, "1.sentence_level_dict.json")
+    #    character_level_dict = {}
+    #    if os.path.exists(target_file_path):
+    #        with open(target_file_path, "r", encoding="utf-8") as f:
+    #            temp_text = f.read()
+    #        character_level_dict = json.loads(temp_text)
+
+    #    window_length = 64
+    #    for a_text in source_text_list:
+    #        a_text = a_text.strip()
+    #        lines = a_text.split("\n")
+    #        lines = [line for line in lines if line.strip() != ""]
+    #        for line in lines:
+    #            add_sub_string_to_dict(character_level_dict, line)
+
+    #    with open(target_file_path, "w", encoding="utf-8") as f:
+    #        f.write(json.dumps(character_level_dict, ensure_ascii=ensure_ascii))
+    #    print("1.sentence_level_dict process done")
+
+    def use_simplified_magic_language_tree_dict_to_get_next_text(self, store_dict, target_dict_folder_path, input_text, how_many_character_you_want=1024):
+        import json
+        import sys
+        import os
+        import random
+        sys.setrecursionlimit(99999)
+        max_line_length = 1024
+        window_length = 64
+
+        def load_json_from_file(path):
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    temp_text = f.read()
+                return json.loads(temp_text)
+            else:
+                return {}
+
+        if len(store_dict.keys()) != 3:
+            # sentence_level dict
+            target_file_path = os.path.join(target_dict_folder_path, "1.sentence_level_dict.json")
+            sentence_level_dict = load_json_from_file(target_file_path)
+            # segment_sentence_level dict
+            target_file_path = os.path.join(target_dict_folder_path, "2.segments_level_dict.json")
+            segments_level_dict = load_json_from_file(target_file_path)
+            # character_level dict
+            target_file_path = os.path.join(target_dict_folder_path, "3.character_level_dict.json")
+            character_level_dict = load_json_from_file(target_file_path)
+            store_dict["sentence_level_dict"] = sentence_level_dict
+            store_dict["segments_level_dict"] = segments_level_dict
+            store_dict["character_level_dict"] = character_level_dict
+        else:
+            sentence_level_dict = store_dict["sentence_level_dict"]
+            segments_level_dict = store_dict["segments_level_dict"]
+            character_level_dict = store_dict["character_level_dict"]
+
+        def real_use_dict_to_get_next(input_text):
+            def trace_words_to_get_sub_dict(the_dict, word_list):
+                if len(word_list) == 0:
+                    return the_dict
+                else:
+                    element = word_list[0]
+                    if element in the_dict:
+                        return trace_words_to_get_sub_dict(the_dict[element], word_list[1:])
+                    else:
+                        return None
+
+            def get_next_words(the_dict):
+                result_string = ""
+
+                all_child_keys = list(the_dict.keys())
+                target_list = all_child_keys
+                if len(target_list) == 0:
+                    return result_string
+                else:
+                    one = random.choice(target_list)
+                    return result_string + one + get_next_words(the_dict[one])
+
+                return result_text
+
+            response = ""
+            while len(response) < how_many_character_you_want:
+                segments = input_text[-int(window_length/2):] # get right half as input
+                segments = list(segments)
+
+                temp_a_dict = trace_words_to_get_sub_dict(sentence_level_dict, segments)
+                while temp_a_dict == None:
+                    segments = segments[1:] # try less words right half if it is not in tree
+                    if len(segments) == 0:
+                        temp_a_dict = None
+                        break
+                    temp_a_dict = trace_words_to_get_sub_dict(sentence_level_dict, segments)
+                    if temp_a_dict == None:
+                        temp_a_dict = trace_words_to_get_sub_dict(segments_level_dict, segments)
+                        if temp_a_dict == None:
+                            temp_a_dict = trace_words_to_get_sub_dict(character_level_dict, segments)
+                if temp_a_dict == None:
+                    break
+                else:
+                    temp_response = get_next_words(temp_a_dict)
+                    if temp_response == None:
+                        break
+                    if temp_response == "":
+                        break
+
+                time.sleep(0.1)
+                response += temp_response
+                input_text += temp_response
+
+            return response
+
+        print(input_text, end="", flush=True)
+        response = ""
+        while len(response) < how_many_character_you_want:
+            temp_response = real_use_dict_to_get_next(input_text)
+            if temp_response == None:
+                break
+            if temp_response == "":
+                break
+            print(temp_response, end="", flush=True)
+            time.sleep(0.1)
+            response += temp_response
+            input_text += temp_response
+        print("\n\n", end="", flush=True)
+
+        return response
+
+    def final_goal(self):
+        """
+        搞个超级聊天数据库txt，从0开始和机器人聊天，让它学习所有长序列，带小女儿，边聊边成长。看得见的成长。
+        """
+        pass
+
+    def pattern_looking(self, source_text, input_text):
+        # pattern: "xxx mother is xxx."
+        from auto_everything.string_ import String
+        string = String()
+        return "\n\n\n\n".join(list(set(string.hard_core_string_pattern_search(source_text, input_text))))
 
 
 class Yingshaoxo_Strong_AI():
