@@ -1,7 +1,3 @@
-from typing import Any
-import re
-
-
 class Language():
     def compare_two_sentences(self, sentence1: str, sentence2: str) -> float:
         """
@@ -17,7 +13,7 @@ class Language():
         ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
         return ratio
 
-    def seperate_text_to_segments(self, text: str, ignore_space: bool = True) -> list[dict[str, Any]]:
+    def seperate_text_to_segments(self, text: str, ignore_space: bool = True) -> list[dict]:
         """
         It returns a list of dict.
         For example:
@@ -32,6 +28,8 @@ class Language():
                 },
             ]
         """
+        import re
+
         if ignore_space == True:
             all_result = re.findall(r"((?:\w* *)*)(\W*)", text, flags=re.MULTILINE)
         else:
@@ -53,7 +51,7 @@ class Language():
                 }
                 final_result.append(item)
         return final_result
-    
+
 
 class English(Language):
     """
@@ -82,7 +80,7 @@ class English(Language):
         text = text.strip()
         self._speak_engine.say(text)
         self._speak_engine.runAndWait()
-    
+
     def get_key_words(self, input_text: str) -> list[str]:
         return self._keywords(input_text) #type: ignore
 
@@ -192,7 +190,7 @@ class Chinese(Language):
 
     def split_words_from_sentence(self, sentence):
         """
-        return a list of words cut from sentence 
+        return a list of words cut from sentence
 
         Parameters
         ----------

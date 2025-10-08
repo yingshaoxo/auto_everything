@@ -684,6 +684,12 @@ class Redis_Style_Disk_String_Dict():
             except: pass
             raise
 
+    def get(self, key):
+        try:
+            return self.__getitem__(key)
+        except Exception as e:
+            return None
+
     def __getitem__(self, key):
         """Retrieve value by key"""
         if not isinstance(key, str):
@@ -738,6 +744,108 @@ class Redis_Style_Disk_String_Dict():
                             yield f.read()
                     except UnicodeDecodeError:
                         continue
+
+
+class Disk_Dict():
+    def __init__(self, folder_path, id_="0"):
+        self.folder_path = folder_path
+        self.dict_register_folder = os.path.join(folder_path, "dict_register_folder")
+        self.dict_data_folder = os.path.join(folder_path, "dict_data_folder")
+        self.id_ = id_
+
+        os.makedirs(folder_path, exist_ok=True)
+        os.makedirs(self.dict_register_folder, exist_ok=True)
+        os.makedirs(self.dict_data_folder, exist_ok=True)
+
+        self.register_dict = Redis_Style_Disk_String_Dict(self.dict_register_folder, 1)
+        self.data_dict = Redis_Style_Disk_String_Dict(self.dict_data_folder, 1)
+
+        register_increasing_id = self.register_dict.get("register_increasing_id")
+        if register_increasing_id == None:
+            self.register_dict["register_increasing_id"] = id_
+
+        if self.id_ not in self.register_dict:
+            self.register_dict[self.id_] = ""
+
+    #def clear_all_data_for_all_dict_including_parent_dict(self):
+    #    import shutil
+    #    shutil.rmtree(self.folder_path)
+    #    self.__init__(self.folder_path, id_="0")
+
+    def create_a_new_dict(self):
+        register_increasing_id = self.register_dict.get("register_increasing_id")
+        new_id_string = str(int(register_increasing_id) + 1)
+        self.register_dict["register_increasing_id"] = new_id_string
+        new_dict = Disk_Dict(self.folder_path, new_id_string)
+        return new_dict
+
+    def __setitem__(self, key, value):
+        value_copy = value
+        if type(value) == str:
+            value = "v:" + value
+        elif type(value) == Disk_Dict:
+            value = "a:" + value.id_
+        elif type(value) == dict:
+            a_dict = self.create_a_new_dict()
+            value = "a:" + a_dict.id_
+            for key_, value_ in value_copy.items():
+                a_dict[key_] = value_
+
+        new_key = self.id_ + ":" + key
+        self.data_dict[new_key] = value
+
+        new_key_list = ""
+        if self.id_ in self.register_dict:
+            new_key_list = self.register_dict[self.id_]
+
+        new_key_list += "," + new_key
+        self.register_dict[self.id_] = new_key_list
+
+    def __getitem__(self, key):
+        new_key = self.id_ + ":" + key
+        value = self.data_dict.get(new_key)
+        if value == None:
+            return None
+
+        if value.startswith("v:"):
+            return value[2:]
+        elif value.startswith("a:"):
+            id_ = value[2:]
+            return Disk_Dict(self.folder_path, id_=id_)
+
+    def get(self, key):
+        try:
+            return self.__getitem__(key)
+        except Exception as e:
+            return None
+
+    def __delitem__(self, key):
+        new_key = self.id_ + ":" + key
+        self.data_dict.__delitem__(new_key)
+
+        new_key_list = self.register_dict[self.id_]
+        real_new_key_list = new_key_list.split(",")
+        real_new_key_list = [one for one in real_new_key_list if one != new_key]
+        new_key_list = ",".join(real_new_key_list)
+        self.register_dict[id_] = "," + new_key_list
+
+    def __contains__(self, key):
+        new_key = self.id_ + ":" + key
+        return self.data_dict.__contains__(new_key)
+
+    def __iter__(self):
+        # not work
+        new_key_list = self.register_dict[self.id_]
+        real_new_key_list = [one for one in new_key_list.split(",") if one != ""]
+        pre_length = len(self.id_+":")
+        for new_key in real_new_key_list[1:]:
+            yield new_key[pre_length:]
+
+    def keys(self):
+        new_key_list = self.register_dict[self.id_]
+        real_new_key_list = new_key_list.split(",")
+        pre_length = len(self.id_+":")
+        return [one[pre_length:] for one in real_new_key_list[1:]]
 
 
 class MyIO():
