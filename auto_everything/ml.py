@@ -3629,7 +3629,7 @@ class Yingshaoxo_Text_Completor():
 
         source_text_list can be [source_text], but you have to set window_length.
 
-        window_length can be 0, so the it will use full_length of source_text_list.
+        window_length can be None, so the it will use full_length of source_text_list.
 
         Memory dict has size error, takes too much space. But you can try save 25 chars tree, then search for 24 chars sub_string to complete one char.
         """
@@ -3673,16 +3673,13 @@ class Yingshaoxo_Text_Completor():
 
         disk.create_a_folder(target_dict_folder_path)
 
-        #    a_text = a_text.strip()
-        #    segments = yingshaoxo_text_preprocessor.split_string_into_list_by_punctuations(a_text)
-        #    segments = [one["text"] for one in segments]
-
         if window_length == None:
             for a_text in source_text_list:
                 add_sub_string_to_dict(character_level_dict, a_text)
         else:
             for a_text in source_text_list:
-                a_text = a_text.strip()
+                if type(a_text) == str:
+                    a_text = a_text.strip()
                 for char_index in range(0, len(a_text)):
                     char_window_list = a_text[char_index: char_index + window_length]
                     if len(char_window_list) != window_length:
@@ -3693,7 +3690,7 @@ class Yingshaoxo_Text_Completor():
             f.write(json.dumps(character_level_dict, ensure_ascii=ensure_ascii))
         print("character_level_tree_dict process done")
 
-    def use_simplified_magic_language_tree_dict_to_get_next_text(self, store_dict, target_dict_folder_path, input_text, how_many_character_you_want=1024, window_length=11):
+    def use_simplified_magic_language_tree_dict_to_get_next_text(self, store_dict, target_dict_folder_path, input_text, how_many_character_you_want=1024, window_length=11, no_sleep=False):
         """
         yingshaoxo: super useful one, I recommand this. If you use disk_dict and change window_length into 256. It would be super accurate as deepseek or openai chat gpt3.
         """
@@ -3744,7 +3741,22 @@ class Yingshaoxo_Text_Completor():
 
                 return result_text
 
-            response = ""
+            def get_next_words_for_list(the_dict):
+                result_list = []
+                all_child_keys = list(the_dict.keys())
+                target_list = all_child_keys
+                if len(target_list) == 0:
+                    return result_list
+                else:
+                    one = random.choice(target_list)
+                    the_value = the_dict.get(one)
+                    if the_value != None:
+                        return result_list + [one] + get_next_words_for_list(the_dict[one])
+                    else:
+                        return result_list
+                return result_list
+
+            response = None
             segments = input_text[-int(window_length-1):]
             temp_a_dict = trace_words_to_get_sub_dict(character_level_dict, segments)
             while temp_a_dict == None:
@@ -3756,27 +3768,44 @@ class Yingshaoxo_Text_Completor():
             if temp_a_dict == None:
                 return None
             else:
-                temp_response = get_next_words(temp_a_dict)
+                if type(input_text) == str:
+                    temp_response = get_next_words(temp_a_dict)
+                    if temp_response == "":
+                        return None
+                elif type(input_text) == list:
+                    temp_response = get_next_words_for_list(temp_a_dict)
                 if temp_response == None:
-                    return None
-                if temp_response == "":
                     return None
                 response = temp_response
             return response
 
-        print(input_text, end="", flush=True)
-        response = ""
-        while len(response) < how_many_character_you_want:
-            temp_response = real_use_dict_to_get_next(input_text)
-            if temp_response == None:
-                break
-            if temp_response == "":
-                break
-            print(temp_response, end="", flush=True)
-            time.sleep(0.1)
-            response += temp_response
-            input_text += temp_response
-        print("\n\n", end="", flush=True)
+        if type(input_text) == str:
+            print(input_text, end="", flush=True)
+            response = ""
+            while len(response) < how_many_character_you_want:
+                temp_response = real_use_dict_to_get_next(input_text)
+                if temp_response == None:
+                    break
+                if temp_response == "":
+                    break
+                print(temp_response, end="", flush=True)
+                if no_sleep == False:
+                    time.sleep(0.01)
+                response += temp_response
+                input_text += temp_response
+            print("\n\n", end="", flush=True)
+        elif type(input_text) == list:
+            print(input_text, end="", flush=True)
+            response = []
+            while len(response) < how_many_character_you_want:
+                temp_response = real_use_dict_to_get_next(input_text)
+                if temp_response == None:
+                    break
+                print(temp_response, end="", flush=True)
+                time.sleep(0.1)
+                response += temp_response
+                input_text += temp_response
+            print("\n\n", end="", flush=True)
 
         return response
 
@@ -4347,295 +4376,6 @@ class Yingshaoxo_Text_Completor():
                 text += raw_string
 
         return text
-
-    def get_one_abstracted_line_based_magic_language_tree_dict(self, global_dict, source_text_list, target_dict_folder_path, max_length_for_one_line=512):
-        from auto_everything.disk import Disk
-        disk = Disk()
-        import json
-        import os
-        import sys
-        sys.setrecursionlimit(99999)
-        ensure_ascii = False
-
-        disk.create_a_folder(target_dict_folder_path)
-
-        root_dict = {}
-        if global_dict.get("one_abstracted_line_dict") != None:
-            root_dict = global_dict["one_abstracted_line_dict"]
-        else:
-            target_file_path = os.path.join(target_dict_folder_path, "one_abstracted_line_dict.json")
-            if os.path.exists(target_file_path):
-                with open(target_file_path, "r", encoding="utf-8") as f:
-                    temp_text = f.read()
-                root_dict = json.loads(temp_text)
-            global_dict["one_abstracted_line_dict"] = root_dict
-            print("\none_abstracted_line_dict loaded!")
-
-        def add_sub_string_to_dict(the_dict, the_list):
-            index = 0
-            length = len(the_list)
-            temp_dict = the_dict
-            while index < length:
-                element = the_list[index]
-                if element not in temp_dict:
-                    temp_dict[element] = dict()
-                temp_dict = temp_dict[element]
-                index += 1
-
-        counting = 0
-        for a_text in source_text_list:
-            lines = a_text.split("\n")
-            for line in lines:
-                line = line.strip()
-                if len(line) == 0:
-                    continue
-                id_list_string = self.use_abstract_dict_to_compress_text(store_dict, "/media/yingshaoxo/disk2_data/1.pure_abstract_dict", input_text=line)
-                if line.startswith("中国人"):
-                    print(line)
-                    print(id_list_string)
-                add_sub_string_to_dict(root_dict, id_list_string.split("_")[:max_length_for_one_line])
-
-            counting += 1
-            print(counting)
-            if counting >= 99999999:
-                counting = 0
-
-        with open(target_file_path, "w", encoding="utf-8") as f:
-            f.write(json.dumps(root_dict, ensure_ascii=ensure_ascii))
-        print("root_dict process done")
-
-    def use_one_abstracted_line_based_magic_language_tree_dict_to_get_next_text(self, global_dict, target_dict_folder_path, input_text, how_many_character_you_want=256):
-        # super quick, one sentence un_beatable
-        from auto_everything.disk import Disk
-        import os
-        import sys
-        import random
-        sys.setrecursionlimit(99999)
-
-        root_dict = {}
-        if global_dict.get("one_abstracted_line_dict") != None:
-            root_dict = global_dict["one_abstracted_line_dict"]
-        else:
-            target_file_path = os.path.join(target_dict_folder_path, "one_abstracted_line_dict.json")
-            if os.path.exists(target_file_path):
-                with open(target_file_path, "r", encoding="utf-8") as f:
-                    temp_text = f.read()
-                root_dict = json.loads(temp_text)
-            global_dict["one_abstracted_line_dict"] = root_dict
-            print("\none_abstracted_line_dict loaded!")
-
-        def trace_words_to_get_sub_dict(the_dict, word_list):
-            if len(word_list) == 0:
-                return the_dict
-            else:
-                element = word_list[0]
-                if element in the_dict:
-                    return trace_words_to_get_sub_dict(the_dict[element], word_list[1:])
-                else:
-                    return None
-
-        def get_next_words(the_dict):
-            result_list = []
-            all_child_keys = list(the_dict.keys())
-            target_list = all_child_keys
-            if len(target_list) == 0:
-                return result_list
-            else:
-                one = random.choice(target_list)
-                the_value = the_dict.get(one)
-                if the_value != None:
-                    return result_list + [one] + get_next_words(the_dict[one])
-                else:
-                    return result_list
-            return result_list
-
-        def directly_use_dict_to_get_next(input_text):
-            id_list_string = self.use_abstract_dict_to_compress_text(store_dict, "/media/yingshaoxo/disk2_data/1.pure_abstract_dict", input_text=input_text)
-            #print("id_list: ", id_list_string)
-            child_dict = trace_words_to_get_sub_dict(root_dict, id_list_string.split("_"))
-            if child_dict == None:
-                return None
-            #print("shit: ", child_dict.keys())
-            response = get_next_words(child_dict)
-            #print("shit2: ", response)
-            if len(response) == 0:
-                return None
-            response = yingshaoxo_text_completor.use_abstract_dict_to_decompress_text(store_dict, "/media/yingshaoxo/disk2_data/1.pure_abstract_dict", input_text="_".join(response))
-            return response
-
-        def reduce_char_to_get_next(input_text):
-            input_text = input_text.split("\n")[-1]
-            temp_result = directly_use_dict_to_get_next(input_text)
-            if temp_result != None:
-                return temp_result
-            index = 0
-            length = len(input_text)
-            for i in range(length):
-                temp_input = input_text[i:]
-                if len(temp_input) == "":
-                    return None
-                temp_result = directly_use_dict_to_get_next(temp_input)
-                if temp_result != None:
-                    return temp_result
-            return None
-
-        def must_full_fill_length(the_input_text, how_many_character_you_want):
-            response = ""
-            temp_input = the_input_text
-            while True:
-                result = reduce_char_to_get_next(temp_input)
-                if result != None:
-                    response += result + "\n"
-                    temp_input += result
-                else:
-                    return response
-                if len(response) >= how_many_character_you_want:
-                    return response
-
-        temp_response = must_full_fill_length(input_text, how_many_character_you_want)
-        return temp_response
-
-    def get_abstracted_sliding_window_based_magic_language_tree_dict(self, global_dict, target_dict_folder_path, source_text_list, window_length=3):
-        from auto_everything.disk import Disk
-        disk = Disk()
-        import json
-        import os
-        import sys
-        sys.setrecursionlimit(99999)
-        ensure_ascii = False
-
-        disk.create_a_folder(target_dict_folder_path)
-
-        root_dict = {}
-        if global_dict.get("abstracted_sliding_window") != None:
-            root_dict = global_dict["abstracted_sliding_window"]
-        else:
-            target_file_path = os.path.join(target_dict_folder_path, "abstracted_sliding_window.json")
-            if os.path.exists(target_file_path):
-                with open(target_file_path, "r", encoding="utf-8") as f:
-                    temp_text = f.read()
-                root_dict = json.loads(temp_text)
-            global_dict["abstracted_sliding_window"] = root_dict
-            print("\nabstracted_sliding_window loaded!")
-
-        def add_sub_string_to_dict(the_dict, the_list):
-            index = 0
-            length = len(the_list)
-            temp_dict = the_dict
-            while index < length:
-                element = the_list[index]
-                if element not in temp_dict:
-                    temp_dict[element] = dict()
-                temp_dict = temp_dict[element]
-                index += 1
-
-        counting = 0
-        for a_text in source_text_list:
-            for index in range(len(a_text)):
-                sub_string = a_text[index:index+64]
-                id_list_string = self.use_abstract_dict_to_compress_text(store_dict, "/media/yingshaoxo/disk2_data/1.pure_abstract_dict", input_text=sub_string)
-                id_list = id_list_string.split("_")[:window_length]
-                add_sub_string_to_dict(root_dict, id_list)
-
-            counting += 1
-            print(counting)
-            if counting >= 99999999:
-                counting = 0
-
-        with open(target_file_path, "w", encoding="utf-8") as f:
-            f.write(json.dumps(root_dict, ensure_ascii=ensure_ascii))
-        print("root_dict process done")
-
-    def use_abstracted_sliding_window_based_magic_language_tree_dict_to_get_next_text(self, global_dict, target_dict_folder_path, input_text, how_many_character_you_want=256, window_length=2):
-        # super quick, one sentence un_beatable
-        from auto_everything.disk import Disk
-        import os
-        import sys
-        import random
-        sys.setrecursionlimit(99999)
-
-        root_dict = {}
-        if global_dict.get("abstracted_sliding_window") != None:
-            root_dict = global_dict["abstracted_sliding_window"]
-        else:
-            target_file_path = os.path.join(target_dict_folder_path, "abstracted_sliding_window.json")
-            if os.path.exists(target_file_path):
-                with open(target_file_path, "r", encoding="utf-8") as f:
-                    temp_text = f.read()
-                root_dict = json.loads(temp_text)
-            global_dict["abstracted_sliding_window"] = root_dict
-            print("\nabstracted_sliding_window loaded!")
-
-        def trace_words_to_get_sub_dict(the_dict, word_list):
-            if len(word_list) == 0:
-                return the_dict
-            else:
-                element = word_list[0]
-                if element in the_dict:
-                    return trace_words_to_get_sub_dict(the_dict[element], word_list[1:])
-                else:
-                    return None
-
-        def get_next_words(the_dict):
-            result_list = []
-            all_child_keys = list(the_dict.keys())
-            target_list = all_child_keys
-            if len(target_list) == 0:
-                return result_list
-            else:
-                one = random.choice(target_list)
-                the_value = the_dict.get(one)
-                if the_value != None:
-                    return result_list + [one] + get_next_words(the_dict[one])
-                else:
-                    return result_list
-            return result_list
-
-        def directly_use_dict_to_get_next(input_text):
-            id_list_string = self.use_abstract_dict_to_compress_text(store_dict, "/media/yingshaoxo/disk2_data/1.pure_abstract_dict", input_text=input_text)
-            #print("id_list: ", id_list_string)
-            child_dict = trace_words_to_get_sub_dict(root_dict, id_list_string.split("_")[-(window_length-1):])
-            if child_dict == None:
-                return None
-            #print("shit: ", child_dict.keys())
-            response = get_next_words(child_dict)
-            #print("shit2: ", response)
-            if len(response) == 0:
-                return None
-            response = yingshaoxo_text_completor.use_abstract_dict_to_decompress_text(store_dict, "/media/yingshaoxo/disk2_data/1.pure_abstract_dict", input_text="_".join(response))
-            return response
-
-        def reduce_char_to_get_next(input_text):
-            input_text = input_text.split("\n")[-1]
-            temp_result = directly_use_dict_to_get_next(input_text)
-            if temp_result != None:
-                return temp_result
-            index = 0
-            length = len(input_text)
-            for i in range(length):
-                temp_input = input_text[i:]
-                if len(temp_input) == "":
-                    return None
-                temp_result = directly_use_dict_to_get_next(temp_input)
-                if temp_result != None:
-                    return temp_result
-            return None
-
-        def must_full_fill_length(the_input_text, how_many_character_you_want):
-            response = ""
-            temp_input = the_input_text
-            while True:
-                result = reduce_char_to_get_next(temp_input)
-                if result != None:
-                    response += result + "\n"
-                    temp_input += result
-                else:
-                    return response
-                if len(response) >= how_many_character_you_want:
-                    return response
-
-        temp_response = must_full_fill_length(input_text, how_many_character_you_want)
-        return temp_response
 
 
 class Yingshaoxo_Strong_AI():
