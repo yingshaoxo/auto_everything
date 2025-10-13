@@ -266,9 +266,6 @@ git remote set-url --add --push origin {repo_url}
         pwd = t.run_command('pwd')
         t.run("grep -r -e '{regex_expression}' '{pwd}'".format(regex_expression=regex_expression, pwd=pwd))
 
-    def sync_folder_or_file(self, source, target):
-        t.run("rsync -v --info=progress2 --partial '{source}' '{target}'".format(source=source, target=target))
-
     def show_space_usage(self, path="./"):
         if path == None:
             path = t.run_command('pwd')
