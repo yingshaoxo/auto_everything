@@ -821,6 +821,8 @@ adb shell
         """)
 
     def rsync(self, from_path, to_path):
+        # example: /usr/bin/Tools rsync ./Core/ /media/yingshaoxo/disk2_data/Yingshaoxo_Data/Core/
+
         # from could be a folder or file, to could be a folder or file 
         # there would only folder to folder sync and file to file sync
         # but the rsync logic sucks, so here the python should try to fix it
