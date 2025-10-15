@@ -803,14 +803,12 @@ class Disk_Dict():
         if self.id_ in self.register_dict:
             new_key_list_string = self.register_dict[self.id_]
 
-        if new_key in new_key_list_string:
-            # maybe it already in there
-            if new_key in new_key_list_string.split(","):
-                # it already in there
-                return None
+        if ","+new_key in new_key_list_string:
+            # it already in there
+            return None
 
         new_key_list_string += "," + new_key
-        if new_key_list_string.startswith(","):
+        if new_key_list_string.startswith(",,"):
             new_key_list_string = new_key_list_string[1:]
         self.register_dict[self.id_] = new_key_list_string
 
@@ -844,13 +842,8 @@ class Disk_Dict():
             new_key = self.id_ + ":" + key
             self.data_dict.__delitem__(new_key)
 
-            new_key_list = self.register_dict[self.id_]
-            new_key_list = new_key_list.strip(",")
-
-            real_new_key_list = new_key_list.split(",")
-            real_new_key_list = [one for one in real_new_key_list if one != new_key]
-            new_key_list = ",".join(real_new_key_list)
-            self.register_dict[self.id_] = new_key_list
+            new_key_list_string = self.register_dict[self.id_]
+            self.register_dict[self.id_] = new_key_list_string.replace(","+new_key, "")
         except Exception as e:
             pass
 
@@ -860,15 +853,17 @@ class Disk_Dict():
 
     def __iter__(self):
         # not work
-        new_key_list = self.register_dict[self.id_]
-        real_new_key_list = [one for one in new_key_list.split(",") if one != ""]
+        new_key_list_string = self.register_dict[self.id_]
+        new_key_list_string = new_key_list_string.strip(",")
+        real_new_key_list = [one for one in new_key_list_string.split(",") if one != ""]
         pre_length = len(self.id_+":")
         for new_key in real_new_key_list[1:]:
             yield new_key[pre_length:]
 
     def keys(self):
-        new_key_list = self.register_dict[self.id_]
-        real_new_key_list = new_key_list.split(",")
+        new_key_list_string = self.register_dict[self.id_]
+        new_key_list_string = new_key_list_string.strip(",")
+        real_new_key_list = new_key_list_string.split(",")
         pre_length = len(self.id_+":")
         return [one[pre_length:] for one in real_new_key_list[1:]]
 
