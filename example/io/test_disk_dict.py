@@ -19,9 +19,21 @@ print(root_disk_dict["hi"])
 root_disk_dict["fine"] = "haha"
 print(root_disk_dict["fine"])
 
-del root_disk_dict["hi"]
+root_disk_dict[" "] = "space"
+print(root_disk_dict[" "])
 
-root_disk_dict["fine"] = {"shit": "1", "nono": "2"}
-print(root_disk_dict["fine"]["shit"])
+root_disk_dict[":"] = "colon"
+print(root_disk_dict[":"])
+
+# comma is dangerous, it breaks the structure
+root_disk_dict[","] = "comma"
+print(root_disk_dict[","])
+
+print(root_disk_dict.keys())
+
+#del root_disk_dict["hi"]
+#
+#root_disk_dict["fine"] = {"shit": "1", "nono": "2"}
+#print(root_disk_dict["fine"]["shit"])
 
 #root_disk_dict.clear_all_data_for_all_dict_including_parent_dict()

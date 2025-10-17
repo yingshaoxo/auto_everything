@@ -625,7 +625,7 @@ class Redis_Style_Disk_String_Dict():
     """
     __slots__ = ('_path', '_depth')
 
-    def __init__(self, path, depth=4):
+    def __init__(self, path, depth=2):
         self._path = path
         self._depth = depth
         os.makedirs(self._path, exist_ok=True)
@@ -748,7 +748,7 @@ class Redis_Style_Disk_String_Dict():
 
 class Disk_Dict():
     # author: yingshaoxo
-    def __init__(self, folder_path, id_="0"):
+    def __init__(self, folder_path, id_="0", depth=1):
         self.folder_path = folder_path
         self.dict_register_folder = os.path.join(folder_path, "dict_register_folder")
         self.dict_data_folder = os.path.join(folder_path, "dict_data_folder")
@@ -758,8 +758,10 @@ class Disk_Dict():
         os.makedirs(self.dict_register_folder, exist_ok=True)
         os.makedirs(self.dict_data_folder, exist_ok=True)
 
-        self.register_dict = Redis_Style_Disk_String_Dict(self.dict_register_folder, 3)
-        self.data_dict = Redis_Style_Disk_String_Dict(self.dict_data_folder, 3)
+        if depth > 4:
+            depth = 4
+        self.register_dict = Redis_Style_Disk_String_Dict(self.dict_register_folder, depth)
+        self.data_dict = Redis_Style_Disk_String_Dict(self.dict_data_folder, depth)
 
         register_increasing_id = self.register_dict.get("register_increasing_id")
         if register_increasing_id == None:
@@ -767,6 +769,13 @@ class Disk_Dict():
 
         if self.id_ not in self.register_dict:
             self.register_dict[self.id_] = ""
+
+    def _safe_string(self, input_text):
+        # the space may also be a dangerous one, because it can get removed by strip()
+        return input_text.replace(",", "/comma")
+
+    def _unsafe_string(self, input_text):
+        return input_text.replace("/comma", ",")
 
     def clear_all_data_for_all_dict_including_parent_dict(self):
         import shutil
@@ -781,6 +790,7 @@ class Disk_Dict():
         return new_dict
 
     def __setitem__(self, key, value):
+        key = self._safe_string(key)
         value_copy = value
         if type(value) == str:
             # v: is a value
@@ -813,6 +823,7 @@ class Disk_Dict():
         self.register_dict[self.id_] = new_key_list_string
 
     def __getitem__(self, key):
+        key = self._safe_string(key)
         new_key = self.id_ + ":" + key
         value = self.data_dict.get(new_key)
         if value == None:
@@ -827,12 +838,14 @@ class Disk_Dict():
             return Disk_Dict(self.folder_path, id_=id_)
 
     def get(self, key):
+        key = self._safe_string(key)
         try:
             return self.__getitem__(key)
         except Exception as e:
             return None
 
     def __delitem__(self, key):
+        key = self._safe_string(key)
         try:
             # clear child dict first if that item is a dict
             the_value_that_should_be_deleted = self.__getitem__(key)
@@ -848,6 +861,7 @@ class Disk_Dict():
             pass
 
     def __contains__(self, key):
+        key = self._safe_string(key)
         new_key = self.id_ + ":" + key
         return self.data_dict.__contains__(new_key)
 
@@ -865,7 +879,7 @@ class Disk_Dict():
         new_key_list_string = new_key_list_string.strip(",")
         real_new_key_list = new_key_list_string.split(",")
         pre_length = len(self.id_+":")
-        return [one[pre_length:] for one in real_new_key_list[1:]]
+        return [self._unsafe_string(one[pre_length:]) for one in real_new_key_list]
 
     def clear(self):
         a_key_list = self.keys()
