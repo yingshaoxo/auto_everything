@@ -3020,12 +3020,21 @@ class Yingshaoxo_Text_Completor():
         if source_text_splitor != None:
             source_text_list = source_text.split(source_text_splitor)
             for one in source_text_list:
+                original_length = len(one)
                 result = handle_it(one)
                 if result != "":
-                    return result
+                    if original_length > len(result):
+                        return result
+                    else:
+                        return ""
             return ""
         else:
-            return handle_it(source_text)
+            original_length = len(source_text)
+            result = handle_it(source_text)
+            if original_length > len(result):
+                return result
+            else:
+                return ""
 
     def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None, return_one_word=False, use_background=False, creatively=False):
         """
@@ -3080,6 +3089,10 @@ class Yingshaoxo_Text_Completor():
         else:
             return response[:how_many_character_you_want] + "\n\nFrefrence:\n" + source_text.strip()[:512]
 
+    def optimized_get_next_text_by_pure_text(self, source_text_or_list, input_text_or_list, how_many_character_you_want=2000, level=64):
+        # this method is different, it requires us to manually create a find_string() or find_sub_list() function. it only look source_data for once. it will save index for each matched right_sub_string, so that in the end, by only look source data for once, you get a dict, the dict link to [right 64 char matchs: [start_index1], right 10 char matchs: [start_index1], right 3 char matchs: [start_index1, start_index2, ...], ...]
+        pass
+
     def get_next_text_creatively(self, source_text, input_text, how_many_character_you_want=200, level=64):
         fake_source_text = str(source_text)
 
@@ -3132,8 +3145,8 @@ class Yingshaoxo_Text_Completor():
             results.append(result)
 
             #result = pool.apply_async(
-            #    self.get_next_text_by_pure_text,
-            #    args=(sub_source_text, input_text[:-1], 512, 64, 512, False, False, False)
+            #    self.search_long_background_context_by_using_keywords,
+            #    args=(sub_source_text, input_text)
             #)
             #results.append(result)
 
@@ -3736,6 +3749,9 @@ class Yingshaoxo_Text_Completor():
             def get_next_words(the_dict):
                 result_string = ""
 
+                if the_dict == None:
+                    return result_string
+
                 all_child_keys = list(the_dict.keys())
                 target_list = all_child_keys
                 if len(target_list) == 0:
@@ -3748,6 +3764,10 @@ class Yingshaoxo_Text_Completor():
 
             def get_next_words_for_list(the_dict):
                 result_list = []
+
+                if the_dict == None:
+                    return result_list
+
                 all_child_keys = list(the_dict.keys())
                 target_list = all_child_keys
                 if len(target_list) == 0:
@@ -3827,9 +3847,10 @@ class Yingshaoxo_Text_Completor():
         string = String()
         if "xxx" not in input_text:
             input_text = input_text.replace(" ", "xxx")
-        return "\n\n\n\n".join(list(set(string.hard_core_string_pattern_search(source_text, input_text))))
+            input_text = input_text + "xxx"
+        return "\n\n\n\n".join(list(set(string.hard_core_string_pattern_search(source_text, input_text, end_mark="__**__**__yingshaoxo_is_the_top_one__**__**__"))))
 
-    def get_disk_simplified_magic_language_tree_dict_from_text_list(self, source_text_list, target_dict_folder_path, window_length=32, no_sliding_window=False):
+    def get_disk_simplified_magic_language_tree_dict_from_text_list(self, target_dict_folder_path, source_text_list, window_length=18, no_sliding_window=False):
         """
         You can try save 25 chars tree, then search for 24 chars sub_string to complete one char. In other words, generate dict by using 25 window_length, use dict by using 48 window_length, because 48/2 == 24.
 
@@ -3858,9 +3879,12 @@ class Yingshaoxo_Text_Completor():
         root_disk_dict = Disk_Dict(target_dict_folder_path)
         if no_sliding_window == False:
             for a_text in source_text_list:
-                a_text = a_text.strip()
-                for char_index in range(0, len(a_text)-window_length):
+                if type(a_text) == str:
+                    a_text = a_text.strip()
+                for char_index in range(len(a_text)):
                     char_window_list = a_text[char_index: char_index + window_length]
+                    if len(char_window_list) != window_length:
+                        continue
                     add_sub_string_to_dict(root_disk_dict, char_window_list)
         else:
             for a_text in source_text_list:
@@ -3870,7 +3894,7 @@ class Yingshaoxo_Text_Completor():
 
         print("character tree process done")
 
-    def use_disk_simplified_magic_language_tree_dict_to_get_next_text(self, target_dict_folder_path, input_text, how_many_character_you_want=512, window_length=32):
+    def use_disk_simplified_magic_language_tree_dict_to_get_next_text(self, target_dict_folder_path, input_text, how_many_character_you_want=512, window_length=18, no_sleep=True):
         from auto_everything.io import Disk_Dict
         import sys
         import random
@@ -3891,49 +3915,93 @@ class Yingshaoxo_Text_Completor():
             def get_next_words(the_dict):
                 result_string = ""
 
+                if the_dict == None:
+                    return result_string
+
                 all_child_keys = list(the_dict.keys())
                 target_list = all_child_keys
                 if len(target_list) == 0:
                     return result_string
                 else:
                     one = random.choice(target_list)
-                    the_value = the_dict.get(one)
-                    if the_value:
-                        return result_string + one + get_next_words(the_dict[one])
-                    else:
-                        return result_string
+                    return result_string + one + get_next_words(the_dict[one])
 
                 return result_text
 
+            def get_next_words_for_list(the_dict):
+                result_list = []
+
+                if the_dict == None:
+                    return result_list
+
+                all_child_keys = list(the_dict.keys())
+                target_list = all_child_keys
+                if len(target_list) == 0:
+                    return result_list
+                else:
+                    one = random.choice(target_list)
+                    the_value = the_dict.get(one)
+                    if the_value != None:
+                        return result_list + [one] + get_next_words_for_list(the_dict[one])
+                    else:
+                        return result_list
+                return result_list
+
+            response = None
+            segments = input_text[-int(window_length-1):]
+            temp_a_dict = trace_words_to_get_sub_dict(root_disk_dict, segments)
+            while temp_a_dict == None:
+                segments = segments[1:] # try less words right half if it is not in tree
+                if len(segments) == 0:
+                    temp_a_dict = None
+                    break
+                temp_a_dict = trace_words_to_get_sub_dict(root_disk_dict, segments)
+            if temp_a_dict == None:
+                return None
+            else:
+                if type(input_text) == str:
+                    temp_response = get_next_words(temp_a_dict)
+                    if temp_response == "":
+                        return None
+                elif type(input_text) == list:
+                    temp_response = get_next_words_for_list(temp_a_dict)
+                if temp_response == None:
+                    return None
+                response = temp_response
+            return response
+
+        if type(input_text) == str:
+            print(input_text, end="", flush=True)
             response = ""
             while len(response) < how_many_character_you_want:
-                segments = input_text[-int(window_length/2):] # get right half as input
-                segments = list(segments)
-
-                temp_a_dict = trace_words_to_get_sub_dict(root_disk_dict, segments)
-                while temp_a_dict == None:
-                    segments = segments[1:] # try less words right half if it is not in tree
-                    if len(segments) == 0:
-                        temp_a_dict = None
-                        break
-                    temp_a_dict = trace_words_to_get_sub_dict(root_disk_dict, segments)
-                if temp_a_dict == None:
+                temp_response = real_use_dict_to_get_next(input_text)
+                if temp_response == None:
                     break
-                else:
-                    temp_response = get_next_words(temp_a_dict)
-                    if temp_response == None:
-                        break
-                    if temp_response == "":
-                        break
-
+                if temp_response == "":
+                    break
+                #temp_response = temp_response.replace(":","")
+                print(temp_response, end="", flush=True)
+                if no_sleep == False:
+                    time.sleep(0.01)
+                response += temp_response
+                input_text += temp_response
+            print("\n\n", end="", flush=True)
+        elif type(input_text) == list:
+            print(input_text, end="", flush=True)
+            response = []
+            while len(response) < how_many_character_you_want:
+                temp_response = real_use_dict_to_get_next(input_text)
+                if temp_response == None:
+                    break
+                if len(temp_response) == 0:
+                    break
+                print(temp_response, end="", flush=True)
                 time.sleep(0.1)
                 response += temp_response
                 input_text += temp_response
+            print("\n\n", end="", flush=True)
 
-            return response
-
-        temp_response = real_use_dict_to_get_next(input_text)
-        return temp_response
+        return response
 
     def get_one_line_based_magic_language_tree_dict(self, source_text_list, target_dict_folder_path, max_length_for_one_line=512):
         # super quick, one sentence un_beatable
@@ -4444,6 +4512,85 @@ class Yingshaoxo_Text_Completor():
             input_text += temp_response
 
         return response
+
+    def get_better_word_dict_by_using_jieba(self, source_text, target_json_file_path):
+        # source_text should be a diary or valuable book
+        import json
+        import jieba
+        jieba.setLogLevel(20)
+
+        word_list = list(jieba.cut(source_text, cut_all=False))
+        print("jieba word cutting done.")
+        word_dict = {}
+        for word in word_list:
+            if word not in word_dict.keys():
+                word_dict[word] = 1
+            else:
+                word_dict[word] += 1
+        word_item_list = [[key,value] for key,value in word_dict.items()]
+        word_item_list.sort(key=lambda item: -item[1])
+
+        word_to_id_dict = {}
+        id_to_word_dict = {}
+        for index, item in enumerate(word_item_list):
+            word_to_id_dict[item[0]] = index
+            id_to_word_dict[index] = item[0]
+
+        root_dict = {
+            "word_to_id_dict": word_to_id_dict,
+            "id_to_word_dict": id_to_word_dict,
+        }
+
+        print("id dict handle done.")
+
+        with open(target_json_file_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(root_dict, ensure_ascii=False))
+
+        print("id dict saving done.")
+
+    def use_word_dict_to_encode_string_to_id_list(self, target_json_file_path, input_text):
+        import json
+        with open(target_json_file_path, "r", encoding="utf-8") as f:
+            temp_text = f.read()
+        root_dict = json.loads(temp_text)
+        word_to_id_dict = root_dict["word_to_id_dict"]
+        #id_to_word_dict = root_dict["id_to_word_dict"]
+
+        copy_text = input_text
+        id_list = []
+        index = 0
+        length = len(copy_text)
+        while index < length:
+            ok = False
+            for i in reversed(list(range(1, 32))):
+                sub_string = copy_text[index:index+i]
+                if len(sub_string) == 0:
+                    continue
+                result = word_to_id_dict.get(sub_string)
+                if result != None:
+                    index += len(sub_string)
+                    id_list.append(str(result))
+                    ok = True
+                    break
+            if ok == False:
+                index += 1
+        return id_list
+
+    def use_word_dict_to_decode_id_list_to_string(self, target_json_file_path, id_list):
+        import json
+        with open(target_json_file_path, "r", encoding="utf-8") as f:
+            temp_text = f.read()
+        root_dict = json.loads(temp_text)
+        #word_to_id_dict = root_dict["word_to_id_dict"]
+        id_to_word_dict = root_dict["id_to_word_dict"]
+
+        result_string = ""
+        for a_id in id_list:
+            a_id = str(a_id)
+            result = id_to_word_dict.get(a_id)
+            if result != None:
+                result_string += result
+        return result_string
 
 
 class Yingshaoxo_Strong_AI():
