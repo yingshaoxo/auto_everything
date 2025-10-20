@@ -2836,60 +2836,55 @@ class Yingshaoxo_Text_Completor():
         source_text_lines = source_text.split("\n")
         return source_text_lines
 
-    def get_next_text_by_first_data_first(self, source_text_lines_list, input_text, how_many_lines_you_want=300):
-        # Could make a micro_controller version by handle line pointer in file reader. So it would work for small memory devices
-        length = len(source_text_lines_list)
+    def pattern_looking(self, source_text, input_text):
+        # pattern: "xxx mother is xxx."
+        from auto_everything.string_ import String
+        string = String()
+        if "xxx" not in input_text:
+            input_text = input_text.replace(" ", "xxx")
+            input_text = input_text + "xxx"
+        return "\n\n\n\n".join(list(set(string.hard_core_string_pattern_search(source_text, input_text, end_mark="__**__**__yingshaoxo_is_the_top_one__**__**__"))))
 
-        for right_side_index in range(len(input_text)):
-            right_side_sub_string = input_text[right_side_index:]
-
-            index = 0
-            while index < length:
-                line1 = source_text_lines_list[index]
-                line2 = source_text_lines_list[index+1]
-                current_text = line1 + "\n" + line2
-
-                if (right_side_sub_string != "") and (right_side_sub_string in current_text):
-                    target_text = right_side_sub_string.join(current_text.split(right_side_sub_string)[1:])
-                    target_text += "\n".join(source_text_lines_list[index+2:index+2+how_many_lines_you_want])
-                    return target_text
-
-                index += 1
-                if (index + 1) >= length:
-                    break
-        return ""
-
-    def get_next_text_by_using_a_simple_list(self, source_text_lines_list, input_text, how_many_character_you_want=2000, level=64):
+    def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None, return_one_word=False, use_background=False, creatively=False):
         """
-        This method will not return content after new line. Except you pass text pieces that has new line inside.
+        This method is the best so far, if you have big memory.
+        It will only return what it got in database. We respect original author content.
+
+        I think those super_AI actually uses database data, then use abstract_language_tree to represent the old data in a new way, similar to language style change.
         """
-        length = len(source_text_lines_list)
-        end_string = "[|end|]"
+        if creatively == True:
+            print("Why don't you delete this piece of response data from your database? Then it will return a new result.")
+
+        if complete_how_many_character_for_each_time == None:
+            complete_how_many_character_for_each_time = level
+
+        if use_background == True:
+            source_text = self.search_long_background_context_by_using_keywords(source_text, input_text)
+
+        end_string = "[*|end|*]"
 
         def down_side_complete(the_input_text):
             for right_side_index in range(0, level):
                 right_side_sub_string = the_input_text[right_side_index:]
 
-                #index = 0
-                index = random.randint(0, length)
-                while index < length:
-                    current_text = source_text_lines_list[index]
+                if len(right_side_sub_string) == 0:
+                    return " " + end_string
 
-                    if (right_side_sub_string != "") and (right_side_sub_string in current_text):
-                        target_text = right_side_sub_string.join(current_text.split(right_side_sub_string)[1:])
-                        if len(target_text) >= 1:
-                            return target_text[:int(level/2)]
-                            #return target_text + "\n"
-                            #return target_text[0]
-                        else:
-                            return "\n"
-
-                    index += 1
+                the_splits = source_text.split(right_side_sub_string)
+                the_length_of_splits = len(the_splits)
+                if the_length_of_splits >= 2:
+                    index = random.randint(1, the_length_of_splits-1)
+                    target_text = the_splits[index][:complete_how_many_character_for_each_time]
+                    return target_text
+                else:
+                    pass
             return " " + end_string
 
         response = ""
         while len(response) < how_many_character_you_want:
             temp_response = down_side_complete(input_text)
+            if return_one_word == True:
+                return self._leave_first_sub_string(temp_response)
             if len(temp_response) == 0:
                 break
             response += temp_response
@@ -2898,60 +2893,61 @@ class Yingshaoxo_Text_Completor():
                 response = response[:-len(end_string)]
                 break
 
-        return response
-
-    def _is_connector(self, string):
-        splits = "the of is and to in that we for an are by be as on with can if from which you it this then at have all not one has or that 的 了 和 是 就 都 而 及 与 着 或 一个 沒有 是否 我們 你們 妳們 他們 她們".split(" ")
-        return string in splits
-
-    def _is_punctuation(self, string, more_punctuation="跟讲在有要地的着和便等就让了说想被到是只给几买干从个为以然问没回对先者出也之能上下么儿很会还这"):
-        return string in (",.!?;:，。；：!？ \n-=_+()*&^%$#@!`~{}|[]'/<>" + more_punctuation)
-
-    def _get_keywords(self, string, more_punctuation=""):
-        # not accurate for chinese, unless you split keyword by using space
-        if " " in string:
-            string += " "
-            keyword_list = []
-            temp_word = ""
-            for char in string:
-                if self._is_punctuation(char, more_punctuation=more_punctuation):
-                    keyword_list.append(temp_word)
-                    temp_word = ""
-                else:
-                    temp_word += char
-            return keyword_list
+        if use_background == False:
+            return response[:how_many_character_you_want]
         else:
-            try:
-                import jieba
-                jieba.setLogLevel(20)
-                #keywords = list(jieba.cut(input_text, cut_all=False))
-                keywords = list(jieba.cut_for_search(input_text))
-            except Exception as e:
-                print(e)
-                keywords = list(input_text)
-            return keywords
+            return response[:how_many_character_you_want] + "\n\nFrefrence:\n" + source_text.strip()[:512]
 
-    def _is_ascii(self, string):
-        return string.strip(''' \n1234567890-=_+()*&^%$#@!`~qwertyuiop{}|[]\asdfghjk;':"zxcvbnm,./<>?QWERTYUIOPASDFGHJKLZXCVBNM''') == ""
+    def find_next_string_in_disk_txt_file(self, file_path, input_text, how_many_characters_you_want=1024, max_input_number=64, max_possibility_number=100, file_encoding="utf-8", splitor="__**__**__yingshaoxo_is_the_top_one__**__**__", get_previous_text=False):
+        # author: yingshaoxo
+        input_text = input_text[-max_input_number:]
+        sub_string_list = []
+        for i in reversed(list(range(1, max_input_number+1))):
+            sub_string = input_text[-i:]
+            if len(sub_string) == i:
+                sub_string_list.append(sub_string.encode(file_encoding))
+        result_dict = {}
+        for sub_string_bytes in sub_string_list:
+            result_dict[sub_string_bytes] = []
 
-    def _is_alphabet(self, string):
-        return string.strip('''abcdefghijklmnopqrstuvwxyzQWERTYUIOPASDFGHJKLZXCVBNM''') == ""
+        MB_10_size = 1024 * 1024 * 1
+        with open(file_path, "rb") as f:
+            f.seek(0)
+            while True:
+                temp_text_bytes = f.read(MB_10_size)
+                if len(temp_text_bytes) == 0 or len(temp_text_bytes) == max_input_number:
+                    # meets file end
+                    break
 
-    def _leave_first_sub_string(self, string):
-        # it should complete until [,.!?;:，。；：!？space \n]
-        if len(string) > 1:
-            first_char = string[0]
-            if self._is_punctuation(first_char):
-                return first_char
-            else:
-                temp_string = first_char
-                for char in string[1:]:
-                    if self._is_punctuation(char):
-                        return temp_string + char
-                    else:
-                        temp_string += char
-                return temp_string
-        return string
+                for sub_string_bytes in sub_string_list:
+                    if len(result_dict[sub_string_bytes]) > max_possibility_number:
+                        break
+
+                    start_temp_index = 0
+                    while True:
+                        index = temp_text_bytes.find(sub_string_bytes, start_temp_index)
+                        if index == -1:
+                            # not found
+                            break
+                        else:
+                            # found, get next 1024 bytes and save to dict
+                            start_temp_index = index + 1
+                            sub_bytes = temp_text_bytes[index:index+how_many_characters_you_want]
+                            if get_previous_text == True:
+                                result_dict[sub_string_bytes].append(sub_bytes)
+                            else:
+                                result_dict[sub_string_bytes].append(sub_bytes[len(sub_string_bytes):])
+
+                f.seek(-max_input_number, 1) #move back for 64 char
+
+        final_list = []
+        for sub_string_bytes in sub_string_list:
+            for one in result_dict[sub_string_bytes]:
+                if len(one) != 0:
+                    one_string = one.decode(file_encoding, errors="ignore")
+                    one_string = one_string.split(splitor)[0].rstrip()
+                    final_list.append(one_string)
+        return final_list
 
     def search_long_background_context_by_using_keywords(self, source_text, input_text, keyword_list=None, source_text_splitor=None):
         # for each 20 lines, if it got all keywords in input_text, we return it
@@ -3036,62 +3032,258 @@ class Yingshaoxo_Text_Completor():
             else:
                 return ""
 
-    def get_next_text_by_pure_text(self, source_text, input_text, how_many_character_you_want=2000, level=64, complete_how_many_character_for_each_time=None, return_one_word=False, use_background=False, creatively=False):
+    def get_simplified_magic_language_tree_dict_from_text_list(self, store_dict, target_dict_folder_path, source_text_list, window_length=11):
         """
-        This method is the best so far, if you have big memory.
-        It will only return what it got in database. We respect original author content.
+        yingshaoxo: super useful one, I recommand this. If you use disk_dict and change window_length into 256. It would be super accurate as deepseek or openai chat gpt3.
 
-        I think those super_AI actually uses database data, then use abstract_language_tree to represent the old data in a new way, similar to language style change.
+        Use jieba word spliting pre_processor would also increase accuracy.
+
+
+        source_text_list can be [source_text], but you have to set window_length.
+
+        window_length can be None, so the it will use full_length of source_text_list.
+
+
+        Memory dict has size error, takes too much space. But you can try save 25 chars tree, then search for 24 chars sub_string to complete one char.
         """
-        if creatively == True:
-            print("Why don't you delete this piece of response data from your database? Then it will return a new result.")
+        from auto_everything.disk import Disk
+        disk = Disk()
+        import json
+        import os
+        import sys
+        sys.setrecursionlimit(99999)
+        # or you can use {key: "another_dict_id"} to make sure each dict has only 9 depth.
+        max_line_length = 512
+        ensure_ascii = False
 
-        if complete_how_many_character_for_each_time == None:
-            complete_how_many_character_for_each_time = level
-
-        if use_background == True:
-            source_text = self.search_long_background_context_by_using_keywords(source_text, input_text)
-
-        end_string = "[*|end|*]"
-
-        def down_side_complete(the_input_text):
-            for right_side_index in range(0, level):
-                right_side_sub_string = the_input_text[right_side_index:]
-
-                if len(right_side_sub_string) == 0:
-                    return " " + end_string
-
-                the_splits = source_text.split(right_side_sub_string)
-                the_length_of_splits = len(the_splits)
-                if the_length_of_splits >= 2:
-                    index = random.randint(1, the_length_of_splits-1)
-                    target_text = the_splits[index][:complete_how_many_character_for_each_time]
-                    return target_text
-                else:
-                    pass
-            return " " + end_string
-
-        response = ""
-        while len(response) < how_many_character_you_want:
-            temp_response = down_side_complete(input_text)
-            if return_one_word == True:
-                return self._leave_first_sub_string(temp_response)
-            if len(temp_response) == 0:
-                break
-            response += temp_response
-            input_text += temp_response
-            if temp_response.endswith(end_string):
-                response = response[:-len(end_string)]
-                break
-
-        if use_background == False:
-            return response[:how_many_character_you_want]
+        def load_json_from_file(path):
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    temp_text = f.read()
+                return json.loads(temp_text)
+            else:
+                return {}
+        if "character_level_tree_dict" not in store_dict.keys():
+            # character_level dict
+            target_file_path = os.path.join(target_dict_folder_path, "character_level_tree_dict.json")
+            character_level_dict = load_json_from_file(target_file_path)
+            store_dict["character_level_tree_dict"] = character_level_dict
         else:
-            return response[:how_many_character_you_want] + "\n\nFrefrence:\n" + source_text.strip()[:512]
+            character_level_dict = store_dict["character_level_tree_dict"]
 
-    def optimized_get_next_text_by_pure_text(self, source_text_or_list, input_text_or_list, how_many_character_you_want=2000, level=64):
-        # this method is different, it requires us to manually create a find_string() or find_sub_list() function. it only look source_data for once. it will save index for each matched right_sub_string, so that in the end, by only look source data for once, you get a dict, the dict link to [right 64 char matchs: [start_index1], right 10 char matchs: [start_index1], right 3 char matchs: [start_index1, start_index2, ...], ...]
-        pass
+        def add_sub_string_to_dict(the_dict, the_list):
+            index = 0
+            length = len(the_list)
+            temp_dict = the_dict
+            while index < length:
+                element = the_list[index]
+                if element not in temp_dict:
+                    temp_dict[element] = dict()
+                temp_dict = temp_dict[element]
+                index += 1
+
+        disk.create_a_folder(target_dict_folder_path)
+
+        if window_length == None:
+            for a_text in source_text_list:
+                add_sub_string_to_dict(character_level_dict, a_text)
+        else:
+            for a_text in source_text_list:
+                if type(a_text) == str:
+                    a_text = a_text.strip()
+                for char_index in range(0, len(a_text)):
+                    char_window_list = a_text[char_index: char_index + window_length]
+                    if len(char_window_list) != window_length:
+                        continue
+                    add_sub_string_to_dict(character_level_dict, char_window_list)
+
+        with open(target_file_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(character_level_dict, ensure_ascii=ensure_ascii))
+        print("character_level_tree_dict process done")
+
+    def use_simplified_magic_language_tree_dict_to_get_next_text(self, store_dict, target_dict_folder_path, input_text, how_many_character_you_want=1024, window_length=11, no_sleep=False):
+        """
+        yingshaoxo: super useful one, I recommand this. If you use disk_dict and change window_length into 256. It would be super accurate as deepseek or openai chat gpt3.
+
+        Use jieba word spliting pre_processor would also increase accuracy.
+
+        But normally, we use sqlite to get 1MB data with keywords filter from 2TB text first, then use tree to do the cache and generation.
+        """
+        import json
+        import sys
+        import os
+        import random
+        sys.setrecursionlimit(99999)
+        max_line_length = 512
+
+        def load_json_from_file(path):
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    temp_text = f.read()
+                return json.loads(temp_text)
+            else:
+                return {}
+
+        if "character_level_tree_dict" not in store_dict.keys():
+            # character_level dict
+            target_file_path = os.path.join(target_dict_folder_path, "character_level_tree_dict.json")
+            character_level_dict = load_json_from_file(target_file_path)
+            store_dict["character_level_tree_dict"] = character_level_dict
+        else:
+            character_level_dict = store_dict["character_level_tree_dict"]
+
+        def real_use_dict_to_get_next(input_text):
+            def trace_words_to_get_sub_dict(the_dict, word_list):
+                if len(word_list) == 0:
+                    return the_dict
+                else:
+                    element = word_list[0]
+                    if element in the_dict:
+                        return trace_words_to_get_sub_dict(the_dict[element], word_list[1:])
+                    else:
+                        return None
+
+            def get_next_words(the_dict):
+                result_string = ""
+
+                if the_dict == None:
+                    return result_string
+
+                all_child_keys = list(the_dict.keys())
+                target_list = all_child_keys
+                if len(target_list) == 0:
+                    return result_string
+                else:
+                    one = random.choice(target_list)
+                    return result_string + one + get_next_words(the_dict[one])
+
+                return result_text
+
+            def get_next_words_for_list(the_dict):
+                result_list = []
+
+                if the_dict == None:
+                    return result_list
+
+                all_child_keys = list(the_dict.keys())
+                target_list = all_child_keys
+                if len(target_list) == 0:
+                    return result_list
+                else:
+                    one = random.choice(target_list)
+                    the_value = the_dict.get(one)
+                    if the_value != None:
+                        return result_list + [one] + get_next_words_for_list(the_dict[one])
+                    else:
+                        return result_list
+                return result_list
+
+            response = None
+            segments = input_text[-int(window_length-1):]
+            temp_a_dict = trace_words_to_get_sub_dict(character_level_dict, segments)
+            while temp_a_dict == None:
+                segments = segments[1:] # try less words right half if it is not in tree
+                if len(segments) == 0:
+                    temp_a_dict = None
+                    break
+                temp_a_dict = trace_words_to_get_sub_dict(character_level_dict, segments)
+            if temp_a_dict == None:
+                return None
+            else:
+                if type(input_text) == str:
+                    temp_response = get_next_words(temp_a_dict)
+                    if temp_response == "":
+                        return None
+                elif type(input_text) == list:
+                    temp_response = get_next_words_for_list(temp_a_dict)
+                if temp_response == None:
+                    return None
+                response = temp_response
+            return response
+
+        if type(input_text) == str:
+            print(input_text, end="", flush=True)
+            response = ""
+            while len(response) < how_many_character_you_want:
+                temp_response = real_use_dict_to_get_next(input_text)
+                if temp_response == None:
+                    break
+                if temp_response == "":
+                    break
+                #temp_response = temp_response.replace(":","")
+                print(temp_response, end="", flush=True)
+                if no_sleep == False:
+                    time.sleep(0.01)
+                response += temp_response
+                input_text += temp_response
+            print("\n\n", end="", flush=True)
+        elif type(input_text) == list:
+            print(input_text, end="", flush=True)
+            response = []
+            while len(response) < how_many_character_you_want:
+                temp_response = real_use_dict_to_get_next(input_text)
+                if temp_response == None:
+                    break
+                print(temp_response, end="", flush=True)
+                time.sleep(0.1)
+                response += temp_response
+                input_text += temp_response
+            print("\n\n", end="", flush=True)
+
+        return response
+
+    def _is_connector(self, string):
+        splits = "the of is and to in that we for an are by be as on with can if from which you it this then at have all not one has or that 的 了 和 是 就 都 而 及 与 着 或 一个 沒有 是否 我們 你們 妳們 他們 她們".split(" ")
+        return string in splits
+
+    def _is_punctuation(self, string, more_punctuation="跟讲在有要地的着和便等就让了说想被到是只给几买干从个为以然问没回对先者出也之能上下么儿很会还这"):
+        return string in (",.!?;:，。；：!？ \n-=_+()*&^%$#@!`~{}|[]'/<>" + more_punctuation)
+
+    def _get_keywords(self, string, more_punctuation=""):
+        # not accurate for chinese, unless you split keyword by using space
+        if " " in string:
+            string += " "
+            keyword_list = []
+            temp_word = ""
+            for char in string:
+                if self._is_punctuation(char, more_punctuation=more_punctuation):
+                    keyword_list.append(temp_word)
+                    temp_word = ""
+                else:
+                    temp_word += char
+            return keyword_list
+        else:
+            try:
+                import jieba
+                jieba.setLogLevel(20)
+                #keywords = list(jieba.cut(input_text, cut_all=False))
+                keywords = list(jieba.cut_for_search(input_text))
+            except Exception as e:
+                print(e)
+                keywords = list(input_text)
+            return keywords
+
+    def _is_ascii(self, string):
+        return string.strip(''' \n1234567890-=_+()*&^%$#@!`~qwertyuiop{}|[]\asdfghjk;':"zxcvbnm,./<>?QWERTYUIOPASDFGHJKLZXCVBNM''') == ""
+
+    def _is_alphabet(self, string):
+        return string.strip('''abcdefghijklmnopqrstuvwxyzQWERTYUIOPASDFGHJKLZXCVBNM''') == ""
+
+    def _leave_first_sub_string(self, string):
+        # it should complete until [,.!?;:，。；：!？space \n]
+        if len(string) > 1:
+            first_char = string[0]
+            if self._is_punctuation(first_char):
+                return first_char
+            else:
+                temp_string = first_char
+                for char in string[1:]:
+                    if self._is_punctuation(char):
+                        return temp_string + char
+                    else:
+                        temp_string += char
+                return temp_string
+        return string
 
     def get_next_text_creatively(self, source_text, input_text, how_many_character_you_want=200, level=64):
         fake_source_text = str(source_text)
@@ -3635,220 +3827,11 @@ class Yingshaoxo_Text_Completor():
     def use_repeated_sub_string_dict_to_generate_next_string(self, sub_string_dict, input_text, level=32, how_many_character_you_want=200, creatively=False):
         print("do it yourself")
 
-    def get_simplified_magic_language_tree_dict_from_text_list(self, store_dict, target_dict_folder_path, source_text_list, window_length=11):
-        """
-        yingshaoxo: super useful one, I recommand this. If you use disk_dict and change window_length into 256. It would be super accurate as deepseek or openai chat gpt3.
-
-        Use jieba word spliting pre_processor would also increase accuracy.
-
-
-        source_text_list can be [source_text], but you have to set window_length.
-
-        window_length can be None, so the it will use full_length of source_text_list.
-
-
-        Memory dict has size error, takes too much space. But you can try save 25 chars tree, then search for 24 chars sub_string to complete one char.
-        """
-        from auto_everything.disk import Disk
-        disk = Disk()
-        import json
-        import os
-        import sys
-        sys.setrecursionlimit(99999)
-        # or you can use {key: "another_dict_id"} to make sure each dict has only 9 depth.
-        max_line_length = 512
-        ensure_ascii = False
-
-        def load_json_from_file(path):
-            if os.path.exists(path):
-                with open(path, "r", encoding="utf-8") as f:
-                    temp_text = f.read()
-                return json.loads(temp_text)
-            else:
-                return {}
-        if "character_level_tree_dict" not in store_dict.keys():
-            # character_level dict
-            target_file_path = os.path.join(target_dict_folder_path, "character_level_tree_dict.json")
-            character_level_dict = load_json_from_file(target_file_path)
-            store_dict["character_level_tree_dict"] = character_level_dict
-        else:
-            character_level_dict = store_dict["character_level_tree_dict"]
-
-        def add_sub_string_to_dict(the_dict, the_list):
-            index = 0
-            length = len(the_list)
-            temp_dict = the_dict
-            while index < length:
-                element = the_list[index]
-                if element not in temp_dict:
-                    temp_dict[element] = dict()
-                temp_dict = temp_dict[element]
-                index += 1
-
-        disk.create_a_folder(target_dict_folder_path)
-
-        if window_length == None:
-            for a_text in source_text_list:
-                add_sub_string_to_dict(character_level_dict, a_text)
-        else:
-            for a_text in source_text_list:
-                if type(a_text) == str:
-                    a_text = a_text.strip()
-                for char_index in range(0, len(a_text)):
-                    char_window_list = a_text[char_index: char_index + window_length]
-                    if len(char_window_list) != window_length:
-                        continue
-                    add_sub_string_to_dict(character_level_dict, char_window_list)
-
-        with open(target_file_path, "w", encoding="utf-8") as f:
-            f.write(json.dumps(character_level_dict, ensure_ascii=ensure_ascii))
-        print("character_level_tree_dict process done")
-
-    def use_simplified_magic_language_tree_dict_to_get_next_text(self, store_dict, target_dict_folder_path, input_text, how_many_character_you_want=1024, window_length=11, no_sleep=False):
-        """
-        yingshaoxo: super useful one, I recommand this. If you use disk_dict and change window_length into 256. It would be super accurate as deepseek or openai chat gpt3.
-
-        Use jieba word spliting pre_processor would also increase accuracy.
-
-        But normally, we use sqlite to get 1MB data with keywords filter from 2TB text first, then use tree to do the cache and generation.
-        """
-        import json
-        import sys
-        import os
-        import random
-        sys.setrecursionlimit(99999)
-        max_line_length = 512
-
-        def load_json_from_file(path):
-            if os.path.exists(path):
-                with open(path, "r", encoding="utf-8") as f:
-                    temp_text = f.read()
-                return json.loads(temp_text)
-            else:
-                return {}
-
-        if "character_level_tree_dict" not in store_dict.keys():
-            # character_level dict
-            target_file_path = os.path.join(target_dict_folder_path, "character_level_tree_dict.json")
-            character_level_dict = load_json_from_file(target_file_path)
-            store_dict["character_level_tree_dict"] = character_level_dict
-        else:
-            character_level_dict = store_dict["character_level_tree_dict"]
-
-        def real_use_dict_to_get_next(input_text):
-            def trace_words_to_get_sub_dict(the_dict, word_list):
-                if len(word_list) == 0:
-                    return the_dict
-                else:
-                    element = word_list[0]
-                    if element in the_dict:
-                        return trace_words_to_get_sub_dict(the_dict[element], word_list[1:])
-                    else:
-                        return None
-
-            def get_next_words(the_dict):
-                result_string = ""
-
-                if the_dict == None:
-                    return result_string
-
-                all_child_keys = list(the_dict.keys())
-                target_list = all_child_keys
-                if len(target_list) == 0:
-                    return result_string
-                else:
-                    one = random.choice(target_list)
-                    return result_string + one + get_next_words(the_dict[one])
-
-                return result_text
-
-            def get_next_words_for_list(the_dict):
-                result_list = []
-
-                if the_dict == None:
-                    return result_list
-
-                all_child_keys = list(the_dict.keys())
-                target_list = all_child_keys
-                if len(target_list) == 0:
-                    return result_list
-                else:
-                    one = random.choice(target_list)
-                    the_value = the_dict.get(one)
-                    if the_value != None:
-                        return result_list + [one] + get_next_words_for_list(the_dict[one])
-                    else:
-                        return result_list
-                return result_list
-
-            response = None
-            segments = input_text[-int(window_length-1):]
-            temp_a_dict = trace_words_to_get_sub_dict(character_level_dict, segments)
-            while temp_a_dict == None:
-                segments = segments[1:] # try less words right half if it is not in tree
-                if len(segments) == 0:
-                    temp_a_dict = None
-                    break
-                temp_a_dict = trace_words_to_get_sub_dict(character_level_dict, segments)
-            if temp_a_dict == None:
-                return None
-            else:
-                if type(input_text) == str:
-                    temp_response = get_next_words(temp_a_dict)
-                    if temp_response == "":
-                        return None
-                elif type(input_text) == list:
-                    temp_response = get_next_words_for_list(temp_a_dict)
-                if temp_response == None:
-                    return None
-                response = temp_response
-            return response
-
-        if type(input_text) == str:
-            print(input_text, end="", flush=True)
-            response = ""
-            while len(response) < how_many_character_you_want:
-                temp_response = real_use_dict_to_get_next(input_text)
-                if temp_response == None:
-                    break
-                if temp_response == "":
-                    break
-                #temp_response = temp_response.replace(":","")
-                print(temp_response, end="", flush=True)
-                if no_sleep == False:
-                    time.sleep(0.01)
-                response += temp_response
-                input_text += temp_response
-            print("\n\n", end="", flush=True)
-        elif type(input_text) == list:
-            print(input_text, end="", flush=True)
-            response = []
-            while len(response) < how_many_character_you_want:
-                temp_response = real_use_dict_to_get_next(input_text)
-                if temp_response == None:
-                    break
-                print(temp_response, end="", flush=True)
-                time.sleep(0.1)
-                response += temp_response
-                input_text += temp_response
-            print("\n\n", end="", flush=True)
-
-        return response
-
     def final_goal(self):
         """
         搞个超级聊天数据库txt，从0开始和机器人聊天，让它学习所有长序列，带小女儿，边聊边成长。看得见的成长。
         """
         pass
-
-    def pattern_looking(self, source_text, input_text):
-        # pattern: "xxx mother is xxx."
-        from auto_everything.string_ import String
-        string = String()
-        if "xxx" not in input_text:
-            input_text = input_text.replace(" ", "xxx")
-            input_text = input_text + "xxx"
-        return "\n\n\n\n".join(list(set(string.hard_core_string_pattern_search(source_text, input_text, end_mark="__**__**__yingshaoxo_is_the_top_one__**__**__"))))
 
     def get_disk_simplified_magic_language_tree_dict_from_text_list(self, target_dict_folder_path, source_text_list, window_length=18, no_sliding_window=False):
         """
