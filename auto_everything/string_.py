@@ -10,7 +10,7 @@ class String:
     def __init__(self):
         pass
 
-    def hard_core_string_pattern_search(self, source_text, pattern, unknown_symbol="xxx", end_mark="\n"):
+    def hard_core_string_pattern_search(self, source_text, pattern, unknown_symbol="xxx", end_mark="\n", unknown_max_length=None):
         """
         pattern:
             This is a xxx story.
@@ -44,6 +44,10 @@ class String:
                     if index <= last_index:
                         ok = False
                         break
+                    if unknown_max_length != None:
+                        if (index - last_index) > unknown_max_length:
+                            ok = False
+                            break
                     last_index = index
                 if ok == False:
                     continue

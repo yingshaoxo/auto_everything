@@ -31,6 +31,6 @@ I think:
 for one in guide_template.split("\n"):
     if "xxx" in one:
         one = one.strip()
-        print(string.hard_core_string_pattern_search(source_text, one)[0])
+        print(string.hard_core_string_pattern_search(source_text, one, unknown_max_length=30)[0])
     else:
         print(one)

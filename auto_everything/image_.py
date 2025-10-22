@@ -1990,6 +1990,31 @@ class Image:
                 f.write(raw_data)
 
 
+class Element:
+    """
+    description: for example, "an eye"
+    id_: a safe string, only has lower alphabet, and use underline to replace space, such as "a_face"
+    parent_height: 8 means "8px"
+    parent_width: 20 means "20px"
+    height: "0.5" means "50% of its parent container"
+    width: "0.2" means "20%"
+    center_y: "0.5" means this image center point should be at the parent image 50% y, which is in center
+    center_x: "0.5" means this image center point should be at the parent image 50% x, which is in center
+    children: {id_: Element()}, the element can be a file path that leads to "*.py_image_element"
+    image: Image() or None, the image has transparent channel
+    svg_like_self_draw: {"direct_line":[], "arc_line": [], "fill_color_points": []}
+    data: a {} dict to save more information. The value for those data should be 5 basic types.
+    functions: a {} dict to save more functions, should contain some action function, similar to 'chinese shadow puppetry'. The function value should be pure string.
+    """
+    # note: this has id_, this is absolute mode, but the children uses percent height and width of its parent, use percent position y and x of its parent. it supports children=[Container(center_y=, center_x=)]. It is very similar to what 2D game engine does. But it has to be able to get saved as a text file, and load it back as memory python object. So that it could be used as image file for 2D or even 3D games. Compare to 3D models, you can think this as 2D model.
+    # note: it must make sure the parent abstract Element only has a very small size. For example, face 2D model file size is smaller than eye 2D models file size
+    # note: as for 3D Element, it is much more complex. It require you to use real_world tool to make 3D object, and reuse those little 3D model to create more complex model. If you do things from small, in the end, no matter how you will get a 3D world physical simulator. You can think the world as a combination of different type of particles. (a particle is a very small ball, sometime it is water, sometime it is metal, sometime it is meat cell). In old 2D world, pixel is the lowest level thing, now in 3D world, the particle become the lowest level thing. 
+
+    def render(self):
+        # can get render into a image object, which only contain pixels data
+        pass
+
+
 class Animation:
     """
     This class will play Image list as Video, or export them as video file.
@@ -1999,8 +2024,6 @@ class Animation:
 
 
 char_image_container_cache = {} # 'size+char' as key, image_container as value
-
-
 class Container:
     def __init__(self, height=1.0, width=1.0, children=[], rows=None, columns=None, color=[255,255,255,255], image=None, text="", text_color=[0,0,0,255], text_size=1, center_text=True, parent_height=None, parent_width=None, on_click_function=None, information={}):
         """
