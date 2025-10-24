@@ -2898,7 +2898,7 @@ class Yingshaoxo_Text_Completor():
         else:
             return response[:how_many_character_you_want] + "\n\nFrefrence:\n" + source_text.strip()[:512]
 
-    def find_next_string_in_disk_txt_file(self, file_path, input_text, how_many_characters_you_want=1024, max_input_number=64, max_possibility_number=100, file_encoding="utf-8", splitor="__**__**__yingshaoxo_is_the_top_one__**__**__", get_previous_text=False):
+    def find_next_string_in_disk_txt_file(self, file_path, input_text, how_many_characters_you_want=1024, max_input_number=64, max_possibility_number=50, file_encoding="utf-8", splitor="__**__**__yingshaoxo_is_the_top_one__**__**__", get_previous_text=False, start_seek_position=0, end_seek_position=None):
         # author: yingshaoxo
         input_text = input_text[-max_input_number:]
         sub_string_list = []
@@ -2911,13 +2911,19 @@ class Yingshaoxo_Text_Completor():
             result_dict[sub_string_bytes] = []
 
         MB_10_size = 1024 * 1024 * 1
+        current_position = start_seek_position
         with open(file_path, "rb") as f:
-            f.seek(0)
+            f.seek(start_seek_position)
             while True:
                 temp_text_bytes = f.read(MB_10_size)
+                current_position += MB_10_size
                 if len(temp_text_bytes) == 0 or len(temp_text_bytes) == max_input_number:
                     # meets file end
                     break
+                if end_seek_position != None:
+                    if current_position >= end_seek_position:
+                        # meets end seek position
+                        break
 
                 for sub_string_bytes in sub_string_list:
                     if len(result_dict[sub_string_bytes]) > max_possibility_number:
@@ -2949,7 +2955,70 @@ class Yingshaoxo_Text_Completor():
                     final_list.append(one_string)
         return final_list
 
-    def search_long_background_context_by_using_keywords(self, source_text, input_text, keyword_list=None, source_text_splitor=None):
+    def search_relative_data_from_disk_txt_file_by_using_keywords(self, file_path, input_text, keyword_list=None, file_encoding="utf-8", return_list=False, start_seek_position=0, end_seek_position=None):
+        if keyword_list == None:
+            if " " not in input_text:
+                try:
+                    import jieba
+                    jieba.setLogLevel(20)
+                    has_jieba = True
+                except Exception as e:
+                    has_jieba = False
+
+                if has_jieba:
+                    word_list = list(jieba.cut(input_text, cut_all=False))
+                else:
+                    if " " in input_text:
+                        word_list = input_text.split(" ")
+                    else:
+                        word_list = list(input_text)
+            else:
+                word_list = input_text.split(" ")
+        else:
+            word_list = list(keyword_list)
+
+        max_input_number = 512
+        word_bytes_list = [one.encode(file_encoding) for one in word_list]
+
+        result_list = []
+        result = ""
+        #MB_1_size = 1024 * 1024 * 1
+        MB_1_size = 1024 * 20 * 1
+        current_position = start_seek_position
+        with open(file_path, "rb") as f:
+            f.seek(start_seek_position)
+            while True:
+                temp_text_bytes = f.read(MB_1_size)
+                current_position += MB_1_size
+                if len(temp_text_bytes) == 0 or len(temp_text_bytes) == max_input_number:
+                    # meets file end
+                    break
+                if end_seek_position != None:
+                    if current_position >= end_seek_position:
+                        # meets end seek position
+                        break
+                ok = True
+                for word_bytes in word_bytes_list:
+                    if word_bytes not in temp_text_bytes:
+                        ok = False
+                        break
+                if ok == True:
+                    # this chunk matchs
+                    result = self.search_long_background_context_by_using_keywords(temp_text_bytes.decode(file_encoding, errors="ignore"), "", keyword_list=list(word_list), words_distance=20)
+                    result = result.strip()
+                    if result != "":
+                        if return_list == False:
+                            break
+                        else:
+                            result_list.append(result)
+                f.seek(-max_input_number, 1) #move back for 64 char
+
+        if return_list == False:
+            return result
+        else:
+            return result_list
+
+    def search_long_background_context_by_using_keywords(self, source_text, input_text, keyword_list=None, source_text_splitor=None, accurate_mode=True, words_distance=None):
         # for each 20 lines, if it got all keywords in input_text, we return it
         # but we can scale down to 10 lines to search it again
         # but we can scale down to 5 lines to search it again
@@ -2981,10 +3050,40 @@ class Yingshaoxo_Text_Completor():
                     temp_lines = lines[index:index+range_length]
                     temp_text = "\n".join(temp_lines)
                     ok = True
+                    index_list = []
                     for key in keywords:
-                        if key not in temp_text:
+                        found_index = temp_text.find(key)
+                        if found_index == -1:
+                            # not found
                             ok = False
                             break
+                        else:
+                            if accurate_mode == True:
+                                if len(index_list) > 0:
+                                    # make sure the distance between two keyword is less than 20
+                                    distance_between_keywords = abs(index_list[-1] - found_index)
+                                    if distance_between_keywords == 0:
+                                        ok = False
+                                        break
+                                    center_text = temp_text[min(index_list[-1], found_index): max(index_list[-1], found_index)]
+                                    if words_distance == None:
+                                        if " " in center_text:
+                                            # english
+                                            if distance_between_keywords > 64:
+                                                ok = False
+                                                break
+                                        else:
+                                            # chinese
+                                            if distance_between_keywords > 20:
+                                                ok = False
+                                                break
+                                    else:
+                                        if distance_between_keywords > words_distance:
+                                            ok = False
+                                            break
+                                index_list.append(found_index)
+                            else:
+                                pass
                     if ok == True:
                         new_start_index = index
                         new_end_index = index + range_length
@@ -3031,6 +3130,58 @@ class Yingshaoxo_Text_Completor():
                 return result
             else:
                 return ""
+
+    def search_long_background_context_from_disk_txt_file_by_using_multiprocess(self, file_path, input_text, keyword_list=None, return_text=True, file_encoding="utf-8"):
+        # super quick
+        from auto_everything.disk import Disk
+        disk = Disk()
+        import multiprocessing
+
+        the_100MB_length = 1024 * 1024 * 100
+        the_full_length = disk.get_file_size(file_path, level='B')
+
+        part_number = int(the_full_length / the_100MB_length)
+
+        pool = multiprocessing.Pool()
+        results = []
+
+        for part_index in range(0, part_number + 1):
+            start_index = part_index * the_100MB_length
+            if start_index >= the_full_length:
+                break
+            end_index = start_index + the_100MB_length
+            if end_index > the_full_length:
+                end_index = the_full_length - 1
+
+            result = pool.apply_async(
+                self.search_relative_data_from_disk_txt_file_by_using_keywords,
+                args=(file_path, input_text, keyword_list, file_encoding, True, start_index, end_index)
+            )
+            results.append(result)
+
+            #result = pool.apply_async(
+            #    self.get_next_text_by_pure_text,
+            #    args=(sub_source_text, input_text, 512, 64, 512, False, False, False)
+            #)
+            #results.append(result)
+
+        pool.close()
+        pool.join()
+
+        final_results = []
+        for result in results:
+            sub_result = result.get()
+            if sub_result != None:
+                if len(sub_result) != 0:
+                    for one in sub_result:
+                        one = one.strip()
+                        if one != "":
+                            final_results.append(one)
+
+        if return_text == False:
+            return final_results
+        else:
+            return "\n\n__**__**__yingshaoxo_is_the_top_one__**__**__\n\n".join(final_results)
 
     def get_simplified_magic_language_tree_dict_from_text_list(self, store_dict, target_dict_folder_path, source_text_list, window_length=11):
         """
@@ -3224,137 +3375,16 @@ class Yingshaoxo_Text_Completor():
                 temp_response = real_use_dict_to_get_next(input_text)
                 if temp_response == None:
                     break
+                if len(temp_response) == 0:
+                    break
                 print(temp_response, end="", flush=True)
-                time.sleep(0.1)
+                if no_sleep == False:
+                    time.sleep(0.1)
                 response += temp_response
                 input_text += temp_response
             print("\n\n", end="", flush=True)
 
         return response
-
-    def _is_connector(self, string):
-        splits = "the of is and to in that we for an are by be as on with can if from which you it this then at have all not one has or that 的 了 和 是 就 都 而 及 与 着 或 一个 沒有 是否 我們 你們 妳們 他們 她們".split(" ")
-        return string in splits
-
-    def _is_punctuation(self, string, more_punctuation="跟讲在有要地的着和便等就让了说想被到是只给几买干从个为以然问没回对先者出也之能上下么儿很会还这"):
-        return string in (",.!?;:，。；：!？ \n-=_+()*&^%$#@!`~{}|[]'/<>" + more_punctuation)
-
-    def _get_keywords(self, string, more_punctuation=""):
-        # not accurate for chinese, unless you split keyword by using space
-        if " " in string:
-            string += " "
-            keyword_list = []
-            temp_word = ""
-            for char in string:
-                if self._is_punctuation(char, more_punctuation=more_punctuation):
-                    keyword_list.append(temp_word)
-                    temp_word = ""
-                else:
-                    temp_word += char
-            return keyword_list
-        else:
-            try:
-                import jieba
-                jieba.setLogLevel(20)
-                #keywords = list(jieba.cut(input_text, cut_all=False))
-                keywords = list(jieba.cut_for_search(input_text))
-            except Exception as e:
-                print(e)
-                keywords = list(input_text)
-            return keywords
-
-    def _is_ascii(self, string):
-        return string.strip(''' \n1234567890-=_+()*&^%$#@!`~qwertyuiop{}|[]\asdfghjk;':"zxcvbnm,./<>?QWERTYUIOPASDFGHJKLZXCVBNM''') == ""
-
-    def _is_alphabet(self, string):
-        return string.strip('''abcdefghijklmnopqrstuvwxyzQWERTYUIOPASDFGHJKLZXCVBNM''') == ""
-
-    def _leave_first_sub_string(self, string):
-        # it should complete until [,.!?;:，。；：!？space \n]
-        if len(string) > 1:
-            first_char = string[0]
-            if self._is_punctuation(first_char):
-                return first_char
-            else:
-                temp_string = first_char
-                for char in string[1:]:
-                    if self._is_punctuation(char):
-                        return temp_string + char
-                    else:
-                        temp_string += char
-                return temp_string
-        return string
-
-    def get_next_text_creatively(self, source_text, input_text, how_many_character_you_want=200, level=64):
-        fake_source_text = str(source_text)
-
-        response = ""
-        while len(response) < how_many_character_you_want:
-            temp_response = self.get_next_text_by_pure_text(fake_source_text, input_text, how_many_character_you_want=int(level/2), level=64, complete_how_many_character_for_each_time=level, use_background=False, creatively=False)
-            old_temp_response = temp_response
-            temp_response = self._leave_first_sub_string(temp_response)
-            print(temp_response, end="", flush=True)
-            time.sleep(0.2)
-            if len(temp_response) == 0:
-                break
-            if temp_response.strip() == "":
-                break
-            old_pattern = old_temp_response[len(temp_response)-1:]
-            fake_source_text = fake_source_text.replace(old_pattern, "")
-            # need to change a lot of code to use find_string to replace only that place next text
-            response += temp_response
-            input_text += temp_response
-
-        return response
-
-    def search_long_background_context_by_using_multiprocess(self, source_text, input_text, keyword_list=None, source_text_splitor=None, return_text=True):
-        # super quick
-        import multiprocessing
-
-        if keyword_list == None:
-            keyword_list = self._get_keywords(input_text, more_punctuation="")
-
-        the_100MB_length = 3495253#3
-        the_full_length = len(source_text)
-
-        self.source_text_list = []
-        part_number = int(the_full_length / the_100MB_length)
-
-        pool = multiprocessing.Pool()
-        results = []
-
-        for part_index in range(0, part_number + 1):
-            start_index = part_index * the_100MB_length
-            if start_index >= the_full_length:
-                break
-            end_index = start_index + the_100MB_length
-            sub_source_text = source_text[start_index: end_index]
-
-            result = pool.apply_async(
-                self.get_next_text_by_pure_text,
-                args=(sub_source_text, input_text, 512, 64, 512, False, False, False)
-            )
-            results.append(result)
-
-            #result = pool.apply_async(
-            #    self.search_long_background_context_by_using_keywords,
-            #    args=(sub_source_text, input_text)
-            #)
-            #results.append(result)
-
-        pool.close()
-        pool.join()
-
-        final_results = []
-        for result in results:
-            sub_result = result.get()
-            if sub_result != "":
-                final_results.append(input_text + sub_result)
-
-        if return_text == False:
-            return final_results
-        else:
-            return "\n\n__**__**__yingshaoxo_is_the_top_one__**__**__\n\n".join(final_results)
 
     def get_magic_language_tree_dict_from_text(self, source_text, char_level=True, window_length=8):
         """
@@ -3412,8 +3442,8 @@ class Yingshaoxo_Text_Completor():
 
             counting += 1
             if counting >= 1000000:
-                print("reduce dict size by deleting low frequency words...")
-                delete_low_frequency_words(sub_string_dict, 2)
+                #print("reduce dict size by deleting low frequency words...")
+                #delete_low_frequency_words(sub_string_dict, 2)
                 counting = 0
 
         delete_low_frequency_words(sub_string_dict, 2)
@@ -3494,11 +3524,85 @@ class Yingshaoxo_Text_Completor():
                     break
 
             #print(temp_response, end="", flush=True)
-            time.sleep(0.1)
+            #time.sleep(0.1)
             response += temp_response
             input_text += temp_response
 
         #print("\n\n", end="", flush=True)
+
+        return response
+
+    def _is_connector(self, string):
+        splits = "the of is and to in that we for an are by be as on with can if from which you it this then at have all not one has or that 的 了 和 是 就 都 而 及 与 着 或 一个 沒有 是否 我們 你們 妳們 他們 她們".split(" ")
+        return string in splits
+
+    def _is_punctuation(self, string, more_punctuation="跟讲在有要地的着和便等就让了说想被到是只给几买干从个为以然问没回对先者出也之能上下么儿很会还这"):
+        return string in (",.!?;:，。；：!？ \n-=_+()*&^%$#@!`~{}|[]'/<>" + more_punctuation)
+
+    def _get_keywords(self, string, more_punctuation=""):
+        # not accurate for chinese, unless you split keyword by using space
+        if " " in string:
+            string += " "
+            keyword_list = []
+            temp_word = ""
+            for char in string:
+                if self._is_punctuation(char, more_punctuation=more_punctuation):
+                    keyword_list.append(temp_word)
+                    temp_word = ""
+                else:
+                    temp_word += char
+            return keyword_list
+        else:
+            try:
+                import jieba
+                jieba.setLogLevel(20)
+                keywords = list(jieba.cut(input_text, cut_all=False))
+            except Exception as e:
+                print(e)
+                keywords = list(input_text)
+            return keywords
+
+    def _is_ascii(self, string):
+        return string.strip(''' \n1234567890-=_+()*&^%$#@!`~qwertyuiop{}|[]\asdfghjk;':"zxcvbnm,./<>?QWERTYUIOPASDFGHJKLZXCVBNM''') == ""
+
+    def _is_alphabet(self, string):
+        return string.strip('''abcdefghijklmnopqrstuvwxyzQWERTYUIOPASDFGHJKLZXCVBNM''') == ""
+
+    def _leave_first_sub_string(self, string):
+        # it should complete until [,.!?;:，。；：!？space \n]
+        if len(string) > 1:
+            first_char = string[0]
+            if self._is_punctuation(first_char):
+                return first_char
+            else:
+                temp_string = first_char
+                for char in string[1:]:
+                    if self._is_punctuation(char):
+                        return temp_string + char
+                    else:
+                        temp_string += char
+                return temp_string
+        return string
+
+    def get_next_text_creatively(self, source_text, input_text, how_many_character_you_want=200, level=64):
+        fake_source_text = str(source_text)
+
+        response = ""
+        while len(response) < how_many_character_you_want:
+            temp_response = self.get_next_text_by_pure_text(fake_source_text, input_text, how_many_character_you_want=int(level/2), level=64, complete_how_many_character_for_each_time=level, use_background=False, creatively=False)
+            old_temp_response = temp_response
+            temp_response = self._leave_first_sub_string(temp_response)
+            print(temp_response, end="", flush=True)
+            time.sleep(0.2)
+            if len(temp_response) == 0:
+                break
+            if temp_response.strip() == "":
+                break
+            old_pattern = old_temp_response[len(temp_response)-1:]
+            fake_source_text = fake_source_text.replace(old_pattern, "")
+            # need to change a lot of code to use find_string to replace only that place next text
+            response += temp_response
+            input_text += temp_response
 
         return response
 
@@ -3979,7 +4083,8 @@ class Yingshaoxo_Text_Completor():
                 if len(temp_response) == 0:
                     break
                 print(temp_response, end="", flush=True)
-                time.sleep(0.1)
+                if no_sleep == False:
+                    time.sleep(0.1)
                 response += temp_response
                 input_text += temp_response
             print("\n\n", end="", flush=True)
@@ -4574,6 +4679,221 @@ class Yingshaoxo_Text_Completor():
             if result != None:
                 result_string += result
         return result_string
+
+    def get_general_word_order_dict(self, source_text_list, order_dict_folder):
+        import json
+        from auto_everything.disk import Disk
+        disk = Disk()
+        try:
+            import jieba
+            jieba.setLogLevel(20)
+            has_jieba = True
+        except Exception as e:
+            has_jieba = False
+
+        word_dict = {}
+        word_order_dict = {}
+        for part in source_text_list:
+            part = part[:1024]
+            part = part.strip()
+            if has_jieba:
+                word_list = list(jieba.cut(part, cut_all=False))
+            else:
+                word_list = part.split(" ")
+            # add word into word_dict
+            for word in word_list:
+                if word not in word_dict:
+                    word_dict[word] = 0
+            # add word order into word_order dict
+            for index1, word1 in enumerate(word_list):
+                for word2 in word_list[index1+1:]:
+                    combine = word1 + ">" + word2
+                    if combine not in word_order_dict:
+                        word_order_dict[combine] = 0
+            try:
+                memory_use_percent = yingshaoxo_text_completor.get_memory_info()["used_percent"]
+                print("memory usage: ", memory_use_percent, "%")
+                if memory_use_percent > 50:
+                    break
+            except Exception as e:
+                print(e)
+
+        print("in data saving...")
+        disk.create_a_folder(order_dict_folder)
+        with open(disk.join_paths(order_dict_folder, "word_dict.json"), "w") as f:
+            f.write(json.dumps(word_dict, ensure_ascii=False))
+        with open(disk.join_paths(order_dict_folder, "word_order_dict.json"), "w") as f:
+            f.write(json.dumps(word_order_dict, ensure_ascii=False))
+        print("word order dict generated.")
+
+    def use_general_word_order_dict_to_get_sentence_correct_ratio(self, store_dict, order_dict_folder, input_text):
+        try:
+            if "jieba" in store_dict:
+                jieba = store_dict["jieba"]
+            else:
+                import jieba
+                jieba.setLogLevel(20)
+                store_dict["jieba"] = jieba
+            has_jieba = True
+        except Exception as e:
+            has_jieba = False
+
+        if "word_dict" in store_dict:
+            word_dict = store_dict["word_dict"]
+        else:
+            from auto_everything.disk import Disk
+            disk = Disk()
+            import json
+            with open(disk.join_paths(order_dict_folder, "word_dict.json"), "r") as f:
+                temp_text = f.read()
+            word_dict = json.loads(temp_text)
+            store_dict["word_dict"] = word_dict
+
+        if "word_order_dict" in store_dict:
+            word_order_dict = store_dict["word_order_dict"]
+        else:
+            from auto_everything.disk import Disk
+            disk = Disk()
+            import json
+            with open(disk.join_paths(order_dict_folder, "word_order_dict.json"), "r") as f:
+                temp_text = f.read()
+            word_order_dict = json.loads(temp_text)
+            store_dict["word_order_dict"] = word_order_dict
+
+        if len(input_text.strip()) == 0:
+            return 0
+
+        all_counting = 0
+        correct_counting = 0
+        if has_jieba:
+            word_list = list(jieba.cut(input_text, cut_all=False))
+        else:
+            word_list = input_text.split(" ")
+        for index1, word1 in enumerate(word_list):
+            for index2, word2 in enumerate(word_list[index1+1:]):
+                all_counting += 1
+                if (word1 in word_dict) and (word2 in word_dict):
+                    combine = word1 + ">" + word2
+                    if combine in word_order_dict:
+                        correct_counting += 1
+
+        if all_counting == 0:
+            return 0
+        return correct_counting / all_counting
+
+    def get_simple_next_word_dict(self, source_text_list, simple_next_word_dict_folder):
+        # this is useless, it is just a tool used to test the sentence checker, see if the checker can get right sentence from random input
+        import json
+        from auto_everything.disk import Disk
+        disk = Disk()
+        try:
+            import jieba
+            jieba.setLogLevel(20)
+            has_jieba = True
+        except Exception as e:
+            has_jieba = False
+
+        simple_next_word_dict = {}
+        for part in source_text_list:
+            part = part.strip()
+            if has_jieba:
+                word_list = list(jieba.cut(part, cut_all=False))
+            else:
+                word_list = part.split(" ")
+
+            # add word into word_dict
+            length = len(word_list) - 1
+            for index, word in enumerate(word_list):
+                if index < length:
+                    next_word = word_list[index+1]
+                    if word not in simple_next_word_dict:
+                        simple_next_word_dict[word] = set([next_word])
+                    else:
+                        simple_next_word_dict[word].add(next_word)
+
+            try:
+                memory_use_percent = yingshaoxo_text_completor.get_memory_info()["used_percent"]
+                print("memory usage: ", memory_use_percent, "%")
+                if memory_use_percent > 50:
+                    break
+            except Exception as e:
+                print(e)
+
+        for key in simple_next_word_dict.keys():
+            simple_next_word_dict[key] = list(simple_next_word_dict[key])
+
+        print("in data saving...")
+        disk.create_a_folder(simple_next_word_dict_folder)
+        with open(disk.join_paths(simple_next_word_dict_folder, "simple_next_word_dict.json"), "w") as f:
+            f.write(json.dumps(simple_next_word_dict, ensure_ascii=False))
+        print("simple_next_word_dict generated.")
+
+    def use_simple_next_word_dict_to_get_next_text(self, store_dict, simple_next_word_dict_folder, input_text, how_many_character_you_want=1):
+        # this is useless, it is just a tool used to test the sentence checker, see if the checker can get right sentence from random input
+        if len(input_text) == 0:
+            return ""
+
+        try:
+            if "jieba" in store_dict:
+                jieba = store_dict["jieba"]
+            else:
+                import jieba
+                jieba.setLogLevel(20)
+                store_dict["jieba"] = jieba
+            has_jieba = True
+        except Exception as e:
+            has_jieba = False
+
+        if "simple_next_word_dict" in store_dict:
+            simple_next_word_dict = store_dict["simple_next_word_dict"]
+        else:
+            from auto_everything.disk import Disk
+            disk = Disk()
+            import json
+            with open(disk.join_paths(simple_next_word_dict_folder, "simple_next_word_dict.json"), "r") as f:
+                temp_text = f.read()
+            simple_next_word_dict = json.loads(temp_text)
+            store_dict["simple_next_word_dict"] = simple_next_word_dict
+
+        response = ""
+        while len(response) < how_many_character_you_want:
+            if has_jieba:
+                input_words = list(jieba.cut(input_text[-32:], cut_all=False))
+            else:
+                input_words = input_text[-32:].split(" ")
+            temp_response = simple_next_word_dict.get(input_words[-1])
+            if temp_response == None:
+                break
+            if len(temp_response) == 0:
+                break
+            temp_response = random.choice(temp_response)
+            response += temp_response
+            input_text += temp_response
+
+        return response
+
+    def get_memory_info(self):
+        mem_info = {}
+        with open('/proc/meminfo', 'r') as f:
+            for line in f:
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    mem_info[key.strip()] = value.strip()
+
+        total = int(mem_info['MemTotal'].split()[0])
+        free = int(mem_info['MemFree'].split()[0])
+        available = int(mem_info['MemAvailable'].split()[0])
+
+        used = total - free
+        usage_percent = (used / total) * 100
+
+        return {
+            'total_kb': total,
+            'free_kb': free,
+            'used_kb': used,
+            'used_mb': int(used/1024),
+            'used_percent': round(usage_percent, 2)
+        }
 
 
 class Yingshaoxo_Strong_AI():
