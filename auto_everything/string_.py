@@ -61,6 +61,33 @@ class String:
                     result_list.append(part)
         return result_list
 
+    def check_if_string_is_inside_string(self, source_string, sub_word_list, wrong_limit_ratio=0.4, near_distance=20):
+        """
+        example: "Morning, hi you.", list("Hxi you.") -> True
+        example: "Morning, hi you.", list("xx night.") -> False
+
+        author: yingshaoxo
+        """
+        # maybe slow
+        if len(sub_word_list) == 0:
+            return False
+        wrong_limit = int(len(sub_word_list) * wrong_limit_ratio)
+        not_found_counting = 0
+        last_index = 0
+        found_index = -1
+        for word in sub_word_list:
+            found_index = source_string.find(word)
+            if found_index == -1:
+                not_found_counting += 1
+            else:
+                if abs(found_index - last_index) > near_distance:
+                    not_found_counting += 1
+                else:
+                    last_index = found_index
+            if not_found_counting >= wrong_limit:
+                return False
+        return True
+
     def check_if_the_char_order_matchs(source_string, order_string, order_list=None):
         # example: ("hi you!", "hy!") -> True
         # example: ("hi you!", "hXy!") -> False
@@ -103,29 +130,6 @@ class String:
     #            a_list[list_index] += a_string[i]
     #            i += 1
     #    return a_list
-
-    def check_if_string_is_inside_string(self, source_string, sub_word_list, wrong_limit_ratio=0.4, near_distance=20):
-        # maybe slow
-        # example: "Morning, hi you.", list("Hxi you.") -> True
-        # example: "Morning, hi you.", list("xx night.") -> False
-        if len(sub_word_list) == 0:
-            return False
-        wrong_limit = int(len(sub_word_list) * wrong_limit_ratio)
-        not_found_counting = 0
-        last_index = 0
-        found_index = -1
-        for word in sub_word_list:
-            found_index = source_string.find(word)
-            if found_index == -1:
-                not_found_counting += 1
-            else:
-                if abs(found_index - last_index) > near_distance:
-                    not_found_counting += 1
-                else:
-                    last_index = found_index
-            if not_found_counting >= wrong_limit:
-                return False
-        return True
 
     def get_common_char_string(self, string_1, string_2):
         if len(string_1) < len(string_2):
