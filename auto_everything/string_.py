@@ -61,6 +61,88 @@ class String:
                     result_list.append(part)
         return result_list
 
+    def check_if_the_char_order_matchs(source_string, order_string, order_list=None):
+        # example: ("hi you!", "hy!") -> True
+        # example: ("hi you!", "hXy!") -> False
+        if len(source_string) == 0:
+            return False
+        if order_list == None:
+            if len(order_string) == 0:
+                return False
+            order_list = list(order_string)
+        last_index = 0
+        for char in order_list:
+            index = source_string.find(char, last_index)
+            if index == -1:
+                return False
+            if index < last_index:
+                return False
+            last_index = index
+        return True
+
+    def split_string_into_n_char_parts(a_string, n=2):
+        # example: ("ok!!", 2) -> ['ok', '!!']
+        a_list = [""]
+        for char in a_string:
+            if len(a_list[-1]) < n:
+                a_list[-1] += char
+            else:
+                a_list.append(char)
+        return a_list
+
+    #def split_string_into_n_parts(self, a_string, n=5):
+    #    # example: ("hi, you!", 2) -> ['hi, ', 'you!']
+    #    # example: ("hi, you!", 3) -> ['hi', ', ', 'yo']
+    #    if len(a_string) < n:
+    #        n = len(a_string)
+    #    i = 0
+    #    a_list = [""]*n
+    #    part_number = int(len(a_string) / n)
+    #    for list_index in range(n):
+    #        for _ in range(part_number):
+    #            a_list[list_index] += a_string[i]
+    #            i += 1
+    #    return a_list
+
+    def check_if_string_is_inside_string(self, source_string, sub_word_list, wrong_limit_ratio=0.4, near_distance=20):
+        # maybe slow
+        # example: "Morning, hi you.", list("Hxi you.") -> True
+        # example: "Morning, hi you.", list("xx night.") -> False
+        if len(sub_word_list) == 0:
+            return False
+        wrong_limit = int(len(sub_word_list) * wrong_limit_ratio)
+        not_found_counting = 0
+        last_index = 0
+        found_index = -1
+        for word in sub_word_list:
+            found_index = source_string.find(word)
+            if found_index == -1:
+                not_found_counting += 1
+            else:
+                if abs(found_index - last_index) > near_distance:
+                    not_found_counting += 1
+                else:
+                    last_index = found_index
+            if not_found_counting >= wrong_limit:
+                return False
+        return True
+
+    def get_common_char_string(self, string_1, string_2):
+        if len(string_1) < len(string_2):
+            string_a = string_1
+            string_b = string_2
+        else:
+            string_a = string_2
+            string_b = string_1
+        common_char_string = ""
+        for char in string_a:
+            if char in string_b:
+                common_char_string += char
+        if len(common_char_string) == 0:
+            return None
+        else:
+            return common_char_string
+
     def capitalize_the_first_character_of_a_string(self, text):
     #(self, text: str) -> str:
         if len(text) == 0:
