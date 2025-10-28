@@ -18,3 +18,6 @@ print(string.check_if_string_is_inside_string("你知道你鞋子从哪儿来的
 
 print(string.check_if_string_is_inside_string("你知道你鞋子从哪儿来的吗？", list("你知道你智力从哪儿来的吗？"), wrong_limit_ratio=0.2))
 # False
+
+print(string.check_if_string_is_inside_string("现在你应该是会记忆有价值的东西。", list("你知道你会记忆什么样的信息吗？"), wrong_limit_ratio=0.7))
+# True

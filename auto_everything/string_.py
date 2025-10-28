@@ -69,6 +69,7 @@ class String:
         author: yingshaoxo
         """
         # maybe slow
+        # todo, may need to handle big source_string, which means look for all first word in sub_word_list, then trace each found_index to know if that string inside or not
         if len(sub_word_list) == 0:
             return False
         wrong_limit = int(len(sub_word_list) * wrong_limit_ratio)
@@ -88,7 +89,7 @@ class String:
                 return False
         return True
 
-    def check_if_the_char_order_matchs(source_string, order_string, order_list=None):
+    def check_if_the_char_order_matchs(self, source_string, order_string, order_list=None):
         # example: ("hi you!", "hy!") -> True
         # example: ("hi you!", "hXy!") -> False
         if len(source_string) == 0:
@@ -107,7 +108,7 @@ class String:
             last_index = index
         return True
 
-    def split_string_into_n_char_parts(a_string, n=2):
+    def split_string_into_n_char_parts(self, a_string, n=2):
         # example: ("ok!!", 2) -> ['ok', '!!']
         a_list = [""]
         for char in a_string:
