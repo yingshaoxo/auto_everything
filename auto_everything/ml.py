@@ -2958,7 +2958,7 @@ class Yingshaoxo_Text_Completor():
 
     def search_relate_data_from_disk_txt_file_by_using_keywords(self, file_path, input_text, keyword_list=None, file_encoding="utf-8", return_list=False, start_seek_position=0, end_seek_position=None, words_distance=20, get_more=False):
         # quick, this is the best method so far
-        # it has to be used with AST for natural language to get most accurate keywords list to to get the best search result
+        # it has to be used with AST(abstract syntax tree) for natural language to get most accurate keywords list to to get the best search result
         from auto_everything.string_ import String
         string_module = String()
         input_text = input_text[-512:]
