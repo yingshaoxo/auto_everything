@@ -58,7 +58,7 @@ Low inteligence people can't write high inteligence code. Unless he or she do co
 
 shi_jie_shang hao_duo_dong_xi dou_hui_guo_shi, dan_shi wo_zhe_ge xiang_fa, ji_qian_nian dou_bu_hui guo_shi.
 
-## Detailed (Language Generation) Algorithm
+## An Stupid (Language Generation) Algorithm Example
 
 ### Step 1, split text into 8000 char sub_string_window
 
