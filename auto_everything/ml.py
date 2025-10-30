@@ -2956,36 +2956,29 @@ class Yingshaoxo_Text_Completor():
                     final_list.append(one_string)
         return final_list
 
-    def search_relative_data_from_disk_txt_file_by_using_keywords(self, file_path, input_text, keyword_list=None, file_encoding="utf-8", return_list=False, start_seek_position=0, end_seek_position=None):
+    def search_relate_data_from_disk_txt_file_by_using_keywords(self, file_path, input_text, keyword_list=None, file_encoding="utf-8", return_list=False, start_seek_position=0, end_seek_position=None, words_distance=20, get_more=False):
         # quick, this is the best method so far
-        if keyword_list == None:
-            if " " not in input_text:
-                try:
-                    import jieba
-                    jieba.setLogLevel(20)
-                    has_jieba = True
-                except Exception as e:
-                    has_jieba = False
+        # it has to be used with AST for natural language to get most accurate keywords list to to get the best search result
+        from auto_everything.string_ import String
+        string_module = String()
+        input_text = input_text[-512:]
 
-                if has_jieba:
-                    word_list = list(jieba.cut(input_text, cut_all=False))
-                else:
-                    if " " in input_text:
-                        word_list = input_text.split(" ")
-                    else:
-                        word_list = list(input_text)
+        if keyword_list == None:
+            if not input_text.isascii():
+                #word_list = list(input_text)
+                word_list = string_module.split_string_into_n_char_parts(input_text, 2)
             else:
                 word_list = input_text.split(" ")
         else:
             word_list = list(keyword_list)
 
-        max_input_number = 512
         word_bytes_list = [one.encode(file_encoding) for one in word_list]
 
+        wrong_counting_limit = int(len(word_list) * 0.5)
         result_list = []
         result = ""
         #MB_1_size = 1024 * 1024 * 1
-        MB_1_size = 1024 * 20 * 1
+        MB_1_size = 1024 * 2 * 1
         current_position = start_seek_position
         with open(file_path, "rb") as f:
             f.seek(start_seek_position)
@@ -2996,31 +2989,45 @@ class Yingshaoxo_Text_Completor():
                         break
                 temp_text_bytes = f.read(MB_1_size)
                 current_position += MB_1_size
-                if len(temp_text_bytes) == 0 or len(temp_text_bytes) == max_input_number:
+                if len(temp_text_bytes) == 0:
                     # meets file end
                     break
                 ok = True
-                for word_bytes in word_bytes_list:
-                    if word_bytes not in temp_text_bytes:
-                        ok = False
-                        break
+                if get_more == False:
+                    for word_bytes in word_bytes_list:
+                        if word_bytes not in temp_text_bytes:
+                            ok = False
+                            break
+                else:
+                    wrong_counting = 0
+                    for word_bytes in word_bytes_list:
+                        if word_bytes not in temp_text_bytes:
+                            wrong_counting += 1
+                            if wrong_counting > wrong_counting_limit:
+                                ok = False
+                                break
                 if ok == True:
                     # this chunk matchs
-                    result = self.search_long_background_context_by_using_keywords(temp_text_bytes.decode(file_encoding, errors="ignore"), "", keyword_list=list(word_list), words_distance=20)
-                    result = result.strip()
-                    if result != "":
-                        if return_list == False:
-                            break
-                        else:
-                            result_list.append(result)
-                f.seek(-max_input_number, 1) #move back for 64 char
+                    decoded_temp_text = temp_text_bytes.decode(file_encoding, errors="ignore")
+                    #print(decoded_temp_text)
+                    if get_more == False:
+                        result = self.search_long_background_context_by_using_keywords(decoded_temp_text, "", keyword_list=list(word_list), words_distance=words_distance)
+                        result = result.strip()
+                        if result != "":
+                            if return_list == False:
+                                break
+                            else:
+                                result_list.append(result)
+                    else:
+                        a_list = string_module.get_relate_sub_string_in_long_string(decoded_temp_text, word_list, wrong_limit_ratio=0.5, window_length=None, return_number=1, include_only_one_line=False, include_previous_and_next_one_line=True)
+                        result_list += a_list
 
         if return_list == False:
             return result
         else:
             return result_list
 
-    def search_long_background_context_by_using_keywords(self, source_text, input_text, keyword_list=None, source_text_splitor=None, accurate_mode=True, words_distance=None):
+    def search_long_background_context_by_using_keywords(self, source_text, input_text, keyword_list=None, source_text_splitor=None, words_distance=20):
         # for each 20 lines, if it got all keywords in input_text, we return it
         # but we can scale down to 10 lines to search it again
         # but we can scale down to 5 lines to search it again
@@ -3060,7 +3067,7 @@ class Yingshaoxo_Text_Completor():
                             ok = False
                             break
                         else:
-                            if accurate_mode == True:
+                            if words_distance != None:
                                 if len(index_list) > 0:
                                     # make sure the distance between two keyword is less than 20
                                     distance_between_keywords = abs(index_list[-1] - found_index)
@@ -3068,21 +3075,9 @@ class Yingshaoxo_Text_Completor():
                                         ok = False
                                         break
                                     center_text = temp_text[min(index_list[-1], found_index): max(index_list[-1], found_index)]
-                                    if words_distance == None:
-                                        if " " in center_text:
-                                            # english
-                                            if distance_between_keywords > 64:
-                                                ok = False
-                                                break
-                                        else:
-                                            # chinese
-                                            if distance_between_keywords > 20:
-                                                ok = False
-                                                break
-                                    else:
-                                        if distance_between_keywords > words_distance:
-                                            ok = False
-                                            break
+                                    if distance_between_keywords > words_distance:
+                                        ok = False
+                                        break
                                 index_list.append(found_index)
                             else:
                                 pass
@@ -3133,72 +3128,6 @@ class Yingshaoxo_Text_Completor():
             else:
                 return ""
 
-    def search_more_relative_data_from_disk_txt_file_by_using_keywords(self, file_path, input_text, keyword_list=None, file_encoding="utf-8", return_list=False, start_seek_position=0, end_seek_position=None, word_distance=20):
-        # this is the second best method so far
-        # cost is slow. 5 seconds for 200MB txt file.
-        # similar to general context search function, but will search more
-        def split_string_into_n_char_parts(a_string, n=2):
-            a_list = [""]
-            for char in a_string:
-                if len(a_list[-1]) < n:
-                    a_list[-1] += char
-                else:
-                    a_list.append(char)
-            return a_list
-
-        if keyword_list == None:
-            if not input_text.isascii():
-                word_list = split_string_into_n_char_parts(input_text, 2)
-            else:
-                word_list = input_text.split(" ")
-        else:
-            word_list = list(keyword_list)
-
-        wrong_limit = int(len(word_list) * 0.8)
-        word_bytes_list = [one.encode(file_encoding) for one in word_list]
-
-        result_list = []
-        result = ""
-        MB_1_Bytes_Length = 1024 * 1024 * 1
-        current_position = start_seek_position
-        with open(file_path, "rb") as f:
-            f.seek(start_seek_position)
-            while True:
-                if end_seek_position != None:
-                    if current_position >= end_seek_position:
-                        # meets end seek position
-                        break
-                temp_text_bytes = f.read(MB_1_Bytes_Length)
-                current_position += MB_1_Bytes_Length
-                if len(temp_text_bytes) == 0:
-                    # meets file end
-                    break
-                ok = True
-                ok_word_list = []
-                wrong_counting = 0
-                for word_bytes in word_bytes_list:
-                    if word_bytes not in temp_text_bytes:
-                        wrong_counting += 1
-                        if wrong_counting > wrong_limit:
-                            ok = False
-                            break
-                    else:
-                        ok_word_list.append(word_bytes.decode(file_encoding, errors="ignore"))
-                if ok == True:
-                    # this chunk matchs
-                    result = self.search_long_background_context_by_using_keywords(temp_text_bytes.decode(file_encoding, errors="ignore"), "", keyword_list=ok_word_list, words_distance=word_distance)
-                    result = result.strip()
-                    if result != "":
-                        if return_list == False:
-                            break
-                        else:
-                            result_list.append(result)
-
-        if return_list == False:
-            return result
-        else:
-            return result_list
-
     def search_long_background_context_from_disk_txt_file_by_using_multiprocess(self, file_path, input_text, keyword_list=None, return_text=True, file_encoding="utf-8", get_more=False):
         # super quick
         # recommand for using in dialy tasks
@@ -3214,10 +3143,7 @@ class Yingshaoxo_Text_Completor():
 
         pool = multiprocessing.Pool()
         results = []
-        if get_more == False:
-            the_function = self.search_relative_data_from_disk_txt_file_by_using_keywords
-        else:
-            the_function = self.search_more_relative_data_from_disk_txt_file_by_using_keywords
+        the_function = self.search_relate_data_from_disk_txt_file_by_using_keywords
         for part_index in range(0, part_number + 1):
             start_index = part_index * the_100MB_length
             if start_index >= the_full_length:
@@ -3228,7 +3154,7 @@ class Yingshaoxo_Text_Completor():
 
             result = pool.apply_async(
                 the_function,
-                args=(file_path, input_text, keyword_list, file_encoding, True, start_index, end_index)
+                args=(file_path, input_text, keyword_list, file_encoding, True, start_index, end_index, 20, get_more)
             )
             results.append(result)
 

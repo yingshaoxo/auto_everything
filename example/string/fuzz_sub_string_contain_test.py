@@ -1,10 +1,9 @@
 from auto_everything.string_ import String
 string = String()
 
-
-source_text = "Morning, hi you."
-print(string.check_if_string_is_inside_string(source_text, list("Hxi you.")))
-print(string.check_if_string_is_inside_string(source_text, list("xx night.")))
+#source_text = "Morning, hi you."
+#print(string.check_if_string_is_inside_string(source_text, list("Hxi you.")))
+#print(string.check_if_string_is_inside_string(source_text, list("xx night.")))
 
 
 print(string.check_if_string_is_inside_string("你知道你智力的起源吗？", list("你知道你智力从哪儿来的吗？"), 0.4))
@@ -16,8 +15,38 @@ print(string.check_if_string_is_inside_string("你知道你智力的起源吗？
 print(string.check_if_string_is_inside_string("你知道你鞋子从哪儿来的吗？", list("你知道你智力从哪儿来的吗？"), 0.4))
 # True
 
-print(string.check_if_string_is_inside_string("你知道你鞋子从哪儿来的吗？", list("你知道你智力从哪儿来的吗？"), wrong_limit_ratio=0.2))
+print(string.check_if_string_is_inside_string("你知道你鞋子从哪儿来的吗？", list("你知道你智力从哪儿来的吗？"), wrong_limit_ratio=0.1))
 # False
 
-print(string.check_if_string_is_inside_string("现在你应该是会记忆有价值的东西。", list("你知道你会记忆什么样的信息吗？"), wrong_limit_ratio=0.7))
+print(string.check_if_string_is_inside_string("现在你应该是会记忆有价值的东西。", list("你知道你会记忆什么样的信息吗？"), wrong_limit_ratio=0.6))
 # True
+
+long_text = """
+“拆铺啦！起来！”穿着一身和时节不相称的拷绸衫裤的男子，像生气似的呼喊，“芦柴棒，去烧火！妈的，还躺着，猪猡！”
+
+七尺阔、十二尺深的工房楼下，横七竖八地躺满了十六七个“猪猡”。跟着这种有威势的喊声，在充满了汗臭、粪臭和湿气的空气里面，她们很快地就像被搅动了的蜂窝一般骚动起来。打呵欠，叹气，寻衣服，穿错了别人的鞋子，胡乱地踏在别人身上，叫喊，在离开别人头部不到一尺的马桶上很响地小便。成人期女孩所共有的害羞的感觉，在这些被叫做“猪猡”的生物中间，已经很迟钝了。半裸体地起来开门，拎着裤子争夺马桶，将身体稍稍背转一下就会公然地在男人面前换衣服。那男人虎虎地在起得慢一点的“猪猡”身上踢了几脚，回转身来站在不满二尺阔的楼梯上面，向着楼上的另一群生物呼喊：
+
+“揍你的！再不起来？懒虫！等太阳上山吗？”
+
+蓬头、赤脚，一边扣着纽扣，几个睡眼惺忪的“懒虫”从楼上冲下来了。自来水龙头边挤满了人，用手捧些水来浇在脸上。“芦柴棒”着急地要将大锅里的稀饭烧滚，但是倒冒出来的青烟引起了她一阵猛烈的咳嗽。十五六岁，除了老板之外，大概很少有人知道她的姓名。手脚瘦得像芦棒梗一样，于是大家就拿“芦柴棒”当做了她的名字。“上午四点过一刻”，“鸽子笼一般”的住房里，包身工起床，开始了一天非人的生活。
+
+...
+
+包身工是没有“朋友”和帮手的！什么人都可以欺侮，什么人都看不起她们，她们是最下层的一类人，她们是售卖它们的人和小管理们发脾气和使威风的对象。在纱厂，活儿做得不好的罚规，大约是殴打、罚工钱和“停生意”三种。那么，在包身工所有者-即带工老板的立场来看，后面的两种当然是很不利了，罚工钱就是减少他们的利润，停生意不仅不能赚钱，还要贴她二粥一饭，于是带工头不假思索地就爱上了殴打这办法。
+
+售卖者对工厂的人讲: "咱的小姑娘有什么事情，尽管打，打死不干事，只要不是罚工钱停生意！"
+
+...
+
+还有一个，什么名字记不起了，她熬不住这种生活，用了许多工夫，在上午的十五分钟休息时间里面，偷偷地托一个在补习学校念书的外头工人写了一封给她父母的家信，邮票大概是那位同情她的女工捐助的了。一个月没有回信，她在焦灼，她在希望，也许，她的父亲会到上海来接她回去，可是，回信是捏在老板的手里了。散工回来的时候，老板和两个打杂的站在门口，横肉脸上在发火了，一把扭住她的头发，踢，打，掷，和爆发一般的听不清的嚷骂：
+
+“死娼妓，你倒有本领，打断我的家乡路！”，“猪猡，一天三餐将你喂昏了！”，“揍死你，给大家做个榜样！”，“信谁给你写的？讲，讲！”。
+
+血和惨叫使整个工房的人都怔住了，大家都在发抖，这好像真是一个榜样。打倦了之后，再在老板娘的亭子楼里吊了一晚。这一晚，整屋子除了快要断气的呻吟一般的呼喊之外，再没有别的声音。屏着气，睁着眼，百千个奴隶在黑夜中叹息她们的命运。
+
+这就是一不小心失去了人权的类似于黑奴的《包身工》的痛苦生活。
+"""
+print(string.get_relate_sub_string_in_long_string(long_text, list(["包身工", "非人","生活"]), wrong_limit_ratio=0.1, include_only_one_line=False))
+#['包身工起床，开始了一天非人的生活']
+print(string.get_relate_sub_string_in_long_string(long_text, list("血叫人发抖"), wrong_limit_ratio=0.1, include_only_one_line=False))
+#['血和惨叫使整个工房的人都怔住了，大家都在发抖']

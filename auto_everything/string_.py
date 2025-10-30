@@ -61,33 +61,122 @@ class String:
                     result_list.append(part)
         return result_list
 
-    def check_if_string_is_inside_string(self, source_string, sub_word_list, wrong_limit_ratio=0.4, near_distance=20):
+    def check_if_string_is_inside_string(self, source_string, sub_word_list, wrong_limit_ratio=0.4, near_distance=20, quick_mode=False):
         """
         example: "Morning, hi you.", list("Hxi you.") -> True
         example: "Morning, hi you.", list("xx night.") -> False
 
         author: yingshaoxo
         """
-        # maybe slow
-        # todo, may need to handle big source_string, which means look for all first word in sub_word_list, then trace each found_index to know if that string inside or not
-        if len(sub_word_list) == 0:
-            return False
+        if quick_mode == True:
+            if len(source_string) == 0:
+                return False
+            if len(sub_word_list) == 0:
+                return False
+            for word in sub_word_list:
+                if word not in source_string:
+                    return False
+            return True
+
         wrong_limit = int(len(sub_word_list) * wrong_limit_ratio)
         not_found_counting = 0
+        all_found = 0
         last_index = 0
         found_index = -1
         for word in sub_word_list:
+            all_found += 1
             found_index = source_string.find(word)
             if found_index == -1:
                 not_found_counting += 1
             else:
-                if abs(found_index - last_index) > near_distance:
-                    not_found_counting += 1
+                if near_distance != None:
+                    if abs(found_index - last_index) > near_distance:
+                        not_found_counting += 1
+                    else:
+                        last_index = found_index
                 else:
                     last_index = found_index
-            if not_found_counting >= wrong_limit:
+            if not_found_counting > wrong_limit:
                 return False
+        if all_found == 0:
+            return False
+        if (not_found_counting/all_found) > wrong_limit_ratio:
+            return False
         return True
+
+    def get_relate_sub_string_in_long_string(self, source_string, sub_word_list, wrong_limit_ratio=0.5, window_length=None, return_number=1, include_only_one_line=False, include_previous_and_next_one_line=False):
+        """
+        If the source_string is "hi you, hi everyone", sub_word_list == ["hi", "you"], it will first look for 'hi', it found two, then it will open 2 process, one is look for the first 'hi' around, to it if around has any word called "you". if so, return it. another is look for the second 'hi', to see its around has any word called "you". If so, return it. If we add wrong_limit_ratio, the algorithm would be more complex, it will allow some keyword can't get found, just like human did.
+
+        But that method is too complex to make it real. So I decided to use "len(keywords) * 3 sliding_window to get all matched string".
+
+        author: yingshaoxo
+        """
+        # It is slow but accurate
+        if len(source_string) == 0:
+            return []
+        if len(sub_word_list) == 0:
+            return []
+
+        all_result = []
+        if window_length == None:
+            window_length = len(" ".join(sub_word_list)) * 3
+        for index in range(len(source_string)):
+            sub_string = source_string[index: index+window_length]
+            result = self.check_if_string_is_inside_string(sub_string, sub_word_list, wrong_limit_ratio=wrong_limit_ratio, near_distance=20)
+            if result == True:
+                if include_only_one_line == False and include_previous_and_next_one_line == False:
+                    while True:
+                        ok = False
+                        for keyword in sub_word_list:
+                            if sub_string.startswith(keyword):
+                                ok = True
+                                break
+                        if ok == True:
+                            break
+                        if len(sub_string) == 0:
+                            break
+                        sub_string = sub_string[1:]
+
+                    while True:
+                        ok = False
+                        for keyword in reversed(sub_word_list):
+                            if sub_string.endswith(keyword):
+                                ok = True
+                                break
+                        if ok == True:
+                            break
+                        if len(sub_string) == 0:
+                            break
+                        sub_string = sub_string[:-1]
+
+                    if len(sub_string) != 0:
+                        all_result.append(sub_string)
+                else:
+                    if include_previous_and_next_one_line == True:
+                        previous_index = index - 2048
+                        previous_part_lines = source_string[previous_index:index].split("\n")
+                        previous_part_lines = [one for one in previous_part_lines if one.strip() != ""]
+                        previous_part = "\n".join(previous_part_lines[-2:])
+                        next_index = index + len(sub_string) + 2048
+                        next_part_lines = source_string[index+len(sub_string):next_index].split("\n")
+                        next_part_lines = [one for one in next_part_lines if one.strip() != ""]
+                        next_part = "\n".join(next_part_lines[:2])
+                        all_result.append(previous_part + sub_string + next_part)
+                    else:
+                        previous_index = index - 2048
+                        previous_part_lines = source_string[previous_index:index].split("\n")
+                        previous_part_lines = [one for one in previous_part_lines if one.strip() != ""]
+                        previous_part = "\n".join(previous_part_lines[-1:])
+                        next_index = index + len(sub_string) + 2048
+                        next_part_lines = source_string[index+len(sub_string):next_index].split("\n")
+                        next_part_lines = [one for one in next_part_lines if one.strip() != ""]
+                        next_part = "\n".join(next_part_lines[:1])
+                        all_result.append(previous_part + sub_string + next_part)
+            if len(all_result) >= return_number:
+                break
+
+        return all_result
 
     def check_if_the_char_order_matchs(self, source_string, order_string, order_list=None):
         # example: ("hi you!", "hy!") -> True
@@ -117,20 +206,6 @@ class String:
             else:
                 a_list.append(char)
         return a_list
-
-    #def split_string_into_n_parts(self, a_string, n=5):
-    #    # example: ("hi, you!", 2) -> ['hi, ', 'you!']
-    #    # example: ("hi, you!", 3) -> ['hi', ', ', 'yo']
-    #    if len(a_string) < n:
-    #        n = len(a_string)
-    #    i = 0
-    #    a_list = [""]*n
-    #    part_number = int(len(a_string) / n)
-    #    for list_index in range(n):
-    #        for _ in range(part_number):
-    #            a_list[list_index] += a_string[i]
-    #            i += 1
-    #    return a_list
 
     def get_common_char_string(self, string_1, string_2):
         if len(string_1) < len(string_2):
