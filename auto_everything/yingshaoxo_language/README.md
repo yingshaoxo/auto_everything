@@ -50,6 +50,19 @@ You write a nutrual language parsing software.
 
 ## Example 2
 
+Replace similar sentences or words to get new article from old article. Or simply use this tech to simplify articles.
+
+```
+[
+    ["no matter what you say", "no matter how you say", "no matter what you think", "no matter how you look"],
+    ["it is right", "it is correct"],
+    ["it could be wrong", "it could be un_correct", "it may not right"],
+    ["我觉得", "我认为", "我的看法是"],
+]
+```
+
+## Example 3
+
 Write code. 
 
 Low inteligence people can't write high inteligence code. Unless he or she do copy.

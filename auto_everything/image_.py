@@ -2658,6 +2658,80 @@ except Exception as e:
     pass
 
 
+class Improved_Bezier_Curve_Line:
+    # created by baidu ai 2025 (maybe deepseek v3)
+    def __init__(self):
+        self.control_points = []
+        self.curve_points = []
+
+    @staticmethod
+    def binomial_coefficient(n, k):
+        if k < 0 or k > n:
+            return 0
+        if k == 0 or k == n:
+            return 1
+
+        result = 1
+        for i in range(1, k + 1):
+            result = result * (n - k + i) // i
+        return result
+
+    def bernstein_basis(self, n, i, t):
+        coefficient = self.binomial_coefficient(n, i)
+        return coefficient * (t ** i) * ((1 - t) ** (n - i))
+
+    def bezier_curve_point(self, control_points, t):
+        n = len(control_points) - 1
+        point = [0.0, 0.0]
+
+        for i in range(n + 1):
+            basis = self.bernstein_basis(n, i, t)
+            point[0] += basis * control_points[i][0]
+            point[1] += basis * control_points[i][1]
+
+        return point
+
+    def generate_bezier_curve(self, control_points, num_points=None):
+        # num_points == len(control_points) * 3 by default
+        if len(control_points) < 2:
+            raise ValueError("need at least two points")
+
+        num_points = len(control_points) * 3
+
+        curve_points = []
+        for i in range(num_points):
+            t = i / (num_points - 1) if num_points > 1 else 0
+            point = self.bezier_curve_point(control_points, t)
+            curve_points.append(point)
+
+        return curve_points
+
+    def catmull_rom_to_bezier(self, point_list, tension=0.5):
+        # use this function after generate_bezier_curve() to get a line that you can control tension
+        # tension == 1 is stright line, tension == 0 is a curve line
+        if len(point_list) < 3:
+            return point_list
+
+        bezier_controls = [point_list[0]]
+
+        for i in range(1, len(point_list) - 1):
+            tangent1_x = (point_list[i + 1][0] - point_list[i - 1][0]) * tension
+            tangent1_y = (point_list[i + 1][1] - point_list[i - 1][1]) * tension
+
+            ctrl1_x = point_list[i][0] - tangent1_x / 3.0
+            ctrl1_y = point_list[i][1] - tangent1_y / 3.0
+
+            ctrl2_x = point_list[i][0] + tangent1_x / 3.0
+            ctrl2_y = point_list[i][1] + tangent1_y / 3.0
+
+            bezier_controls.append([ctrl1_x, ctrl1_y])
+            bezier_controls.append([ctrl2_x, ctrl2_y])
+            bezier_controls.append(point_list[i])
+
+        bezier_controls.append(point_list[-1])
+        return bezier_controls
+
+
 if __name__ == "__main__":
     from auto_everything.disk import Disk
     disk = Disk()
