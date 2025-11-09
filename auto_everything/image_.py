@@ -1572,7 +1572,7 @@ class Image:
         self.resize(int(height/2), int(width/2))
         return self
 
-    def simplify_image_by_yingshaoxo_method(self, level=8, quick_mode=True):
+    def simplify_image_by_yingshaoxo_method(self, level=8, quick_mode=False):
         original_image = self.copy()
         original_height, original_width = original_image.get_shape()
 
@@ -1930,6 +1930,8 @@ class Image:
                     print(e1)
                     print(e)
                     print("Since png or jpg is too complex to implement, we strongly recommand you to save raw_data as text, for example, 'hi.png.txt', then do a text level compression.")
+        elif file_path.endswith(".bmp"):
+            print("Save failed! bmp format is not supported, try .png or .txt")
         elif file_path.endswith(".json") or file_path.endswith(".txt"):
             height, width = self.get_shape()
 
