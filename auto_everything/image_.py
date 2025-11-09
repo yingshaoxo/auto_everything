@@ -1567,6 +1567,74 @@ class Image:
         """
         return get_simplified_image_in_an_accurate_way(self, level, extreme_color_number, predefined_color_list)
 
+    def directly_scale_down_image_to_reduce_size(self):
+        height, width = self.get_shape()
+        self.resize(int(height/2), int(width/2))
+        return self
+
+    def simplify_image_by_yingshaoxo_method(self, level=8, quick_mode=True):
+        original_image = self.copy()
+        original_height, original_width = original_image.get_shape()
+
+        self = original_image.copy()
+
+        # step1, scale down and take average value
+        if quick_mode == False:
+            self = self.blur(kernel=2)
+            self = self.directly_scale_down_image_to_reduce_size()
+            self = self.blur(kernel=2)
+            self = self.directly_scale_down_image_to_reduce_size()
+            self = self.blur(kernel=2)
+            self = self.directly_scale_down_image_to_reduce_size()
+            self = self.blur(kernel=2)
+            self = self.directly_scale_down_image_to_reduce_size()
+        else:
+            chunks_length = 54#27
+            kernel_height, kernel_width = int(original_height/chunks_length), int(original_width/chunks_length)
+            new_height = int(original_height / kernel_height)
+            new_width = int(original_width / kernel_width)
+            self.resize(new_height, new_width)
+            for y in range(new_height):
+                for x in range(new_width):
+                    start_y = y * kernel_height
+                    end_y = start_y + kernel_height
+                    start_x = x * kernel_width
+                    end_x = start_x + kernel_width
+                    sub_image = original_image.get_inner_image(start_y, end_y, start_x, end_x)
+                    average_color = sub_image.get_average_color()
+                    self.raw_data[y][x] = average_color
+
+        # step2, do a simple simplify by similarity
+        # simplify color by replace similar color into one common pixel
+        difference_gate = level
+        replaced_color_dict = {}
+        for y, raw in enumerate(self.raw_data):
+            for x, pixel in enumerate(raw):
+                if (str(y) + "," + str(x)) not in replaced_color_dict:
+                    pixel_1 = pixel
+                    for y2, raw2 in enumerate(self.raw_data):
+                        for x2, pixel2 in enumerate(raw2):
+                            if (str(y2) + "," + str(x2)) not in replaced_color_dict:
+                                if y != y2 and x != x2:
+                                    if pixel2[3] == 255:
+                                        pixel_2 = pixel2
+                                        similarity = 0
+                                        r1,g1,b1,_ = pixel_1
+                                        r2,g2,b2,_ = pixel_2
+                                        difference = abs(r1-r2) + abs(g1-g2) + abs(b1-b2)
+                                        if difference <= difference_gate:
+                                            self.raw_data[y2][x2] = pixel_1
+                                            replaced_color_dict[str(y2) + "," + str(x2)] = 1
+
+        # step3, use scale_down pixel as base pixel to do simplify for the original image
+        pixel_list = []
+        for y, raw in enumerate(self.raw_data):
+            for x, pixel in enumerate(raw):
+                if pixel not in pixel_list:
+                    pixel_list.append(pixel)
+        pixel_list = list(reversed(pixel_list[:int(len(pixel_list) / 2)])) + pixel_list[int(len(pixel_list) / 2):] #start match from center color
+        return original_image.get_simplified_image(predefined_color_list=pixel_list[:1000])
+
     def get_simplified_image_in_a_quick_way(self, level=25):
         """
         level: int
