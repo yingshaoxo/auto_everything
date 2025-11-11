@@ -175,7 +175,7 @@ def change_image_style_with_random_number(source_image, random_numbers):
     return source_image
 
 
-def migic_wand_fuzz_area_select(a_image, center_y, center_x, similarity_gate=10, quick_mode=True):
+def magic_wand_fuzz_area_select(a_image, center_y, center_x, similarity_gate=10, quick_mode=True, cache_image=None):
     # return a transparent layout that has similar color around a point(center_y, center_x)
     # author: yingshaoxo
     from queue import Queue
@@ -244,11 +244,94 @@ def migic_wand_fuzz_area_select(a_image, center_y, center_x, similarity_gate=10,
                     waiting_for_check_list.put([temp_y2, temp_x2])
                     checked_set.add(temp_id_2)
                     new_image[temp_y2][temp_x2] = old_image[temp_y2][temp_x2]
+                    if cache_image != None:
+                        cache_image[temp_y2][temp_x2] = old_image[temp_y2][temp_x2]
 
         checked_set.add(temp_id)
         new_image[temp_y][temp_x] = old_image[temp_y][temp_x]
+        if cache_image != None:
+            cache_image[temp_y][temp_x] = old_image[temp_y][temp_x]
 
     return new_image
+
+
+def simplify_picture_by_layout(a_image, kernel=50, quick_mode=True, return_layout_list=False):
+    # 1. extract layout by 50x50 kernel point
+    # 2. do not look for kernel that looked before, do not look for kernel that in other layout
+    # 3. when merge sub layout image, use left_right jump point to quick scale/crop sub_image, then paste on new image
+    # author: yingshaoxo
+    if quick_mode == True:
+        old_height, old_width = a_image.get_shape()
+        new_height, new_width = int(old_height/kernel), int(old_width/kernel)
+        cache_image = a_image.create_an_image(old_height, old_width, [0,0,0,0])
+        new_image = a_image.copy()
+        #a_image = a_image.get_gaussian_blur_image(2, bug_version=False)
+        layout_list = []
+        for y in range(new_height):
+            for x in range(new_width):
+                start_y = y * kernel
+                end_y = start_y + kernel
+                start_x = x * kernel
+                end_x = start_x + kernel
+                center_y, center_x = start_y + int(kernel/2), start_x + int(kernel/2)
+                if cache_image[center_y][center_x][3] != 255:
+                    layout_list.append(a_image.magic_wand_fuzz_area_select(center_y, center_x, similarity_gate=10, quick_mode=True, cache_image=cache_image))
+
+        if return_layout_list == True:
+            return layout_list
+
+        for one in layout_list:
+            average_color = one.get_average_color()
+            for y in range(old_height):
+                for x in range(old_width):
+                    if one[y][x][3] == 255:
+                        new_image[y][x] = average_color
+        return new_image
+    else:
+        old_image = a_image.copy()
+        edge_line = a_image.to_edge_line(downscale_ratio=2, gaussian_blur=True, gaussian_kernel=10)
+        a_image = a_image.get_gaussian_blur_image(2, bug_version=False)
+
+        new_image = old_image.copy()
+        layout_list = []
+        if kernel == None:
+            kernel = 100
+        height, width = a_image.get_shape()
+        new_height, new_width = int(height/kernel), int(width/kernel)
+        for y in range(new_height):
+            for x in range(new_width):
+                start_y = y * kernel
+                end_y = start_y + kernel
+                start_x = x * kernel
+                end_x = start_x + kernel
+
+                has_edge = False
+                sub_edge_image = edge_line.get_inner_image(start_y, end_y, start_x, end_x)
+                for row in sub_edge_image.raw_data:
+                    for pixel in row:
+                        if pixel[3] == 255:
+                            has_edge = True
+                            break
+                    if has_edge == True:
+                        break
+                if has_edge == True:
+                    break
+
+                center_y, center_x = start_y + int(kernel/2), start_x + int(kernel/2)
+                a_layout = a_image.magic_wand_fuzz_area_select(center_y, center_x, similarity_gate=10)
+                layout_list.append(a_layout)
+
+                average_color = a_layout.get_average_color()
+                for y2 in range(height):
+                    for x2 in range(width):
+                        pixel = a_layout[y2][x2]
+                        if pixel[3] == 255:
+                            new_image.raw_data[y2][x2] = average_color
+
+        if return_layout_list == True:
+            return layout_list
+
+        return new_image
 
 
 def to_mosaic(self, ratio=0.99, kernel_number=6):
@@ -1460,8 +1543,11 @@ class Image:
         self = hsv_to_rgb(self)
         return self
 
-    def migic_wand_fuzz_area_select(self, center_y, center_x, similarity_gate=10, quick_mode=True):
-        return migic_wand_fuzz_area_select(self, center_y, center_x, similarity_gate=similarity_gate, quick_mode=quick_mode)
+    def magic_wand_fuzz_area_select(self, center_y, center_x, similarity_gate=10, quick_mode=True, cache_image=None):
+        return magic_wand_fuzz_area_select(self, center_y, center_x, similarity_gate=similarity_gate, quick_mode=quick_mode, cache_image=cache_image)
+
+    def simplify_picture_by_layout(self, kernel=50, quick_mode=True, return_layout_list=False):
+        return simplify_picture_by_layout(self, kernel=kernel, quick_mode=quick_mode, return_layout_list=return_layout_list)
 
     def to_edge_line(self, min_color_distance=15, downscale_ratio=2, gaussian_blur=False, gaussian_kernel=2):
         return get_edge_lines_of_a_image_by_using_yingshaoxo_method(self, min_color_distance=min_color_distance, downscale_ratio=downscale_ratio, gaussian_blur=gaussian_blur, gaussian_kernel=gaussian_kernel)
@@ -1767,6 +1853,7 @@ class Image:
 
     def blur(self, kernel=8):
         # if kernel bigger, mosaic bigger. This method produce less size image than normal mosaic. Better just use it to process background, leave human picture layer unchanged.
+        # suggest to use: image.get_gaussian_blur_image(kernel=2, bug_version=False)
         return optimal_blur(self, kernel=kernel)
 
     def change_image_style(self, target_image, simple_mode=False, random_mode=False, random_numbers=None):
