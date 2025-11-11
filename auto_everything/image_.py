@@ -175,6 +175,82 @@ def change_image_style_with_random_number(source_image, random_numbers):
     return source_image
 
 
+def migic_wand_fuzz_area_select(a_image, center_y, center_x, similarity_gate=10, quick_mode=True):
+    # return a transparent layout that has similar color around a point(center_y, center_x)
+    # author: yingshaoxo
+    from queue import Queue
+    old_image = a_image.copy()
+    old_height, old_width = old_image.get_shape()
+    new_image = a_image.create_an_image(old_height, old_width, [0,0,0,0])
+    #edge_line = a_image.to_edge_line(downscale_ratio=2, gaussian_blur=True, gaussian_kernel=2)
+
+    if quick_mode == False:
+        gaussian_blur_image = a_image.copy().resize(int(old_height/2), int(old_width/2)).get_gaussian_blur_image(2, bug_version=False)
+        gaussian_blur_image.resize(old_height, old_width)
+        a_image = gaussian_blur_image
+
+    def get_id(temp_y, temp_x):
+        return str(temp_y) + "," + str(temp_x)
+
+    checked_set = set()
+
+    def is_point_valid(id_, temp_y, temp_x):
+        if id_ in checked_set:
+            return False
+
+        if temp_y < 0 or temp_y >= old_height:
+            return False
+        if temp_x < 0 or temp_x >= old_width:
+            return False
+
+        # maybe add a edge wall by reuse edge line, if it is in edge, we return None
+        return True
+
+    if is_point_valid(get_id(center_y, center_x), center_y, center_x) == False:
+        return new_image
+
+    def is_two_point_similar(pixel_1, pixel_2):
+        r1,g1,b1,a1 = pixel_1
+        r2,g2,b2,a2 = pixel_2
+        difference = abs(r1-r2) + abs(g1-g2) + abs(b1-b2)
+        if difference < similarity_gate:
+            return True
+        else:
+            return False
+
+    waiting_for_check_list = Queue()
+    waiting_for_check_list.put([center_y, center_x])
+    while not waiting_for_check_list.empty():
+        a_pixel = waiting_for_check_list.get()
+        temp_y, temp_x = a_pixel
+        temp_id = get_id(temp_y, temp_x)
+
+        around_pixel_list = [
+            [temp_y-1, temp_x-1],
+            [temp_y, temp_x-1],
+            [temp_y+1, temp_x-1],
+            [temp_y-1, temp_x],
+            #[temp_y, temp_x],
+            [temp_y+1, temp_x],
+            [temp_y-1, temp_x+1],
+            [temp_y, temp_x+1],
+            [temp_y+1, temp_x+1],
+        ]
+
+        for temp_y2, temp_x2 in around_pixel_list:
+            temp_id_2 = get_id(temp_y2, temp_x2)
+            if is_point_valid(temp_id_2, temp_y2, temp_x2):
+                if is_two_point_similar(a_image[temp_y][temp_x], a_image[temp_y2][temp_x2]):
+                    waiting_for_check_list.put([temp_y2, temp_x2])
+                    checked_set.add(temp_id_2)
+                    new_image[temp_y2][temp_x2] = old_image[temp_y2][temp_x2]
+
+        checked_set.add(temp_id)
+        new_image[temp_y][temp_x] = old_image[temp_y][temp_x]
+
+    return new_image
+
+
 def to_mosaic(self, ratio=0.99, kernel_number=6):
     """
     ratio: 0 to 1, more close to 1, more simplified
@@ -896,6 +972,7 @@ def simplify_color_by_merge_sub_image(input_image, kernel=3, similarity_gate=0.6
     output_image = real_process(input_image)
 
     if deep_mode == True:
+        # bug: did not rotate edge line
         output_image.rotate()
         output_image = real_process(output_image)
         output_image.rotate()
@@ -1181,6 +1258,7 @@ class Image:
 
         paste another image to current image based on (top, left, height, width) position in current image
         """
+        # todo: add paste_image_on_top_of_this_image_with_center_y_and_x(self, another_image, center_y, center_x, height, width)
         base_image_height, base_image_width = self.get_shape()
         another_image_height, another_image_width = another_image.get_shape()
         if another_image_height > base_image_height or another_image_width > base_image_width:
@@ -1381,6 +1459,9 @@ class Image:
     def to_rgb(self):
         self = hsv_to_rgb(self)
         return self
+
+    def migic_wand_fuzz_area_select(self, center_y, center_x, similarity_gate=10, quick_mode=True):
+        return migic_wand_fuzz_area_select(self, center_y, center_x, similarity_gate=similarity_gate, quick_mode=quick_mode)
 
     def to_edge_line(self, min_color_distance=15, downscale_ratio=2, gaussian_blur=False, gaussian_kernel=2):
         return get_edge_lines_of_a_image_by_using_yingshaoxo_method(self, min_color_distance=min_color_distance, downscale_ratio=downscale_ratio, gaussian_blur=gaussian_blur, gaussian_kernel=gaussian_kernel)
