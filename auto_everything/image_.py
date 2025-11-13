@@ -1332,7 +1332,7 @@ class Image:
         self.raw_data = data_2
         return self
 
-    def paste_image_on_top_of_this_image(self, another_image, top, left, height, width):
+    def paste_image_on_top_of_this_image(self, another_image, top, left, height=None, width=None):
         """
         top: start_y
         left: start_x
@@ -1341,13 +1341,17 @@ class Image:
 
         paste another image to current image based on (top, left, height, width) position in current image
         """
-        # todo: add paste_image_on_top_of_this_image_with_center_y_and_x(self, another_image, center_y, center_x, height, width)
         base_image_height, base_image_width = self.get_shape()
         another_image_height, another_image_width = another_image.get_shape()
         if another_image_height > base_image_height or another_image_width > base_image_width:
             # overflow_situation: another image bigger than original image
             #raise Exception("The another image height and width should smaller than base image.")
             pass
+
+        if height == None:
+            height = another_image_height
+        if width == None:
+            width = another_image_width
 
         if another_image_height != height or another_image_width != width:
             another_image = another_image.copy()
@@ -1364,24 +1368,57 @@ class Image:
         if x_end > base_image_width:
             x_end = base_image_width
 
+        # sub image move beyound view case
+        if x_start < 0:
+            # top, left point is beyound old image, out of range, like object is sliding out the window(camera)
+            has_negative = True
+            temp_x_value = abs(x_start)
+            x_start = 0
+            x_end = width - temp_x_value
+            if x_end < 0:
+                x_end = 0
+        else:
+            # normal case, where sub_image is inside background
+            has_negative = False
+
+        # real function
         for y_index in range(y_start, y_end):
-            #row = self.raw_data[y_index]
-            #first_part = row[0:x_start]
-            #second_part = row[x_end:]
-            #new_row = first_part + another_image[y_index] + second_part
-            #self.raw_data[y_index] = new_row
-
-            #self.raw_data[y_index][x_start: x_end] = another_image[y_index-y_start]
-
+            if y_index < 0:
+                continue
             old_data = self.raw_data[y_index][x_start: x_end]
             old_data_length = len(old_data)
             new_data = [None] * old_data_length
-            for index, one in enumerate(another_image[y_index-y_start][:old_data_length]):
+            if has_negative == False:
+                temp_x_list = another_image[y_index-y_start][:old_data_length]
+            else:
+                temp_x_list = another_image[y_index-y_start][temp_x_value:temp_x_value+old_data_length]
+            for index, one in enumerate(temp_x_list):
                 if one[3] == 0:
                     new_data[index] = old_data[index]
                 else:
                     new_data[index] = one
             self.raw_data[y_index][x_start: x_end] = new_data
+
+        return self
+
+    def paste_image_on_top_of_this_image_with_center_y_and_x(self, another_image, center_y, center_x, height=None, width=None):
+        base_image_height, base_image_width = self.get_shape()
+        another_image_height, another_image_width = another_image.get_shape()
+
+        if height == None:
+            height = another_image_height
+        if width == None:
+            width = another_image_width
+
+        if another_image_height != height or another_image_width != width:
+            another_image = another_image.copy()
+            another_image.resize(height, width)
+
+        half_height = int(height/2)
+        half_width = int(width/2)
+        top = center_y - half_height
+        left = center_x - half_width
+        self.paste_image_on_top_of_this_image(another_image, top, left, height, width)
 
         return self
 
