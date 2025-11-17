@@ -2852,51 +2852,13 @@ class Yingshaoxo_Text_Completor():
 
         I think those super_AI actually uses database data, then use abstract_language_tree to represent the old data in a new way, similar to language style change.
         """
-        if creatively == True:
-            print("Why don't you delete this piece of response data from your database? Then it will return a new result.")
-
-        if complete_how_many_character_for_each_time == None:
-            complete_how_many_character_for_each_time = level
-
-        if use_background == True:
-            source_text = self.search_long_background_context_by_using_keywords(source_text, input_text)
-
-        end_string = "[*|end|*]"
-
-        def down_side_complete(the_input_text):
-            for right_side_index in range(0, level):
-                right_side_sub_string = the_input_text[right_side_index:]
-
-                if len(right_side_sub_string) == 0:
-                    return " " + end_string
-
-                the_splits = source_text.split(right_side_sub_string)
-                the_length_of_splits = len(the_splits)
-                if the_length_of_splits >= 2:
-                    index = random.randint(1, the_length_of_splits-1)
-                    target_text = the_splits[index][:complete_how_many_character_for_each_time]
-                    return target_text
-                else:
-                    pass
-            return " " + end_string
-
-        response = ""
-        while len(response) < how_many_character_you_want:
-            temp_response = down_side_complete(input_text)
-            if return_one_word == True:
-                return self._leave_first_sub_string(temp_response)
-            if len(temp_response) == 0:
-                break
-            response += temp_response
-            input_text += temp_response
-            if temp_response.endswith(end_string):
-                response = response[:-len(end_string)]
-                break
-
-        if use_background == False:
-            return response[:how_many_character_you_want]
-        else:
-            return response[:how_many_character_you_want] + "\n\nFrefrence:\n" + source_text.strip()[:512]
+        while len(input_text) > 0:
+            parts = source_text.split(input_text)
+            if len(parts) >= 2:
+                return input_text.join(parts[1:])[:how_many_character_you_want]
+            else:
+                input_text = input_text[1:]
+        return ""
 
     def find_next_string_in_disk_txt_file(self, file_path, input_text, how_many_characters_you_want=1024, max_input_number=64, max_possibility_number=50, file_encoding="utf-8", splitor="__**__**__yingshaoxo_is_the_top_one__**__**__", get_previous_text=False, start_seek_position=0, end_seek_position=None):
         # quick
