@@ -104,7 +104,7 @@ class String:
             return False
         return True
 
-    def get_relate_sub_string_in_long_string(self, source_string, sub_word_list, wrong_limit_ratio=0.5, window_length=None, return_number=1, include_only_one_line=False, include_previous_and_next_one_line=False):
+    def get_relate_sub_string_in_long_string(self, source_string, sub_word_list, wrong_limit_ratio=0.5, window_length=None, return_number=1, include_only_one_line=False, include_previous_and_next_one_line=False, only_return_one_sentence=False):
         """
         If the source_string is "hi you, hi everyone", sub_word_list == ["hi", "you"], it will first look for 'hi', it found two, then it will open 2 process, one is look for the first 'hi' around, to it if around has any word called "you". if so, return it. another is look for the second 'hi', to see its around has any word called "you". If so, return it. If we add wrong_limit_ratio, the algorithm would be more complex, it will allow some keyword can't get found, just like human did.
 
@@ -123,35 +123,86 @@ class String:
             window_length = len(" ".join(sub_word_list)) * 3
         for index in range(len(source_string)):
             sub_string = source_string[index: index+window_length]
+            old_sub_string = sub_string
             result = self.check_if_string_is_inside_string(sub_string, sub_word_list, wrong_limit_ratio=wrong_limit_ratio, near_distance=20)
             if result == True:
                 if include_only_one_line == False and include_previous_and_next_one_line == False:
-                    while True:
-                        ok = False
-                        for keyword in sub_word_list:
-                            if sub_string.startswith(keyword):
-                                ok = True
+                    if not sub_string.isascii():
+                        while True:
+                            ok = False
+                            for keyword in sub_word_list:
+                                if sub_string.startswith(keyword):
+                                    ok = True
+                                    break
+                            if ok == True:
                                 break
-                        if ok == True:
-                            break
-                        if len(sub_string) == 0:
-                            break
-                        sub_string = sub_string[1:]
-
-                    while True:
-                        ok = False
-                        for keyword in reversed(sub_word_list):
-                            if sub_string.endswith(keyword):
-                                ok = True
+                            if len(sub_string) == 0:
                                 break
-                        if ok == True:
-                            break
-                        if len(sub_string) == 0:
-                            break
-                        sub_string = sub_string[:-1]
+                            sub_string = sub_string[1:]
 
-                    if len(sub_string) != 0:
-                        all_result.append(sub_string)
+                        while True:
+                            ok = False
+                            for keyword in reversed(sub_word_list):
+                                if sub_string.endswith(keyword):
+                                    ok = True
+                                    break
+                            if ok == True:
+                                break
+                            if len(sub_string) == 0:
+                                break
+                            sub_string = sub_string[:-1]
+
+                        if len(sub_string) != 0:
+                            if only_return_one_sentence == False:
+                                all_result.append(sub_string)
+                            else:
+                                # look back until '。' or new line, look forward until "。" or "：+lines" or new_line
+                                # todo: need to get improved
+                                temp_index = old_sub_string.find(sub_string)
+                                if temp_index != -1:
+                                    real_index = index + temp_index
+                                    temp_before_index = real_index
+                                    for i in range(200):
+                                        temp_before_index -= 1
+                                        char = source_string[temp_before_index]
+                                        if char in ".!。！\n":
+                                            temp_before_index += 1
+                                            break
+                                    temp_after_index = real_index
+                                    for i in range(200):
+                                        temp_after_index += 1
+                                        char = source_string[temp_after_index]
+                                        if char in ".!。！\n":
+                                            temp_after_index -= 1
+                                            temp_after_index += 1
+                                            break
+                                        if char == "?" or char == "？":
+                                            next_char = source_string[temp_after_index+1]
+                                            if next_char == "\n":
+                                                lines = source_string[temp_after_index+1: temp_after_index+1+1024].split("\n")[:6]
+                                                temp_after_index += len("\n".join(lines)) + 1 + 1
+                                                break
+                                            else:
+                                                lines = source_string[temp_after_index+1: temp_after_index+1+1024].split("\n")[:1]
+                                                temp_after_index += len("\n".join(lines)) + 1 + 1
+                                                break
+                                        if char == ":" or char == "：":
+                                            next_char = source_string[temp_after_index+1]
+                                            if next_char == "\n":
+                                                lines = source_string[temp_after_index+1: temp_after_index+1+1024].split("\n")[:6]
+                                                temp_after_index += len("\n".join(lines)) + 1 + 1
+                                                break
+                                    all_result.append(source_string[temp_before_index: temp_after_index+1])
+                    else:
+                        previous_index = index - 2048
+                        previous_part_lines = source_string[previous_index:index].split("\n")
+                        previous_part_lines = [one for one in previous_part_lines if one.strip() != ""]
+                        previous_part = "\n".join(previous_part_lines[-1:])
+                        next_index = index + len(sub_string) + 2048
+                        next_part_lines = source_string[index+len(sub_string):next_index].split("\n")
+                        next_part_lines = [one for one in next_part_lines if one.strip() != ""]
+                        next_part = "\n".join(next_part_lines[:1])
+                        all_result.append(previous_part + sub_string + next_part)
                 else:
                     if include_previous_and_next_one_line == True:
                         previous_index = index - 2048
