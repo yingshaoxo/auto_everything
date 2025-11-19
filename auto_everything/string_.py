@@ -10,6 +10,41 @@ class String:
     def __init__(self):
         pass
 
+    def question_sentence_to_normal_sentence(self, input_text):
+        # author yingshaoxo: a very important function for database search
+
+        # for example: "what is desk?" -> "desk is"
+        # for example: "what is age your age?" -> "my age is"
+        if len(input_text) == 0:
+            return False
+        input_text = input_text.lower()
+
+        for word in ["知道", "什么", "如何", "怎样", "怎么", "哪儿", " how ", " what ", " where ", " know ", " when "]:
+            index = input_text.find(word)
+            if index != -1:
+                input_text = input_text[index+len(word):]
+        input_text = input_text.strip()
+
+        input_text = input_text.replace("?", "")
+        input_text = input_text.replace("？", "")
+        input_text = input_text.replace("吗", "")
+        input_text = input_text.replace("吧", "")
+        input_text = input_text.replace("呢", "")
+        input_text = input_text.replace("谁", "")
+        input_text = input_text.replace("哪", "")
+        input_text = input_text.replace("什么", "")
+        input_text = input_text.replace("哪儿", "")
+
+        input_text = input_text.replace("what ", "")
+        input_text = input_text.replace("how ", "")
+        input_text = input_text.replace("where ", "")
+        input_text = input_text.replace("can ", "")
+        input_text = input_text.replace("should ", "")
+        input_text = input_text.replace("would ", "")
+        input_text = input_text.replace("when ", "")
+
+        return input_text
+
     def hard_core_string_pattern_search(self, source_text, pattern, unknown_symbol="xxx", end_mark="\n", unknown_max_length=None):
         """
         pattern:

@@ -10,7 +10,7 @@ class English_Analyzer_And_Executor():
 
 class Chinese_Analyzer_And_Executor():
     def __init__(self, input_text):
-        self.input_text = input_text
+        self.input_text = input_text.strip()
 
     def is_it_a_question(self):
         input_text = self.input_text
@@ -18,8 +18,11 @@ class Chinese_Analyzer_And_Executor():
             return True
         if input_text.endswith("？"):
             return True
-        if input_text.startswith("什么是"):
-            return True
-        if input_text.startswith("What is"):
+        if "什么" in input_text:
             return True
         return False
+
+    def quetsion_to_normal_sentence(self):
+        # '什么是爱情?' -> '爱情是'
+        # '哪里有深爱?' -> 'xxx有深爱' ["'哪里' not in xxx", "len(xxx) >= 3"]
+        pass
