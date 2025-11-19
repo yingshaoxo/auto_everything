@@ -19,10 +19,17 @@ class String:
             return False
         input_text = input_text.lower()
 
-        for word in ["知道", "什么", "如何", "怎样", "怎么", "哪儿", " how ", " what ", " where ", " know ", " when "]:
+        input_text = input_text.replace("样的", "")
+        input_text = input_text.replace("的吗", "")
+        input_text = input_text.replace("的吧", "")
+        input_text = input_text.replace("的呢", "")
+
+        for word in ["知道", "什么", "如何", "怎样", "怎么", "哪儿", "觉得", "认为", "哪些", "哪类", "哪个", " how ", " what ", " where ", " know ", " when ", " feel ", " think "]:
             index = input_text.find(word)
             if index != -1:
-                input_text = input_text[index+len(word):]
+                next_2_char = input_text[index+len(word):index+len(word)+2]
+                if ("？" not in next_2_char) and ("?" not in next_2_char):
+                    input_text = input_text[index+len(word):]
         input_text = input_text.strip()
 
         input_text = input_text.replace("?", "")
@@ -40,8 +47,12 @@ class String:
         input_text = input_text.replace("where ", "")
         input_text = input_text.replace("can ", "")
         input_text = input_text.replace("should ", "")
+        input_text = input_text.replace("could ", "")
         input_text = input_text.replace("would ", "")
         input_text = input_text.replace("when ", "")
+        input_text = input_text.strip()
+        input_text = input_text.replace("is ", "")
+        input_text = input_text.replace("are ", "")
 
         return input_text
 
