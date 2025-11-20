@@ -24,7 +24,7 @@ class String:
         input_text = input_text.replace("的吧", "")
         input_text = input_text.replace("的呢", "")
 
-        for word in ["知道", "什么", "如何", "怎样", "怎么", "哪儿", "觉得", "认为", "哪些", "哪类", "哪个", " how ", " what ", " where ", " know ", " when ", " feel ", " think "]:
+        for word in ["知道", "什么", "如何", "怎样", "怎么", "哪儿", "觉得", "认为", "哪些", "哪类", "哪个", " how ", " what ", " where ", " know ", " when ", " feel ", " think ", " which "]:
             index = input_text.find(word)
             if index != -1:
                 next_2_char = input_text[index+len(word):index+len(word)+2]
@@ -49,10 +49,13 @@ class String:
         input_text = input_text.replace("should ", "")
         input_text = input_text.replace("could ", "")
         input_text = input_text.replace("would ", "")
+        input_text = input_text.replace("which ", "")
         input_text = input_text.replace("when ", "")
         input_text = input_text.strip()
         input_text = input_text.replace("is ", "")
         input_text = input_text.replace("are ", "")
+
+        input_text = input_text.replace("是怎", "是")
 
         return input_text
 
@@ -319,6 +322,53 @@ class String:
             return None
         else:
             return common_char_string
+
+    def get_must_have_keywords_list(self, input_text):
+        input_text = input_text.strip()
+        input_text = input_text.replace(" the ", " ")
+
+        # ignore short sentence
+        fake_input_text = self.question_sentence_to_normal_sentence(input_text)
+        if not fake_input_text.isascii():
+            if len(fake_input_text) <= 2:
+                return [fake_input_text]
+        else:
+            if " " not in fake_input_text:
+                return [fake_input_text]
+
+        # use your brain to get keyword
+        keywords_list = []
+        index = input_text.find("的")
+        if index != -1:
+            temp_1 = input_text[index-2:index]
+            temp_2 = input_text[index+1:index+1+2]
+            keywords_list.append(temp_1)
+            keywords_list.append(temp_2)
+        if " is " in input_text:
+            splits = input_text.split(" ")
+            for index, word in enumerate(splits):
+                if word == "is":
+                    if 0 <= index-1 < len(splits):
+                        keywords_list.append(splits[index-1])
+                    if 0 <= index+1 < len(splits):
+                        keywords_list.append(splits[index+1])
+        if " of " in input_text:
+            splits = input_text.split(" ")
+            for index, word in enumerate(splits):
+                if word == "of":
+                    if 0 <= index-1 < len(splits):
+                        keywords_list.append(splits[index-1])
+                    if 0 <= index+1 < len(splits):
+                        keywords_list.append(splits[index+1])
+        if " about " in input_text:
+            splits = input_text.split(" ")
+            for index, word in enumerate(splits):
+                if word == "about":
+                    if 0 <= index+1 < len(splits):
+                        keywords_list.append(splits[index+1])
+        keywords_list = [one.strip(",.?!;，。？！；").strip() for one in keywords_list]
+        keywords_list = [one for one in keywords_list if one != ""]
+        return keywords_list
 
     def capitalize_the_first_character_of_a_string(self, text):
     #(self, text: str) -> str:
@@ -1138,3 +1188,4 @@ class String:
 
 if __name__ == "__main__":
     string_ = String()
+    print(string_.get_must_have_keywords_list("李白的离别诗"))
