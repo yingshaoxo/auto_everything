@@ -278,6 +278,54 @@ class String:
 
         return all_result
 
+    def switch_you_and_me(self, input_text):
+        you_index_list = []
+        me_index_list = []
+        for index, char in enumerate(input_text):
+            if char == "我":
+                me_index_list.append(index)
+            if char == "你":
+                you_index_list.append(index)
+        input_text_list = list(input_text)
+        for index in you_index_list:
+            input_text_list[index] = "我"
+        for index in me_index_list:
+            input_text_list[index] = "你"
+        input_text = "".join(input_text_list).strip()
+
+        if " " in input_text:
+            words = input_text.split(" ")
+            if words[0] == "my":
+                words[0] = "you"
+            if words[0] == "you":
+                words[0] = "i|my"
+            if words[0] == "i":
+                words[0] = "you"
+            new_words = [words[0]]
+            for word in words[1:]:
+                new_word = ""
+                if word == "you":
+                    new_word = "me|i"
+                elif word == "i":
+                    new_word = "you"
+                elif word == "your":
+                    new_word = "my"
+                elif word == "my":
+                    new_word = "your"
+                elif word == "me":
+                    new_word = "you"
+                elif word == "me.":
+                    new_word = "you."
+                elif word == "me!":
+                    new_word = "you!"
+                else:
+                    new_word = word
+                new_words.append(new_word)
+            input_text = " ".join(new_words)
+            input_text = input_text.replace("you am ", "you are ")
+
+        return input_text
+
     def check_if_the_char_order_matchs(self, source_string, order_string, order_list=None):
         # example: ("hi you!", "hy!") -> True
         # example: ("hi you!", "hXy!") -> False
