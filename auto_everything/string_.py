@@ -112,6 +112,8 @@ class String:
 
     def check_if_string_is_inside_string(self, source_string, sub_word_list, wrong_limit_ratio=0.4, near_distance=20, quick_mode=False):
         """
+        super useful!
+
         example: "Morning, hi you.", list("Hxi you.") -> True
         example: "Morning, hi you.", list("xx night.") -> False
 
@@ -288,30 +290,38 @@ class String:
                 you_index_list.append(index)
         input_text_list = list(input_text)
         for index in you_index_list:
+            if 0 <= (index + 1) < len(input_text_list):
+                if input_text_list[index + 1] == "们":
+                    continue
             input_text_list[index] = "我"
         for index in me_index_list:
+            if 0 <= (index + 1) < len(input_text_list):
+                if input_text_list[index + 1] == "们":
+                    continue
             input_text_list[index] = "你"
         input_text = "".join(input_text_list).strip()
 
         if " " in input_text:
             words = input_text.split(" ")
-            if words[0] == "my":
-                words[0] = "you"
             if words[0] == "you":
-                words[0] = "i|my"
-            if words[0] == "i":
+                words[0] = "i"
+            elif words[0] == "i":
                 words[0] = "you"
+            elif words[0] == "my":
+                words[0] = "your"
+            elif words[0] == "your":
+                words[0] = "my"
             new_words = [words[0]]
             for word in words[1:]:
                 new_word = ""
-                if word == "you":
-                    new_word = "me|i"
-                elif word == "i":
-                    new_word = "you"
-                elif word == "your":
+                if word == "your":
                     new_word = "my"
                 elif word == "my":
                     new_word = "your"
+                elif word == "i":
+                    new_word = "you"
+                elif word == "you":
+                    new_word = "me"
                 elif word == "me":
                     new_word = "you"
                 elif word == "me.":
@@ -325,6 +335,20 @@ class String:
             input_text = input_text.replace("you am ", "you are ")
 
         return input_text
+
+    def get_sentence_list(self, input_text):
+        # "hi, you. how are you?" -> ["hi, you.", "how are you?"]
+        # in talking, the pause is the end of a sentence
+        sentences = []
+        temp_string = ""
+        for char in input_text:
+            temp_string += char
+            if char in ".!?。！？\n":
+                temp_temp_string = temp_string.strip()
+                if len(temp_temp_string) != 0:
+                    sentences.append(temp_temp_string)
+                temp_string = ""
+        return sentences
 
     def check_if_the_char_order_matchs(self, source_string, order_string, order_list=None):
         # example: ("hi you!", "hy!") -> True
@@ -1236,4 +1260,4 @@ class String:
 
 if __name__ == "__main__":
     string_ = String()
-    print(string_.get_must_have_keywords_list("李白的离别诗"))
+    #print(string_.get_must_have_keywords_list("李白的离别诗"))

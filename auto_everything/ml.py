@@ -2862,6 +2862,7 @@ class Yingshaoxo_Text_Completor():
 
     def find_next_string_in_disk_txt_file_by_using_relate_data(self, file_path, input_text, keyword_list=None, file_encoding="utf-8", return_list=False, start_seek_position=0, end_seek_position=None):
         # quick and accurate and useful
+        # may have bugs, use search_relate_data_from_disk_txt_file_by_using_keywords() instead
         # author: yingshaoxo
         related_string_list = self.search_relate_data_from_disk_txt_file_by_using_keywords(file_path, input_text, keyword_list=keyword_list, file_encoding=file_encoding, return_list=True, start_seek_position=start_seek_position, end_seek_position=end_seek_position)
         #print(related_string_list)
@@ -3552,10 +3553,10 @@ class Yingshaoxo_Text_Completor():
             try:
                 import jieba
                 jieba.setLogLevel(20)
-                keywords = list(jieba.cut(input_text, cut_all=False))
+                keywords = list(jieba.cut(string, cut_all=False))
             except Exception as e:
                 #print(e)
-                keywords = list(input_text)
+                keywords = list(string)
             return keywords
 
     def _is_ascii(self, string):
