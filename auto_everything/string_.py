@@ -16,7 +16,7 @@ class String:
         # for example: "what is desk?" -> "desk is"
         # for example: "what is age your age?" -> "my age is"
         if len(input_text) == 0:
-            return False
+            return ""
         input_text = input_text.lower()
 
         input_text = input_text.replace("样的", "")
