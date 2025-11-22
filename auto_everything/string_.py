@@ -110,6 +110,25 @@ class String:
                     result_list.append(part)
         return result_list
 
+    def split_string_into_n_char_parts(self, a_string, n=2):
+        # example: ("ok!!", 2) -> ['ok', '!!']
+        a_list = [""]
+        for char in a_string:
+            if len(a_list[-1]) < n:
+                a_list[-1] += char
+            else:
+                a_list.append(char)
+        return a_list
+
+    def get_keywords_list(self, input_text):
+        # english: "hi, you" -> ["hi,", " yo", "u"]
+        # chinese: "我才是大师" -> ["我", "才", "是", "大", "师"]
+        if input_text.isascii():
+            keyword_list = self.split_string_into_n_char_parts(input_text, 3)
+        else:
+            keyword_list = list(input_text)
+        return keyword_list
+
     def check_if_string_is_inside_string(self, source_string, sub_word_list, wrong_limit_ratio=0.4, near_distance=20, quick_mode=False):
         """
         super useful!
@@ -280,6 +299,40 @@ class String:
 
         return all_result
 
+    def _get_sub_sentence_list_from_end_to_begin_and_begin_to_end(self, input_text, no_single_char=True):
+        input_text = input_text.strip()
+        full_length = len(input_text)
+        result_list = []
+        for i in range(full_length):
+            end_to_begin_sub_string = input_text[i:]
+            begin_to_end_sub_string = input_text[:-i]
+            if no_single_char == True:
+                if len(end_to_begin_sub_string) > 1:
+                    result_list.append(end_to_begin_sub_string)
+                if len(begin_to_end_sub_string) > 1:
+                    result_list.append(begin_to_end_sub_string)
+            else:
+                result_list.append(end_to_begin_sub_string)
+                result_list.append(begin_to_end_sub_string)
+        result_list_2 = []
+        for one in result_list:
+            if one not in result_list_2:
+                result_list_2.append(one)
+        return result_list_2
+
+    def search_text_in_text_list_by_using_long_sub_sentence(self, search_text, source_text_list):
+        # handle complex situation and big dataset with stright solution
+        # return a list, super quick. it most likely will always return one.
+        longest_first_sub_sentence_list = self._get_sub_sentence_list_from_end_to_begin_and_begin_to_end(search_text)
+        useful_source_text_list = []
+        for sub_sentence in longest_first_sub_sentence_list:
+            for one in source_text_list:
+                if sub_sentence in one:
+                    useful_source_text_list.append(one)
+            if len(useful_source_text_list) != 0:
+                return useful_source_text_list
+        return []
+
     def switch_you_and_me(self, input_text):
         you_index_list = []
         me_index_list = []
@@ -368,16 +421,6 @@ class String:
                 return False
             last_index = index
         return True
-
-    def split_string_into_n_char_parts(self, a_string, n=2):
-        # example: ("ok!!", 2) -> ['ok', '!!']
-        a_list = [""]
-        for char in a_string:
-            if len(a_list[-1]) < n:
-                a_list[-1] += char
-            else:
-                a_list.append(char)
-        return a_list
 
     def get_common_char_string(self, string_1, string_2):
         if len(string_1) < len(string_2):
@@ -794,38 +837,6 @@ class String:
         start_index = page_number*page_size
         end_index = start_index + page_size
         return result_list[start_index:end_index]
-
-    def _get_sub_sentence_list_from_end_to_begin_and_begin_to_end(self, input_text, no_single_char=True):
-        input_text = input_text.strip()
-        full_length = len(input_text)
-        result_list = []
-        for i in range(full_length):
-            end_to_begin_sub_string = input_text[i:]
-            begin_to_end_sub_string = input_text[:-i]
-            if no_single_char == True:
-                if len(end_to_begin_sub_string) > 1:
-                    result_list.append(end_to_begin_sub_string)
-                if len(begin_to_end_sub_string) > 1:
-                    result_list.append(begin_to_end_sub_string)
-            else:
-                result_list.append(end_to_begin_sub_string)
-                result_list.append(begin_to_end_sub_string)
-        result_list_2 = []
-        for one in result_list:
-            if one not in result_list_2:
-                result_list_2.append(one)
-        return result_list_2
-
-    def search_text_in_text_list_by_using_long_sub_sentence(self, search_text, source_text_list):
-        longest_first_sub_sentence_list = self._get_sub_sentence_list_from_end_to_begin_and_begin_to_end(search_text)
-        useful_source_text_list = []
-        for sub_sentence in longest_first_sub_sentence_list:
-            for one in source_text_list:
-                if sub_sentence in one:
-                    useful_source_text_list.append(one)
-            if len(useful_source_text_list) != 0:
-                return useful_source_text_list
-        return []
 
     def search_text_in_text_list_by_using_long_sub_sentence_and_only_return_one_text(self, search_text, source_text_list):
         result_list = self.search_text_in_text_list_by_using_long_sub_sentence(search_text, source_text_list)
