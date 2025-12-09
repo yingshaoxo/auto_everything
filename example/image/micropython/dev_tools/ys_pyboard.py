@@ -135,6 +135,14 @@ print(os.listdir("{folder_path}"))
         data_string = self.run(script_content)
         return eval(data_string)
 
+    def fs_writefile(self, dest, data, chunk_size=256):
+        self.exec("f=open('%s','wb')\nw=f.write" % dest)
+        while data:
+            chunk = data[:chunk_size]
+            self.exec("w(" + repr(chunk) + ")")
+            data = data[len(chunk) :]
+        self.exec("f.close()")
+
     def upload_file(self, source_file_path, target_file_path):
         if not os.path.exists(source_file_path):
             raise Exception("File not exists: {}".format(source_file_path))
@@ -147,6 +155,7 @@ print(os.listdir("{folder_path}"))
         a_file = open(source_file_path, "rb")
         bytes_data = a_file.read()
         a_file.close()
+
         script_content = """
 import os
 try:
@@ -160,7 +169,14 @@ except Exception as e:
             os.mkdir(parent_folder)
         except Exception as e:
             pass
+        """.strip().format(
+            folder_path=os.path.dirname(target_file_path)
+        )
+        self.exec(script_content)
+        self.fs_writefile(target_file_path, bytes_data)
+        return
 
+        script_content = """
 the_bytes_list = [{int_byte_list_string}]
 
 a_file = open("{file_path}", "wb")
