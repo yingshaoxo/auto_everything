@@ -161,7 +161,7 @@ def handle_touchscreen_press(x, y):
 
     # Click and rendering
     root_container.click(y, x)
-    #the_rendering()
+    the_rendering()
 
 spi2 = SoftSPI(baudrate=9000, polarity=1, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(8))
 #spi2 = SPI(0, baudrate=60000000, sck=Pin(6), mosi=Pin(7), miso=Pin(8))

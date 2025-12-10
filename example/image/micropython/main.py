@@ -10,6 +10,7 @@
 ##in ms
 
 try:
-    import pico_main
+    #import pico_main
+    import system_launcher
 except Exception as e:
     import esp32_main

@@ -222,7 +222,8 @@ class Display(object):
         """
         if self.is_off_grid(x, y, x, y):
             return
-        self.draw_buffer(x, y, x, y, color.to_bytes(2, 'big'))
+        #self.draw_buffer(x, y, x, y, color.to_bytes(2, 'big'))
+        self.draw_buffer(x, y, x, y, color)
 
     def pixel_list_to_bytes_buffer(self, pixel_list):
         data = BytesIO(b'')
