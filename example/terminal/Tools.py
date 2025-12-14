@@ -1,3 +1,4 @@
+#!/usr/bin/env /usr/bin/python3
 #!/usr/bin/env /home/python/use_docker_to_build_static_python3_binary_executable/data/Python-3.10.4/python
 # Run this to generate bash auto complete script: Tools -- --completion
 
@@ -820,8 +821,8 @@ adb devices
 adb shell
         """)
 
-    def rsync(self, from_path, to_path):
-        # example: /usr/bin/Tools rsync ./Core/ /media/yingshaoxo/disk2_data/Yingshaoxo_Data/Core/
+    def rsync(self, from_path, to_path, ignore_folder="None"):
+        # example: /usr/bin/Tools rsync ./Core/ /media/yingshaoxo/disk2_data/Yingshaoxo_Data/Core/ "Additional/Game/"
 
         # from could be a folder or file, to could be a folder or file 
         # there would only folder to folder sync and file to file sync
@@ -848,7 +849,11 @@ adb shell
                 '"./"',
                 '"{}"'.format(abs_to),
             ]
+            if ignore_folder != "None":
+                if type(ignore_folder) == str:
+                    command_line.insert(4, "--exclude '{}'".format(ignore_folder))
 
+            print(command_line)
             command_line = " ".join(command_line)
             command_line = 'cd "{}"\n'.format(abs_from) + command_line
 
