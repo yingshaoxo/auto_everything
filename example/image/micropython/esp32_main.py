@@ -32,7 +32,7 @@ except Exception as e:
 # Setup the LCD Display module
 """
 from ili9341 import Display
-from machine import Pin, SPI
+from machine import Pin, SPI, PWM
 
 TFT_CLK_PIN = const(18)
 TFT_MOSI_PIN = const(23)
@@ -41,6 +41,12 @@ TFT_CS_PIN = const(5)
 
 TFT_RST_PIN = const(25)
 TFT_DC_PIN = const(26)
+
+# 背光引脚
+TFT_BL_PIN = const(22)
+# 初始化PWM引脚和频率
+pwm_pin = PWM(TFT_BL_PIN, freq=5000)
+pwm_pin.duty(20)  # 1024是全范围，所以50%是512
 
 def create_display():
     spiTFT = SPI(2, baudrate=51200000, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN))
