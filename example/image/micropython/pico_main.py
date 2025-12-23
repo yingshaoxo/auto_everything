@@ -1,5 +1,6 @@
 # yingshaoxo: I'm using "yd_rp2040_lite_pi_pico(2M Flash, 264KB Memory) micropython board" and "4.0inch SPI IPS ili9488 480x320 lcd".
 # pico only has 264KB memory, hard to make it render 480x320 screen unless you use my code without change anything
+# with micropython1.15
 
 print("Booted.")
 from time import sleep, time
