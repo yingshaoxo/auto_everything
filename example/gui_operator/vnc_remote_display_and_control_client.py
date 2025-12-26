@@ -172,7 +172,7 @@ keyboard_key_list = [
     ('braceleft', 123),
     ('bar', 124),
     ('braceright', 125),
-    ('asciitilde', 126)
+    ('asciitilde', 126),
     ('PrintScreen', 65377),
     ('Sys_Req', 65378),
     ('Super_L', 65515),
