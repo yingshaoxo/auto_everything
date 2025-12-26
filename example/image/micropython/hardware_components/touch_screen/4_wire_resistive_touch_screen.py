@@ -3,7 +3,7 @@ import time
 
 # 4-wire Resistive Touchscreen
 # normally your touch screen has pins like: x1,y1,x2,y2
-# how do I know that? x1 and x2 should be a single line, 0 resistence. y2 and y1 should be a single line, 0 resistence.
+# how do I know that? x1 and x2 should be a single line, 0 resistence. y1 and y2 should be a single line, 0 resistence.
 # x1->0v, x2->5v, get y2 value; y1->0v, y2->5v, get x2 value;
 
 # here i use pi pico with micropython1.15 as example.
@@ -23,7 +23,7 @@ def get_raw_touch():
     x1_p.value(0)
     x2_p.value(1)
 
-    # Y axis set to high resistance, so only big volatage can cross it
+    # Y axis set to high resistence, so only big volatage can cross it
     y1_p = Pin(Y1_PIN, Pin.IN, None)
     y2_p = Pin(Y2_PIN, Pin.IN, None)
 
@@ -46,7 +46,7 @@ def get_raw_touch():
     y1_p.value(0)
     y2_p.value(1)
 
-    # X axis set to high resistance, so only big volatage can cross it
+    # X axis set to high resistence, so only big volatage can cross it
     x1_p = Pin(X1_PIN, Pin.IN, None)
     x2_p = Pin(X2_PIN, Pin.IN, None)
 
