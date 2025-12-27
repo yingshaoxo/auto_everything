@@ -35,4 +35,24 @@ class Tools():
         print("done")
         pyboard.exit_raw_repl()
 
+    def upload_a_file(self, file_path):
+        pyboard.enter_raw_repl()
+        pyboard.upload_file(file_path, file_path)
+        print("done")
+        pyboard.exit_raw_repl()
+
+    def delete_a_file(self, file_path):
+        pyboard.enter_raw_repl()
+        pyboard.delete_file_or_folder(file_path)
+        print("done")
+        pyboard.exit_raw_repl()
+
+    def get_a_file_content(self, file_path):
+        pyboard.enter_raw_repl()
+        print(pyboard.run("""
+with open("{name}", "r") as f:
+    print(f.read())
+    """.format(name=file_path)))
+        pyboard.exit_raw_repl()
+
 py.fire2(Tools)

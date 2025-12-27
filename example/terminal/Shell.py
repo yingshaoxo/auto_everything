@@ -1,4 +1,3 @@
-#!/usr/bin/env /usr/bin/python3
 #!/usr/bin/env /bin/python3
 from typing import Any
 

@@ -33,10 +33,6 @@ import time
 import os
 
 
-class PyboardError(BaseException):
-    pass
-
-
 class Pyboard:
     def __init__(self, serial_device):
         try:
@@ -82,7 +78,7 @@ class Pyboard:
         data = self.read_until(1, b'to exit\r\n>')
         if not data.endswith(b'raw REPL; CTRL-B to exit\r\n>'):
             print(data)
-            raise PyboardError('could not enter raw repl')
+            raise Exception('could not enter raw repl')
 
     def exit_raw_repl(self):
         self.serial.write(b'\r\x02') # ctrl-B: enter friendly REPL
@@ -100,14 +96,15 @@ class Pyboard:
         self.serial.write(b'\x04')
         data = self.serial.read(2)
         if data != b'OK':
-            raise PyboardError('could not exec command')
+            print(data)
+            raise Exception('could not exec command')
         data = self.read_until(2, b'\x04>')
         if not data.endswith(b'\x04>'):
             print(data)
-            raise PyboardError('timeout waiting for EOF reception')
+            raise Exception('timeout waiting for EOF reception')
         if data.startswith(b'Traceback') or data.startswith(b'  File '):
             print(data)
-            raise PyboardError('command failed')
+            raise Exception('command failed')
         return data[:-2]
 
     def execfile(self, filename):
@@ -125,7 +122,7 @@ class Pyboard:
             result = result[:-3]
         return result.decode("utf-8", errors="ignore")
 
-    def list_files_and_folders(self, folder_path):
+    def list_files_and_folders(self, folder_path="./"):
         script_content = """
 import os
 print(os.listdir("{folder_path}"))
@@ -271,7 +268,8 @@ def execfile(filename, device='/dev/ttyACM0'):
     pyb.exit_raw_repl()
     pyb.close()
 
-def run_test():
+def run_test_for_pyboard():
+    # pi pico is not supported
     device = '/dev/ttyACM0'
     pyb = Pyboard(device)
     pyb.enter_raw_repl()
@@ -285,7 +283,6 @@ def run_test():
     pyb.exec('apply(leds, lambda l:l.off())')
 
     ## USR switch test
-
     pyb.exec('switch = pyb.Switch()')
 
     for i in range(2):
@@ -296,7 +293,6 @@ def run_test():
     print('USR switch passed')
 
     ## accel test
-
     if True:
         print("hold level")
         pyb.exec('accel = pyb.Accel()')
@@ -327,19 +323,60 @@ def run_test():
     pyb.exit_raw_repl()
     pyb.close()
 
-def main():
-    import argparse
-    cmd_parser = argparse.ArgumentParser(description='Run scripts on the pyboard.')
-    cmd_parser.add_argument('--device', default='/dev/ttyACM0', help='the serial device of the pyboard')
-    cmd_parser.add_argument('--test', action='store_true', help='run a small test suite on the pyboard')
-    cmd_parser.add_argument('files', nargs='*', help='input files')
-    args = cmd_parser.parse_args()
+def shell():
+    pyb = Pyboard('/dev/ttyACM0')
+    pyb.enter_raw_repl()
 
-    if args.test:
-        run_test()
+    def get_file_path(input_text):
+        _, file_path = input_text.split(" ")
+        file_path = file_path.strip("'\"")
+        return file_path
 
-    for file in args.files:
-        execfile(file, device=args.device)
+    def print_help_function():
+        print("""
+    list: list files and folders
+    sync: sync current folder file into pyboard
+    upload "*.py": upload a file to pyboard
+    delete "*.py": delete a file in pyboard
+    """)
+
+    print_help_function()
+
+    while True:
+        command = input("\nyour command: ").strip()
+        if command == "help":
+            print_help_function()
+        elif command == "list" or command == "ls":
+            print(pyb.list_files_and_folders("."))
+        elif command == "sync":
+            pyboard.sync_folder("./", "/")
+            print("done")
+        elif command.startswith("cat "):
+            file_path = get_file_path(command)
+            print("\n")
+            print(pyb.run("""
+    with open("{name}", "r") as f:
+        print(f.read())
+    """.format(name=file_path)))
+        elif command.startswith("upload "):
+            file_path = get_file_path(command)
+            pyb.upload_file(file_path, file_path)
+            print("done")
+        elif command.startswith("delete "):
+            file_path = get_file_path(command)
+            pyb.delete_file_or_folder(file_path)
+            print("done")
+
+    pyb.exit_raw_repl()
+
 
 if __name__ == "__main__":
-    main()
+    ### there might at least have 2 bugs that causes the fire() function not working
+    #from auto_everything.python import Python
+    #py = Python()
+    #py.fire2(Pyboard)
+
+    import threading
+    t = threading.Thread(target=shell)
+    t.start()
+    t.join()
