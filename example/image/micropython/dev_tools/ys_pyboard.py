@@ -34,10 +34,11 @@ import os
 
 
 class Pyboard:
-    def __init__(self, serial_device):
+    def __init__(self, serial_device, baudrate=115200):
+        # the baudrate is 115200 for micropython project
         try:
             import serial
-            self.serial = serial.Serial(serial_device)
+            self.serial = serial.Serial(serial_device, baudrate=baudrate)
             self._in_waiting = None #Return the number of bytes in the receive buffer.
             if "in_waiting" in dir(self.serial):
                 def inWaiting():
@@ -48,7 +49,7 @@ class Pyboard:
         except Exception as e:
             #print(e)
             from auto_everything.network_ import Serial
-            self.serial = Serial(serial_device)
+            self.serial = Serial(serial_device, baudrate=baudrate)
             self._in_waiting = self.serial.inWaiting
 
     def close(self):
@@ -334,6 +335,7 @@ def shell():
 
     def print_help_function():
         print("""
+    python: enter a mini python
     list: list files and folders
     sync: sync current folder file into pyboard
     upload "*.py": upload a file to pyboard
@@ -342,10 +344,23 @@ def shell():
 
     print_help_function()
 
+    def mini_python():
+        print("")
+        while True:
+            command = input("> ").strip()
+            if command == "exit()":
+                break
+            if "print(" in command:
+                print(pyb.run(command) + "\n")
+            else:
+                print(pyb.eval(command).decode("utf-8", errors="ignore"))
+
     while True:
         command = input("\nyour command: ").strip()
         if command == "help":
             print_help_function()
+        elif command == "python":
+            mini_python()
         elif command == "list" or command == "ls":
             print(pyb.list_files_and_folders("."))
         elif command == "sync":
@@ -371,12 +386,9 @@ def shell():
 
 
 if __name__ == "__main__":
-    ### there might at least have 2 bugs that causes the fire() function not working
+    #### there might at least have 2 bugs that causes the fire() function not working
     #from auto_everything.python import Python
     #py = Python()
     #py.fire2(Pyboard)
 
-    import threading
-    t = threading.Thread(target=shell)
-    t.start()
-    t.join()
+    shell()
