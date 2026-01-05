@@ -1738,13 +1738,16 @@ def get_ascii_8_times_16_font_dict():
     return dict_
 
 
-try:
-    font_data_8x16_dict = get_ascii_8_times_16_font_dict()
-except Exception as e:
-    print(e)
-    font_data_8x16_dict = {
-        " ": [[0]*8 for i in range(16)],
-    }
+#try:
+#    font_data_8x16_dict = get_ascii_8_times_16_font_dict() # will fail in pico, and takes time
+#except Exception as e:
+#    print(e)
+#    font_data_8x16_dict = {
+#        " ": [[0]*8 for i in range(16)],
+#    }
+font_data_8x16_dict = {
+    " ": [[0]*8 for i in range(16)],
+}
 
 
 try:

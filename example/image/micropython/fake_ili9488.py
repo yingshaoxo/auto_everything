@@ -51,13 +51,13 @@ class Ili9488_Display(Display):
             else:
                 self.write_data(bytearray([value]))
         del init_backdoor_data
-        sleep(.1)
+        sleep(0.1)
         self.write_cmd(0x21)
         self.write_cmd(0x29)
         sleep(0.1)
         self.write_cmd(0x36, 0x08) #set rotation to 0 degree
         sleep(0.1)
-        self.clear()
+        self.clear(hlines=4)
 
         self.yingshaoxo_init()
 

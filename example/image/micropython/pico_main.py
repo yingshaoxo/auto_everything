@@ -5,7 +5,7 @@
 print("Booted.")
 from time import sleep, time
 sleep(5)
-print("Ready")
+print("Ready\n")
 from machine import freq
 freq(70000000)
 
@@ -13,6 +13,7 @@ freq(70000000)
 """
 # Setup the LCD Display module
 """
+print("load display module...")
 from fake_ili9488 import Ili9488_Display as Display
 from machine import Pin, SPI
 
@@ -21,8 +22,8 @@ TFT_MOSI_PIN = const(3)
 TFT_MISO_PIN = const(4)
 TFT_CS_PIN = const(5)
 
-TFT_DC_PIN = const(0)
-TFT_RST_PIN = const(1)
+TFT_DC_PIN = const(29)
+TFT_RST_PIN = const(28)
 
 height=480
 width=320
@@ -30,12 +31,13 @@ width=320
 def create_display():
     baudrate = 60000000
     spiTFT = SPI(0, baudrate=baudrate, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN), miso=Pin(TFT_MISO_PIN))
+    #spiTFT = SoftSPI(baudrate=9600, polarity=0, phase=0, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN), miso=Pin(TFT_MISO_PIN)) # slow
     display = Display(spiTFT, dc=Pin(TFT_DC_PIN), cs=Pin(TFT_CS_PIN), rst=Pin(TFT_RST_PIN),
                       height=height, width=width)
     return display
 
 display = create_display()
-print("Display ready.")
+print("display module loaded.")
 display.draw_ellipse(30,30,10,10,display.color666(255,0,0))
 #a_char_bytes = display.get_char_bytes_by_char("1")
 #display.draw_buffer(50, 50, 50+8-1, 50+16-1, a_char_bytes)

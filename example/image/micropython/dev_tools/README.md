@@ -20,3 +20,7 @@ pyb.exit_raw_repl()
 ```
 
 > If you want to handle files in sd card, use `open()` to read or write.
+
+## thinking
+
+So far, the chinese version pyboard 1.1 plus is the best. It has 60+ free pin for using, and it has built-in SD card loader. And when you connect your chip to computer, it will show you a storage where you can directly change the main.py in your flash storage or SD card storage to do the programming.

@@ -3,7 +3,7 @@ from gc import mem_free
 print("Has memory of", mem_free()/1024, "KB.")
 from time import sleep, time
 sleep(5)
-print("Ready")
+print("Ready\n")
 try:
     from machine import freq
     freq(70000000) #lower cpu frequency to save power
@@ -14,16 +14,17 @@ except Exception as e:
 """
 # Setup the LCD Display module
 """
+print("load display module...")
 from fake_ili9488 import Ili9488_Display as Display
-from machine import Pin, SPI
+from machine import Pin, SPI, SoftSPI
 
 TFT_CLK_PIN = const(2)
 TFT_MOSI_PIN = const(3)
 TFT_MISO_PIN = const(4)
 TFT_CS_PIN = const(5)
 
-TFT_DC_PIN = const(0)
-TFT_RST_PIN = const(1)
+TFT_DC_PIN = const(29)
+TFT_RST_PIN = const(28)
 
 height=480
 width=320
@@ -33,12 +34,13 @@ width=320
 def create_display():
     baudrate = 60000000
     spiTFT = SPI(0, baudrate=baudrate, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN), miso=Pin(TFT_MISO_PIN))
+    #spiTFT = SoftSPI(baudrate=9600, polarity=0, phase=0, sck=Pin(TFT_CLK_PIN), mosi=Pin(TFT_MOSI_PIN), miso=Pin(TFT_MISO_PIN)) # slow
     display = Display(spiTFT, dc=Pin(TFT_DC_PIN), cs=Pin(TFT_CS_PIN), rst=Pin(TFT_RST_PIN),
                       height=height, width=width)
     return display
 
 display = create_display()
-print("Display ready.")
+print("display module loaded.")
 
 
 
@@ -320,3 +322,7 @@ def handle_touchscreen_press(x, y):
 
 spi2 = SoftSPI(baudrate=9000, polarity=1, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(8))
 touch = Touch(spi2, height=height, width=width, cs=Pin(9), int_pin=Pin(14), int_handler=handle_touchscreen_press)
+
+
+from gc import mem_free
+print("Has memory of", mem_free()/1024, "KB.")

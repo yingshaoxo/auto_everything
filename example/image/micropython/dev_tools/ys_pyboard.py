@@ -73,10 +73,15 @@ class Pyboard:
         return data
 
     def enter_raw_repl(self):
+        # if you do not want to enter the raw shell, you use '\r' to end the input, it treats '\r' as enter key. '\r' == 0x0D, '\n' == 0x0A.
+        # but I think you must use raw mode, others won't work well
+        # after you get into raw_mode, every input ends with 0x04. but there has no print by default. and for the output, it always starts with '0x4F 0x4B', ends with '0x0D' or '0x04' or '0x3E'. and you should remove all 0x04 from output after first parsing.
         self.serial.write(b'\r\x03') # ctrl-C: interrupt any running program
         self.serial.write(b'\r\x01') # ctrl-A: enter raw REPL
         self.serial.write(b'\x04') # ctrl-D: soft reset
+        # the real command is 0x0D, 0x03, 0x0D, 0x01, 0x04
         data = self.read_until(1, b'to exit\r\n>')
+        # final result match rule is: starts with '0x4F,0x4B', ends with '0x0D' or '0x04'.
         if not data.endswith(b'raw REPL; CTRL-B to exit\r\n>'):
             print(data)
             raise Exception('could not enter raw repl')
@@ -392,3 +397,13 @@ if __name__ == "__main__":
     #py.fire2(Pyboard)
 
     shell()
+
+    pyboard = Pyboard("/dev/ttyACM0")
+    pyboard.serial.write("print(1+1)".encode("ascii") + b"\x04")
+    while True:
+        time.sleep(0.1)
+        if pyboard.serial.available() > 0:
+            result = pyboard.serial.read(pyboard.serial.available())
+            print(result)
+            result = result.decode("ascii")
+            print(result)
