@@ -4,7 +4,7 @@ modified by: yingshaoxo.xyz
 """
 from time import sleep
 from math import cos, sin, pi, radians
-from sys import implementation
+#from sys import implementation
 from framebuf import FrameBuffer, RGB565  # type: ignore
 from io import BytesIO
 import gc
@@ -141,19 +141,46 @@ class Display(object):
         sleep(.1)
         self.clear()
 
+        gc.collect()
         self.yingshaoxo_init()
+        gc.collect()
 
     def yingshaoxo_init(self):
         # font related
         try:
             from auto_everything.font_ import get_ascii_8_times_16_points_data
         except Exception as e:
-            from font_ import get_ascii_8_times_16_points_data
+            try:
+                from font_ import get_ascii_8_times_16_points_data
+            except Exception as e:
+                print(e)
+                from mini_font_ import get_ascii_8_times_16_points_data
         self.get_ascii_8_times_16_points_data = get_ascii_8_times_16_points_data
 
         self.font_cache = {}
         self.the_2d_text_cache = None
         self.the_force_redraw_2d_text_index_set = set()
+
+    def reset(self):
+        self.rst(0)
+        sleep(.05)
+        self.rst(1)
+        sleep(.05)
+
+    def write_cmd(self, command, *args):
+        self.dc(0)
+        self.cs(0)
+        self.spi.write(bytearray([command]))
+        self.cs(1)
+        # Handle any passed data
+        if len(args) > 0:
+            self.write_data(bytearray(args))
+
+    def write_data(self, data):
+        self.dc(1)
+        self.cs(0)
+        self.spi.write(data)
+        self.cs(1)
 
     def color565(self, r, g, b):
         """Return RGB565 color value.
@@ -189,11 +216,7 @@ class Display(object):
             color (Optional int): RGB565 color value (Default: 0 = Black).
             hlines (Optional int): # of horizontal lines per chunk (Default: 8)
         Note:
-            hlines was introduced to deal with memory allocation on some
-            boards.  Smaller values allocate less memory but take longer
-            to execute.  hlines must be a factor of the display height.
-            For example, for a 240 pixel height, valid values for hline
-            would be 1, 2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160.
+            hlines can be 1, 2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160.
             Higher values may result in memory allocation errors.
         """
         w = self.width
@@ -358,6 +381,10 @@ class Display(object):
         if width == None:
             width = self.width
 
+        full_screen_char_number = int(((height/16)*(width/8)))
+        a_text = a_text[-full_screen_char_number:]
+        a_text = a_text + (full_screen_char_number-len(a_text))*" "
+
         rows_number = int(height // 16)
         columns_number = int(width // 8)
 
@@ -368,6 +395,8 @@ class Display(object):
                 left = column_index * 8
                 the_char_index += 1
 
+                if ((the_char_index - 1) < 0) or ((the_char_index - 1) >= len(a_text)):
+                    break
                 char = a_text[the_char_index - 1]
 
                 if char == "\n":
@@ -378,6 +407,8 @@ class Display(object):
                         continue
 
                 if self.the_2d_text_cache != None:
+                    if (the_char_index - 1) >= len(self.the_2d_text_cache):
+                        break
                     if self.the_2d_text_cache[the_char_index-1] == char:
                         continue
 
@@ -399,11 +430,6 @@ class Display(object):
             a (int): Semi axis horizontal.
             b (int): Semi axis vertical.
             color (int): RGB565 color value.
-        Note:
-            The center point is the center of the x0,y0 pixel.
-            Since pixels are not divisible, the axes are integer rounded
-            up to complete on a full pixel.  Therefore the major and
-            minor axes are increased by 1.
         """
         a2 = a * a
         b2 = b * b
@@ -451,16 +477,7 @@ class Display(object):
             self.draw_pixel(x0 - x, y0 - y, color)
 
     def is_off_grid(self, xmin, ymin, xmax, ymax):
-        """Check if coordinates extend past display boundaries.
-
-        Args:
-            xmin (int): Minimum horizontal pixel.
-            ymin (int): Minimum vertical pixel.
-            xmax (int): Maximum horizontal pixel.
-            ymax (int): Maximum vertical pixel.
-        Returns:
-            boolean: False = Coordinates OK, True = Error.
-        """
+        """Check if coordinates extend past display boundaries."""
         if xmin < 0:
             print('x-coordinate: {0} below minimum of 0.'.format(xmin))
             return True
@@ -476,50 +493,6 @@ class Display(object):
                 ymax, self.height - 1))
             return True
         return False
-
-    def reset(self):
-        """Perform reset: Low=initialization, High=normal operation.
-
-        Notes: MicroPython implemntation
-        """
-        self.rst(0)
-        sleep(.05)
-        self.rst(1)
-        sleep(.05)
-
-    def write_cmd(self, command, *args):
-        """Write command to OLED (MicroPython).
-
-        Args:
-            command (byte): ILI9341 command code.
-            *args (optional bytes): Data to transmit.
-        """
-        self.dc(0)
-        self.cs(0)
-        self.spi.write(bytearray([command]))
-        self.cs(1)
-        # Handle any passed data
-        if len(args) > 0:
-            self.write_data(bytearray(args))
-
-    def write_data(self, data):
-        """Write data to OLED (MicroPython).
-
-        Args:
-            data (bytes): Data to transmit.
-        """
-        self.dc(1)
-        self.cs(0)
-        self.spi.write(data)
-        self.cs(1)
-
-    def display_off(self):
-        """Turn display off."""
-        self.write_cmd(self.DISPLAY_OFF)
-
-    def display_on(self):
-        """Turn display on."""
-        self.write_cmd(self.DISPLAY_ON)
 
     def sleep(self, enable=True):
         """Enters or exits sleep mode.

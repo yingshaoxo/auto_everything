@@ -1,0 +1,3 @@
+dist/
+y_python_cython.c
+*.out

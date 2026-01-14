@@ -7,7 +7,11 @@
 #    led.toggle()
 #
 #global_timer.init(period=1000, mode=Timer.PERIODIC, callback=tick)
-##in ms
+
+#led = Pin("LED", Pin.OUT)
+#led.on()
+#sleep(1)
+#led.off()
 
 try:
     #import pico_main
