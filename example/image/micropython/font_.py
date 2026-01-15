@@ -1,5 +1,3 @@
-import json
-
 font_data_8x16 = '''
 !
 00000000

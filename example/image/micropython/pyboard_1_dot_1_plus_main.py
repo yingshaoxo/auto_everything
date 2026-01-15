@@ -6,15 +6,9 @@ from gc import mem_free
 print("Has memory of", mem_free()/1024, "KB.")
 from time import sleep
 sleep(1)
-from pyb import LED
-def light():
-    # use this to debug when no console/shell/terminal/bash
-    led = LED(2)
-    while True:
-        led.on()
-        sleep(1)
-        led.off()
-        sleep(1)
+# use LED to debug when no console/shell/terminal/bash
+# from pyb import LED def light(): led = LED(2) while True: led.on() sleep(1) led.off()
+sleep(1)
 print("Ready")
 
 
@@ -82,24 +76,22 @@ input_mode = 0
 screen_sleep = False
 max_y = int(320/16) - 1
 max_x = int(240/8)
-enable_light_cursor = False
 light_cursor_flag = 0
 cursor_position_y = 0
-cursor_position_x = 1
+cursor_position_x = 0
 terminal_text_2d_array = []
 for y in range(max_y):
     row = []
     for x in range(max_x):
         row.append(" ")
     terminal_text_2d_array.append(row)
-terminal_text_2d_array[0][0] = ">"
-input_target_list = ["1abc()#", "2def[]@", "3g\bhi{}", "4jkl<>", "5mno\n+-", "6pqr*/=", "7stu'\"`", "8vwx:;", "9yz&|\\"]
-"""
-1abc()#   2def[]@   3g\bhi{}
-4jkl<>    5mno\n+-  6pqr*/=
-7stu'\"`   8vwx:;    9yz&|\\
-          0_,.?!
-"""
+terminal_text_2d_array[0][0] = " "
+input_target_list = [
+"1abc()#", "2def[]@", "3g\bhi{}",
+"4jkl<>", "5mno\n+-", "6pqr*/=",
+"7stu'\"`", "8vwx:;", "9yz&|\\"
+]
+           #0_,.?!
 temp_input_1 = -1
 temp_input_tip = ""
 input_char = "\0"
@@ -144,14 +136,24 @@ def make_cursor_position_safe():
 
     collect()
 
-def put_char_into_screen(a_char):
-    global terminal_text_2d_array, cursor_position_y, cursor_position_x, max_y, max_x
+def render_and_refresh():
+    # display_cache_on_screen
+    global terminal_text_2d_array, cursor_position_y, cursor_position_x
+    make_cursor_position_safe()
+    terminal_text_2d_array[cursor_position_y][cursor_position_x] = "_"
+    temp_text = render_to_1d_text_array()
+    display.draw_1d_text(temp_text)
+
+def put_char_into_screen_cache(a_char, to_one_line_input=False):
+    global terminal_text_2d_array, cursor_position_y, cursor_position_x, max_y, max_x, one_line_input
     make_cursor_position_safe()
 
     if a_char == "\b":
         terminal_text_2d_array[cursor_position_y][cursor_position_x] = " "
         cursor_position_x -= 1
         terminal_text_2d_array[cursor_position_y][cursor_position_x] = " "
+        if to_one_line_input:
+            one_line_input = one_line_input[:-1]
     elif a_char == "\n":
         terminal_text_2d_array[cursor_position_y][cursor_position_x] = " "
         cursor_position_y += 1
@@ -159,13 +161,16 @@ def put_char_into_screen(a_char):
     else:
         terminal_text_2d_array[cursor_position_y][cursor_position_x] = a_char
         cursor_position_x += 1
+        if to_one_line_input:
+            one_line_input += a_char
 
     make_cursor_position_safe()
 
 def new_print(a_string):
     for one in a_string:
-        put_char_into_screen(one)
-    put_char_into_screen("\n")
+        put_char_into_screen_cache(one)
+    put_char_into_screen_cache("\n")
+    render_and_refresh()
 
 def run_shell_command(command):
     try:
@@ -180,7 +185,7 @@ def run_shell_command(command):
     if target_command in commands_list:
         with open("./applications/"+target_command+".py", "r") as f:
             some_code = f.read()
-        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_ = new_print\n" + some_code
+        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_ = new_print\n" + "input_ = new_input\n" + some_code
         try:
             exec(some_code)
             return "ok"
@@ -213,6 +218,8 @@ def handle_pressed_key(a_number):
     global terminal_text_2d_array, cursor_position_y, cursor_position_x, input_mode, temp_input_1, temp_input_tip, input_char, screen_sleep, one_line_input
     if a_number == -1:
         return
+
+    should_return = None
 
     if a_number == 10:
         if input_mode == 0:
@@ -276,49 +283,37 @@ def handle_pressed_key(a_number):
             temp_input_1 = -1
 
     if input_char != "\0" and input_char != "":
-        if input_char == "\b":
-            if cursor_position_x >= 2:
-                terminal_text_2d_array[cursor_position_y][cursor_position_x] = " "
-                cursor_position_x -= 1
-                terminal_text_2d_array[cursor_position_y][cursor_position_x] = " "
-            else:
-                pass
-            one_line_input = one_line_input[:-1]
-        elif input_char == "\n":
+        if input_char == "\n":
             terminal_text_2d_array[cursor_position_y][cursor_position_x] = " "
             cursor_position_y += 1
             cursor_position_x = 0
-            result = run_python_code(one_line_input)
+            should_return = str(one_line_input)
             one_line_input = ""
-            for one in result:
-                put_char_into_screen(one)
-            cursor_position_y += 1
-            cursor_position_x = 0
-            put_char_into_screen(">")
+            #cursor_position_y += 1
+            #cursor_position_x = 0
         else:
-            put_char_into_screen(input_char[0])
-            one_line_input += input_char[0]
+            put_char_into_screen_cache(input_char[0], to_one_line_input=True)
 
-    terminal_text_2d_array[cursor_position_y][cursor_position_x] = "_"
-    temp_text = render_to_1d_text_array()
-    display.draw_1d_text(temp_text)
+    render_and_refresh()
+    return should_return
+
+def new_input(tip_string="", multiple_line=False):
+    for one in tip_string:
+        put_char_into_screen_cache(one)
+    render_and_refresh()
+
+    while True:
+        pressed_key = get_pressed_key()
+        if pressed_key != -1:
+            result = handle_pressed_key(pressed_key)
+            if result != None:
+                return result
+            from gc import mem_free
+            print("Has memory of", mem_free()/1024, "KB.")
+            sleep(0.1)
+        sleep(0.1)
 
 while True:
-    pressed_key = get_pressed_key()
-    if pressed_key != -1:
-        handle_pressed_key(pressed_key)
-        from gc import mem_free
-        print("Has memory of", mem_free()/1024, "KB.")
-        sleep(0.1)
-    sleep(0.1)
-
-    if enable_light_cursor:
-        if light_cursor_flag == 0:
-            terminal_text_2d_array[cursor_position_y][cursor_position_x] = "_"
-            display.draw_1d_text(render_to_1d_text_array())
-        elif light_cursor_flag == 7:
-            terminal_text_2d_array[cursor_position_y][cursor_position_x] = " "
-            display.draw_1d_text(render_to_1d_text_array())
-        light_cursor_flag += 1
-        if light_cursor_flag >= 12:
-            light_cursor_flag = 0
+    one_line = new_input(">").strip()
+    result = run_python_code(one_line)
+    new_print(result)

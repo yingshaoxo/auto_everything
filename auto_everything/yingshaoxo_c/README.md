@@ -18,7 +18,7 @@ all arguments, they are (json) string.
 ```
 a_variable = 'hi';
 print(a_variable);
-// "hi" will also work;
+// "hi" will also work, `hi` will also work;
 // if a variable is not defined, it returns ""
 
 function do_it(a, b) {
@@ -42,6 +42,8 @@ not(0); // return 1
 
 variable_3 = string_format('%s-%s', 'year', 'month');
 print(variable_3);
+
+a_string = input("what you want to say:");
 
 //dict will pass pointer to function
 a_dict = {'hi': 'you'};
@@ -186,4 +188,5 @@ void *global_pointer_list[1024] = { NULL }; //we need to maintain a pointer list
 ## keys
 
 * we use global polution for speed. child function and parent function share same variable space. if they want to be different, let them use a unique name. (python 'global' keyword is bad, I often forget about add a global variable in function. but in c micro_controller or e_easy_language, it is comfortable to use global variable, a way that let you feel you are god.)
-* peple mind are a state variable machine, the memory is in continus update, so as long as the software is running, the global dict can get updated by all code. c code assume you will not use others bad people code, so every function has equal rights.
+* people mind are a state variable machine, the memory is in continus update, so as long as the software is running, the global dict can get updated by all code. c code assume you will not use others bad people code, so every function has equal rights.
+* "没有全局变量的代码，就像是一个官僚体系，发展太久，底层function就失去了对自身命运的掌控权。无法见到掌权的人，无法参与国家事务。变成了没有灵魂的机器。另外，因为代码写太多，导致后期无法修改，因为改function参数的工作量太大，并且增加通信成本。但如果有全局变量，我可以直接对着总统吼一句我的想法，然后问题就解决了。"
