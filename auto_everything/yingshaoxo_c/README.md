@@ -39,6 +39,7 @@ while (1) {
 }
 
 not(0); // return 1
+str(1); // reutrn `1`
 
 variable_3 = string_format('%s-%s', 'year', 'month');
 print(variable_3);

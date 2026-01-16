@@ -23,12 +23,34 @@ int main() {
 #ifndef yingshaoxo_c_dict
 #define yingshaoxo_c_dict
 
+/*
 unsigned char *yingshaoxo_dict_global_splitor1 = ".#new_line#.";
 unsigned char *yingshaoxo_dict_global_splitor2 = "|#colon#|";
+*/
+unsigned char yingshaoxo_dict_global_splitor1[] = { '.', '#', 'n', 'e', 'w', '_', 'l', 'i', 'n', 'e', '#', '.', '\0' };
+unsigned char yingshaoxo_dict_global_splitor2[] = { '|', '#', 'c', 'o', 'l', 'o', 'n', '#', '|', '\0' };
+
+void _yingshaoxo_dict_string_memory_copy(unsigned char *source_data, unsigned char *new_data) {
+    /*
+        source_data must be defined by 'unsigned char source_data[200]="hi";'
+        'unsigned char *source_data="hi";' won't work for unknown reason
+        'unsigned char *source_data=malloc(200);' works fine
+    */
+    unsigned int index = 0;
+    while (1) {
+        if (new_data[index] == '\0') {
+            break;
+        }
+        source_data[index] = new_data[index];
+        index += 1;
+    }
+    source_data[index] = '\0';
+    return;
+}
 
 void yingshaoxo_dict_redefine_splitor(unsigned char *the_splitor1, unsigned char *the_splitor2) {
-    yingshaoxo_dict_global_splitor1 = the_splitor1;
-    yingshaoxo_dict_global_splitor2 = the_splitor2;
+    _yingshaoxo_dict_string_memory_copy(yingshaoxo_dict_global_splitor1, the_splitor1);
+    _yingshaoxo_dict_string_memory_copy(yingshaoxo_dict_global_splitor2, the_splitor2);
 }
 
 unsigned int _yingshaoxo_dict_get_string_length(unsigned char *a_string) {
@@ -68,6 +90,7 @@ unsigned int _yingshaoxo_dict_find_sub_string_complex(unsigned char *parent_stri
     /*
         if not found, we return -1
         otherwise, return the_start_index_of_the_sub_string
+        similar to 'read_until(source, end_string)'
     */
     if (start_index >= _yingshaoxo_dict_get_string_length(parent_string)) {
         return -1;
@@ -128,24 +151,6 @@ int _yingshaoxo_dict_get_sub_string(unsigned char *a_string, unsigned int start_
     }
     sub_string[second_index] = '\0';
     return return_value;
-}
-
-void _yingshaoxo_dict_string_memory_copy(unsigned char *source_data, unsigned char *new_data) {
-    /*
-        source_data must be defined by 'unsigned char source_data[200]="hi";'
-        'unsigned char *source_data="hi";' won't work for unknown reason
-        'unsigned char *source_data=malloc(200);' works fine
-    */
-    unsigned int index = 0;
-    while (1) {
-        if (new_data[index] == '\0') {
-            break;
-        }
-        source_data[index] = new_data[index];
-        index += 1;
-    }
-    source_data[index] = '\0';
-    return;
 }
 
 int _yingshaoxo_dict_string_starts_with(unsigned char *a_string, unsigned char *start_string) {

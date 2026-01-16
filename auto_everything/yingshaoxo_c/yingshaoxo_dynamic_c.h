@@ -73,7 +73,6 @@ unsigned int _yingshaoxo_dynamic_c_get_variable_end_index(unsigned char *code) {
     return index;
 }
 
-
 unsigned int _yingshaoxo_dynamic_c_is_it_a_string(unsigned char *code) {
     if (code[0] == '\0') {
         return 0;
@@ -307,40 +306,40 @@ void _yingshaoxo_dynamic_c_evaluate_3_instance(unsigned char *variable_dict, uns
     unsigned char operator[3] = "==";
     if (_yingshaoxo_dict_string_starts_with(&code[index], "==") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, "==");
-        index += 3;
+        index += 2;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], "!=") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, "!=");
-        index += 3;
+        index += 2;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], ">=") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, ">=");
-        index += 3;
+        index += 2;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], "<=") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, "<=");
-        index += 3;
+        index += 2;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], "+=") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, "+=");
-        index += 3;
+        index += 2;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], "-=") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, "-=");
-        index += 3;
+        index += 2;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], ">") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, ">");
-        index += 2;
+        index += 1;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], "<") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, "<");
-        index += 2;
+        index += 1;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], "+") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, "+");
-        index += 2;
+        index += 1;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], "-") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, "-");
-        index += 2;
+        index += 1;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], "*") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, "*");
-        index += 2;
+        index += 1;
     } else if (_yingshaoxo_dict_string_starts_with(&code[index], "/") == 1) {
         _yingshaoxo_dict_string_memory_copy(operator, "/");
-        index += 2;
+        index += 1;
     } else {
         _yingshaoxo_dict_string_memory_copy(return_value, temp_variable_1);
         return;
@@ -402,6 +401,14 @@ void _yingshaoxo_dynamic_c_evaluate_3_instance(unsigned char *variable_dict, uns
         /* handle number operations */
         if (_yingshaoxo_dict_is_string_equal(operator, "==") == 1) {
             if (_yingshaoxo_dynamic_c_string_to_float(temp_variable_1) == _yingshaoxo_dynamic_c_string_to_float(temp_variable_2)) {
+                _yingshaoxo_dict_string_memory_copy(return_value, "1");
+            } else {
+                _yingshaoxo_dict_string_memory_copy(return_value, "0");
+            }
+            return;
+        }
+        if (_yingshaoxo_dict_is_string_equal(operator, "!=") == 1) {
+            if (_yingshaoxo_dynamic_c_string_to_float(temp_variable_1) != _yingshaoxo_dynamic_c_string_to_float(temp_variable_2)) {
                 _yingshaoxo_dict_string_memory_copy(return_value, "1");
             } else {
                 _yingshaoxo_dict_string_memory_copy(return_value, "0");
@@ -470,6 +477,28 @@ void _yingshaoxo_dynamic_c_evaluate_3_instance(unsigned char *variable_dict, uns
         return;
     }
 
+
+    if ((_yingshaoxo_dynamic_c_is_it_a_string(temp_variable_1)==1) && ((_yingshaoxo_dynamic_c_is_it_a_number(temp_variable_2)==1))) {
+        if (_yingshaoxo_dict_is_string_equal(operator, "==") == 1) {
+            _yingshaoxo_dict_string_memory_copy(return_value, "0");
+            return;
+        }
+        if (_yingshaoxo_dict_is_string_equal(operator, "!=") == 1) {
+            _yingshaoxo_dict_string_memory_copy(return_value, "1");
+            return;
+        }
+    }
+    if ((_yingshaoxo_dynamic_c_is_it_a_string(temp_variable_2)==1) && ((_yingshaoxo_dynamic_c_is_it_a_number(temp_variable_1)==1))) {
+        if (_yingshaoxo_dict_is_string_equal(operator, "==") == 1) {
+            _yingshaoxo_dict_string_memory_copy(return_value, "0");
+            return;
+        }
+        if (_yingshaoxo_dict_is_string_equal(operator, "!=") == 1) {
+            _yingshaoxo_dict_string_memory_copy(return_value, "1");
+            return;
+        }
+    }
+
     return_value[0] = '\0';
     return;
 }
@@ -494,6 +523,11 @@ void yingshaoxo_dynamic_c_call_function(unsigned char *variable_dict, unsigned c
         } else {
             _yingshaoxo_dict_string_memory_copy(return_value, "0");
         }
+        return;
+    }
+    if (_yingshaoxo_dict_is_string_equal(function_name, "str") == 1) {
+        yingshaoxo_dynamic_c_evaluate(variable_dict, arguments, return_value);
+        _yingshaoxo_dynamic_c_add_string_quote(return_value);
         return;
     }
     if (_yingshaoxo_dict_is_string_equal(function_name, "free") == 1) {
@@ -547,7 +581,7 @@ void yingshaoxo_dynamic_c_evaluate(unsigned char *variable_dict, unsigned char *
     _yingshaoxo_dynamic_c_evaluate_3_instance(variable_dict, code, return_value);
 }
 
-void _yingshaoxo_dynamic_c_recognize_if_it_is_assignment_or_function_call(unsigned char *variable_dict, unsigned char *code) {
+void _yingshaoxo_dynamic_c_run_one_line_code(unsigned char *variable_dict, unsigned char *code) {
     unsigned int line_end_index = _yingshaoxo_dict_get_string_length(code);
     unsigned int equal_mark_index = _yingshaoxo_dict_find_sub_string(code, "=");
     unsigned int function_argument_start_index = _yingshaoxo_dict_find_sub_string(code, "(");
@@ -638,9 +672,11 @@ unsigned int _yingshaoxo_dynamic_c_handle_while_code_block(unsigned char *variab
     unsigned char equation_result[_yingshaoxo_dynamic_c_temp_varaible_length];
     _yingshaoxo_dict_get_sub_string(code, equation_start_index+1, equation_end_index, equation);
     yingshaoxo_dynamic_c_evaluate(variable_dict, equation, equation_result);
+
+    unsigned char while_code_block[_yingshaoxo_dynamic_c_temp_varaible_length];
+    _yingshaoxo_dict_get_sub_string(code, while_code_block_start_index+1, while_code_block_end_index, while_code_block);
+
     while (_yingshaoxo_dict_is_string_equal(equation_result, "1") == 1) {
-        unsigned char while_code_block[_yingshaoxo_dynamic_c_temp_varaible_length];
-        _yingshaoxo_dict_get_sub_string(code, while_code_block_start_index+1, while_code_block_end_index, while_code_block);
         yingshaoxo_super_c_c_runner(variable_dict, while_code_block, return_value);
         if (_yingshaoxo_dict_is_string_equal(return_value, "break") == 1) {
             break;
@@ -685,6 +721,7 @@ unsigned int _yingshaoxo_dynamic_c_try_to_recognize_main_keyword_and_run(unsigne
         return _yingshaoxo_dynamic_c_handle_if_code_block(variable_dict, code, return_value) + 1;
     } else if (_yingshaoxo_dict_string_starts_with(code, "while ")) {
         return _yingshaoxo_dynamic_c_handle_while_code_block(variable_dict, code, return_value) + 1;
+    } else if (_yingshaoxo_dict_string_starts_with(code, "return ")) {
     } else if (_yingshaoxo_dict_string_starts_with(code, "try ")) {
     } else if (_yingshaoxo_dict_string_starts_with(code, "import ")) {
     } else if (_yingshaoxo_dict_string_starts_with(code, "//")) {
@@ -705,8 +742,7 @@ unsigned int _yingshaoxo_dynamic_c_try_to_recognize_main_keyword_and_run(unsigne
         /*printf("the end for a line:%d\n", the_end_for_a_line);*/
         unsigned char a_line[the_end_for_a_line+1];
         _yingshaoxo_dict_get_sub_string(code, 0, the_end_for_a_line, a_line);
-        _yingshaoxo_dynamic_c_recognize_if_it_is_assignment_or_function_call(variable_dict, a_line);
-        free(a_line);
+        _yingshaoxo_dynamic_c_run_one_line_code(variable_dict, a_line);
         return the_end_for_a_line;
     }
 
