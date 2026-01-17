@@ -1,5 +1,36 @@
 # this module written by doubao ai
+# fixed by yingshaoxo
 from time import sleep_us
+try:
+    from machine import Pin
+except Exception as e:
+    try:
+        from pyb import Pin
+    except Exception as e:
+        raise(e)
+
+
+class Simple_Output_Soft_SPI:
+    def __init__(self, sck, mosi, miso=None):
+        self.sck = sck
+        self.sck.init(Pin.OUT)
+        self.sck.low()
+        self.mosi = mosi
+        self.mosi.init(Pin.OUT)
+        self.mosi.low()
+
+    def _write_bit(self, bit):
+        self.mosi.value(bit)
+        self.sck.high()
+        self.sck.low()
+
+    def write(self, data):
+        if isinstance(data, int):
+            data = [data]
+        for byte in data:
+            for bit_idx in range(7, -1, -1):
+                bit = (byte >> bit_idx) & 0x01
+                self._write_bit(bit)
 
 
 class SoftSPI:
@@ -8,11 +39,11 @@ class SoftSPI:
             raise ValueError("SCK and MOSI pins must be specified for SoftSPI")
 
         self.sck = sck
-        self.sck.init(Pin.OUT_PP)
+        self.sck.init(Pin.OUT)
         self.sck.low()
 
         self.mosi = mosi
-        self.mosi.init(Pin.OUT_PP)
+        self.mosi.init(Pin.OUT)
         self.mosi.low()
 
         self.miso = miso
@@ -87,41 +118,6 @@ class SoftSPI:
             read_buf[i] = read_byte
 
 
-class Simple_Output_Soft_SPI:
-    def __init__(self, sck, mosi, miso=None, delay=0):
-        self.sck = sck
-        self.sck.init(Pin.OUT_PP)
-        self.sck.low()
-
-        self.mosi = mosi
-        self.mosi.init(Pin.OUT_PP)
-        self.mosi.low()
-
-        self.miso = miso
-        if self.miso is not None:
-            self.miso.init(Pin.IN, Pin.PULL_NONE)
-
-        #self.delay = 1 / (2 * baudrate) if baudrate > 0 else 0
-        self.delay = delay
-
-    def _write_bit(self, bit):
-        self.mosi.value(bit)
-        if self.delay > 0:
-            sleep_us(int(self.delay * 1e6))
-        self.sck.high()
-        if self.delay > 0:
-            sleep_us(int(self.delay * 1e6))
-        self.sck.low()
-
-    def write(self, data):
-        if isinstance(data, int):
-            data = [data]
-
-        for byte in data:
-            for bit_idx in range(7, -1, -1):
-                bit = (byte >> bit_idx) & 0x01
-                self._write_bit(bit)
-
 #if __name__ == "__main__":
 #    TFT_CLK_PIN = Pin('X1')
 #    TFT_MOSI_PIN = Pin('X2')
@@ -130,3 +126,5 @@ class Simple_Output_Soft_SPI:
 #
 #    spiTFT.write(0x55)
 #    spiTFT.write([0xAA, 0x01])
+
+
