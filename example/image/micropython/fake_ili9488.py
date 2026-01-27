@@ -31,6 +31,8 @@ class Ili9488_Display(Display):
         self.rst = rst
         self.width = width
         self.height = height
+
+        self.ROTATE = { 0: 0x88, 90: 0xE8, 180: 0x48, 270: 0x28 }
         if rotation not in self.ROTATE.keys():
             raise Exception('Rotation must be 0, 90, 180 or 270.')
         else:

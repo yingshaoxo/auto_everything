@@ -1,0 +1,58 @@
+global_print_cache = ""
+
+def new_print(a_string):
+    global global_print_cache
+    global_print_cache += a_string + "\n"
+
+def new_input(a_string):
+    return "input not implemented yet"
+
+def run_shell_command(command):
+    global global_print_cache
+    try:
+        from os import listdir
+    except Exception as e:
+        from uos import listdir
+    commands_list = listdir("./applications")
+    commands_list = [one[:-3] for one in commands_list if one.endswith(".py") and one[0] != '_']
+    del listdir
+    target_command = command.split(" ")[0]
+    target_arguments = " ".join(command.split(" ")[1:])
+    if target_command in commands_list:
+        with open("./applications/"+target_command+".py", "r") as f:
+            some_code = f.read()
+        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_ = new_print\n" + "input_ = new_input\n" + some_code
+        try:
+            exec(some_code)
+            temp = global_print_cache[:]
+            global_print_cache = ""
+            return temp.strip()
+        except Exception as e:
+            return str(e)
+    else:
+        return "no"
+
+def run_python_code(code):
+    code = code.strip()
+    if code == "":
+        return ""
+
+    shell_result = run_shell_command(code)
+    if shell_result != "no":
+        return shell_result
+
+    try:
+        return str(eval(code))
+    except Exception as e:
+        try:
+            exec(code)
+            return ""
+        except Exception as e:
+            return str(e)
+
+print("\nWelcome yingshaoxo python linux shell!")
+while True:
+    text_data = input(">")
+    result = run_python_code(text_data)
+    print(result)
+    print()

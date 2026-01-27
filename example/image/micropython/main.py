@@ -1,20 +1,40 @@
-#from machine import Pin, Timer
-#
-#led = Pin("LED", Pin.OUT)
-#global_timer = Timer()
-#def tick(timer):
-#    global led
-#    led.toggle()
-#
-#global_timer.init(period=1000, mode=Timer.PERIODIC, callback=tick)
+board_name = None
 
-#led = Pin("LED", Pin.OUT)
-#led.on()
-#sleep(1)
-#led.off()
+if board_name == None:
+    try:
+        import pyb
+        del pyb
+        board_name = "pyboard"
+    except Exception as e:
+        pass
 
-try:
-    #import pico_main
-    import system_launcher
-except Exception as e:
-    import esp32_main
+if board_name == None:
+    try:
+        import rp2
+        del rp2
+        board_name = "pico"
+    except Exception as e:
+        pass
+
+if board_name == None:
+    try:
+        from machine import Pin
+        Pin(32, Pin.OUT, value=0)
+        del Pin
+        board_name = "esp32"
+    except Exception as e:
+        pass
+
+if board_name == None:
+    board_name = "unix"
+
+
+if board_name == "pyboard":
+    import main_pyboard_1_dot_1_plus
+elif board_name == "pico":
+    #import main_pico
+    import system_launcher_pico
+elif board_name == "esp32":
+    import main_esp32
+elif board_name == "unix":
+    import main_unix

@@ -51,7 +51,7 @@ class Simple_Input_Soft_SPI:
             if i < 0:
                 return a_byte
 
-    def read_until_bytes(self, binary_0_and_1_list):
+    def read_until_bytes(self, binary_0_and_1_list=[0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0]):
         # 0x01: 00000001, 0x02: 00000010
         length = len(binary_0_and_1_list)
         temp_list = []
@@ -64,7 +64,7 @@ class Simple_Input_Soft_SPI:
 
     def read_bytes(self, length=59, end_with=0x04):
         # sender should at least delay for 1 millisecond
-        # add this before function will increase accuracy: my_input_spi.read_until_bytes([0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0]) #0x01,0x02
+        # add this before function will increase accuracy: my_input_spi.read_until_bytes()
         a_list = []
         a_byte = 0x00
         while len(a_list) < length:
@@ -151,7 +151,7 @@ from soft_spi import Simple_Input_Soft_SPI, Simple_Output_Soft_SPI
 my_input_spi = Simple_Input_Soft_SPI(Pin(20), Pin(21))
 my_output_spi = Simple_Output_Soft_SPI(Pin(18), Pin(19))
 
-my_output_spi.write(bytes([0x01]) + b"what is your name?" + bytes([0x04]))
+my_output_spi.write(bytes([0x01, 0x02]) + b"what is your name?" + bytes([0x04]))
 
 # while True:
 #     my_input_spi.read_until_bytes([0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0])

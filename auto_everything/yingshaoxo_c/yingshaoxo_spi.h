@@ -32,18 +32,46 @@ unsigned char get_yingshaoxo_spi_input_single_byte() {
     }
     return a_byte;
 }
-int get_yingshaoxo_spi_input_bytes(unsigned char starting_byte, unsigned char end_byte) {
-    unsigned char a_byte = get_yingshaoxo_spi_input_single_byte();
+unsigned char yingshaoxo_spi_input_starting_0_and_1_array[16] = { 0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0 };
+unsigned char yingshaoxo_spi_input_temp_0_and_1_array[16] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+int _get_yingshaoxo_spi_input_is_two_list_equal() {
+    int result = 1;
+    int i = 0;
+    while (i < 16) {
+        if (yingshaoxo_spi_input_starting_0_and_1_array[i] != yingshaoxo_spi_input_temp_0_and_1_array[i]) {
+            result = 0;
+            break;
+        }
+        i += 1;
+    }
+    return result;
+}
+int get_yingshaoxo_spi_input_bytes(unsigned char end_byte) {
+    // data must start with 0x01, 0x02
+    int fucking_index = 0;
+    int shit_index = 0;
+    unsigned char a_byte = '\0';
     int start = 0;
     int i = 0;
     while (1) {
         if (start == 0) {
             while (1) {
-                if (a_byte == starting_byte) {
-                    start = 1;
-                    break;
+                int value = get_yingshaoxo_spi_input_binary_0_or_1();
+                yingshaoxo_spi_input_temp_0_and_1_array[fucking_index] = value;
+                fucking_index += 1;
+                if (fucking_index >= 16) {
+                    if (_get_yingshaoxo_spi_input_is_two_list_equal() == 1) {
+                        start = 1;
+                        break;
+                    }
+
+                    fucking_index = 15;
+                    shit_index = 1;
+                    while (shit_index < 16) {
+                        yingshaoxo_spi_input_temp_0_and_1_array[shit_index-1] = yingshaoxo_spi_input_temp_0_and_1_array[shit_index];
+                        shit_index += 1;
+                    }
                 }
-                a_byte = get_yingshaoxo_spi_input_single_byte();
             }
         } else {
             a_byte = get_yingshaoxo_spi_input_single_byte();
@@ -174,7 +202,6 @@ void send_yingshaoxo_spi_output(unsigned char *data, int delay_in_millisecond) {
     send_yingshaoxo_spi_a_byte(0x04, delay_in_millisecond);
 }
 
-
 #endif
 
 /*
@@ -193,7 +220,7 @@ void loop() {
     send_yingshaoxo_spi_output("hi, you!", 1);
     delay(1000);
 
-    //int result_index = get_yingshaoxo_spi_input_bytes(0x01, 0x04);
+    //int result_index = get_yingshaoxo_spi_input_bytes(0x04);
     //if (result_index >= 0) {
     //    clear_the_screen();
     //    smart_print_string(0, 0, yingshaoxo_spi_input_that_transmit_ends_with_04);
@@ -257,7 +284,7 @@ class Simple_Input_Soft_SPI:
             if i < 0:
                 return a_byte
 
-    def read_until_bytes(self, binary_0_and_1_list):
+    def read_until_bytes(self, binary_0_and_1_list=[0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0]):
         # 0x01: 00000001, 0x02: 00000010
         length = len(binary_0_and_1_list)
         temp_list = []
@@ -270,7 +297,7 @@ class Simple_Input_Soft_SPI:
 
     def read_bytes(self, length=59, end_with=0x04):
         # sender should at least delay for 1 millisecond
-        # add this before function will increase accuracy: my_input_spi.read_until_bytes([0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0]) #0x01,0x02
+        # add this before function will increase accuracy: my_input_spi.read_until_bytes()
         a_list = []
         a_byte = 0x00
         while len(a_list) < length:
@@ -287,7 +314,7 @@ from soft_spi import Simple_Input_Soft_SPI, Simple_Output_Soft_SPI
 my_input_spi = Simple_Input_Soft_SPI(Pin(20), Pin(21))
 my_output_spi = Simple_Output_Soft_SPI(Pin(18), Pin(19))
 
-my_output_spi.write(bytes([0x01]) + b"what is your name?" + bytes([0x04]))
+my_output_spi.write(bytes([0x01, 0x02]) + b"what is your name?" + bytes([0x04]))
 
 # while True:
 #     my_input_spi.read_until_bytes([0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0])

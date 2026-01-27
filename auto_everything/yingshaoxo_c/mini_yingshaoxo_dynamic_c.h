@@ -1,5 +1,7 @@
 /* tested in arduino nano v3 (no wifi version, 2k memory, 30kb flash) */ 
 
+// as i tested, the arduino has bugs on inner_function variable creation, so better set all variable as global variable. and this also cause the program can't do multiple_layer function call. so in while loop can't have another while loop.
+
 #ifndef mini_yingshaoxo_dynamic_c
 #define mini_yingshaoxo_dynamic_c
 
@@ -22,10 +24,13 @@ void print_number(int a_number) {
 }
 */
 
-#include "./yingshaoxo_c_dict.h"
-
 unsigned char yingshaoxo_dynamic_c_global_variable_dict[250] = { '\0' };
-#define _yingshaoxo_dynamic_c_temp_string_length 30
+#define _yingshaoxo_dynamic_c_temp_string_length 20
+
+/*
+level 0: never get changed, especially the function name and arguments and return type
+*/
+#include "./yingshaoxo_c_dict.h"
 
 void yingshaoxo_dynamic_c_create_variable(unsigned char *variable_dict, unsigned char *variable_name, unsigned char *initial_value) {
     unsigned int variable_name_length = _yingshaoxo_dict_get_string_length(variable_name);
@@ -42,6 +47,20 @@ void yingshaoxo_dynamic_c_get_variable_value(unsigned char *variable_dict, unsig
     if (_yingshaoxo_dict_is_string_equal(variable_value, "") == 1) {
         _yingshaoxo_dict_string_memory_copy(variable_value, "``");
     }
+}
+
+void yingshaoxo_dynamic_c_create_function(unsigned char *variable_dict, unsigned char *function_name, unsigned char *arguments, unsigned char *function_code) {
+    unsigned int function_name_length = _yingshaoxo_dict_get_string_length(function_name);
+    unsigned char new_name[function_name_length+2];
+    _yingshaoxo_dict_add_string(new_name, "f_", function_name);
+
+    unsigned int arguments_length = _yingshaoxo_dict_get_string_length(arguments);
+    unsigned int function_code_length = _yingshaoxo_dict_get_string_length(function_code);
+    unsigned char new_value[arguments_length+function_code_length+3];
+    _yingshaoxo_dict_add_string(new_value, arguments, ";\n");
+    _yingshaoxo_dict_add_string(new_value, new_value, function_code);
+
+    yingshaoxo_dict_set_key_and_value(variable_dict, new_name, new_value);
 }
 
 void yingshaoxo_dynamic_c_remove_variable(unsigned char *variable_dict, unsigned char *variable_name) {
@@ -62,28 +81,23 @@ void _yingshaoxo_dynamic_c_float_to_string(float a_number, unsigned char *a_stri
         a_string[1] = '\0';
         return;
     }
-
     /* Temporary pointer for output position */
     unsigned char *p = a_string;
     int is_negative = 0;
     float abs_value = a_number;
-
     /* Process negative numbers */
     if (a_number < 0) {
         is_negative = 1;
         abs_value = -a_number;
         *p++ = '-';
     }
-
     /* Extract integer and fractional parts */
     unsigned int integer_part = (unsigned int)abs_value;
     float fractional = abs_value - (float)integer_part;
-
     /* Buffer for integer digits (max 12 digits for 4-byte float) */
     unsigned char int_buf[12];
     unsigned char *int_ptr = int_buf;
     int int_len = 0;
-
     /* Convert integer part to string (reverse order) */
     if (integer_part == 0) {
         *int_ptr++ = '0';
@@ -95,22 +109,19 @@ void _yingshaoxo_dynamic_c_float_to_string(float a_number, unsigned char *a_stri
             int_len++;
         }
     }
-
     /* Reverse integer digits into output */
     unsigned char *rev_ptr = int_ptr - 1;
     int i = 0;
     for (i; i < int_len; i++) {
         *p++ = *rev_ptr--;
     }
-
     /* Process fractional part if exists */
     if (fractional > 1e-6f) {
         *p++ = '.';  /* Add decimal point */
-
         /* Convert fractional part (max 6 digits) */
         fractional += 0.5e-6f;  /* Rounding adjustment */
         int i = 0;
-        for (i; i < 6; i++) {
+        for (i; i < 3; i++) {
             fractional *= 10.0f;
             int digit = (int)fractional;
             *p++ = '0' + digit;
@@ -118,7 +129,6 @@ void _yingshaoxo_dynamic_c_float_to_string(float a_number, unsigned char *a_stri
             if (fractional < 1e-6f) break;  /* Stop when remainder is negligible */
         }
     }
-
     /* Null-terminate the string */
     *p = '\0';
 }
@@ -133,10 +143,8 @@ float _yingshaoxo_dynamic_c_string_to_float(unsigned char *a_string) {
     float fractional_part = 0.0f;
     float fractional_divisor = 10.0f;
     int has_decimal_point = 0;
-
     /* Skip leading spaces with temporary pointer */
     while (*p == ' ') p++;
-
     /* Handle sign using temp pointer */
     if (*p == '-') {
         sign = -1.0f;
@@ -144,30 +152,29 @@ float _yingshaoxo_dynamic_c_string_to_float(unsigned char *a_string) {
     } else if (*p == '+') {
         p++;
     }
-
     /* Process integer part */
     while (*p >= '0' && *p <= '9') {
         integer_part = integer_part * 10.0f + (float)(*p - '0');
         p++;
     }
-
     /* Check decimal point */
     if (*p == '.') {
         has_decimal_point = 1;
         p++;
     }
-
     /* Process fractional part */
     while (*p >= '0' && *p <= '9') {
         fractional_part += (float)(*p - '0') / fractional_divisor;
         fractional_divisor *= 10.0f;
         p++;
     }
-
     /* Combine results (original a_string remains unchanged) */
     return sign * (integer_part + fractional_part);
 }
 
+/*
+level 1: could get changed
+*/
 void _yingshaoxo_dynamic_c_remove_string_quote(unsigned char *a_string) {
     if ((a_string[0] == '`') || (a_string[0] == '\'') || (a_string[0] == '"')) {
         _yingshaoxo_dict_string_memory_copy(a_string, &a_string[1]);
@@ -215,6 +222,7 @@ unsigned int _yingshaoxo_dynamic_c_is_it_a_string(unsigned char *code) {
     if (code[0] == '`') {
         return 1;
     }
+    return 0;
 }
 
 unsigned int _yingshaoxo_dynamic_c_is_it_a_number(unsigned char *code) {
@@ -256,14 +264,105 @@ int _yingshaoxo_dynamic_c_parsing_string(unsigned char *code) {
     }
 }
 
+unsigned int _yingshaoxo_dynamic_c_is_it_a_function_call(unsigned char *code) {
+    if (_yingshaoxo_dict_find_sub_string(code, "(") != -1) {
+        if (_yingshaoxo_dict_find_sub_string(code, ")") != -1) {
+            if (_yingshaoxo_dynamic_c_is_it_a_string(code) == 0) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+unsigned int _yingshaoxo_dynamic_c_is_it_a_list(unsigned char *code) {
+    if (code[0] == '[') {
+        return 1;
+    }
+    return 0;
+}
+
+unsigned int _yingshaoxo_dynamic_c_is_it_a_dict(unsigned char *code) {
+    if (code[0] == '{') {
+        return 1;
+    }
+    return 0;
+}
+
+unsigned int _yingshaoxo_dynamic_c_get_balanced_end_symbol_index(unsigned char *code, unsigned char start_symbol, unsigned char end_symbol) {
+    unsigned int start_counting = 0;
+    unsigned int end_counting = 0;
+    unsigned int index = 0;
+    while (1) {
+        if (code[index] == '\0') {
+            break;
+        }
+        if (code[index] == start_symbol) {
+            start_counting += 1;
+        }
+        if (code[index] == end_symbol) {
+            end_counting += 1;
+        }
+        if ((end_counting != 0) && (start_counting == end_counting)) {
+            break;
+        }
+        index += 1;
+    }
+    return index;
+}
+
+/*
+level 2: change quickly
+*/
+// pre_defined arguments and functions
+unsigned char yingshaoxo_dynamic_c_c_runner_result[_yingshaoxo_dynamic_c_temp_string_length*2];
+unsigned char *yingshaoxo_dynamic_c_c_runner(unsigned char *variable_dict, unsigned char *code);
+
 unsigned char _yingshaoxo_dynamic_c_evaluate_one_instance_return_value[_yingshaoxo_dynamic_c_temp_string_length];
+unsigned char _yingshaoxo_dynamic_c_evaluate_one_instance(unsigned char *variable_dict, unsigned char *code);
+
+unsigned char _yingshaoxo_dynamic_c_function_return_value[_yingshaoxo_dynamic_c_temp_string_length];
+
+// others
+unsigned char _yingshaoxo_dynamic_c_handle_function_define_function_name[_yingshaoxo_dynamic_c_temp_string_length];
+unsigned char _yingshaoxo_dynamic_c_handle_function_define_arguments[_yingshaoxo_dynamic_c_temp_string_length];
+unsigned char _yingshaoxo_dynamic_c_handle_function_define_code_block[_yingshaoxo_dynamic_c_temp_string_length*3];
+unsigned int _yingshaoxo_dynamic_c_handle_function_define(unsigned char *variable_dict, unsigned char *code) {
+    unsigned int function_block_start_index = _yingshaoxo_dict_find_sub_string(code, "{");
+    unsigned int function_block_end_index = _yingshaoxo_dynamic_c_get_balanced_end_symbol_index(code, '{', '}');
+    unsigned int arguments_start_index = _yingshaoxo_dict_find_sub_string(code, "(");
+    unsigned int arguments_end_index = _yingshaoxo_dict_find_sub_string(code, ")");
+    _yingshaoxo_dict_get_sub_string(code, 0, arguments_start_index, _yingshaoxo_dynamic_c_handle_function_define_function_name);
+    _yingshaoxo_dict_get_sub_string(code, arguments_start_index+1, arguments_end_index, _yingshaoxo_dynamic_c_handle_function_define_code_block);
+    _yingshaoxo_dict_get_sub_string(code, function_block_start_index+1, function_block_end_index, _yingshaoxo_dynamic_c_handle_function_define_code_block);
+    yingshaoxo_dynamic_c_create_function(variable_dict, _yingshaoxo_dynamic_c_handle_function_define_function_name, _yingshaoxo_dynamic_c_handle_function_define_arguments, _yingshaoxo_dynamic_c_handle_function_define_code_block);
+    return function_block_end_index;
+}
+
+unsigned char _yingshaoxo_dynamic_c_parse_function_calling_function_name[_yingshaoxo_dynamic_c_temp_string_length];
+unsigned char _yingshaoxo_dynamic_c_parse_function_calling_function_arguments[_yingshaoxo_dynamic_c_temp_string_length];
+int _yingshaoxo_dynamic_c_parse_function_calling(unsigned char *variable_dict, unsigned char *code) {
+    int function_name_end_index = _yingshaoxo_dict_find_sub_string(code, "(");
+    _yingshaoxo_dict_get_sub_string(code, 0, function_name_end_index, _yingshaoxo_dynamic_c_parse_function_calling_function_name);
+    _yingshaoxo_dict_string_strip(_yingshaoxo_dynamic_c_parse_function_calling_function_name);
+    int function_arguments_end_index = _yingshaoxo_dict_find_sub_string(code, ")");
+    _yingshaoxo_dict_get_sub_string(code, function_name_end_index+1, function_arguments_end_index, _yingshaoxo_dynamic_c_parse_function_calling_function_arguments);
+    _yingshaoxo_dict_string_strip(_yingshaoxo_dynamic_c_parse_function_calling_function_arguments);
+    _yingshaoxo_dynamic_c_evaluate_one_instance(variable_dict, _yingshaoxo_dynamic_c_parse_function_calling_function_arguments);
+    _yingshaoxo_dict_string_memory_copy(_yingshaoxo_dynamic_c_parse_function_calling_function_arguments, _yingshaoxo_dynamic_c_evaluate_one_instance_return_value);
+    return function_arguments_end_index;
+}
+
 unsigned char _yingshaoxo_dynamic_c_evaluate_one_instance(unsigned char *variable_dict, unsigned char *code) {
+    // save result into _yingshaoxo_dynamic_c_evaluate_one_instance_return_value
+    // has to add a check for function calling
     if (code[0] == '\0') {
         _yingshaoxo_dynamic_c_evaluate_one_instance_return_value[0] = '\0';
         return 0;
     }
     int string_end_index = _yingshaoxo_dynamic_c_parsing_string(code);
     unsigned int is_number = _yingshaoxo_dynamic_c_is_it_a_number(code);
+    unsigned int is_function_call = _yingshaoxo_dynamic_c_is_it_a_function_call(code);
     if (string_end_index != -1) {
         /* a const string */
         _yingshaoxo_dict_get_sub_string(code, 0, string_end_index, _yingshaoxo_dynamic_c_evaluate_one_instance_return_value);
@@ -273,6 +372,12 @@ unsigned char _yingshaoxo_dynamic_c_evaluate_one_instance(unsigned char *variabl
         string_end_index = _yingshaoxo_dynamic_c_get_variable_end_index(&code[1]);
         _yingshaoxo_dict_get_sub_string(code, 0, string_end_index+1, _yingshaoxo_dynamic_c_evaluate_one_instance_return_value);
         return string_end_index+1;
+    } else if (is_function_call == 1) {
+        /* a function call */
+        int arguments_end_index = _yingshaoxo_dynamic_c_parse_function_calling(variable_dict, code);
+        yingshaoxo_dynamic_c_call_function(variable_dict, _yingshaoxo_dynamic_c_parse_function_calling_function_name, _yingshaoxo_dynamic_c_parse_function_calling_function_arguments);
+        _yingshaoxo_dict_string_memory_copy(_yingshaoxo_dynamic_c_evaluate_one_instance_return_value, _yingshaoxo_dynamic_c_function_return_value);
+        return arguments_end_index+1;
     } else {
         /* a variable */
         string_end_index = _yingshaoxo_dynamic_c_get_variable_end_index(code);
@@ -501,9 +606,37 @@ void _yingshaoxo_dynamic_c_evaluate_3_instance(unsigned char *variable_dict, uns
     return;
 }
 
-unsigned char _yingshaoxo_dynamic_c_function_return_value[_yingshaoxo_dynamic_c_temp_string_length];
+unsigned char _yingshaoxo_dynamic_c_evaluate_return_value[_yingshaoxo_dynamic_c_temp_string_length*2];
+unsigned char *_yingshaoxo_dynamic_c_evaluate(unsigned char *variable_dict, unsigned char *code) {
+    if (_yingshaoxo_dynamic_c_is_it_a_function_call(code) == 1) {
+        // a function call
+        int arguments_end_index = _yingshaoxo_dynamic_c_parse_function_calling(variable_dict, code);
+        yingshaoxo_dynamic_c_call_function(variable_dict, _yingshaoxo_dynamic_c_parse_function_calling_function_name, _yingshaoxo_dynamic_c_parse_function_calling_function_arguments);
+        _yingshaoxo_dict_string_memory_copy(_yingshaoxo_dynamic_c_evaluate_return_value, _yingshaoxo_dynamic_c_function_return_value);
+        return _yingshaoxo_dynamic_c_evaluate_return_value;
+    }
+
+    if (_yingshaoxo_dynamic_c_is_it_a_list(code) == 1) {
+        // a list
+        _yingshaoxo_dict_string_memory_copy(_yingshaoxo_dynamic_c_evaluate_return_value, code);
+        return _yingshaoxo_dynamic_c_evaluate_return_value;
+    }
+    if (_yingshaoxo_dynamic_c_is_it_a_list(code) == 1) {
+        // a dict
+        _yingshaoxo_dict_string_memory_copy(_yingshaoxo_dynamic_c_evaluate_return_value, code);
+        return _yingshaoxo_dynamic_c_evaluate_return_value;
+    }
+
+    // normal variable value
+    _yingshaoxo_dynamic_c_evaluate_3_instance(variable_dict, code);
+    _yingshaoxo_dict_string_memory_copy(_yingshaoxo_dynamic_c_evaluate_return_value, _yingshaoxo_dynamic_c_evaluate_3_instance_return_value);
+    return _yingshaoxo_dynamic_c_evaluate_return_value;
+}
+
 unsigned char _yingshaoxo_dynamic_c_function_code_block[_yingshaoxo_dynamic_c_temp_string_length];
+unsigned char _yingshaoxo_dynamic_c_call_function_real_argument_value[_yingshaoxo_dynamic_c_temp_string_length];
 void yingshaoxo_dynamic_c_call_function(unsigned char *variable_dict, unsigned char *function_name, unsigned char *arguments) {
+    // should save return value to _yingshaoxo_dynamic_c_function_return_value
     if (_yingshaoxo_dict_is_string_equal(function_name, "print") == 1) {
         _yingshaoxo_dynamic_c_evaluate_3_instance(variable_dict, arguments);
         print(_yingshaoxo_dynamic_c_evaluate_3_instance_return_value);
@@ -513,13 +646,32 @@ void yingshaoxo_dynamic_c_call_function(unsigned char *variable_dict, unsigned c
         yingshaoxo_dynamic_c_remove_variable(variable_dict, arguments);
         return;
     }
+    if (_yingshaoxo_dict_is_string_equal(function_name, "len") == 1) {
+        unsigned int the_string_length = _yingshaoxo_dict_get_string_length(arguments);
+        if ((the_string_length-2) >= 0) {
+            the_string_length -= 2;
+        }
+        _yingshaoxo_dynamic_c_float_to_string(the_string_length, _yingshaoxo_dynamic_c_function_return_value);
+        return;
+    }
+    if (_yingshaoxo_dict_is_string_equal(function_name, "split") == 1) {
+        return;
+    }
+    if (_yingshaoxo_dict_is_string_equal(function_name, "get_sub_string") == 1) {
+        return;
+    }
+    if (_yingshaoxo_dict_is_string_equal(function_name, "find") == 1) {
+        return;
+    }
 
     unsigned int function_name_length = _yingshaoxo_dict_get_string_length(function_name);
     unsigned char new_name[function_name_length+2];
     _yingshaoxo_dict_add_string(new_name, "f_", function_name);
     if (yingshaoxo_dict_has_key(variable_dict, new_name) == 1) {
         yingshaoxo_dict_get_value_by_key(variable_dict, new_name, _yingshaoxo_dynamic_c_function_code_block);
-        yingshaoxo_dynamic_c_c_runner(variable_dict, _yingshaoxo_dynamic_c_function_code_block, _yingshaoxo_dynamic_c_function_return_value);
+        yingshaoxo_dynamic_c_c_runner(variable_dict, _yingshaoxo_dynamic_c_function_code_block);
+        _yingshaoxo_dict_string_memory_copy(_yingshaoxo_dynamic_c_function_return_value, yingshaoxo_dynamic_c_c_runner_result);
+        return;
     }
 }
 
@@ -549,7 +701,7 @@ void _yingshaoxo_dynamic_c_process_one_line(unsigned char *variable_dict, unsign
         }
         if ((_yingshaoxo_dynamic_c_variable_part_1[part_char_index] == '+') || ((_yingshaoxo_dynamic_c_variable_part_1[part_char_index] == '-'))) {
             if (code[index+1] == '=') {
-                _yingshaoxo_dynamic_c_evaluate_3_instance(variable_dict, code);
+                _yingshaoxo_dynamic_c_evaluate(variable_dict, code);
                 return;
             }
         }
@@ -560,8 +712,8 @@ void _yingshaoxo_dynamic_c_process_one_line(unsigned char *variable_dict, unsign
             _yingshaoxo_dict_get_sub_string(code, index+1, length, _yingshaoxo_dynamic_c_variable_part_2);
             _yingshaoxo_dict_string_strip(_yingshaoxo_dynamic_c_variable_part_2);
 
-            _yingshaoxo_dynamic_c_evaluate_3_instance(variable_dict, _yingshaoxo_dynamic_c_variable_part_2);
-            _yingshaoxo_dict_string_memory_copy(_yingshaoxo_dynamic_c_variable_part_2, _yingshaoxo_dynamic_c_evaluate_3_instance_return_value);
+            _yingshaoxo_dynamic_c_evaluate(variable_dict, _yingshaoxo_dynamic_c_variable_part_2);
+            _yingshaoxo_dict_string_memory_copy(_yingshaoxo_dynamic_c_variable_part_2, _yingshaoxo_dynamic_c_evaluate_return_value);
 
             yingshaoxo_dynamic_c_create_variable(variable_dict, _yingshaoxo_dynamic_c_variable_part_1, _yingshaoxo_dynamic_c_variable_part_2);
 
@@ -591,28 +743,6 @@ void _yingshaoxo_dynamic_c_process_one_line(unsigned char *variable_dict, unsign
         index += 1;
         part_char_index += 1;
     }
-}
-
-unsigned int _yingshaoxo_dynamic_c_get_balanced_end_symbol_index(unsigned char *code, unsigned char start_symbol, unsigned char end_symbol) {
-    unsigned int start_counting = 0;
-    unsigned int end_counting = 0;
-    unsigned int index = 0;
-    while (1) {
-        if (code[index] == '\0') {
-            break;
-        }
-        if (code[index] == start_symbol) {
-            start_counting += 1;
-        }
-        if (code[index] == end_symbol) {
-            end_counting += 1;
-        }
-        if ((end_counting != 0) && (start_counting == end_counting)) {
-            break;
-        }
-        index += 1;
-    }
-    return index;
 }
 
 unsigned char _yingshaoxo_dynamic_c_handle_if_code_block_equation[_yingshaoxo_dynamic_c_temp_string_length];
@@ -661,11 +791,14 @@ unsigned int _yingshaoxo_dynamic_c_handle_while_code_block(unsigned char *variab
 }
 
 unsigned char _yingshaoxo_dynamic_c_one_line[_yingshaoxo_dynamic_c_temp_string_length*2];
-void yingshaoxo_dynamic_c_c_runner(unsigned char *variable_dict, unsigned char *code) {
+unsigned char *yingshaoxo_dynamic_c_c_runner(unsigned char *variable_dict, unsigned char *code) {
+    // use 'result = xxx;' to get yingshaoxo_dynamic_c_c_runner_result
+    yingshaoxo_dynamic_c_c_runner_result[0] = '\0';
     int char_index = 0;
     while (1) {
         if (code[char_index] == '\0') {
-            return;
+            yingshaoxo_dynamic_c_get_variable_value(variable_dict, "result", yingshaoxo_dynamic_c_c_runner_result);
+            return yingshaoxo_dynamic_c_c_runner_result;
         }
 
         while ((code[char_index] == ' ') || (code[char_index] == '\n')) {
@@ -682,31 +815,29 @@ void yingshaoxo_dynamic_c_c_runner(unsigned char *variable_dict, unsigned char *
             continue;
         }
 
-        if (_yingshaoxo_dict_string_starts_with(code, "function ")) {
-            return _yingshaoxo_dict_find_sub_string(code, "}") + 1;
-        } else if (_yingshaoxo_dict_string_starts_with(code, "return ")) {
-            return _yingshaoxo_dict_find_sub_string(code, ";") + 1;
-        } else if (_yingshaoxo_dict_string_starts_with(code, "try ")) {
-            return _yingshaoxo_dict_find_sub_string(code, "}") + 1;
-        } else if (_yingshaoxo_dict_string_starts_with(code, "import ")) {
-            return _yingshaoxo_dict_find_sub_string(code, ";") + 1;
-        } else if (_yingshaoxo_dict_string_starts_with(code, "//")) {
-            return _yingshaoxo_dict_find_sub_string(code, ";") + 1;
-        } else if (_yingshaoxo_dict_string_starts_with(code, "#")) {
-            return _yingshaoxo_dict_find_sub_string(code, ";") + 1;
-        } else if (_yingshaoxo_dict_string_starts_with(code, "break;")) {
-            return _yingshaoxo_dict_find_sub_string(code, ";") + 1;
-        } else if (_yingshaoxo_dict_string_starts_with(code, "continue;")) {
-            return _yingshaoxo_dict_find_sub_string(code, ";") + 1;
-        } else if (_yingshaoxo_dict_string_starts_with(code, "exit();")) {
-            return _yingshaoxo_dict_find_sub_string(code, ";") + 1;
+        if (_yingshaoxo_dict_string_starts_with(&code[char_index], "function ")) {
+            char_index += _yingshaoxo_dynamic_c_handle_function_define(variable_dict, &code[char_index+9]) + 9 + 1;
+            continue;
+        }
+
+        if (_yingshaoxo_dict_string_starts_with(&code[char_index], "//")) {
+            char_index += _yingshaoxo_dict_find_sub_string(&code[char_index], ";") + 1;
+            continue;
+        } else if (_yingshaoxo_dict_string_starts_with(&code[char_index], "#")) {
+            char_index += _yingshaoxo_dict_find_sub_string(&code[char_index], ";") + 1;
+            continue;
+        }
+
+        if (_yingshaoxo_dict_string_starts_with(&code[char_index], "exit();")) {
+            yingshaoxo_dynamic_c_get_variable_value(variable_dict, "result", yingshaoxo_dynamic_c_c_runner_result);
+            return yingshaoxo_dynamic_c_c_runner_result;
         }
 
         unsigned int the_end_for_a_line = _yingshaoxo_dict_find_sub_string(&code[char_index], ";");
         if (the_end_for_a_line != -1) {
             _yingshaoxo_dict_get_sub_string(code, char_index, char_index+the_end_for_a_line, _yingshaoxo_dynamic_c_one_line);
             _yingshaoxo_dynamic_c_process_one_line(variable_dict, _yingshaoxo_dynamic_c_one_line);
-            _yingshaoxo_dict_get_sub_string(_yingshaoxo_dynamic_c_one_line, 0, 16, _yingshaoxo_dynamic_c_one_line);
+            //_yingshaoxo_dict_get_sub_string(_yingshaoxo_dynamic_c_one_line, 0, 16, _yingshaoxo_dynamic_c_one_line);
             //print(_yingshaoxo_dynamic_c_one_line);
             char_index += the_end_for_a_line + 1;
             continue;
@@ -735,13 +866,21 @@ if (1 == 1) {\
     print('if works');\
 }\
 i = 0;\
-while (i < 3) {\
+while (i < 4) {\
     print(i);\
     i += 1;\
 }\
 print(3*2.5);\
+result = len('xoo');\
+function okk() {\
+    print('yeah');\
+}\
+print(1);\
+okk();\
 ";
-    yingshaoxo_dynamic_c_c_runner(yingshaoxo_dynamic_c_global_variable_dict, test_code);
+    unsigned char *result;
+    result = yingshaoxo_dynamic_c_c_runner(yingshaoxo_dynamic_c_global_variable_dict, test_code);
+    print(result);
 }
 
 int i = 0;

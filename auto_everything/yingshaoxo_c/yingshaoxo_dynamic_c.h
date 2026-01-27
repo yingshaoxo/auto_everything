@@ -13,7 +13,7 @@ unsigned int _yingshaoxo_dynamic_c_temp_varaible_length = 100;
 */
 unsigned char yingshaoxo_dynamic_c_global_variable_dict[1024 * 20] = { '\0' };
 unsigned int _yingshaoxo_dynamic_c_temp_varaible_length = 1024*2;
-void yingshaoxo_super_c_c_runner(unsigned char *variable_dict, unsigned char *code, unsigned char *return_value);
+void yingshaoxo_dynamic_c_c_runner(unsigned char *variable_dict, unsigned char *code, unsigned char *return_value);
 
 void new_print(unsigned char *a_string) {
     /* in micro_controller, print it directly to screen */
@@ -540,7 +540,7 @@ void yingshaoxo_dynamic_c_call_function(unsigned char *variable_dict, unsigned c
     _yingshaoxo_dict_add_string(new_name, "f_", function_name);
     unsigned char code_block[_yingshaoxo_dynamic_c_temp_varaible_length*2];
     yingshaoxo_dict_get_value_by_key(variable_dict, new_name, code_block);
-    yingshaoxo_super_c_c_runner(variable_dict, code_block, return_value);
+    yingshaoxo_dynamic_c_c_runner(variable_dict, code_block, return_value);
 }
 
 void yingshaoxo_dynamic_c_create_function(unsigned char *variable_dict, unsigned char *function_name, unsigned char *arguments, unsigned char *function_code) {
@@ -593,8 +593,9 @@ void _yingshaoxo_dynamic_c_run_one_line_code(unsigned char *variable_dict, unsig
 
     if (((plus_equal_index != -1) || (minus_equal_index != -1))) {
         /* such as: index -= 1*/
-        unsigned char real_value[_yingshaoxo_dynamic_c_temp_varaible_length];
+        unsigned char *real_value = malloc(_yingshaoxo_dynamic_c_temp_varaible_length);
         yingshaoxo_dynamic_c_evaluate(variable_dict, code, real_value);
+        free(real_value);
         return;
     }
 
@@ -602,15 +603,21 @@ void _yingshaoxo_dynamic_c_run_one_line_code(unsigned char *variable_dict, unsig
         /*
             has '=' and end with ';'
         */
-        unsigned char variable_name[equal_mark_index+1];
+        unsigned char *variable_name = malloc(equal_mark_index+1);
         _yingshaoxo_dict_get_sub_string(code, 0, equal_mark_index, variable_name);
         _yingshaoxo_dict_string_strip(variable_name);
-        unsigned char variable_value[(line_end_index-equal_mark_index)+1];
+
+        unsigned char *variable_value = malloc((line_end_index-equal_mark_index)+1);
         _yingshaoxo_dict_get_sub_string(code, equal_mark_index+1, line_end_index, variable_value);
         _yingshaoxo_dict_string_strip(variable_value);
-        unsigned char real_value[_yingshaoxo_dynamic_c_temp_varaible_length];
+
+        unsigned char *real_value = malloc(_yingshaoxo_dynamic_c_temp_varaible_length);
         yingshaoxo_dynamic_c_evaluate(variable_dict, variable_value, real_value);
         yingshaoxo_dynamic_c_create_variable(variable_dict, variable_name, real_value);
+
+        free(variable_name);
+        free(variable_value);
+        free(real_value);
         return;
     }
 
@@ -618,8 +625,9 @@ void _yingshaoxo_dynamic_c_run_one_line_code(unsigned char *variable_dict, unsig
         /*
             has '(' and ')', and end with ';'
         */
-        unsigned char return_value[_yingshaoxo_dynamic_c_temp_varaible_length];
+        unsigned char *return_value = malloc(_yingshaoxo_dynamic_c_temp_varaible_length);
         _yingshaoxo_dynamic_c_parse_and_call_function(variable_dict, code, return_value);
+        free(return_value);
         return;
     }
 }
@@ -658,7 +666,7 @@ unsigned int _yingshaoxo_dynamic_c_handle_if_code_block(unsigned char *variable_
     if (_yingshaoxo_dict_is_string_equal(equation_result, "1") == 1) {
         unsigned char if_code_block[_yingshaoxo_dynamic_c_temp_varaible_length];
         _yingshaoxo_dict_get_sub_string(code, if_code_block_start_index+1, if_code_block_end_index, if_code_block);
-        yingshaoxo_super_c_c_runner(variable_dict, if_code_block, return_value);
+        yingshaoxo_dynamic_c_c_runner(variable_dict, if_code_block, return_value);
     }
     return if_code_block_end_index;
 }
@@ -677,7 +685,7 @@ unsigned int _yingshaoxo_dynamic_c_handle_while_code_block(unsigned char *variab
     _yingshaoxo_dict_get_sub_string(code, while_code_block_start_index+1, while_code_block_end_index, while_code_block);
 
     while (_yingshaoxo_dict_is_string_equal(equation_result, "1") == 1) {
-        yingshaoxo_super_c_c_runner(variable_dict, while_code_block, return_value);
+        yingshaoxo_dynamic_c_c_runner(variable_dict, while_code_block, return_value);
         if (_yingshaoxo_dict_is_string_equal(return_value, "break") == 1) {
             break;
         }
@@ -740,16 +748,15 @@ unsigned int _yingshaoxo_dynamic_c_try_to_recognize_main_keyword_and_run(unsigne
     } else {
         unsigned int the_end_for_a_line =  _yingshaoxo_dict_find_sub_string(code, ";") + 1;
         /*printf("the end for a line:%d\n", the_end_for_a_line);*/
-        unsigned char a_line[the_end_for_a_line+1];
+        unsigned char *a_line = malloc(the_end_for_a_line+1);
         _yingshaoxo_dict_get_sub_string(code, 0, the_end_for_a_line, a_line);
         _yingshaoxo_dynamic_c_run_one_line_code(variable_dict, a_line);
+        free(a_line);
         return the_end_for_a_line;
     }
-
-    return 1;
 } 
 
-void yingshaoxo_super_c_c_runner(unsigned char *variable_dict, unsigned char *code, unsigned char *return_value) {
+void yingshaoxo_dynamic_c_c_runner(unsigned char *variable_dict, unsigned char *code, unsigned char *return_value) {
     unsigned int index = 0;
     unsigned int temp_index = 0;
     while (1) {
@@ -777,3 +784,88 @@ void yingshaoxo_super_c_c_runner(unsigned char *variable_dict, unsigned char *co
 }
 
 #endif
+
+
+/*
+#include <stdio.h>
+#include <stdlib.h>
+void print(unsigned char *a_string) {
+    printf("%s\n", a_string);
+}
+
+void print_number(int a_number) {
+    char text[16];
+    sprintf(text, "%d", a_number);
+    print(text);
+}
+
+#include "./yingshaoxo_dynamic_c.h"
+#include "./yingshaoxo_c_pins.h"
+
+int main() {
+    unsigned char *test_code = "\
+print(`string add:`);\n\
+a_variable = `hi`;\n\
+print(a_variable);\n\
+//a way to comment;\n\
+#a way to comment;\n\
+print(a_variable + `_hello`);\
+print(`number divide:`);\n\
+ok = 0.2;\
+print(1.3 / ok);\n\
+is_it_true = 'hi' == 'hi';\n\
+print('this is bool:');\n\
+print(is_it_true);\n\
+is_it_true = not(is_it_true);\n\
+print(is_it_true);\n\
+print(`it is number:`);\n\
+no = 5;\
+no += 5;\
+print(no);\
+no -= 1;\
+print(no);\
+print(`handle if:`);\n\
+if (2 == 2) {\n;\
+    if (2 < 3) {\n;\
+        print(2333);\n\
+    }\n;\
+}\n;\
+print(`if done.`);\n\
+print(`handle while:`);\n\
+index = 0; {\n;\
+while (index < 3) {\n;\
+    print(index);\n\
+    index += 1;\
+}\n;\
+print(`_`);\n\
+while (index > 0) {\n;\
+    print(index);\n\
+    index -= 1;\
+    if (index == 1) {\
+        break;\
+    }\
+}\n;\
+print(`while done.`);\n\
+if (not_exists == '') {\
+    print('not exists works');\
+}\
+\
+\
+print(`handle function define:`);\n\
+function hi() {\
+    print('    no shit, it is working!');\
+    print('    like nobody else!');\
+}\
+hi();\
+free(hi);\
+print(`function define done`);\n\
+#a way to comment;\n\
+";
+
+    unsigned char return_value_or_control_command[100];
+    yingshaoxo_dynamic_c_c_runner(yingshaoxo_dynamic_c_global_variable_dict, test_code, return_value_or_control_command);
+    printf("%s\n", return_value_or_control_command);
+    printf("%s\n", yingshaoxo_dynamic_c_global_variable_dict);
+}
+
+*/

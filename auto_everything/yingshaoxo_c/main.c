@@ -1,3 +1,15 @@
+#include <stdio.h>
+#include <stdlib.h>
+void print(unsigned char *a_string) {
+    printf("%s\n", a_string);
+}
+
+void print_number(int a_number) {
+    char text[16];
+    sprintf(text, "%d", a_number);
+    print(text);
+}
+
 #include "./yingshaoxo_dynamic_c.h"
 #include "./yingshaoxo_c_pins.h"
 
@@ -61,8 +73,9 @@ print(`function define done`);\n\
 #a way to comment;\n\
 ";
 
-    unsigned char return_value_or_control_command[60];
-    yingshaoxo_super_c_c_runner(yingshaoxo_dynamic_c_global_variable_dict, test_code, return_value_or_control_command);
+    unsigned char return_value_or_control_command[100];
+    yingshaoxo_dynamic_c_c_runner(yingshaoxo_dynamic_c_global_variable_dict, test_code, return_value_or_control_command);
+    printf("%s\n", return_value_or_control_command);
     printf("%s\n", yingshaoxo_dynamic_c_global_variable_dict);
 }
 
