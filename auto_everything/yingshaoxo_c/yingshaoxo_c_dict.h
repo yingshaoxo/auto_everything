@@ -27,8 +27,8 @@ int main() {
 unsigned char *yingshaoxo_dict_global_splitor1 = ".#new_line#.";
 unsigned char *yingshaoxo_dict_global_splitor2 = "|#colon#|";
 */
-unsigned char yingshaoxo_dict_global_splitor1[] = { '.', '#', 'n', 'e', 'w', '_', 'l', 'i', 'n', 'e', '#', '.', '\0' };
-unsigned char yingshaoxo_dict_global_splitor2[] = { '|', '#', 'c', 'o', 'l', 'o', 'n', '#', '|', '\0' };
+unsigned char yingshaoxo_dict_global_splitor1[] = { '|', ',', ',', ',', ',', '|', '\0' };
+unsigned char yingshaoxo_dict_global_splitor2[] = { '|', '>', '>', '>', '>', '|', '\0' };
 
 void _yingshaoxo_dict_string_memory_copy(unsigned char *source_data, unsigned char *new_data) {
     /*
@@ -325,6 +325,43 @@ int yingshaoxo_dict_get_value_by_key(unsigned char *dict_string, unsigned char *
         return 1;
     } else {
          _yingshaoxo_dict_get_sub_string(dict_string, end_index_of_temp_string, result, value);
+        return 1;
+    }
+}
+
+int yingshaoxo_dict_get_value_by_key_2(unsigned char *dict_string, unsigned char *key, int *start_index, int *end_index, int *value_length) {
+    /*
+        if not found, we return 0
+        otherwise, return 1
+    */
+    *start_index = 0;
+    *end_index = 0;
+    *value_length = 0;
+
+    if (_yingshaoxo_dict_get_string_length(key) == 0) {
+        return 0;
+    }
+
+    unsigned char temp_string[_yingshaoxo_dict_get_string_length(key) + _yingshaoxo_dict_get_string_length(yingshaoxo_dict_global_splitor1) + _yingshaoxo_dict_get_string_length(yingshaoxo_dict_global_splitor2) + 1];
+    _yingshaoxo_dict_add_string(temp_string, yingshaoxo_dict_global_splitor1, key);
+    _yingshaoxo_dict_add_string(temp_string, temp_string, yingshaoxo_dict_global_splitor2);
+
+    unsigned int start_index_of_temp_string = _yingshaoxo_dict_find_sub_string(dict_string, temp_string);
+    if (start_index_of_temp_string == -1) {
+        return 0;
+    }
+
+    unsigned int end_index_of_temp_string = start_index_of_temp_string + _yingshaoxo_dict_get_string_length(temp_string);
+    int result = _yingshaoxo_dict_find_sub_string_complex(dict_string, yingshaoxo_dict_global_splitor1, end_index_of_temp_string);
+    if (result == -1) {
+        *start_index = end_index_of_temp_string;
+        *end_index = _yingshaoxo_dict_get_string_length(dict_string);
+        *value_length = *end_index - *start_index;
+        return 1;
+    } else {
+        *start_index = end_index_of_temp_string;
+        *end_index = result;
+        *value_length = *end_index - *start_index;
         return 1;
     }
 }

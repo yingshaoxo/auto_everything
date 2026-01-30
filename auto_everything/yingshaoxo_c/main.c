@@ -15,6 +15,54 @@ void print_number(int a_number) {
 
 int main() {
     unsigned char *test_code = "\
+a = [567,2,1,0];\
+print(a);\
+a_2 = `22`;\
+print(a_2);\
+print(a[0]);\
+b = '1  ha ';\
+c = b.strip();\
+print(c);\
+print(len(c));\
+b = {'x':2,'y':'dd'};\
+print(b['y']);\
+b['x'] = 'it is x';\
+print(b['x']);\
+a[0] = 'shit';\
+print(a[0]);\
+a[0] = 99;\
+b['x'] = 1;\
+a.append(a[0]);\
+print(a);\
+d = 'hi you all';\
+print(d.split(' '));\
+c = a[0] + b['x'];\
+print(c);\
+print('good' + ' for you.');\
+function hi_you() {\
+    print('yeah');\
+    while (1) {\
+        if (1) {\
+            return 988;\
+        }\
+        print('shit');\
+    }\
+    return 223;\
+}\
+if (1 == 1) {\
+    d = hi_you();\
+    print(d);\
+}\
+i = 0;\
+while (i < 5) {\
+    print(i);\
+    if (i == 2) {\
+        break;\
+    }\
+    i += 1;\
+}\
+print(str(113));\
+\
 print(`string add:`);\n\
 a_variable = `hi`;\n\
 print(a_variable);\n\
@@ -57,7 +105,7 @@ while (index > 0) {\n;\
     }\
 }\n;\
 print(`while done.`);\n\
-if (not_exists == '') {\
+if (not_exists == None) {\
     print('not exists works');\
 }\
 \
@@ -71,11 +119,11 @@ hi();\
 free(hi);\
 print(`function define done`);\n\
 #a way to comment;\n\
+exit();\
 ";
 
-    unsigned char return_value_or_control_command[100];
-    yingshaoxo_dynamic_c_c_runner(yingshaoxo_dynamic_c_global_variable_dict, test_code, return_value_or_control_command);
+    unsigned char a_python_global_variable_dict[1024*2];
+    unsigned char *return_value_or_control_command = yingshaoxo_dynamic_c_c_runner(a_python_global_variable_dict, test_code);
     printf("%s\n", return_value_or_control_command);
-    printf("%s\n", yingshaoxo_dynamic_c_global_variable_dict);
+    printf("%s\n", a_python_global_variable_dict);
 }
-
