@@ -49,7 +49,7 @@ print("Has memory of", mem_free()/1024, "KB.")
 # Handle 3x3 keyboard
 """
 from pyb import ADC
-keypad_pin = ADC(Pin("A0"))
+keypad_pin = ADC(Pin("X1"))
 pre_defined_button_dict = { '1': 155, '2': 308, '3': 434, '4': 560, '5': 680, '6': 790, '7': 869, '8': 943, '9': 1012, '10': 1080, '11': 1143, '12': 1230 }
 def get_pressed_key():
     target_key = -1
@@ -72,7 +72,7 @@ def get_pressed_key():
 """
 from gc import collect
 # 0 is normal mode, 1 is input_mode
-input_mode = 0
+input_mode = 1
 screen_sleep = False
 max_y = int(320/16) - 1
 max_x = int(240/8)
@@ -310,8 +310,8 @@ def new_input(tip_string="", multiple_line=False):
                 return result
             from gc import mem_free
             print("Has memory of", mem_free()/1024, "KB.")
-            sleep(0.1)
-        sleep(0.1)
+            sleep(0.05)
+        sleep(0.05)
 
 while True:
     one_line = new_input(">").strip()

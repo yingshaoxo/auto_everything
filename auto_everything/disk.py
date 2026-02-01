@@ -1818,7 +1818,8 @@ class Disk:
         if source_file_path == target_file_path:
             return
         self.create_a_folder(self.get_directory_path(target_file_path))
-        shutil.copyfile(source_file_path, target_file_path)
+        #shutil.copyfile(source_file_path, target_file_path)
+        shutil.copy2(source_file_path, target_file_path)
 
     def convert_bytes_to_bytesio(self, bytes_data):
         #(self, bytes_data: bytes) -> BytesIO:
