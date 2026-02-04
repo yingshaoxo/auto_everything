@@ -323,6 +323,8 @@ unsigned char _yingshaoxo_dynamic_c_evaluate_one_instance(unsigned char *variabl
 
 unsigned char _yingshaoxo_dynamic_c_function_return_value[_yingshaoxo_dynamic_c_temp_string_length];
 
+void yingshaoxo_dynamic_c_call_function(unsigned char *variable_dict, unsigned char *function_name, unsigned char *arguments);
+
 // others
 unsigned char _yingshaoxo_dynamic_c_handle_function_define_function_name[_yingshaoxo_dynamic_c_temp_string_length];
 unsigned char _yingshaoxo_dynamic_c_handle_function_define_arguments[_yingshaoxo_dynamic_c_temp_string_length];

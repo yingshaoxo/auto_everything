@@ -20,7 +20,7 @@ void _yingshaoxo_c_pins_set_pin_type(unsigned int pin_number, unsigned int input
     /* fill with your code */
 }
 
-void _yingshaoxo_c_pins_set_pin_value(unsigned int pin_number, unsigned int input_or_output) {
+void _yingshaoxo_c_pins_set_pin_value(unsigned int pin_number, unsigned int new_value) {
     /* fill with your code */
 }
 
@@ -129,10 +129,10 @@ void _yingshaoxo_c_pins_parse_pin_name_and_arguments(unsigned char *code) {
 
 void yingshaoxo_c_pins_set_pins(unsigned char *code) {
     /*
-    set_pin_type(pin_name, 0, 0); //0 as input, 1 as output. 1 as pull-up, 0 as none, -1 as pull-down
+    set_pin_type(pin_name, 1); //0 as input, 1 as output
+    set_pin_type(pin_name, 1, 0); //1 as pull-up, 0 as none, -1 as pull-down
 
     set_pin_value(pin_name, 1);
-    set_pin_value(pin_name, 0);
     get_pin_value(pin_name);
 
     set_pin_analog_value(pin_name, value);

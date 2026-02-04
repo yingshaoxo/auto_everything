@@ -1,17 +1,22 @@
+from time import sleep_us
+
+
 class Simple_Output_Soft_SPI:
-    def __init__(self, sck, mosi):
+    def __init__(self, sck, mosi, delay_in_us=20):
         self.sck = sck
         self.sck.init(self.sck.OUT)
         self.sck.low()
         self.mosi = mosi
         self.mosi.init(self.mosi.OUT)
         self.mosi.low()
+        self.delay_in_us = delay_in_us
 
     def _write_bit(self, bit):
-        # python do not need delay, because it is slow. delay after each clock signal
         self.mosi.value(bit)
         self.sck.high()
+        sleep_us(self.delay_in_us)
         self.sck.low()
+        sleep_us(self.delay_in_us)
 
     def write(self, data):
         if isinstance(data, int):

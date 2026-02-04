@@ -471,14 +471,17 @@ git remote set-url --add --push origin {repo_url}
 
         t.run("""
             ffmpeg -i '{video_path}' -c:v libx264 -vf "scale={resolution}:flags=neighbor" -r 23.98 -b:v {kb_limit} -c:a copy '{target_path}'
-            #ffmpeg -i '{video_path}' -c:v libx264 -vf scale={resolution} -r 23.98 -b:v {kb_limit} -c:a copy '{target_path}'
         """.format(video_path=video_path, resolution=resolution, kb_limit=kb_limit, target_path=target_path))
         #ffmpeg -i input.mp4 -c:v libx264 -vf scale=640:360 -r 23.98 -b:v 498k -c:a aac -b:a 128k output.mp4
 
     def compress_video2(self, video_path, target_path):
         t.run("""
-            ffmpeg -i '{video_path}' -c:v libx264 -vf "scale=320:180:flags=neighbor" -r 23.98 -b:v 100k -c:a copy '{target_path}'
-            #ffmpeg -i '{video_path}' -c:v libx264 -vf "scale=320:180:flags=neighbor" -r 16 -b:v 100k -c:a copy '{target_path}'
+            ffmpeg -i '{video_path}' -c:v libx264 -vf "scale=320:trunc(ow*ih/iw/2)*2:flags=neighbor" -r 23.98 -b:v 100k -c:a copy '{target_path}'
+        """.format(video_path=video_path, target_path=target_path))
+
+    def compress_video_to_fake_480p(self, video_path, target_path):
+        t.run("""
+            ffmpeg -i '{video_path}' -vf "scale=480:trunc(ow*ih/iw/2)*2:sws_flags=neighbor" '{target_path}'
         """.format(video_path=video_path, target_path=target_path))
 
     def cut_video(self, video_path, target_path, start_time, end_time):

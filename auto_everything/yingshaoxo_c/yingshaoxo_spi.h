@@ -32,6 +32,27 @@ unsigned char get_yingshaoxo_spi_input_single_byte() {
     }
     return a_byte;
 }
+int get_yingshaoxo_spi_input_simple_bytes() {
+    // data must start with 0x01, 0x02, end with 0x04
+    // sender must delay for 20us. 1 second == 1000 ms; 1 ms = 1000us;
+    // receive_data is valid only when return value > 0
+    unsigned char a_byte = '\0';
+    int i = 0;
+    while (1) {
+        a_byte = get_yingshaoxo_spi_input_single_byte();
+        yingshaoxo_spi_input_that_transmit_ends_with_04[i] = a_byte;
+        if (a_byte == 0x04) {
+            yingshaoxo_spi_input_that_transmit_ends_with_04[i] = '\0';
+            break;
+        }
+        if (i >= 63) {
+            yingshaoxo_spi_input_that_transmit_ends_with_04[64] = '\0';
+            return 0;
+        }
+        i += 1;
+    }
+    return i;
+}
 unsigned char yingshaoxo_spi_input_starting_0_and_1_array[16] = { 0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0 };
 unsigned char yingshaoxo_spi_input_temp_0_and_1_array[16] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 int _get_yingshaoxo_spi_input_is_two_list_equal() {
@@ -166,9 +187,17 @@ void send_yingshaoxo_spi_a_byte(unsigned char a_byte, int delay_in_millisecond) 
         temp_0_or_1 = a_byte & (1 << (7-temp_binary_index));
         digitalWrite(yingshaoxo_spi_output_data_pin, temp_0_or_1);
         digitalWrite(yingshaoxo_spi_output_clock_pin, LOW);
-        delay(delay_in_millisecond);
+        if (delay_in_millisecond == 0) {
+            delay_in_us(2);
+        } else {
+            delay(delay_in_millisecond);
+        }
         digitalWrite(yingshaoxo_spi_output_clock_pin, HIGH);
-        delay(delay_in_millisecond);
+        if (delay_in_millisecond == 0) {
+            delay_in_us(2);
+        } else {
+            delay(delay_in_millisecond);
+        }
         digitalWrite(13, !digitalRead(13)); // LED
         temp_binary_index += 1;
         if (temp_binary_index >= 8) {
@@ -179,7 +208,7 @@ void send_yingshaoxo_spi_a_byte(unsigned char a_byte, int delay_in_millisecond) 
 void send_yingshaoxo_spi_output(unsigned char *data, int delay_in_millisecond) {
     if (yingshaoxo_spi_output_has_been_initialized == 0) {
         // call set_up_yingshaoxo_spi_output() first
-        return 0;
+        return;
     }
     send_yingshaoxo_spi_a_byte(0x01, delay_in_millisecond);
     send_yingshaoxo_spi_a_byte(0x02, delay_in_millisecond);
