@@ -1,0 +1,50 @@
+define "it is similar to me"("it") {
+    if ("it".has_sub_string("yingshaoxo")) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+define "do you think it is a human, similar to you?"("it") {
+    if ("it is similar to me"("it")) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+define "it is human?"("it") {
+    return "do you think it is a human, similar to you?"("it");
+}
+
+"a robot" = "some crazy guy made a machine that similar to human.";
+if ("it is human?"("a robot")) {
+    print("yeah! you made a human!");
+} else {
+    print("you made a stupid robot.");
+}
+
+define sleep_in_ms(number) {
+    sleep_in_us(number * 1000);
+}
+
+index = 0;
+while (1) {
+    sleep_in_ms(1000);
+    print("1 second has passed.");
+    index += 1;
+    if (index >= 98) {
+        break;
+    }
+}
+
+#this programming language should have import './xx.ai'. dynamically parse, not load them all to memory at start time.
+#it is similar to yingshaoxo_dynamic_c, or python. if a variable is defined, use the defined one, otherwise, use literal meaning, for example, `print('it');` will give you 'it'. but if you have set `'it' = 'ai';`, then `print('it');` will give you 'ai'.
+#encode "everything not ascii abcd...xyz" and '(){};' to unicode.
+
+"""
+execute_one_sentence("x=2. if x==2: print(x); print('one line is powerful for normal people'). while x<5: x=x+1; print(x).");
+# you can replace '=' to 'equal to', '+' to 'plus'. in people mind, "x=2" and "if x=2" is different thing, the '=' is different because the parent structure is different, human are a teached living language executor.
+#你需要什么样的人工智能？我随便写200行代码都比一条毛毛虫聪明。
+"""

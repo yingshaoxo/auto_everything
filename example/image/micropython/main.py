@@ -1,3 +1,8 @@
+from time import sleep
+sleep(1)
+# should check if the boot uploader pin is on or not, if it is on, stop everything and wait for upload the new_system.py
+
+
 board_name = None
 
 if board_name == None:

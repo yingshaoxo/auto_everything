@@ -26,6 +26,7 @@ class Simple_Output_Soft_SPI:
                 # write 0x01 as 00000001, the other side first receive 0, then 1.
                 bit = (byte >> bit_idx) & 0x01
                 self._write_bit(bit)
+        self.mosi.value(0)
 
 
 class Simple_Input_Soft_SPI:
@@ -34,13 +35,18 @@ class Simple_Input_Soft_SPI:
         self.sck.init(self.sck.IN)
         self.miso = miso
         self.miso.init(self.miso.IN)
+        self.end = 0
 
     def read_0_or_1(self):
         clock_value = 1
         while clock_value == 1:
             clock_value = self.sck.value()
+            if self.end == 1:
+                return 0
         while clock_value == 0:
             clock_value = self.sck.value()
+            if self.end == 1:
+                return 0
         return self.miso.value()
 
     def read_a_byte(self):
@@ -55,6 +61,8 @@ class Simple_Input_Soft_SPI:
             i -= 1
             if i < 0:
                 return a_byte
+            if self.end == 1:
+                return 0x00
 
     def read_until_bytes(self, binary_0_and_1_list=[0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0]):
         # 0x01: 00000001, 0x02: 00000010
@@ -66,6 +74,8 @@ class Simple_Input_Soft_SPI:
                 if temp_list == binary_0_and_1_list:
                     return
                 temp_list.pop(0)
+            if self.end == 1:
+                return
 
     def read_bytes(self, length=59, end_with=0x04):
         # sender should at least delay for 1 millisecond
@@ -77,6 +87,8 @@ class Simple_Input_Soft_SPI:
             a_list.append(a_byte)
             if a_byte == 0x04:
                 break
+            if self.end == 1:
+                return bytes(a_list)
         return bytes(a_list)
 
 
@@ -112,11 +124,11 @@ class Complex_Input_Soft_SPI:
             while clock_value == 1:
                 clock_value = self.sck.value()
                 if self.time() > end_time:
-                    return temp_byte_array
+                    return bytes(temp_byte_array)
             while clock_value == 0:
                 clock_value = self.sck.value()
                 if self.time() > end_time:
-                    return temp_byte_array
+                    return bytes(temp_byte_array)
 
             the_value = self.miso.value()
 
@@ -134,7 +146,7 @@ class Complex_Input_Soft_SPI:
                 if the_0_or_1_queue_index >= 8:
                     a_byte = self._8_number_to_byte(the_0_or_1_queue)
                     if (a_byte == end_byte):
-                        return temp_byte_array
+                        return bytes(temp_byte_array)
                     else:
                         temp_byte_array.append(a_byte)
                     the_0_or_1_queue_index = 0
@@ -157,6 +169,7 @@ my_input_spi = Simple_Input_Soft_SPI(Pin(20), Pin(21))
 my_output_spi = Simple_Output_Soft_SPI(Pin(18), Pin(19))
 
 my_output_spi.write(bytes([0x01, 0x02]) + b"what is your name?" + bytes([0x04]))
+# you can use a timer to keep sending data out in another threading
 
 # while True:
 #     my_input_spi.read_until_bytes([0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0])

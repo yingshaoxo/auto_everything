@@ -24,7 +24,7 @@ void _yingshaoxo_c_pins_set_pin_value(unsigned int pin_number, unsigned int new_
     /* fill with your code */
 }
 
-unsigned int _yingshaoxo_c_pins_get_pin_value(unsigned int pin_number) {
+int _yingshaoxo_c_pins_get_pin_value(unsigned int pin_number) {
     /* fill with your code */
 }
 
@@ -158,12 +158,15 @@ void yingshaoxo_c_pins_set_pins(unsigned char *code) {
         if (_yingshaoxo_dict_string_starts_with(yingshaoxo_c_pins_temp_one_line, "set_pin_type(") == 1) {
             _yingshaoxo_c_pins_parse_pin_name_and_arguments(yingshaoxo_c_pins_temp_one_line);
             _yingshaoxo_c_pins_set_pin_type((int)(_yingshaoxo_c_pins_string_to_float(yingshaoxo_c_pins_temp_pin_name)), (int)(_yingshaoxo_c_pins_string_to_float(yingshaoxo_c_pins_temp_pin_argument_1)), (int)(_yingshaoxo_c_pins_string_to_float(yingshaoxo_c_pins_temp_pin_argument_2)));
+            /*print("type set.")*/
         } else if(_yingshaoxo_dict_string_starts_with(yingshaoxo_c_pins_temp_one_line, "set_pin_value(") == 1) {
             _yingshaoxo_c_pins_parse_pin_name_and_arguments(yingshaoxo_c_pins_temp_one_line);
             _yingshaoxo_c_pins_set_pin_value((int)(_yingshaoxo_c_pins_string_to_float(yingshaoxo_c_pins_temp_pin_name)), (int)(_yingshaoxo_c_pins_string_to_float(yingshaoxo_c_pins_temp_pin_argument_1)));
+            /*print("value set.")*/
         } else if(_yingshaoxo_dict_string_starts_with(yingshaoxo_c_pins_temp_one_line, "get_pin_value(") == 1) {
             _yingshaoxo_c_pins_parse_pin_name_and_arguments(yingshaoxo_c_pins_temp_one_line);
-            _yingshaoxo_c_pins_get_pin_value((int)(_yingshaoxo_c_pins_string_to_float(yingshaoxo_c_pins_temp_pin_name)));
+            int result = _yingshaoxo_c_pins_get_pin_value((int)(_yingshaoxo_c_pins_string_to_float(yingshaoxo_c_pins_temp_pin_name)));
+            /*print_number(result) // if not equal to -1*/
         } else if(_yingshaoxo_dict_string_starts_with(yingshaoxo_c_pins_temp_one_line, "set_pin_analog_value(") == 1) {
             _yingshaoxo_c_pins_parse_pin_name_and_arguments(yingshaoxo_c_pins_temp_one_line);
             _yingshaoxo_c_pins_set_pin_analog_value((int)(_yingshaoxo_c_pins_string_to_float(yingshaoxo_c_pins_temp_pin_name)), (float)(_yingshaoxo_c_pins_string_to_float(yingshaoxo_c_pins_temp_pin_argument_1)));
@@ -177,6 +180,7 @@ void yingshaoxo_c_pins_set_pins(unsigned char *code) {
         }
         i += temp_i;
     }
+    /*print("done.")*/
 }
 
 #endif

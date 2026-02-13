@@ -33,6 +33,7 @@ def set_up_wireless_access_point():
     ap = network.WLAN(network.AP_IF)
     ap.active(True)
     ap.config(essid=ssid, password=password)
+    # why it can't configure static ip? (mac bind to ip)
 
 connect_wifi()
 print(http_get('http://micropython.org/ks/test.html'))

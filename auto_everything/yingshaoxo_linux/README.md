@@ -87,3 +87,4 @@ Solve the following questions:
 3. how to create a computer that could run a c compiler from scratch?
 4. how to make a better c language that uses english full name for keywords?
 5. how to use python3.2 to make every software you want?
+6. how to let the function name and variable name be natural language sentence that has space inside?
