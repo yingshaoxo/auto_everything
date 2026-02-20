@@ -1,5 +1,8 @@
-define "it is similar to me"("it") {
-    if ("it".has_sub_string("yingshaoxo")) {
+//similarity_ratio=98%
+
+define "it is similar to me?"("it") {
+    if ("yingshaoxo" in "it") {
+    #if ("it".has_sub_string("yingshaoxo")) {
         return 1;
     } else {
         return 0;
@@ -7,7 +10,7 @@ define "it is similar to me"("it") {
 }
 
 define "do you think it is a human, similar to you?"("it") {
-    if ("it is similar to me"("it")) {
+    if ("it is similar to me?"("it")) {
         return 1;
     } else {
         return 0;
@@ -15,14 +18,14 @@ define "do you think it is a human, similar to you?"("it") {
 }
 
 define "it is human?"("it") {
-    return "do you think it is a human, similar to you?"("it");
+    return "do you think it is a human, similar to you?"("it"="it");
 }
 
 "a robot" = "some crazy guy made a machine that similar to human.";
-if ("it is human?"("a robot")) {
+if ("it is human?"("it"="a robot")) {
     print("yeah! you made a human!");
 } else {
-    print("you made a stupid robot.");
+    print("you made a 'stupid robot'.");
 }
 
 define sleep_in_ms(number) {
@@ -38,6 +41,8 @@ while (1) {
         break;
     }
 }
+
+#maybe for some function that you don't know how to write, you can give AI to execute. "(memory_variable_dict)\n(function_arguments)\n(function_name)."
 
 #this programming language should have import './xx.ai'. dynamically parse, not load them all to memory at start time.
 #it is similar to yingshaoxo_dynamic_c, or python. if a variable is defined, use the defined one, otherwise, use literal meaning, for example, `print('it');` will give you 'it'. but if you have set `'it' = 'ai';`, then `print('it');` will give you 'ai'.

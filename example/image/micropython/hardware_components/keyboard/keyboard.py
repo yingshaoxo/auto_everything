@@ -153,6 +153,7 @@ key_table2 = {
     "4,10": "?",
     "5,12": "Down",
 }
+shift_pin = Pin(26, Pin.PULL_DOWN)
 use_which_key_table = 0
 def get_key_press():
     global use_which_key_table
@@ -163,10 +164,17 @@ def get_key_press():
             use_which_key_table = 0
         else:
             use_which_key_table = 1
+
+    if shift_pin.value() == 1:
+        use_which_key_table = 1
+    else:
+        use_which_key_table = 0
+
     if use_which_key_table == 0:
         temp_table = key_table
     else:
         temp_table = key_table2
+
     if raw_key in temp_table:
         result = temp_table[raw_key]
         return result
@@ -183,7 +191,7 @@ def get_pressed_raw_character():
     if value == "Tab":
         value = "    "
     if value != "":
-        if value != "" and len(value) == 1:
+        if (value != "") and ("Shift" not in value):
             print(value, end="")
             return value
     return ""
