@@ -1,4 +1,4 @@
-//similarity_ratio=98%
+//similarity_ratio=98%.
 
 define "it is similar to me?"("it") {
     if ("yingshaoxo" in "it") {

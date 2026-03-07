@@ -1,0 +1,22 @@
+define is(left_part, right_part) {
+    left_part = right_part;
+}
+
+define "hu ying jie"(next_string) {
+    execute(next_string);
+}
+
+define "it is similar to me?"("it") {
+    if (has_substring("it", "yingshaoxo")) {
+        return "yes";
+    } else {
+        return "no";
+    }
+}
+
+run_human_language("""
+it is a person.
+hu ying jie, it is similar to me? it.
+""")
+
+# should return yes or no

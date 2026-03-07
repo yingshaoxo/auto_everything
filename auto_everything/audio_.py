@@ -29,6 +29,10 @@ The funny part about audio is that for same volume, some sound may sounds like b
 For 3.5mm jack audio output line used in phone and mp3, it will has a voltage value range in [0, 1.23] voltage. If you want to make the sound louder, 0 to 5 voltage range is required, you can do it with 2v gate NMOS relay, or Triode amplifier circuit.
 
 For 3.5mm jack audio microphone input line, or simply microphone input, it will have a voltage range of [0.001, 0.01]. You have to use volatage or current range_map circuit to convert it into a range of [0, 5] voltage, so your micro_controller can read it. Some chip such as LM386 can do the voltage amplifing work, they use triode to do the work, you can find LM386 chip inner circuit graph online. But you'd better design one yourself.
+
+If you use PWM, you have to set base frequency to 125kHz (pwm.freq(125000)). Then you simply change volumn(pwm.duty_u16(0~65535)). Each play has to delay for 125 us (time.sleep_us(120)).
+
+Maybe we could convert sound into a list of frequency. for 0.5 second, if a sound can switch from -1 to 1 262 times, we say at that time it has frequency of 262. music note can be [262, 294, 330, 349, 392, 440, 494] for 0.5 second. (just set pwm.freq(frequency) to hear). for human sound, it is in range of [80, 500] for 0.5 second. but human sound should be more complex, for 0.1 second, it can has frequency of [16, 100]. for 0.01 second or 10 millisecond, it can has frequency of [1.6, 10]. normally, for 48 ms, frequency should be [7.68, 48].
 """
 
 
@@ -1142,6 +1146,45 @@ class Audio():
         final_hash = resize_text(final_hash, hash_length)
         return final_hash
 
+    def get_simple_frequency_list(self, sample_rate=8000, part_time_in_ms=100):
+        part_length = int(sample_rate * (part_time_in_ms/1000))
+
+        new_audio = self.get_simplified_audio()
+        new_audio = new_audio.range_map(-32767, 32767, 0, 255)
+        channels_number, one_channel_length = new_audio.get_shape()
+        bytes_list = []
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = new_audio.raw_data[channel_index][index]
+                bytes_list.append(signal)
+
+        part_list = []
+        for i in range(0, len(bytes_list), part_length):
+            part_list.append(bytes_list[i: i+part_length])
+
+        wave_frequency_list = []
+        for data in part_list:
+            count_wave = 0
+            index = 0
+            while index < len(data):
+                a_byte = data[index]
+                if a_byte < 127:
+                    while index < len(data):
+                        a_byte = data[index]
+                        if a_byte > 127:
+                            while index < len(data):
+                                a_byte = data[index]
+                                if a_byte < 127:
+                                    count_wave += 1
+                                    index -= 1
+                                    break
+                                index += 1
+                            break
+                        index += 1
+                index += 1
+            wave_frequency_list.append(count_wave)
+        return wave_frequency_list
+
     def _fake_resize(self, x_size, y_size=None, adds=1327):
         if x_size != None:
             x_size = int(x_size)
@@ -1244,7 +1287,19 @@ class Audio():
 
         wav_object.close()
 
-    def save_to_file(self, file_path, extreme_mode=True):
+    def save_to_simple_binary_audio(self, file_path, max_value=255):
+        new_audio = self.get_simplified_audio()
+        new_audio = new_audio.range_map(-32767, 32767, 0, max_value)
+        channels_number, one_channel_length = new_audio.get_shape()
+        bytes_list = []
+        for channel_index in range(channels_number):
+            for index in range(one_channel_length):
+                signal = new_audio.raw_data[channel_index][index]
+                bytes_list.append(signal)
+        with open(file_path, "wb") as f:
+            f.write(bytes(bytes_list))
+
+    def save_to_file(self, file_path, extreme_mode=False):
         """
         For yingshaoxo audio text format, there could have more compression inside. By introducing a repeat symbol. For example, "1_9" means repeat 1 for 9 times. "6_5" means repeat 6 for 5 times.
         """
@@ -1368,6 +1423,7 @@ class Audio():
                 raw_data.append(a_list)
 
         self.raw_data = raw_data
+        return self
 
 
 if __name__ == "__main__":

@@ -6,6 +6,8 @@ we do not need c++ if we have a c list and dict structure. (in other words, c198
 
 > in c, i think there only has bytes_string(unsigned char*) and int two data type.
 
+> i think we should first parse bottom code, then top code. so when we open code file, we do not have to go to bottom to write code. or, we can make a better editor that automatically jump to a position when open a file.
+
 ## core function
 
 run_c_code(code)

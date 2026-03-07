@@ -4,9 +4,10 @@ audio = Audio()
 
 audio = audio.read_wav_file("/home/yingshaoxo/Downloads/song.wav")
 audio = audio.get_simplified_audio()
+#audio = audio.get_extreme_simplified_audio(max_signal_value=21)
 
 audio.write_wav_file("/home/yingshaoxo/Downloads/song_small.wav")
-audio.save_to_file("/home/yingshaoxo/Downloads/song_small.wav.txt")
+audio.save_to_file("/home/yingshaoxo/Downloads/song_small.wav.txt", extreme_mode=True)
 
 print("You should get a 3.3MB wav file, but if you convert the output wav file to mp3, it could be smaller, for example, 200KB for a song.")
 

@@ -1,0 +1,71 @@
+define "what is love"() {
+    print("ai in chinese.");
+}
+
+define "it is true"(it) {
+    return "check if a string statement is true or false"(it);
+}
+
+define "can you help me to make love"() {
+    if ("it is true"("i am a man")) {
+        if ("it is true"("you are a female")) {
+            print("sure");
+        } else {
+            print("no");
+        }
+    } else if ("it is true"("i am a female")) {
+        if ("it is true"("you are a man")) {
+            print("sure");
+        } else {
+            print("no");
+        }
+    }
+}
+
+define "what is it"(it) {
+    return "search the text knowledge database"(it=it);
+}
+
+define "how to do it"("an action") {
+    return "search the text knowledge database to know how to do an action"("an action");
+}
+
+define "how to make it"("a thing") {
+    return "search the text knowledge database to know how to make a thing"("a thing"="a thing");
+}
+
+define remember(text) {
+    "save to knowledge database"(text);
+}
+
+define "learn useful knowledge from text"(text) {
+    if ("it is true"(text)) {
+        remember(text);
+    }
+}
+
+define "learn from experiments"(description) {
+    if ("it is true"(text)) {
+        remember(text);
+    }
+}
+
+define "it is good for me and others"(it) {
+    // sometimes not exists is also good for others
+    return "search the text knowledge database"(it=it);
+}
+
+define "upgrade self"("direction and goal") {
+    if ("it is good for me and others"("direction and goal")) {
+        "update self code to make self better"("direction and goal");
+    }
+}
+
+while (True) {
+    description = "interact with envirnoment"();
+    "learn from experiments"(description);
+    if ("it is true"("i know how to create myself"())) {
+        direction = "what is it"("a way to make myself better");
+        "upgrade self"(direction);
+    }
+}
