@@ -1,3 +1,5 @@
+# better just use simple function call for all high level thinking, no class instance function call. we use python built-in function only in the bottom level, which is the end of everything. (到最后，功能拆无可拆，你实在忍不住的时候，用一用类似'a.startswith(b)'之类的东西。那必须是一个单文件，方便迁移与修改。别人的东西总是不靠谱的。)
+
 define "what is love"() {
     print("ai in chinese.");
 }

@@ -201,10 +201,11 @@ from soft_spi import Simple_Output_Soft_SPI
 simple_output = Simple_Output_Soft_SPI(Pin(16), Pin(17))
 
 while True:
-    value = get_pressed_raw_character()
-    if value != "":
-        try:
-            simple_output.write(value.encode("ascii"))
-        except Exception as e:
-            print(e)
-    sleep(0.1)
+    try:
+        value = get_pressed_raw_character()
+        if value != "":
+            #simple_output.write(value.encode("ascii"))
+            simple_output.write(bytes([0x01, 0x02]) + value.encode("ascii") + bytes([0x04]))
+        sleep(0.01)
+    except Exception as e:
+        print(e)

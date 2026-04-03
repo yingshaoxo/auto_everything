@@ -266,8 +266,7 @@ recursive_delete(the_target_file_path)
                 self.upload_file(path, os.path.join(target_folder, path))
 
 
-def execfile(filename, device='/dev/ttyACM0'):
-    pyb = Pyboard(device)
+def exec_a_file(pyb, filename, device='/dev/ttyACM0'):
     pyb.enter_raw_repl()
     output = pyb.execfile(filename)
     print(str(output, encoding='ascii'), end='')
@@ -329,8 +328,10 @@ def run_test_for_pyboard():
     pyb.exit_raw_repl()
     pyb.close()
 
-def shell():
-    pyb = Pyboard('/dev/ttyACM0')
+def shell(pyb=None):
+    if pyb == None:
+        dev_device_id = '/dev/ttyACM0'
+        pyb = Pyboard(dev_device_id)
     pyb.enter_raw_repl()
 
     def get_file_path(input_text):
@@ -340,6 +341,7 @@ def shell():
 
     def print_help_function():
         print("""
+    run: run a file from computer
     python: enter a mini python
     list: list files and folders
     sync: sync current folder file into pyboard
@@ -355,17 +357,24 @@ def shell():
             command = input("> ").strip()
             if command == "exit()":
                 break
-            if "print(" in command:
-                print(pyb.run(command) + "\n")
-            else:
-                print(pyb.eval(command).decode("utf-8", errors="ignore"))
+            print(pyb.run(command) + "\n")
 
     while True:
         command = input("\nyour command: ").strip()
         if command == "help":
             print_help_function()
+        elif command.startswith("run"):
+            file_path = get_file_path(command)
+            output = pyb.execfile(file_path)
+            print(output)
         elif command == "python":
-            mini_python()
+            try:
+                mini_python()
+            except KeyboardInterrupt:
+                pyb = Pyboard(dev_device_id)
+                pyb.exit_raw_repl()
+                pyb.enter_raw_repl()
+                print_help_function()
         elif command == "list" or command == "ls":
             print(pyb.list_files_and_folders("."))
         elif command == "sync":

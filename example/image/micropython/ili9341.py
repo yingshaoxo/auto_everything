@@ -14,7 +14,7 @@ class Display(object):
     "Serial interface for 16-bit color (5-6-5 RGB) IL9341 display."
 
     def __init__(self, spi, cs, dc, rst,
-                 width=240, height=320, rotation=0):
+                 width=240, height=320, rotation=0, no_font=False):
         """Initialize OLED.
 
         Args:
@@ -77,8 +77,10 @@ class Display(object):
 
         del self.consts
 
-        gc.collect()
-        self.yingshaoxo_init()
+        if no_font == False:
+            gc.collect()
+            self.yingshaoxo_init()
+            gc.collect()
         gc.collect()
 
     def yingshaoxo_init(self):

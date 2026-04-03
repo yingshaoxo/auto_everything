@@ -1,12 +1,24 @@
+#!/usr/bin/env /home/python/use_docker_to_build_static_python3_binary_executable/data/Python-3.10.4/python
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal
 py = Python()
 terminal = Terminal(debug=True)
 
-from dev_tools.ys_pyboard import Pyboard
+from dev_tools.ys_pyboard import Pyboard, exec_a_file, shell
 pyboard = Pyboard("/dev/ttyACM0")
 
 class Tools():
+    def shell(self):
+        shell(pyboard)
+
+    def run(self, file_path):
+        exec_a_file(pyboard, file_path)
+
+    def stop(self):
+        pyboard.enter_raw_repl()
+        pyboard.exit_raw_repl()
+        print("cut power off can make it stop")
+
     def list_files(self):
         pyboard.enter_raw_repl()
         indent = "    "
@@ -55,4 +67,6 @@ with open("{name}", "r") as f:
     """.format(name=file_path)))
         pyboard.exit_raw_repl()
 
+
+py.make_it_global_runnable(executable_name="pyboard")
 py.fire2(Tools)

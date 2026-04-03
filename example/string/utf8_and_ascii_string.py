@@ -57,8 +57,8 @@ ID	Hex	Binary          Char	Description
 37	25	00100101	%	Percent
 38	26	00100110	&	Ampersand
 39	27	00100111	'	Single quotation mark
-40	28	00101000	(	Left parenthesis
-41	29	00101001	)	Right parenthesis
+40	28	00101000	(	Left parenthesis(left round bracket)
+41	29	00101001	)	Right parenthesis(right round bracket)
 42	2A	00101010	*	Asterisk
 43	2B	00101011	+	Plus
 44	2C	00101100	,	Comma

@@ -9,8 +9,27 @@ sleep(1)
 # use LED to debug when no console/shell/terminal/bash
 # from pyb import LED def light(): led = LED(2) while True: led.on() sleep(1) led.off()
 sleep(1)
+#from pyb import freq
+#freq(168000000)
 print("Ready")
 
+configuration_path = "computer_memory.txt"
+def computer_memory_get(key, default=""):
+    with open(configuration_path, "r") as f:
+        while True:
+            a_line = f.readline()
+            if a_line == None:
+                break
+            try:
+                temp_key, temp_value = a_line.split("=")
+            except Exception as e:
+                print(e)
+            if key == temp_key:
+                return temp_value.strip()
+    return default
+def computer_memory_set(key, value):
+    with open(configuration_path, "a") as f:
+        f.write(str(key) + "=" + str(value) + "\n")
 
 """
 # Setup the LCD Display module
@@ -214,73 +233,75 @@ def run_python_code(code):
         except Exception as e:
             return str(e)
 
-def handle_pressed_key(a_number):
+def handle_pressed_key(a_number, keyboard_input_char='\0'):
     global terminal_text_2d_array, cursor_position_y, cursor_position_x, input_mode, temp_input_1, temp_input_tip, input_char, screen_sleep, one_line_input
-    if a_number == -1:
-        return
-
     should_return = None
+    if keyboard_input_char == '\0':
+        if a_number == -1:
+            return
 
-    if a_number == 10:
+        if a_number == 10:
+            if input_mode == 0:
+                input_mode = 1
+            else:
+                input_mode = 0
+
+        if a_number == 12:
+            screen_sleep = not screen_sleep
+            if screen_sleep:
+                display.sleep(True)
+                background_light.low()
+            else:
+                display.sleep(False)
+                background_light.high()
+            return
+
         if input_mode == 0:
-            input_mode = 1
-        else:
-            input_mode = 0
-
-    if a_number == 12:
-        screen_sleep = not screen_sleep
-        if screen_sleep:
-            display.sleep(True)
-            background_light.low()
-        else:
-            display.sleep(False)
-            background_light.high()
-        return
-
-    if input_mode == 0:
-        # normal mode
-        if a_number == 2:
-            # up
-            pass
-        elif a_number == 8:
-            # down
-            pass
-        elif a_number == 4:
-            # left
-            pass
-        elif a_number == 6:
-            # right
-            pass
-        elif a_number == 5:
-            # ok
-            pass
-    else:
-        # input mode
-        if temp_input_1 == -1:
-            if a_number == -1:
+            # normal mode
+            if a_number == 2:
+                # up
                 pass
-            elif 1 <= a_number <= 9:
-                a_index = a_number - 1
-                temp_input_tip = "select: " + input_target_list[a_index]
-            elif a_number == 11:
-                temp_input_tip = "select: 0_,.?!"
-            temp_input_1 = a_number
-            input_char = "\0"
+            elif a_number == 8:
+                # down
+                pass
+            elif a_number == 4:
+                # left
+                pass
+            elif a_number == 6:
+                # right
+                pass
+            elif a_number == 5:
+                # ok
+                pass
         else:
+            # input mode
             if temp_input_1 == -1:
-                pass
-            elif 1 <= temp_input_1 <= 9:
-                a_index = temp_input_1 - 1
-                if a_number-1 < len(input_target_list[a_index]):
-                    input_char = input_target_list[a_index][a_number-1]
-            elif temp_input_1 == 11:
-                if (a_number == 11):
-                    input_char = " "
-                else:
-                    if (a_number-1) < len("0_,.?!"):
-                        input_char = list("0_,.?!")[a_number-1]
-            temp_input_tip = ""
-            temp_input_1 = -1
+                if a_number == -1:
+                    pass
+                elif 1 <= a_number <= 9:
+                    a_index = a_number - 1
+                    temp_input_tip = "select: " + input_target_list[a_index]
+                elif a_number == 11:
+                    temp_input_tip = "select: 0_,.?!"
+                temp_input_1 = a_number
+                input_char = "\0"
+            else:
+                if temp_input_1 == -1:
+                    pass
+                elif 1 <= temp_input_1 <= 9:
+                    a_index = temp_input_1 - 1
+                    if a_number-1 < len(input_target_list[a_index]):
+                        input_char = input_target_list[a_index][a_number-1]
+                elif temp_input_1 == 11:
+                    if (a_number == 11):
+                        input_char = " "
+                    else:
+                        if (a_number-1) < len("0_,.?!"):
+                            input_char = list("0_,.?!")[a_number-1]
+                temp_input_tip = ""
+                temp_input_1 = -1
+    else:
+        input_char = keyboard_input_char
 
     if input_char != "\0" and input_char != "":
         if input_char == "\n":
@@ -297,21 +318,52 @@ def handle_pressed_key(a_number):
     render_and_refresh()
     return should_return
 
-def new_input(tip_string="", multiple_line=False):
-    for one in tip_string:
+def print_heading_symbol(tip):
+    for one in tip:
         put_char_into_screen_cache(one)
     render_and_refresh()
 
+from soft_spi import Simple_Input_Soft_SPI
+my_input_spi = Simple_Input_Soft_SPI(Pin("Y1"), Pin("Y2"))
+def get_keyboard_char():
+    my_input_spi.read_until_bytes([0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0])
+    data = my_input_spi.read_bytes()
+    if data != None:
+        if data[-1] == 0x04:
+            return data[:-1].decode("ascii").lower()
+    return ""
+
+def new_input(tip_string="", multiple_line=False):
+    global a_char_from_keyboard
+    print_heading_symbol(tip_string)
     while True:
-        pressed_key = get_pressed_key()
-        if pressed_key != -1:
-            result = handle_pressed_key(pressed_key)
+        if a_char_from_keyboard == "":
+            pressed_key = get_pressed_key()
+            if pressed_key != -1:
+                result = handle_pressed_key(pressed_key)
+                if result != None:
+                    return result
+                from gc import mem_free
+                print("Has memory of", mem_free()/1024, "KB.")
+                sleep(0.05)
+            sleep(0.05)
+        else:
+            temp_char = a_char_from_keyboard
+            a_char_from_keyboard = ""
+            result = handle_pressed_key(a_number=-1, keyboard_input_char=temp_char)
             if result != None:
                 return result
-            from gc import mem_free
-            print("Has memory of", mem_free()/1024, "KB.")
-            sleep(0.05)
-        sleep(0.05)
+
+a_char_from_keyboard = ""
+import _thread
+def thread_task():
+    global a_char_from_keyboard
+    while True:
+        a_char = get_keyboard_char()
+        a_char_from_keyboard = a_char
+        while a_char_from_keyboard != "":
+            pass
+_thread.start_new_thread(thread_task, ())
 
 while True:
     one_line = new_input(">").strip()

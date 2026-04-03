@@ -24,7 +24,7 @@ except Exception as e:
 
 
 class Ili9488_Display(Display):
-    def __init__(self, spi, cs, dc, rst, width=320, height=480, rotation=0):
+    def __init__(self, spi, cs, dc, rst, width=320, height=480, rotation=0, no_font=False):
         self.spi = spi
         self.cs = cs
         self.dc = dc
@@ -61,7 +61,8 @@ class Ili9488_Display(Display):
         sleep(0.1)
         self.clear(hlines=4)
 
-        self.yingshaoxo_init()
+        if no_font == False:
+            self.yingshaoxo_init()
 
     def color666(self, r, g, b):
         r_666 = (r & 0xF8) | (r >> 5)
