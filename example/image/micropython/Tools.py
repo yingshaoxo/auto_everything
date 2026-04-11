@@ -8,6 +8,9 @@ from dev_tools.ys_pyboard import Pyboard, exec_a_file, shell
 pyboard = Pyboard("/dev/ttyACM0")
 
 class Tools():
+    def monitor(self):
+        pyboard.read_forever_and_print()
+
     def shell(self):
         shell(pyboard)
 

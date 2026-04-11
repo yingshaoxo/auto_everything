@@ -5,7 +5,7 @@ print("Booted.")
 from gc import mem_free
 print("Has memory of", mem_free()/1024, "KB.")
 from time import sleep
-sleep(1)
+sleep(3) #let keyboard init
 # use LED to debug when no console/shell/terminal/bash
 # from pyb import LED def light(): led = LED(2) while True: led.on() sleep(1) led.off()
 sleep(1)

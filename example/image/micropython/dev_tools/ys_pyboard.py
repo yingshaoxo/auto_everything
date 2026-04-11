@@ -113,6 +113,13 @@ class Pyboard:
             raise Exception('command failed')
         return data[:-2]
 
+    def exec_without_wait(self, command):
+        command_bytes = bytes(command, encoding='ascii')
+        for i in range(0, len(command_bytes), 32):
+            self.serial.write(command_bytes[i:min(i+32, len(command_bytes))])
+            time.sleep(0.01)
+        self.serial.write(b'\x04')
+
     def execfile(self, filename):
         with open(filename) as f:
             pyfile = f.read()
@@ -121,6 +128,14 @@ class Pyboard:
     def get_time(self):
         t = str(self.eval('pyb.RTC().datetime()'), encoding='ascii')[1:-1].split(', ')
         return int(t[4]) * 3600 + int(t[5]) * 60 + int(t[6])
+
+    def read_forever_and_print(self):
+        while True:
+            if self._in_waiting() > 0:
+                data = self.serial.read(self._in_waiting())
+                data = data.decode("utf-8", errors="ignore")
+                print(data)
+            time.sleep(0.1)
 
     def run(self, code):
         result = self.exec(code)
@@ -136,7 +151,8 @@ print(os.listdir("{folder_path}"))
             folder_path=folder_path,
         )
         data_string = self.run(script_content)
-        return eval(data_string)
+        start_index = data_string.find("[")
+        return data_string[start_index:].replace("\',", "\',\n")
 
     def fs_writefile(self, dest, data, chunk_size=256):
         self.exec("f=open('%s','wb')\nw=f.write" % dest)
@@ -341,9 +357,14 @@ def shell(pyb=None):
 
     def print_help_function():
         print("""
-    run: run a file from computer
-    python: enter a mini python
     list: list files and folders
+    monitor: get printed data in real time
+
+    run_main: run main.py in chip
+    run "*.py": run a file from computer
+
+    python: enter a mini python
+
     sync: sync current folder file into pyboard
     upload "*.py": upload a file to pyboard
     delete "*.py": delete a file in pyboard
@@ -360,9 +381,16 @@ def shell(pyb=None):
             print(pyb.run(command) + "\n")
 
     while True:
-        command = input("\nyour command: ").strip()
+        command = input("\nyour command (help): ").strip()
         if command == "help":
             print_help_function()
+        elif command.startswith("monitor"):
+            try:
+                pyb.read_forever_and_print()
+            except KeyboardInterrupt:
+                pass
+        elif command.startswith("run_main"):
+            pyb.exec_without_wait("import main")
         elif command.startswith("run"):
             file_path = get_file_path(command)
             output = pyb.execfile(file_path)
