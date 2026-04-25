@@ -95,7 +95,7 @@ class Pyboard:
         return ret
 
     def exec(self, command):
-        command_bytes = bytes(command, encoding='ascii')
+        command_bytes = bytes(command, encoding='utf-8')
         for i in range(0, len(command_bytes), 32):
             self.serial.write(command_bytes[i:min(i+32, len(command_bytes))])
             time.sleep(0.01)
@@ -114,7 +114,7 @@ class Pyboard:
         return data[:-2]
 
     def exec_without_wait(self, command):
-        command_bytes = bytes(command, encoding='ascii')
+        command_bytes = bytes(command, encoding='utf-8')
         for i in range(0, len(command_bytes), 32):
             self.serial.write(command_bytes[i:min(i+32, len(command_bytes))])
             time.sleep(0.01)
@@ -126,7 +126,7 @@ class Pyboard:
         return self.exec(pyfile)
 
     def get_time(self):
-        t = str(self.eval('pyb.RTC().datetime()'), encoding='ascii')[1:-1].split(', ')
+        t = str(self.eval('pyb.RTC().datetime()'), encoding='utf-8')[1:-1].split(', ')
         return int(t[4]) * 3600 + int(t[5]) * 60 + int(t[6])
 
     def read_forever_and_print(self):
@@ -175,7 +175,18 @@ print(os.listdir("{folder_path}"))
         bytes_data = a_file.read()
         a_file.close()
 
+#try:
+#    from machine import freq
+#    freq(200000000)
+#except Exception as e:
+#    pass
         script_content = """
+try:
+    from gc import collect
+    collect()
+except Exception as e:
+    pass
+
 import os
 try:
     os.stat("{folder_path}")
@@ -192,7 +203,7 @@ except Exception as e:
             folder_path=os.path.dirname(target_file_path)
         )
         self.exec(script_content)
-        self.fs_writefile(target_file_path, bytes_data)
+        self.fs_writefile(target_file_path, bytes_data, chunk_size=256)
         return
 
         script_content = """
@@ -285,7 +296,7 @@ recursive_delete(the_target_file_path)
 def exec_a_file(pyb, filename, device='/dev/ttyACM0'):
     pyb.enter_raw_repl()
     output = pyb.execfile(filename)
-    print(str(output, encoding='ascii'), end='')
+    print(str(output, encoding='utf-8'), end='')
     pyb.exit_raw_repl()
     pyb.close()
 
@@ -406,7 +417,7 @@ def shell(pyb=None):
         elif command == "list" or command == "ls":
             print(pyb.list_files_and_folders("."))
         elif command == "sync":
-            pyboard.sync_folder("./", "/")
+            pyb.sync_folder("./", "/")
             print("done")
         elif command.startswith("cat "):
             file_path = get_file_path(command)
@@ -436,11 +447,11 @@ if __name__ == "__main__":
     shell()
 
     pyboard = Pyboard("/dev/ttyACM0")
-    pyboard.serial.write("print(1+1)".encode("ascii") + b"\x04")
+    pyboard.serial.write("print(1+1)".encode("utf-8") + b"\x04")
     while True:
         time.sleep(0.1)
         if pyboard.serial.available() > 0:
             result = pyboard.serial.read(pyboard.serial.available())
             print(result)
-            result = result.decode("ascii")
+            result = result.decode("utf-8")
             print(result)

@@ -198,7 +198,7 @@ def get_pressed_raw_character():
 
 from machine import Pin
 from soft_spi import Simple_Output_Soft_SPI
-simple_output = Simple_Output_Soft_SPI(Pin(16), Pin(17))
+simple_output = Simple_Output_Soft_SPI(Pin(16), Pin(17), 200)
 
 while True:
     try:

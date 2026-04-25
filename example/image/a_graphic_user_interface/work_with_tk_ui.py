@@ -77,7 +77,7 @@ class Point_Drawer:
 
     def draw_point(self, y, x, color_rgba):
         r, g, b, a = color_rgba
-        hex_color = f'#{r:02x}{g:02x}{b:02x}'
+        hex_color = '#{r:02x}{g:02x}{b:02x}'.format(r=r,g=g,b=b)
         #self.canvas.create_oval(x-1, y-1, x+1, y+1, fill=hex_color, outline=hex_color, width=0)
         self.canvas.create_rectangle(x-1, y-1, x+1, y+1, fill=hex_color, outline=hex_color, width=0)
 

@@ -1,11 +1,37 @@
 global_print_cache = ""
 
+class Display():
+    def clear(self):
+        import os
+        os.system("clear")
+display = Display()
+
+def print_char(a_char):
+    print(a_char, end="", flush=True)
+
+def real_print(a_string):
+    print(a_string, end="", flush=True)
+
+def input_char():
+    import sys,tty,termios
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        return sys.stdin.read(1)
+    except Exception as e:
+        print(e)
+        return ""
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return ""
+
 def new_print(a_string):
     global global_print_cache
     global_print_cache += a_string + "\n"
 
 def new_input(a_string):
-    return "input not implemented yet"
+    return input(a_string)
 
 def run_shell_command(command):
     global global_print_cache
@@ -21,7 +47,7 @@ def run_shell_command(command):
     if target_command in commands_list:
         with open("./applications/"+target_command+".py", "r") as f:
             some_code = f.read()
-        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_ = new_print\n" + "input_ = new_input\n" + some_code
+        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "input_char_ = input_char\n" + "print_char_ = print_char\n" + "print_ = new_print\n" + "real_print_ = real_print\n" + "input_ = new_input\n" + "display_ = display\n" + "run_command_ = run_shell_command\n" + some_code
         try:
             exec(some_code)
             temp = global_print_cache[:]

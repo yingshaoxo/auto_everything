@@ -849,6 +849,7 @@ adb shell
                 "-avzR",  # -R preserves relative path structure
                 "--delete",
                 "--progress",
+                # "--dry-run", # check file changes but not doing anything
                 '"./"',
                 '"{}"'.format(abs_to),
             ]

@@ -1,3 +1,4 @@
+#!/usr/bin/env /home/yingshaoxo/Documents/static_python3.10.4_i386_or_i32_or_x86/python
 #!/usr/bin/env /home/python/use_docker_to_build_static_python3_binary_executable/data/Python-3.10.4/python
 from auto_everything.python import Python
 from auto_everything.terminal import Terminal

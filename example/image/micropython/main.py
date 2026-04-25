@@ -34,12 +34,18 @@ if board_name == None:
     board_name = "unix"
 
 
-if board_name == "pyboard":
-    import main_pyboard_1_dot_1_plus
-elif board_name == "pico":
-    #import main_pico
-    import system_launcher_pico
-elif board_name == "esp32":
-    import main_esp32
-elif board_name == "unix":
-    import main_unix
+try:
+    if board_name == "pyboard":
+        import main_pyboard_1_dot_1_plus
+    elif board_name == "pico":
+        #import main_pico
+        #import system_launcher_pico
+        import main_pico_core
+    elif board_name == "esp32":
+        import main_esp32
+    elif board_name == "unix":
+        import main_unix
+except Exception as e:
+    print(e)
+    with open("log.txt", "w") as f:
+        f.write(str(e))

@@ -185,6 +185,10 @@ def put_char_into_screen_cache(a_char, to_one_line_input=False):
 
     make_cursor_position_safe()
 
+def print_char(a_char):
+    put_char_into_screen_cache(a_char)
+    render_and_refresh()
+
 def new_print(a_string):
     for one in a_string:
         put_char_into_screen_cache(one)
@@ -192,6 +196,7 @@ def new_print(a_string):
     render_and_refresh()
 
 def run_shell_command(command):
+    global display
     try:
         from os import listdir
     except Exception as e:
@@ -204,7 +209,7 @@ def run_shell_command(command):
     if target_command in commands_list:
         with open("./applications/"+target_command+".py", "r") as f:
             some_code = f.read()
-        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_ = new_print\n" + "input_ = new_input\n" + some_code
+        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_char_ = print_char\n" + "print_ = new_print\n" + "input_ = new_input\n" + "display_ = display\n" + "run_command_ = run_shell_command\n" + some_code
         try:
             exec(some_code)
             return "ok"

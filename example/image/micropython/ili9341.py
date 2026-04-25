@@ -77,6 +77,8 @@ class Display(object):
 
         del self.consts
 
+        self.font_cache = {}
+        self.the_2d_text_cache = None
         if no_font == False:
             gc.collect()
             self.yingshaoxo_init()
@@ -97,7 +99,6 @@ class Display(object):
 
         self.font_cache = {}
         self.the_2d_text_cache = None
-        self.the_force_redraw_2d_text_index_set = set()
 
     def reset(self):
         self.rst(0)
@@ -255,11 +256,11 @@ class Display(object):
         if char in self.font_cache:
             return self.font_cache[char]
         else:
+            self.get_ascii_8_times_16_points_data
             r, g, b = 255,255,255
             white = self.color565(r,g,b)
             r, g, b = 0,0,0
             black = self.color565(r,g,b)
-
             char_points_data = self.get_ascii_8_times_16_points_data(char)
             data = BytesIO(b'')
             for row_index, row in enumerate(char_points_data):
