@@ -1,3 +1,4 @@
+# now it lacks list and dict and string operations, for example, format_function, it should be very stable so we can leave a lot of operation to run_python(xxx)
 _yingshaoxo_dict_splitor_1 = b".#new_line#."
 _yingshaoxo_dict_splitor_2 = b"|#colon#|"
 
@@ -149,6 +150,7 @@ def _is_it_a_string(code):
     return False
 
 def _is_it_a_number(code):
+    code = code.replace(b".", b"")
     if code.isdigit():
         return True
     return False
@@ -167,7 +169,13 @@ def _operator_add(a, b):
     return a+b
 
 def _is_assignment(code):
-    if _string_find_sub_string_index(code, b"=") != -1:
+    feature_1 = _string_find_sub_string_index(code, b"=")
+    feature_2 = _string_find_sub_string_index(code, b"(")
+    if feature_2 != -1 and feature_1 != -1:
+        if feature_2 < feature_1:
+            # function call
+            return False
+    if feature_1 != -1:
         return True
     return False
 
@@ -266,7 +274,50 @@ def _parse_function_define_code(code):
         b"function_content_string": function_content_string,
     }
 
+def _parse_try_code_block(code):
+    start_index_of_content_string = _string_find_sub_string_index(code, b"{")
+    if start_index_of_content_string == -1:
+        return None
+    end_index_of_content_string = _get_end_index_of_paired_punctuation(text=code, start_punctuation=b"{", end_punctuation=b"}")
+    if end_index_of_content_string == -1:
+        return None
+    function_content_string = code[start_index_of_content_string+1: end_index_of_content_string]
+    return {
+        b"function_name": "___unknown_try_function___",
+        b"function_arguments_string": "",
+        b"function_real_arguments_string": "",
+        b"function_content_string": function_content_string,
+    }
+
+def __parse_import_code(code):
+    feature_1 = _string_find_sub_string_index(code, b"' as ")
+    feature_2 = _string_find_sub_string_index(code, b'" as ')
+    if feature_1 != -1 or feature_2 != -1:
+        # import 'path' as xxx;
+        pass
+    else:
+        # import 'path';
+        file_path = code[8:-2]
+        try:
+            with open(file_path, "rb") as f:
+                code_content = f.read()
+            return {
+                b"function_name": "___unknown_import___",
+                b"function_arguments_string": "",
+                b"function_real_arguments_string": "",
+                b"function_content_string": code_content,
+            }
+        except Exception as e:
+            print(e)
+    return None
+
 def _is_it_a_function_call(code):
+    feature_1 = _string_find_sub_string_index(code, b"=")
+    feature_2 = _string_find_sub_string_index(code, b"(")
+    if feature_2 != -1 and feature_1 != -1:
+        if feature_1 < feature_2:
+            # variable assignement
+            return False
     code = _string_strip(code, b";")
     first = _string_find_sub_string_index(code, b"(")
     second = _string_find_sub_string_index(code, b")")
@@ -280,30 +331,28 @@ def _is_it_a_function_call(code):
 def _evaluate(variable_dict, code):
     code = _string_strip(code, b";")
 
+    if _is_it_a_string(code):
+        return code
+
+    if _is_it_a_number(code):
+        return float(code)
+
+    if _is_variable_exists(variable_dict=variable_dict, variable_name=code):
+        real_value = _get_variable(variable_dict=variable_dict, variable_name=code)
+        return real_value[b"variable_value"]
+
+    if _is_it_a_function_call(code):
+        function_info_dict = _parse_a_function_call(code)
+        if function_info_dict == None:
+            return
+        return _call_a_function(variable_dict=variable_dict, function_name=function_info_dict[b"function_name"], function_real_arguments_string=function_info_dict[b"function_real_arguments_string"])
+
     double_equal_mark = _string_find_sub_string_index(code, b"==")
     if double_equal_mark != -1:
         a, b = code.split(b"==")
         a = _evaluate(variable_dict, a)
         b = _evaluate(variable_dict, b)
         if a == b:
-            return True
-        else:
-            return False
-    a_mark = _string_find_sub_string_index(code, b">")
-    if a_mark != -1:
-        a, b = code.split(b">")
-        a = _evaluate(variable_dict, a)
-        b = _evaluate(variable_dict, b)
-        if a > b:
-            return True
-        else:
-            return False
-    a_mark = _string_find_sub_string_index(code, b"<")
-    if a_mark != -1:
-        a, b = code.split(b"<")
-        a = _evaluate(variable_dict, a)
-        b = _evaluate(variable_dict, b)
-        if a < b:
             return True
         else:
             return False
@@ -322,6 +371,24 @@ def _evaluate(variable_dict, code):
         a = _evaluate(variable_dict, a)
         b = _evaluate(variable_dict, b)
         if a <= b:
+            return True
+        else:
+            return False
+    a_mark = _string_find_sub_string_index(code, b">")
+    if a_mark != -1:
+        a, b = code.split(b">")
+        a = _evaluate(variable_dict, a)
+        b = _evaluate(variable_dict, b)
+        if a > b:
+            return True
+        else:
+            return False
+    a_mark = _string_find_sub_string_index(code, b"<")
+    if a_mark != -1:
+        a, b = code.split(b"<")
+        a = _evaluate(variable_dict, a)
+        b = _evaluate(variable_dict, b)
+        if a < b:
             return True
         else:
             return False
@@ -350,16 +417,6 @@ def _evaluate(variable_dict, code):
         a = _evaluate(variable_dict, a)
         b = _evaluate(variable_dict, b)
         return a / b
-
-    if _is_variable_exists(variable_dict=variable_dict, variable_name=code):
-        real_value = _get_variable(variable_dict=variable_dict, variable_name=code)
-        return real_value[b"variable_value"]
-
-    if _is_it_a_string(code):
-        return code
-
-    if _is_it_a_number(code):
-        return float(code)
 
     return None
 
@@ -398,15 +455,35 @@ def _parse_if_code_block(code):
 def _handle_if_code_block(variable_dict, equation, content):
     equation_value = _evaluate(variable_dict, equation)
     if equation_value:
-        run_yingshaoxo_ai_parser_and_executor(variable_dict=variable_dict, code=content)
+        return run_yingshaoxo_ai_parser_and_executor(variable_dict=variable_dict, code=content)
 
 def _handle_while_code_block(variable_dict, equation, content):
     while True:
         equation_value = _evaluate(variable_dict, equation)
         if equation_value:
-            run_yingshaoxo_ai_parser_and_executor(variable_dict=variable_dict, code=content)
+            result = run_yingshaoxo_ai_parser_and_executor(variable_dict=variable_dict, code=content)
+            if result == "break":
+                break
+            if result != None:
+                return result
         else:
             break
+
+def inject_function_arguments_into_variable_dict(variable_dict, function_info):
+    pre_defined_arguments = function_info[b"function_pre_defined_arguments_string"]
+    real_arguments = function_info[b"function_real_arguments_string"]
+
+    pre_defined_arguments_list = pre_defined_arguments.split(b",")
+    pre_defined_arguments_list = [one for one in pre_defined_arguments_list if _string_find_sub_string_index(one, b"=")]
+    for one in pre_defined_arguments_list:
+        _do_variable_assignment(variable_dict, one)
+
+    real_arguments_list = real_arguments.split(b",")
+    real_arguments_list = [one for one in real_arguments_list if _string_find_sub_string_index(one, b"=")]
+    for one in real_arguments_list:
+        _do_variable_assignment(variable_dict, one)
+
+    return variable_dict
 
 def _call_a_function(variable_dict, function_name, function_real_arguments_string):
     "we will pass keywords dict based arguments for function execution"
@@ -417,13 +494,24 @@ def _call_a_function(variable_dict, function_name, function_real_arguments_strin
     if function_name == b"run_python":
         function_real_arguments_string = _string_strip(function_real_arguments_string, b"'")
         function_real_arguments_string = _string_strip(function_real_arguments_string, b'"')
-        exec(function_real_arguments_string, variable_dict) # should have a format of run_python(input_dict, code);
-        return None
+        temp_dict = {}
+        exec(function_real_arguments_string, temp_dict)
+        result = temp_dict.get("result")
+        if type(result) == str:
+            result = "'" + result + "'"
+        else:
+            result = str(result)
+        return result
 
-    if function_name == b"eval_python":
+    if function_name == b"evaluate_python":
         function_real_arguments_string = _string_strip(function_real_arguments_string, b"'")
         function_real_arguments_string = _string_strip(function_real_arguments_string, b'"')
-        return eval(function_real_arguments_string)
+        result = eval(function_real_arguments_string)
+        if type(result) == str:
+            result = "'" + result + "'"
+        else:
+            result = str(result)
+        return result
 
     if _is_function_exists(variable_dict=variable_dict, function_name=function_name):
         function_info = _get_function(variable_dict=variable_dict, function_name=function_name)
@@ -441,12 +529,16 @@ def _call_a_function(variable_dict, function_name, function_real_arguments_strin
         for key in variable_dict.keys():
             parent_key_dict[key] = 1
 
-        run_yingshaoxo_ai_parser_and_executor(variable_dict=variable_dict, code=function_info[b"function_content_string"])
+        variable_dict = inject_function_arguments_into_variable_dict(variable_dict, function_info)
+        result = run_yingshaoxo_ai_parser_and_executor(variable_dict=variable_dict, code=function_info[b"function_content_string"])
 
         # delete sub_function generated garbage variables
         for key in list(variable_dict.keys()):
             if key not in parent_key_dict:
                 del variable_dict[key]
+
+        if result != "break":
+            return result
 
 def _run_one_piece_of_code(variable_dict, code_type, code):
     if code_type == "define function":
@@ -463,13 +555,13 @@ def _run_one_piece_of_code(variable_dict, code_type, code):
         code_block_info_dict = _parse_if_code_block(code)
         if code_block_info_dict == None:
             return
-        _handle_if_code_block(variable_dict=variable_dict, equation=code_block_info_dict[b"equation"], content=code_block_info_dict[b"content"])
+        return _handle_if_code_block(variable_dict=variable_dict, equation=code_block_info_dict[b"equation"], content=code_block_info_dict[b"content"])
     if code_type == "while loop":
         #print(code.replace(b"\n", "\\n"))
         code_block_info_dict = _parse_if_code_block(code)
         if code_block_info_dict == None:
             return
-        _handle_while_code_block(variable_dict=variable_dict, equation=code_block_info_dict[b"equation"], content=code_block_info_dict[b"content"])
+        return _handle_while_code_block(variable_dict=variable_dict, equation=code_block_info_dict[b"equation"], content=code_block_info_dict[b"content"])
     if code_type == "define variable":
         #print(code.replace(b"\n", "\\n"))
         _do_variable_assignment(variable_dict=variable_dict, code=code)
@@ -498,7 +590,25 @@ def _run_one_piece_of_code(variable_dict, code_type, code):
         if _is_it_a_function_call(code):
             _run_one_piece_of_code(variable_dict=variable_dict, code_type="function call", code=code)
             return
-        pass
+    if code_type == "try":
+        function_info_dict = _parse_try_code_block(code)
+        try:
+            return run_yingshaoxo_ai_parser_and_executor(variable_dict=variable_dict, code=function_info_dict[b"function_content_string"])
+        except Exception as e:
+            print(e)
+    if code_type == "import":
+        function_info_dict = __parse_import_code(code)
+        if function_info_dict != None:
+            try:
+                run_yingshaoxo_ai_parser_and_executor(variable_dict=variable_dict, code=function_info_dict[b"function_content_string"])
+            except Exception as e:
+                print(e)
+    if code_type == "break":
+        return "break"
+    if code_type == "return":
+        return_variable_name = code[7:-1]
+        return_value = _evaluate(variable_dict, return_variable_name)
+        return return_value
 
 def run_yingshaoxo_ai_parser_and_executor(variable_dict, code):
     "loop text by character, skip space and newline, when meet 'define' or 'xx=xx' or 'xx();', do something, the ';' is the line end, run code line by line"
@@ -537,7 +647,9 @@ def run_yingshaoxo_ai_parser_and_executor(variable_dict, code):
             end_index = _get_end_index_of_paired_punctuation(text=current_code, start_punctuation=b"{", end_punctuation=b"}")
             if end_index != -1:
                 define_code = current_code[0: end_index+1]
-                _run_one_piece_of_code(variable_dict=variable_dict, code_type="if", code=define_code)
+                result = _run_one_piece_of_code(variable_dict=variable_dict, code_type="if", code=define_code)
+                if result != None:
+                    return result
                 index += end_index + 1
                 continue
 
@@ -546,7 +658,47 @@ def run_yingshaoxo_ai_parser_and_executor(variable_dict, code):
             end_index = _get_end_index_of_paired_punctuation(text=current_code, start_punctuation=b"{", end_punctuation=b"}")
             if end_index != -1:
                 define_code = current_code[0: end_index+1]
-                _run_one_piece_of_code(variable_dict=variable_dict, code_type="while loop", code=define_code)
+                result = _run_one_piece_of_code(variable_dict=variable_dict, code_type="while loop", code=define_code)
+                if result != None:
+                    return result
+                index += end_index + 1
+                continue
+
+        # try some code
+        if _string_strat_with(current_code, b"try "):
+            end_index = _get_end_index_of_paired_punctuation(text=current_code, start_punctuation=b"{", end_punctuation=b"}")
+            if end_index != -1:
+                define_code = current_code[0: end_index+1]
+                result = _run_one_piece_of_code(variable_dict=variable_dict, code_type="try", code=define_code)
+                if result != None:
+                    return result
+                index += end_index + 1
+                continue
+
+        # import code
+        if _string_strat_with(current_code, b"import "):
+            end_index = _string_find_sub_string_index(current_code, b";")
+            if end_index != -1:
+                import_code = current_code[0: end_index+1]
+                _run_one_piece_of_code(variable_dict=variable_dict, code_type="import", code=import_code)
+                index += end_index + 1
+                continue
+
+        # break cage
+        if _string_strat_with(current_code, b"break;"):
+            end_index = _string_find_sub_string_index(current_code, b";")
+            if end_index != -1:
+                break_code = current_code[0: end_index+1]
+                return _run_one_piece_of_code(variable_dict=variable_dict, code_type="break", code=break_code)
+                index += end_index + 1
+                continue
+
+        # return value
+        if _string_strat_with(current_code, b"return "):
+            end_index = _string_find_sub_string_index(current_code, b";")
+            if end_index != -1:
+                return_code = current_code[0: end_index+1]
+                return _run_one_piece_of_code(variable_dict=variable_dict, code_type="return", code=return_code)
                 index += end_index + 1
                 continue
 
@@ -624,10 +776,11 @@ print("fuck");
 run_python("print(1+1)");
 
 
-define "do it"("do what") {
+define "do it"(task) {
     print("no, you do it");
+    print(task);
 };
-"do it"();
+"do it"(task="the stupid work");
 
 if (exists == None) {
     print("i should define a thing");
@@ -639,7 +792,7 @@ i += 5;
 print(i);
 
 print("loop test");
-while (i < 10) {
+while (i <= 10) {
     print(i);
     i = i + 1;
 }
@@ -653,8 +806,24 @@ if ("love" == "chinese ai!!!") {
     print("oh, chinese ai is good!");
 }
 
-define "who is yingshaoxo?"() {
-    return "you name it";
+define "who is yingshaoxo?"(who="hero_hu", level=999) {
+    while (1) {
+        break;
+    }
+    return "you name it: " + who;
 };
 
+a_hero = "who is yingshaoxo?"(who="god");
+print(a_hero);
+
+try {
+    oxoahsgniy
+};
+
+
+#import "./demo.ai.txt"; # this will import that file and replace(update) current variable_dict
+#import "./lib.hero.txt" as lib; # this will import that file and put it under "lib" variable, so you can use some function like "lib.do_something();"
+
+hi = run_python("result=1+2");
+print(hi);
 '''+source_code)

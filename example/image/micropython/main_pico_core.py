@@ -25,7 +25,7 @@ def get_keyboard_char():
     if data != None:
         if data[-1] == 0x04:
             try:
-                return data[:-1].decode("utf-8").lower()
+                return data[:-1].decode("utf-8")#.lower()
             except Exception as e:
                 print(e)
                 return ""

@@ -1,8 +1,8 @@
 //similarity_ratio=98%.
 
 define "it is similar to me?"("it") {
+    #if ("it".has_sub_string("yingshaoxo"))
     if ("yingshaoxo" in "it") {
-    #if ("it".has_sub_string("yingshaoxo")) {
         return 1;
     } else {
         return 0;
@@ -30,7 +30,8 @@ if ("it is human?"("it"="a robot")) {
 
 define sleep_in_ms(number) {
     print(_function_info_dict); //it has function_name, function_pre_defined_arguments, function_arguments
-    sleep_in_us(number * 1000);
+    run_python("import time; time.sleep(0.2)");
+    #sleep_in_us(number * 1000);
 }
 
 index = 0;
@@ -38,7 +39,7 @@ while (1) {
     sleep_in_ms(1000);
     print("1 second has passed.");
     index += 1;
-    if (index >= 98) {
+    if (index >= 9.8) {
         break;
     }
 }

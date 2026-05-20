@@ -73,4 +73,5 @@ with open("{name}", "r") as f:
 
 
 py.make_it_global_runnable(executable_name="pyboard")
-py.fire2(Tools)
+Tools().shell()
+#py.fire2(Tools)

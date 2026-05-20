@@ -100,10 +100,6 @@ class Pyboard:
             self.serial.write(command_bytes[i:min(i+32, len(command_bytes))])
             time.sleep(0.01)
         self.serial.write(b'\x04')
-        data = self.serial.read(2)
-        if data != b'OK':
-            print(data)
-            raise Exception('could not exec command')
         data = self.read_until(2, b'\x04>')
         if not data.endswith(b'\x04>'):
             print(data)
@@ -111,7 +107,7 @@ class Pyboard:
         if data.startswith(b'Traceback') or data.startswith(b'  File '):
             print(data)
             raise Exception('command failed')
-        return data[:-2]
+        return data[2:-2]
 
     def exec_without_wait(self, command):
         command_bytes = bytes(command, encoding='utf-8')
@@ -160,7 +156,7 @@ print(os.listdir("{folder_path}"))
             chunk = data[:chunk_size]
             self.exec("w(" + repr(chunk) + ")")
             data = data[len(chunk) :]
-        self.exec("f.close()")
+        self.exec("f.close()\nprint('done')")
 
     def upload_file(self, source_file_path, target_file_path):
         if not os.path.exists(source_file_path):
@@ -379,6 +375,8 @@ def shell(pyb=None):
     sync: sync current folder file into pyboard
     upload "*.py": upload a file to pyboard
     delete "*.py": delete a file in pyboard
+
+    cat "*.py": check a file
     """)
 
     print_help_function()
@@ -423,8 +421,8 @@ def shell(pyb=None):
             file_path = get_file_path(command)
             print("\n")
             print(pyb.run("""
-    with open("{name}", "r") as f:
-        print(f.read())
+with open("{name}", "r") as f:
+    print(f.read())
     """.format(name=file_path)))
         elif command.startswith("upload "):
             file_path = get_file_path(command)
