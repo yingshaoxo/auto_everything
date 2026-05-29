@@ -331,15 +331,15 @@ def _is_it_a_function_call(code):
 def _evaluate(variable_dict, code):
     code = _string_strip(code, b";")
 
-    if _is_it_a_string(code):
-        return code
-
     if _is_it_a_number(code):
         return float(code)
 
     if _is_variable_exists(variable_dict=variable_dict, variable_name=code):
         real_value = _get_variable(variable_dict=variable_dict, variable_name=code)
         return real_value[b"variable_value"]
+
+    if _is_it_a_string(code):
+        return code
 
     if _is_it_a_function_call(code):
         function_info_dict = _parse_a_function_call(code)

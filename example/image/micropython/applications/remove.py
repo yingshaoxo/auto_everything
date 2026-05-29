@@ -31,6 +31,7 @@ else:
             return False
 
     def recursive_delete(target_file_path):
+        global exists
         if not exists(target_file_path):
             return
 

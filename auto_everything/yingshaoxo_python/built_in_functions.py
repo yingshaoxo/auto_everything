@@ -4,7 +4,7 @@ Why I create this file? Because Python Core Built_in function is not stable.
 For example, open(), it get changed in python3, before python<3.2, it supports line read from bottom to top, now, it no longer support that. (seeks relative to the end of file are no longer supported, file_stream.seek(-offset, os.SEEK_END) will not work)
 
 
-Another thing to mention is: Why python is 60 times slower than c code? Because for each variable, for example, string variable, it has almost 60 builit_in functions for that variable you create, when you create that variable, it will assign 60 string_related functions to that variable, that process makes python slow. But if you create a string variable without built_in functions, you do things like 'string_join(str1, str2)', then the python speed will be as quicker.
+Another thing to mention is: Why python is 60 times slower than c code? Because for each variable, for example, string variable, it has almost 60 builit_in functions for that variable you create, when you create that variable, it will assign 60 string_related functions to that variable, that process makes python slow. But if you create a string variable without built_in functions, you do things like 'string_join(str1, str2)', then the python speed will be quicker.
 
 And for each variable, for example, string variable, it has more data structure than char*. And when we parse the python code, it takes time.
 """

@@ -14,7 +14,7 @@ class String:
         # author yingshaoxo: a very important function for database search
 
         # for example: "what is desk?" -> "desk is"
-        # for example: "what is age your age?" -> "my age is"
+        # for example: "what is your age?" -> "my age is"
         if len(input_text) == 0:
             return ""
         input_text = input_text.lower()

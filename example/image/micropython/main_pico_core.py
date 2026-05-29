@@ -25,7 +25,9 @@ def get_keyboard_char():
     if data != None:
         if data[-1] == 0x04:
             try:
-                return data[:-1].decode("utf-8")#.lower()
+                new_char = data[:-1].decode("utf-8")#.lower()
+                #real_print(str(ord(new_char)) + new_char)
+                return new_char
             except Exception as e:
                 print(e)
                 return ""
@@ -64,9 +66,12 @@ def new_print(a_string):
     global_print_cache += a_string + "\n"
 
 def real_print(a_string):
-    if type(a_string) == bytes:
-        a_string = a_string.decode("utf-8")
-    a_string = "\n"+a_string
+    try:
+        if type(a_string) == bytes:
+            a_string = a_string.decode("utf-8", "replace")
+        a_string = "\n" + a_string
+    except Exception as e:
+        a_string = "\n" + str(e)
     send_command("print_string:"+a_string)
     sleep(0.2)
 

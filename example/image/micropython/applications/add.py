@@ -2,7 +2,7 @@
 
 app_parent_folder = "./applications/note"
 note_path = app_parent_folder+"/note.txt"
-magic_splitor = "\n\n"
+magic_splitor = "\n___\n"
 
 try:
     import os

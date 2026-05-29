@@ -105,6 +105,11 @@ def find_bytes_in_large_file(filepath, bytes_data, start_index=0):
             temp_index += len(temp_line)
     return -1
 
+def is_ascii(text):
+    if ord(text[0]) < 0x7F:
+        return True
+    return False
+
 
 if edit_type == "help":
     help_text = """
@@ -122,9 +127,9 @@ elif edit_type == "folder":
 
 line_index_list = []
 def edit_file_process():
-    global line_index_list, display_, real_print_, input_char_, delete_bytes_in_large_file, insert_bytes_large_file, find_next_word_splited_by_space, find_previous_word_splited_by_space, terminal_arguments, find_bytes_in_large_file
+    global line_index_list, display_, real_print_, input_char_, delete_bytes_in_large_file, insert_bytes_large_file, find_next_word_splited_by_space, find_previous_word_splited_by_space, terminal_arguments, find_bytes_in_large_file, is_ascii
     def load_the_mother_fucker():
-        global line_index_list
+        global line_index_list, print_char_
         line_index_list = []
         bytes_index = 0
         with open(terminal_arguments, "rb") as f:
@@ -156,14 +161,19 @@ def edit_file_process():
             line_length = line_end_bytes_index - line_start_bytes_index
             f.seek(line_start_bytes_index)
             current_line = f.readline()
-            #current_line_text = current_line.decode("utf-8")
+            current_line_text = current_line.decode("utf-8", "ignore")
 
         if in_insert_mode == False:
             if horizontal_position >= line_length - 1:
                 horizontal_position = line_length - 1
             else:
                 horizontal_position = last_horizontal_position
-            current_line_for_display = current_line[0:horizontal_position] + b"~" + current_line[horizontal_position+1:]
+            if (len(current_line_text) > 0) and (not is_ascii(current_line_text.strip()[0])):
+                # is chinese
+                current_line_for_display = current_line_text[:-1] + "(change this line will create error)" + current_line_text[-1]
+            else:
+                # is english
+                current_line_for_display = current_line[0:horizontal_position] + b"~" + current_line[horizontal_position+1:]
             display_.clear()
             real_print_(current_line_for_display)
 
@@ -260,6 +270,8 @@ def edit_file_process():
                 if temp_input_char == "d":
                     delete_bytes_in_large_file(terminal_arguments, line_start_bytes_index, line_length, chunk_size=1024)
                     load_the_mother_fucker()
+                    if vertical_position >= len(line_index_list):
+                        vertical_position -= 1
             if input_char == "G":
                 # go to file end
                 vertical_position = len(line_index_list) - 1
