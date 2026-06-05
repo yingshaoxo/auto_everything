@@ -445,351 +445,6 @@ class Yingshaoxo_Text_Preprocessor():
         return text.isascii()
 
 
-class Yingshaoxo_Text_Transformer():
-    """
-    We will use char level operation to get unknown keywords regex from "multiple key -> one value" data pairs
-
-    Hi AA -> Hi you.
-    Hi BB -> Hi you.
-    Hi CC -> Hi you.
-
-    We need to get "Hi (.*?) -> Hi you." from above data automatically.
-
-
-
-    Did you see AA? => I see AA.
-    Did you see BB? => I see BB.
-
-    We need to get "Did you see (?P<someone>.*?)? -> I see {someone}." from above data automatically.
-
-
-
-    That is steven, my uncle. => I see, steven is your uncle.
-    That is wind_god, my uncle. => I see, wind_god is your uncle.
-
-    We need to get "That is (?P<name>.*?), my uncle. => I see, {name} is your uncle." from above data automatically.
-    """
-
-    """
-    Or, you could think it as a very simple problem, if you got current_line of text, if some sub_string appears in the next_line of text, you can safely replace it with regex expression.
-
-    For example: what is the age of uncle? => uncle is 18 years old.
-
-    You can just do a search for every sub_string in the first sentence, if that substring appears 1 or more times in the second sentence, you get a general regex sentence.
-
-    For example: what is the age of (?P<name>.*?)? => {name} is 18 years old.
-
-    And later when you meet new input, if it full matchs any regex expression, you return following sentence with related content formated. In other words, you are returning a reactive answer than fixed answer.
-    """
-
-    """
-    Source Text: Did you see AA?\nI see AA.
-
-    Generalized Text: Did you {see} {AA}?\n I {see} {AA}.
-
-    So next time when you meet "Did you attack that monster?", you will get "\n I attack that monster." because of "Did you {attack} {that monster}\n I {attack} {that monster}."
-
-    #ai #idea #yingshaoxo
-    """
-    """
-    def get_regex_expression_from_current_text_and_following_text(self, current_text: str, following_text: str, meaning_group_list: list[str] = []) -> tuple[str, str]:
-        if len(meaning_group_list) == 0:
-            sub_string_list = string_.get_all_sub_string(text=current_text)
-        else:
-            sub_string_list = meaning_group_list
-        sub_string_list.sort(key=len, reverse=True)
-
-        fake_current_text = current_text
-        fake_following_text = following_text
-        new_current_text = current_text
-        new_following_text = following_text
-        counting = 0
-        for index, sub_string in enumerate(sub_string_list):
-            if (sub_string in fake_current_text) and (sub_string in fake_following_text):
-                fake_following_text = fake_following_text.replace(sub_string, "")
-                new_current_text_list = new_current_text.split(sub_string)
-                new_current_text_list = [re.escape(one)  for one in new_current_text_list]
-                new_current_text = "(.*?)".join(new_current_text_list)
-                #new_current_text = new_current_text.replace(sub_string, f"(?P<y{counting}>.*?)") # You have to find a way to avoid new sub_string replace old regex expression
-                new_following_text = new_following_text.replace(sub_string, "{}")
-                counting += 1
-                break
-
-        return new_current_text, new_following_text
-    """
-    def _number_to_fake_alphabet(self, id_, number):
-        return "a_{id_}_{number}".format(id_=id_, number=number)
-
-    def _fake_alphabet_to_number(self, string):
-        return string.split("_")[1]
-
-    def _escape_regex_expression(self, expression):
-        result = ""
-        index = 0
-        if expression[:4] == "(?P<":
-            result += expression[:4]
-            index += 4
-            end_index = index + 1
-            for temp_index, temp_char in enumerate(expression[index+1:]):
-                if expression[index+1+temp_index:].startswith(">.*)"):
-                    end_index = index+1+temp_index+len(">.*)")
-                    break
-            result += expression[index+1: end_index]
-            index = end_index
-        while True:
-            if index >= len(expression)-1:
-                result += re.escape(expression[-1])
-                break
-
-            char = expression[index]
-            next_4_chars = expression[index+1: index+1 + 4]
-            if next_4_chars != "(?P<":
-                result += re.escape(char)
-                index += 1
-            else:
-                result += re.escape(char)
-                end_index = index + 1
-                for temp_index, temp_char in enumerate(expression[index+1:]):
-                    if expression[index+1+temp_index:].startswith(">.*)"):
-                        end_index = index+1+temp_index+len(">.*)")
-                        break
-                result += expression[index+1: end_index]
-                index = end_index
-        return result
-
-    def _check_if_regex_expression_is_valid(self, expression, string, next_string):
-        #print("fuck:", expression)
-        try:
-            result = re.fullmatch(expression, string, flags=re.DOTALL)
-            #print(expression, string, result)
-            if result == None:
-                return False
-            else:
-                # You have to find a way to drop bad match, for example, if a_1_0 and a_1_1 does not equal, it is a wrong match
-                data = dict(result.groupdict())
-                check_dict = {}
-                for key, value in data.items():
-                    real_key = self._fake_alphabet_to_number(key)
-                    if real_key not in check_dict:
-                        check_dict[real_key] = value
-                    else:
-                        if value != check_dict[real_key]:
-                            return False
-                    # make sure next string also starts with space or end with space
-                    # todo: here has a bug
-                    start_index = 0
-                    value_length = len(value)
-                    while True:
-                        index = next_string.find(value, start_index)
-                        if index == -1:
-                            break
-                        if (next_string[index-1] != " " and next_text[index+value_length+1] != " "):
-                            if (next_string[index-1] != " ") and (index != 0):
-                                if (next_string[index+value_length+1] != " ") and (index+value_length != len(next_string) - 1):
-                                    return False
-                        start_index = index + value_length
-        except Exception as e:
-            #print(e)
-            return False
-
-        # remove any regex that does not have space in before and end
-        while expression.startswith("(?P<"):
-            expression = expression[4:]
-        while expression.endswith(">.*)"):
-            expression = expression[:-4]
-        expression = expression.replace("\ (?P<", "")
-        expression = expression.replace(">.*)\ ", "")
-        if "(?P<" in expression or ">.*)" in expression:
-            return False
-
-        return True
-
-    def get_regex_expression_from_current_text_and_following_text(self, current_text, following_text, meaning_group_list = []):
-        """
-        {
-            (?P<a_0_0>.*) is (?P<a_0_1>.*), (?P<a_1_0>.*) is (?P<b_1_1>.*).:
-            A is A, B is B.
-        """
-        if len(meaning_group_list) == 0:
-            sub_string_list = string_.get_all_sub_string(text=current_text, get_less=True)
-        else:
-            sub_string_list = [one for one in list(set(meaning_group_list)) if one.strip() != ""]
-        sub_string_list.sort(key=len, reverse=True) # longer first
-        #print(sub_string_list)
-        if "a" in sub_string_list:
-            del sub_string_list[sub_string_list.index('a')]
-
-        fake_current_text = current_text
-        fake_following_text = following_text
-        new_current_text = current_text
-        new_following_text = following_text
-        id_ = 0
-        for index, sub_string in enumerate(sub_string_list):
-            if fake_current_text.strip() == "" or fake_following_text.strip() == "":
-                break
-
-            if (sub_string in fake_current_text) and (sub_string in fake_following_text):
-                fake_current_text_backup = fake_current_text
-                fake_following_text_backup = fake_following_text
-                new_current_text_backup = new_current_text
-                new_following_text_backup = new_following_text
-
-                fake_current_text = fake_current_text.replace(sub_string, "")
-                fake_following_text = fake_following_text.replace(sub_string, "")
-
-                new_current_text_list = new_current_text.split(sub_string)
-                #new_current_text_list = [re.escape(one) for one in new_current_text_list]
-                new_current_text = ""
-                for index, one in enumerate(new_current_text_list):
-                    if index == 0:
-                        new_current_text += one
-                    else:
-                        fake_id = self._number_to_fake_alphabet(id_, index-1)
-                        new_current_text += "(?P<{fake_id}>.*)".format(fake_id=fake_id) + one
-                temp_following_text = new_following_text
-
-                index = 0
-                while True:
-                    fake_id = self._number_to_fake_alphabet(id_, index)
-                    new_following_text = new_following_text.replace(sub_string, "{{{fake_id}}}".format(fake_id=fake_id), 1)
-                    if temp_following_text == new_following_text:
-                        break
-                    temp_following_text = new_following_text
-                    index += 1
-                    if index > 20:
-                        break
-
-                #print(fake_current_text)
-                #print(fake_following_text)
-                #print(new_current_text)
-                #print(new_following_text)
-                #print(new_current_text)
-
-                if self._check_if_regex_expression_is_valid(self._escape_regex_expression(new_current_text), current_text, following_text) == False:
-                    fake_current_text = fake_current_text_backup
-                    fake_following_text = fake_following_text_backup
-                    new_current_text = new_current_text_backup
-                    new_following_text = new_following_text_backup
-                    continue
-                else:
-                    id_ += 1
-
-        return new_current_text, new_following_text
-
-    def get_regex_expression_version_string_dict(self, input_text, seporator = "\n", meaning_group_list = []):
-        final_dict = {}
-
-        text_list = input_text.split(seporator)
-        for index, text in enumerate(text_list):
-            if index + 1 > len(text_list) - 1:
-                break
-
-            text = text.strip()
-            next_text = text_list[index+1].strip()
-            if text != "" and next_text != "":
-                key, value = self.get_regex_expression_from_current_text_and_following_text(text, next_text, meaning_group_list)
-                #print(key, value)
-                final_dict[key] = value
-
-        return final_dict
-
-    def get_regex_expression_dict_from_input_and_output_list(self, input_text_list, output_text_list, meaning_group_list = []):
-        the_dict = {}
-        for index in range(len(input_text_list)):
-            source_text = input_text_list[index]
-            target_text = output_text_list[index]
-            key, value = self.get_regex_expression_from_current_text_and_following_text(source_text, target_text, meaning_group_list)
-            the_dict[key] = value
-        return the_dict
-
-    def _get_complex_transforming_dict_for_translation(self, input_text_list, output_text_list, window_size = 100):
-        if len(input_text_list) != len(output_text_list):
-            raise Exception("The input_text_list should have the same length of output_text_list")
-
-        """
-        You have to get the recursive version of data manually.
-        For example, analyze the input_text_list, get common words or substring.
-        Then find common words or substring in output_text_list.
-        Then do a loop for input common substring list, let user choose what output common sub_string is linked to that input substring, after user do 100 times of choose, it can be very accurate. (This process can be simplifyed by using all output substring to match the current input output, to limit or scale down the choice for the output substring
-        """
-        existing_dict = {}
-
-        for char in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ',.:":
-            if char not in existing_dict.keys():
-                existing_dict[char] = char
-
-        for index in range(len(input_text_list)):
-            if index < window_size:
-                continue
-            sub_input_list = input_text_list[index-window_size:index]
-            sub_output_list = output_text_list[index-window_size:index]
-            input_dict = string_.get_common_text_in_text_list(sub_input_list, frequency=3, keywords_mode=True)
-            output_dict = string_.get_common_text_in_text_list(sub_output_list, frequency=3, keywords_mode=True)
-            for sub_string in sorted(input_dict.keys(), key=len, reverse=False):
-                if sub_string in existing_dict.keys():
-                    continue
-                output_source_list = []
-                for target_index in input_dict[sub_string]["index_list"]:
-                    output_source_list.append(sub_output_list[target_index])
-                for one in output_dict.keys():
-                    if input_dict[sub_string] == output_dict[one]:
-                        value = one
-                        data_piece = {sub_string: value}
-                        print(data_piece)
-                        existing_dict.update(data_piece)
-                        break
-
-        for index in range(len(input_text_list)):
-            source_text = input_text_list[index]
-            target_text = output_text_list[index]
-            key, value = self.get_regex_expression_from_current_text_and_following_text(source_text, target_text)
-            existing_dict[key] = value
-
-        return existing_dict
-
-    def pure_string_dict_based_sequence_transformer(self, input_text, the_dict, add_space = False):
-        """
-        no regex is allowed in here
-        """
-        dict_items = list(the_dict.items())
-        dict_items.sort(key=lambda item: len(item[0]), reverse=True)
-        result = ""
-        while True:
-            did_change = False
-            for key, value in dict_items:
-                if input_text.startswith(key) and key != "":
-                    result += value
-                    if add_space == True:
-                        result += " "
-                    input_text = input_text[len(key):]
-                    did_change = True
-                    break
-            if did_change == False:
-                result += input_text
-                return result
-
-    def yingshaoxo_regex_expression_based_transformer(self, input_text, regex_expression_dict):
-        """
-        If you want to let it smarter or equal than google bard chat ai, you have to use recursive function
-        You have to recursively replace the context (the one inside of (.*?)) to a detailed information
-        For example, "How to make love?", the first template it meets is "How to (.*?)"
-        The answer is probabally "If you want to make love, you have to:\nmake love"
-        But it's not done yet, you have to use 'make love' as keyword, search regex_expression_dict to get a more detaild info/value
-        In the end, you'll get a detaild response: "If you want to make love, you have to:\n1.ask permission from the one you want to make love with..."
-        """
-        for key in sorted(list(regex_expression_dict.keys()), key=len, reverse=True):
-            try:
-                result = re.match(key, input_text, flags=re.DOTALL)
-                if result != None:
-                    #print(dict(result.groupdict()))
-                    # You have to find a way to drop bad match, for example, if a_1_0 and a_1_1 does not equal, it is a wrong match
-                    return regex_expression_dict[key].format(**dict(result.groupdict()))
-            except Exception as e:
-                pass
-        return ""
-
-
-
 class Yingshaoxo_Text_Generator():
     """
     # dict based next word generator
@@ -1043,76 +698,6 @@ class Yingshaoxo_Text_Generator():
                         new_text += input_text[index]
             break
         return new_text
-
-    def correct_sentence_by_using_yingshaoxo_regex_method(self, input_text, source_data_text, level=3):
-        import re
-
-        def find_match_string_in_source_data(before_chars, after_chars, for_minus_character = False):
-            before_chars = re.escape(before_chars)
-            after_chars = re.escape(after_chars)
-            if for_minus_character == True:
-                result_list = re.findall(pattern="{before_chars}{after_chars}".format(before_chars=before_chars, after_chars=after_chars), string=source_data_text)
-            else:
-                result_list = re.findall(pattern="{before_chars}(.){after_chars}".format(before_chars=before_chars, after_chars=after_chars), string=source_data_text, flags=re.DOTALL)
-            counting_dict = {}
-            for one in result_list:
-                if one in counting_dict.keys():
-                    counting_dict[one] += 1
-                else:
-                    counting_dict[one] = 1
-            items = list(counting_dict.items())
-            items.sort(key=lambda item: item[1], reverse=True)
-            if len(items) > 0:
-                return items[0][0]
-            else:
-                return None
-
-        def do_the_process(input_text, plus_character = False, minus_character = False):
-            new_text = ""
-            for index, _ in enumerate(input_text):
-                if index < (level-1):
-                    new_text += input_text[index]
-                    continue
-                if index >= len(input_text) - level:
-                    new_text += input_text[index]
-                    continue
-
-                if plus_character == True:
-                    before_chars = input_text[index-level: index]
-                    after_chars = input_text[index: index+level]
-                    new_chars = find_match_string_in_source_data(before_chars, after_chars)
-                    if new_chars != None:
-                        new_text += new_chars + input_text[index]
-                    else:
-                        new_text += input_text[index]
-                elif minus_character == True:
-                    before_chars = input_text[index-level: index]
-                    after_chars = input_text[index+1: index+1+level]
-                    new_chars = find_match_string_in_source_data(before_chars, after_chars, for_minus_character=True)
-                    if new_chars != None:
-                        new_text += ""
-                    else:
-                        new_text += input_text[index]
-                else:
-                    before_chars = input_text[index-level: index]
-                    after_chars = input_text[index+1: index+1+level]
-                    new_chars = find_match_string_in_source_data(before_chars, after_chars)
-                    if new_chars != None:
-                        new_text += new_chars
-                    else:
-                        new_text += input_text[index]
-            return new_text
-
-        # minus acb to ab
-        input_text = do_the_process(input_text, minus_character=True)
-
-        # correct a*c to abc
-        input_text = do_the_process(input_text)
-
-        # plus ac to abc
-        input_text = do_the_process(input_text, plus_character=True)
-
-        return input_text
 
     def sort_sub_sentence_in_text(self, input_text, source_text):
         """
@@ -4781,6 +4366,100 @@ class Yingshaoxo_Strong_AI():
     And how can you make sure that many of programmer will not broken the project? You use binary idea tree, let programmers working on their own sub_folder. For example, for alive concept, it can convert to "plant and animal". And animal can split into "can fly and can not fly", and go on. I did not cover virus for simplicity. Basically when you reach 20 sub_folder level, "2 to the power of 20" == 1048576 classes. Each programmer work on one class.
 
     You probably have never thought to achieve strong Artificial Intelligence does not need to use deep learning method.
+    but you can do it if you parse language from character level. following is a pure if-else version of strong ai framework:
+
+        i
+
+        # linux or unix is so good for using, you type, you get target result, anything. others shell commands software is far away better than yours. they have level 9999 intelligent command line software that uses 1GB more if-else code to parse and execute human language in bash or shell.
+        ___
+
+        \n
+
+        ___
+
+        play
+
+        add("action", "play")
+        # next_word() should treat "./dd/aa.wav" as one word
+        if (next_word()):
+            api_play_a_file(next_word())
+            go_to_line_end()
+        ___
+
+        you
+
+        if (previous_word() == "do"):
+            add("task_type", "question")
+        ___
+
+        remember
+
+        if (get("task_type") == "question"):
+            result = api_search_diary(next_string())
+            print2(result)
+        else:
+            api_save_diary(next_string())
+            print2("rememberd:" + next_string())
+            go_to_line_end()
+
+        ___
+
+        know
+
+        if (get("task_type") == "question"):
+            result = api_search_diary(next_string())
+            print2(result)
+            go_to_line_end()
+        ___
+
+        :
+
+        if (get("action") == "remember"):
+            some_string = next_string()
+            api_save_diary(some_string)
+            print2("rememberd:" + some_string)
+
+        ___
+
+        ?
+
+        temp_string = previous_string()
+        is_math = False
+        for i in "+-*/":
+            if i in temp_string:
+                is_math = True
+                break
+        if is_math:
+            result = str(eval(temp_string))
+        else:
+            result = api_search_diary(temp_string)
+        print2(result)
+
+        ___
+
+        .
+
+        if ((next_word() == "") or (next_word() not in "01234567890")):
+            useful_text = get_useful_part_of_text(previous_string().lower()+".")
+            api_save_diary(useful_text)
+            print2("rememberd:" + useful_text)
+
+        ___
+
+        about
+
+        if "think" == previous_word():
+            next = next_string()
+            go_to_line_end()
+            run("what is " + next.strip("?") + "?")
+        ___
+
+        is
+
+        if previous_word() in ["what", "who", "where"]:
+            next = next_string()
+            go_to_line_end()
+            run(next.strip("?") + "?")
     """
     pass
 

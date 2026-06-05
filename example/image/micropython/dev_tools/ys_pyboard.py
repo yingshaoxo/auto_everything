@@ -285,8 +285,35 @@ recursive_delete(the_target_file_path)
 
         for path in disk.get_files(source_folder, use_gitignore_file=True):
             if path.startswith("./"):
-                print("In upload:", path)
-                self.upload_file(path, os.path.join(target_folder, path))
+                if not path.endswith(".swp"):
+                    print("In upload:", path)
+                    self.upload_file(path, os.path.join(target_folder, path))
+
+    def rsync_folder(self, source_folder, target_folder):
+        from auto_everything.disk import Disk
+        disk = Disk()
+
+        if len(target_folder) != 1:
+            target_folder = target_folder.rstrip("/")
+        if not target_folder.startswith("/"):
+            raise Exception("The target_folder should starts with '/', it is a absolute path")
+        if not source_folder.startswith("./"):
+            raise Exception("The source_folder should starts with './', it is a relative path")
+
+        if not os.path.exists(source_folder):
+            raise Exception("Folder not exists: {}".format(source_folder))
+        if os.path.isfile(source_folder):
+            return
+
+        for path in disk.get_files(source_folder, use_gitignore_file=True):
+            if path.startswith("./"):
+                if not path.endswith(".swp"):
+                    target_path = os.path.join(target_folder, path)
+                    source_file_size = str(os.stat(path)[6])
+                    target_file_size = self.run("import os; print(os.stat('{path}')[6]);".format(path=target_path))
+                    if source_file_size != target_file_size:
+                        print("In upload:", path)
+                        self.upload_file(path, target_path)
 
 
 def exec_a_file(pyb, filename, device='/dev/ttyACM0'):
@@ -375,6 +402,7 @@ def shell(pyb=None):
     sync: sync current folder file into pyboard
     upload "*.py": upload a file to pyboard
     delete "*.py": delete a file in pyboard
+    rsync: sync current folder changed file into pyboard
 
     cat "*.py": check a file
     """)
@@ -416,6 +444,9 @@ def shell(pyb=None):
             print(pyb.list_files_and_folders("."))
         elif command == "sync":
             pyb.sync_folder("./", "/")
+            print("done")
+        elif command == "rsync":
+            pyb.rsync_folder("./", "/")
             print("done")
         elif command.startswith("cat "):
             file_path = get_file_path(command)

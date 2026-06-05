@@ -487,32 +487,6 @@ def inject_function_arguments_into_variable_dict(variable_dict, function_info):
 
 def _call_a_function(variable_dict, function_name, function_real_arguments_string):
     "we will pass keywords dict based arguments for function execution"
-    if function_name == b"print":
-        print(_evaluate(variable_dict=variable_dict, code=function_real_arguments_string))
-        return None
-
-    if function_name == b"run_python":
-        function_real_arguments_string = _string_strip(function_real_arguments_string, b"'")
-        function_real_arguments_string = _string_strip(function_real_arguments_string, b'"')
-        temp_dict = {}
-        exec(function_real_arguments_string, temp_dict)
-        result = temp_dict.get("result")
-        if type(result) == str:
-            result = "'" + result + "'"
-        else:
-            result = str(result)
-        return result
-
-    if function_name == b"evaluate_python":
-        function_real_arguments_string = _string_strip(function_real_arguments_string, b"'")
-        function_real_arguments_string = _string_strip(function_real_arguments_string, b'"')
-        result = eval(function_real_arguments_string)
-        if type(result) == str:
-            result = "'" + result + "'"
-        else:
-            result = str(result)
-        return result
-
     if _is_function_exists(variable_dict=variable_dict, function_name=function_name):
         function_info = _get_function(variable_dict=variable_dict, function_name=function_name)
         function_info[b"function_real_arguments_string"] = function_real_arguments_string
@@ -538,6 +512,32 @@ def _call_a_function(variable_dict, function_name, function_real_arguments_strin
                 del variable_dict[key]
 
         if result != "break":
+            return result
+    else:
+        if function_name == b"print":
+            print(_evaluate(variable_dict=variable_dict, code=function_real_arguments_string))
+            return None
+
+        if function_name == b"run_python":
+            function_real_arguments_string = _string_strip(function_real_arguments_string, b"'")
+            function_real_arguments_string = _string_strip(function_real_arguments_string, b'"')
+            temp_dict = {}
+            exec(function_real_arguments_string, temp_dict)
+            result = temp_dict.get("result")
+            if type(result) == str:
+                result = "'" + result + "'"
+            else:
+                result = str(result)
+            return result
+
+        if function_name == b"evaluate_python":
+            function_real_arguments_string = _string_strip(function_real_arguments_string, b"'")
+            function_real_arguments_string = _string_strip(function_real_arguments_string, b'"')
+            result = eval(function_real_arguments_string)
+            if type(result) == str:
+                result = "'" + result + "'"
+            else:
+                result = str(result)
             return result
 
 def _run_one_piece_of_code(variable_dict, code_type, code):
@@ -820,6 +820,9 @@ try {
     oxoahsgniy
 };
 
+#if (string_inside("god", a_hero)) {
+#    print("hero never die");
+#}
 
 #import "./demo.ai.txt"; # this will import that file and replace(update) current variable_dict
 #import "./lib.hero.txt" as lib; # this will import that file and put it under "lib" variable, so you can use some function like "lib.do_something();"
