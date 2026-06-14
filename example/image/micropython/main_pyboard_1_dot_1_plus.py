@@ -93,7 +93,7 @@ from gc import collect
 # 0 is normal mode, 1 is input_mode
 input_mode = 1
 screen_sleep = False
-max_y = int(320/16) - 1
+max_y = int(320/16) - 2
 max_x = int(240/8)
 light_cursor_flag = 0
 cursor_position_y = 0
@@ -238,6 +238,12 @@ def run_python_code(code):
         except Exception as e:
             return str(e)
 
+def add_index_to_char_selection(a_string):
+    new_string = ""
+    for index, one in enumerate(a_string):
+        new_string += str(index+1) + one + " | "
+    return new_string
+
 def handle_pressed_key(a_number, keyboard_input_char='\0'):
     global terminal_text_2d_array, cursor_position_y, cursor_position_x, input_mode, temp_input_1, temp_input_tip, input_char, screen_sleep, one_line_input
     should_return = None
@@ -285,9 +291,9 @@ def handle_pressed_key(a_number, keyboard_input_char='\0'):
                     pass
                 elif 1 <= a_number <= 9:
                     a_index = a_number - 1
-                    temp_input_tip = "select: " + input_target_list[a_index]
+                    temp_input_tip = "select: " + add_index_to_char_selection(input_target_list[a_index])
                 elif a_number == 11:
-                    temp_input_tip = "select: 0_,.?!"
+                    temp_input_tip = "select: " + add_index_to_char_selection("0_,.?!")
                 temp_input_1 = a_number
                 input_char = "\0"
             else:

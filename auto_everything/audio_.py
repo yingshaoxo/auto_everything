@@ -225,6 +225,20 @@ class Audio():
         if raw == False:
             audio = audio.range_map(-max_signal_value, max_signal_value, -32767, 32767, loudness_match=False)
         return audio
+    
+    def get_super_simplified_audio(self, positive_number=5000, negative_number=-5000):
+        # positive_number could be 200, negative_number could be 55, so you can play directly with arduino anolog pin
+        # positive_number could be 9, negative_number could be 1, so you can have a small txt file to save audio
+        self = self.reduce_noise()
+        channels_number, one_channel_length = self.get_shape()
+        for channel_index in range(channels_number):
+            for x in range(one_channel_length):
+                signal = self.raw_data[channel_index][x]
+                if signal > 0:
+                    self.raw_data[channel_index][x] = positive_number
+                else:
+                    self.raw_data[channel_index][x] = negative_number
+        return self
 
     def get_simplified_audio_by_using_balance_sample(self, sample_rate=8000, max_signal_number=30):
         """
@@ -486,21 +500,26 @@ class Audio():
                         new_data += [0] * (new_audio_data_length-len(new_data))
                     new_data = new_data[:new_audio_data_length]
 
-                    #smooth_kernel = int(kernel/16)
-                    #for index in join_point_index_list:
-                    #    if index >= new_audio_data_length:
-                    #        break
-                    #    start_index = index-smooth_kernel
-                    #    end_index = index+smooth_kernel
-                    #    for smooth_index in range(start_index, end_index):
-                    #        if smooth_index < 0 or smooth_index >= new_audio_data_length:
-                    #            continue
-                    #        diff = abs(smooth_index - index)
-                    #        decrease_ratio = diff/smooth_kernel
-                    #        new_data[smooth_index] = round(new_data[smooth_index] * decrease_ratio)
-
                     a_audio.raw_data[channel_index] = new_data
             return a_audio
+
+    def remove_silence_head_and_tail(self, gate=0.2):
+        a_audio_backup = self.get_simplified_audio(sample_rate=8000)
+        max_value = max(a_audio_backup.raw_data[0])
+        gate_value = int(max_value * gate)
+        while len(a_audio_backup.raw_data[0])>0:
+            head = a_audio_backup.raw_data[0][0]
+            if abs(head) < gate_value:
+                a_audio_backup.raw_data[0].pop(0)
+            else:
+                break
+        while len(a_audio_backup.raw_data[0])>0:
+            tail = a_audio_backup.raw_data[0][-1]
+            if abs(tail) < gate_value:
+                a_audio_backup.raw_data[0].pop()
+            else:
+                break
+        return a_audio_backup
 
     def split_audio_by_frequency(self, audio_numbers=3, sub_list_length_in_second=0.005, just_return_frequency_info_dict=False, raw_data=False):
         """
@@ -676,9 +695,9 @@ class Audio():
         self.raw_data = a_audio.raw_data
         return self
 
-    def reduce_noise_by_subtraction(self, noise_audio=None, threshold=None, use_first_x_second_noise=0.048, ratio=6, use_global_value=False, global_value=0.1):
+    def reduce_noise_by_subtraction(self, noise_audio=None, threshold=None, use_first_x_second_noise=0.048, ratio=6, use_global_value=False, global_value=0.2):
         """
-        useless
+        useful when you set use_global_value=True
         """
         a_audio = self.copy()
 
@@ -781,98 +800,15 @@ class Audio():
 
         return self
 
-    def reduce_noise_by_using_yingshaoxo_method(self, threshold=None, noise_audio=None, use_first_x_second_noise=0.048, kernel=100, less_broken=True, ratio=2.0, smooth=False):
-        """
-        threshold: int
-            1424, the mean value of noise, just signal number, no dB need
-        noise_audio: Audio
-            the audio that only contains noise
-
-        This works better in pure human voice data.
-        """
-        a_audio_backup = self.copy()
-        a_audio = self.copy()
-
-        if threshold == None:
-            if noise_audio == None:
-                noise_numbers = round(a_audio.sample_rate*use_first_x_second_noise)
-                noise_audio = Audio()
-                noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
-            threshold = sum([abs(one) for one in noise_audio.raw_data[0]]) / len(noise_audio.raw_data[0]) * ratio
-
-        channels_number, one_channel_length = a_audio.get_shape()
-        for channel_index in range(channels_number):
-            new_signal_list = [None] * one_channel_length
-            index = 0
-            while True:
-                signal = a_audio.raw_data[channel_index][index]
-
-                start_index = index - kernel
-                end_index = index + kernel
-                if start_index < 0:
-                    start_index = 0
-                if end_index > one_channel_length:
-                    end_index = one_channel_length
-
-                raw_range_data = a_audio.raw_data[channel_index][start_index: end_index]
-                range_data = [abs(one) for one in raw_range_data]
-                average_value = sum(range_data) / len(range_data)
-
-                if average_value < threshold:
-                    # silent the range
-                    new_signal_list[index] = 0
-                else:
-                    # ignore sound
-                    if abs(signal) < threshold:
-                        new_signal_list[index] = round(signal / 2)
-                    else:
-                        new_signal_list[index] = signal
-                index += 1
-                if index >= one_channel_length:
-                    break
-            a_audio.raw_data[channel_index] = new_signal_list
-
-        #a_audio.reduce_noise_by_value(noise_audio, reducing_factor=0.5, kernel=1)
-        #need to find a way to mimic the audacity noise supression algorithm
-
-        if less_broken == True:
-            new_audio = self.copy()
-            new_audio.reduce_noise_by_gate()
-            self.change_volume(0.1)
-            a_audio.raw_data = a_audio.raw_data + new_audio.raw_data + self.raw_data
-            self.raw_data = a_audio.merge_to_mono().raw_data
-            self.change_volume(1.5)
-            self.volume_db_limiter(-11, 0.7)
-            if smooth == True:
-                self.smooth_audio(kernel=1)
-        else:
-            self.raw_data = a_audio.raw_data
-
-        return self
-
     def reduce_noise(self):
         """
         Two place to improve:
         1. find a way to reduce noise in voice just like audacity noise supression algorithm did, they use FFT
         2. find a better way to smooth audio
         """
-        a_audio = self.copy()
+        a_audio = self.merge_to_mono()
 
-        a_audio_1 = a_audio.copy().reduce_noise_by_using_yingshaoxo_method(less_broken=True, smooth=True)
-
-        use_first_x_second_noise=0.048
-        noise_numbers = round(a_audio.sample_rate*use_first_x_second_noise)
-        noise_audio = Audio()
-        noise_audio.raw_data = [a_audio.raw_data[0][:noise_numbers]]
-
-        a_audio = a_audio.reduce_noise_by_subtraction(ratio=3)
-        a_audio = a_audio.reduce_noise_by_using_yingshaoxo_method(noise_audio=noise_audio, less_broken=False, ratio=1.5, kernel=50)
-
-        a_audio = a_audio.reduce_noise_by_counting(0.7)
-        a_audio = a_audio.smooth_audio(kernel=1)
-
-        a_audio.raw_data = a_audio.raw_data + a_audio_1.raw_data
-        a_audio = a_audio.merge_to_mono()
+        a_audio = a_audio.reduce_noise_by_subtraction(use_global_value=True, global_value=0.1)
 
         self = a_audio
         return self
@@ -1072,7 +1008,7 @@ class Audio():
 
         return similarity
 
-    def to_hash(self, seconds=3, hash_length=12):
+    def to_hash(self, second_version=True, seconds=3, hash_length=12):
         """
         seconds: int
             for keyword sound, such as "play", seconds = 3
@@ -1108,6 +1044,49 @@ class Audio():
         """
         How to get accurate comparation? Take multiple samples of audio for a sentence, then compare and use average value. Because in human life, we can recognize sentence because we have heard it multiple times.
         """
+        if second_version == True:
+            a_audio = self.remove_silence_head_and_tail(gate=0.15)
+            a_audio = a_audio.reduce_noise_by_subtraction(use_global_value=True)
+            a_list = self.get_simple_frequency_list(part_time_in_ms=200)
+            while len(a_list):
+                if a_list[0] == 0:
+                    a_list.pop(0)
+                else:
+                    break
+            while len(a_list):
+                if a_list[-1] == 0:
+                    a_list.pop()
+                else:
+                    break
+            def convert_to_change_direction(a_list):
+                if len(a_list) == 0:
+                    return []
+                result = ""
+                last_one = a_list[0]
+                gate_value = 10
+                for one in a_list[1:]:
+                    direction = "="
+                    if one > last_one:
+                        if abs(one - last_one) > gate_value:
+                            direction = "+"
+                    elif one < last_one:
+                        if abs(one - last_one) > gate_value:
+                            direction = "-"
+                    else:
+                        direction = "="
+                    result += direction
+                    last_one = one
+                new_result = ""
+                last_char = ""
+                for one in result:
+                    if last_char == "=" and one == "=":
+                        continue
+                    new_result += one
+                    last_char = one
+                return new_result
+
+            return convert_to_change_direction(a_list)
+
         def resize_text(text_data, hash_length):
             old_text_length = len(text_data)
             if old_text_length > hash_length:

@@ -57,7 +57,7 @@ def os_copytree(src, dst):
             print("Failed to copy {} to {}: {}".format(src_path, dst_path, str(e)))
 
 import glob
-if sys.version_info[0] == 3 and sys.version_info[1] <= 2:
+if sys.version_info[0] == 3 and sys.version_info[1] <= 4:
     class Path(object):
         def __init__(self, path):
             self.path = os.path.normpath(path)
@@ -79,11 +79,17 @@ if sys.version_info[0] == 3 and sys.version_info[1] <= 2:
 
         def mkdir(self, parents=False, exist_ok=False):
             if parents:
-                os.makedirs(self.path)
+                try:
+                    os.makedirs(self.path)
+                except Exception as e:
+                    pass
             else:
                 if not exist_ok and os.path.exists(self.path):
                     raise OSError("File exists")
-                os.mkdir(self.path)
+                try:
+                    os.mkdir(self.path)
+                except Exception as e:
+                    pass
 
         def glob(self, pattern):
             return [Path(p) for p in glob.glob(os.path.join(self.path, pattern))]

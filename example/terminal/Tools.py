@@ -366,8 +366,10 @@ git remote set-url --add --push origin {repo_url}
         for file_or_folder in files:
             data_list.append({
                 "path": file_or_folder.path,
-                "type": 'folder' if file_or_folder.is_folder else 'file'
+                "type": 'folder' if file_or_folder.is_folder else 'file',
+                "size": '0' if file_or_folder.is_folder else str(disk.get_file_size(file_or_folder.path)),
             })
+        data_list.sort(key=lambda item: (item["path"], item["type"], item["size"]))
 
         with open(saving_path, 'w', encoding="utf-8") as f:
             f.write(json.dumps(data_list, indent=4))

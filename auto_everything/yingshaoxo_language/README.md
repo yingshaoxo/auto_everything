@@ -94,6 +94,103 @@ Write code.
 
 Low inteligence people can't write high inteligence code. Unless he or she do copy.
 
+## Example 5
+
+```
+i
+
+# linux or unix is so good for using, you type, you get target result, anything. others shell commands software is far away better than yours. they have level 9999 intelligent command line software that uses 1GB more if-else code to parse and execute human language in bash or shell.
+___
+
+\n
+
+___
+
+play
+
+add("action", "play")
+# next_word() should treat "./dd/aa.wav" as one word
+if (next_word()):
+    api_play_a_file(next_word())
+    go_to_line_end()
+___
+
+you
+
+if (previous_word() == "do"):
+    add("task_type", "question")
+___
+
+remember
+
+if (get("task_type") == "question"):
+    result = api_search_diary(next_string())
+    print2(result)
+else:
+    api_save_diary(next_string())
+    print2("rememberd:" + next_string())
+    go_to_line_end()
+
+___
+
+know
+
+if (get("task_type") == "question"):
+    result = api_search_diary(next_string())
+    print2(result)
+    go_to_line_end()
+___
+
+:
+
+if (get("action") == "remember"):
+    some_string = next_string()
+    api_save_diary(some_string)
+    print2("rememberd:" + some_string)
+
+___
+
+?
+
+temp_string = previous_string()
+is_math = False
+for i in "+-*/":
+    if i in temp_string:
+        is_math = True
+        break
+if is_math:
+    result = str(eval(temp_string))
+else:
+    result = api_search_diary(temp_string)
+print2(result)
+
+___
+
+.
+
+if ((next_word() == "") or (next_word() not in "01234567890")):
+    useful_text = get_useful_part_of_text(previous_string().lower()+".")
+    api_save_diary(useful_text)
+    print2("rememberd:" + useful_text)
+
+___
+
+about
+
+if "think" == previous_word():
+    next = next_string()
+    go_to_line_end()
+    run("what is " + next.strip("?") + "?")
+___
+
+is
+
+if previous_word() in ["what", "who", "where"]:
+    next = next_string()
+    go_to_line_end()
+    run(next.strip("?") + "?")
+```
+
 ## Thinking
 
 shi_jie_shang hao_duo_dong_xi dou_hui_guo_shi, dan_shi wo_zhe_ge xiang_fa, ji_qian_nian dou_bu_hui guo_shi.
