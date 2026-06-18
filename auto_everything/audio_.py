@@ -78,6 +78,8 @@ class Audio():
             (len(mono_raw_data) / sample_rate) == audio seconds
         """
         self.sample_rate = sample_rate # one second play sample_rate number of data
+        if len(raw_data) > 0 and type(raw_data[0]) != list:
+            raw_data = [raw_data]
         self.raw_data = raw_data
 
     def get_shape(self):
@@ -547,9 +549,6 @@ class Audio():
         a_audio = a_audio_backup.copy().range_map(-32767, 32767, -1024, 1024, use_int=True, loudness_match=True)
         # get global max value of no silence signal number per 0.01 second
         standard_signal_number_per_part = int(sub_list_length_in_second * a_audio_backup.sample_rate)
-        #standard_signal_number_per_part = int(0.01 * a_audio_backup.sample_rate)
-        #standard_signal_number_per_part = int(0.1 * a_audio_backup.sample_rate)
-        #standard_signal_number_per_part = int(0.5 * a_audio_backup.sample_rate)
         part_frequency_dict = dict()
         max_frequency = 0
         channels_number, one_channel_length = a_audio_backup.get_shape()
@@ -1138,8 +1137,10 @@ class Audio():
                 bytes_list.append(signal)
 
         part_list = []
+        #for i in range(0, len(bytes_list), int(part_length/2)):
         for i in range(0, len(bytes_list), part_length):
             part_list.append(bytes_list[i: i+part_length])
+        part_list = part_list[:-1]
 
         wave_frequency_list = []
         for data in part_list:
