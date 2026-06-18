@@ -1,5 +1,5 @@
 class Language():
-    def compare_two_sentences(self, sentence1: str, sentence2: str) -> float:
+    def compare_two_sentences(self, sentence1, sentence2):
         """
         return similarity, from `0.0` to `1.0`, 1 means equal, 0 means no relate.
 
@@ -13,7 +13,7 @@ class Language():
         ratio = SequenceMatcher(None, sentence1, sentence2).ratio()
         return ratio
 
-    def seperate_text_to_segments(self, text: str, ignore_space: bool = True) -> list[dict]:
+    def seperate_text_to_segments(self, text, ignore_space = True):
         """
         It returns a list of dict.
         For example:
@@ -81,10 +81,10 @@ class English(Language):
         self._speak_engine.say(text)
         self._speak_engine.runAndWait()
 
-    def get_key_words(self, input_text: str) -> list[str]:
+    def get_key_words(self, input_text):
         return self._keywords(input_text) #type: ignore
 
-    def get_sentences_from_text(self, text) -> list[str]:
+    def get_sentences_from_text(self, text):
         """
         return a list of sentences
 
@@ -95,7 +95,7 @@ class English(Language):
         from nltk import tokenize
         return tokenize.sent_tokenize(text)
 
-    def get_key_sentences_from_text(self, text: str, reduce_ratio: float = 0.5, return_list: bool = True) -> list[str] | str:
+    def get_key_sentences_from_text(self, text, reduce_ratio = 0.5, return_list = True):
         """
         return a list of key sentence
 
@@ -139,13 +139,13 @@ class Chinese(Language):
             text_list.append(paragraph.text)
         return '\n'.join(text_list)
 
-    def get_key_words(self, input_text: str) -> list[str]:
+    def get_key_words(self, input_text):
         words = []
         for item in self.keywords_handler.get_keywords(20, word_min_len=1):
             words.append(item.word)
         return words
 
-    def get_sentences_from_text(self, text) -> list[str]:
+    def get_sentences_from_text(self, text):
         """
         return a list of sentences
 
@@ -156,7 +156,7 @@ class Chinese(Language):
         self.sentence_handler.analyze(text)
         return self.sentence_handler.sentences #type: ignore
 
-    def get_key_sentences_from_text(self, text) -> list[str]:
+    def get_key_sentences_from_text(self, text):
         """
         return a list of key sentence
 
@@ -168,7 +168,7 @@ class Chinese(Language):
         sentences = [s['sentence'] for s in self.sentence_handler.get_key_sentences()]
         return sentences
 
-    def sentence_contracting(self, text: str) -> str:
+    def sentence_contracting(self, text):
         """
         return a contracted sentence
 
