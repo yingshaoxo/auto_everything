@@ -31,6 +31,7 @@ This script can also be run directly.  To execute a local script, use:
 
 import time
 import os
+from threading import Thread
 
 
 class Pyboard:
@@ -109,12 +110,15 @@ class Pyboard:
             raise Exception('command failed')
         return data[2:-2]
 
-    def exec_without_wait(self, command):
+    def exec_without_wait(self, command, with_new_line_end=False):
         command_bytes = bytes(command, encoding='utf-8')
         for i in range(0, len(command_bytes), 32):
             self.serial.write(command_bytes[i:min(i+32, len(command_bytes))])
             time.sleep(0.01)
-        self.serial.write(b'\x04')
+        if with_new_line_end == False:
+            self.serial.write(b'\x04')
+        else:
+            self.serial.write(b'\r\n')
 
     def execfile(self, filename):
         with open(filename) as f:
@@ -125,12 +129,15 @@ class Pyboard:
         t = str(self.eval('pyb.RTC().datetime()'), encoding='utf-8')[1:-1].split(', ')
         return int(t[4]) * 3600 + int(t[5]) * 60 + int(t[6])
 
-    def read_forever_and_print(self):
+    def read_forever_and_print(self, raw_print=False):
         while True:
             if self._in_waiting() > 0:
                 data = self.serial.read(self._in_waiting())
                 data = data.decode("utf-8", errors="ignore")
-                print(data)
+                if raw_print == False:
+                    print(data)
+                else:
+                    print(data, end="")
             time.sleep(0.1)
 
     def run(self, code):
@@ -392,12 +399,11 @@ def shell(pyb=None):
     def print_help_function():
         print("""
     list: list files and folders
-    monitor: get printed data in real time
 
     run_main: run main.py in chip
     run "*.py": run a file from computer
 
-    python: enter a mini python
+    python: enter a mini python in chip
 
     sync: sync current folder file into pyboard
     upload "*.py": upload a file to pyboard
@@ -411,21 +417,21 @@ def shell(pyb=None):
 
     def mini_python():
         print("")
+        pyb.exit_raw_repl()
+        background_ouput_threading = Thread(target=pyb.read_forever_and_print, args=[True])
+        background_ouput_threading.start()
         while True:
-            command = input("> ").strip()
+            command = input("").strip()
             if command == "exit()":
                 break
-            print(pyb.run(command) + "\n")
+            os.system("clear")
+            pyb.exec_without_wait(command, with_new_line_end=True)
+        background_ouput_threading.join()
 
     while True:
         command = input("\nyour command (help): ").strip()
         if command == "help":
             print_help_function()
-        elif command.startswith("monitor"):
-            try:
-                pyb.read_forever_and_print()
-            except KeyboardInterrupt:
-                pass
         elif command.startswith("run_main"):
             pyb.exec_without_wait("import main")
         elif command.startswith("run"):
@@ -437,8 +443,6 @@ def shell(pyb=None):
                 mini_python()
             except KeyboardInterrupt:
                 pyb = Pyboard(dev_device_id)
-                pyb.exit_raw_repl()
-                pyb.enter_raw_repl()
                 print_help_function()
         elif command == "list" or command == "ls":
             print(pyb.list_files_and_folders("."))

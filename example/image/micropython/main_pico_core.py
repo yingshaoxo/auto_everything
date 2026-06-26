@@ -13,9 +13,9 @@ from gc import collect, mem_free
 
 from machine import Pin
 from soft_spi import Simple_Output_Soft_SPI
-simple_output = Simple_Output_Soft_SPI(Pin(16), Pin(17), 200)
+simple_output = Simple_Output_Soft_SPI(Pin(16), Pin(17), 250)
 def send_command(data):
-    simple_output.write(bytes([0x01, 0x02]) + data.encode("utf-8") + bytes([0x04]))
+    simple_output.write(bytes([0x00]) + bytes([0x01, 0x02]) + data.encode("utf-8") + bytes([0x04]))
 
 from soft_spi import Simple_Input_Soft_SPI
 my_input_spi = Simple_Input_Soft_SPI(Pin(14), Pin(15))

@@ -1,4 +1,4 @@
-def ho():
+def hi():
     #sb ma?
     #maybe it is working. for now.
     what(ho, ok_nice, haha, fuck_it_yeah)
@@ -6,3 +6,6 @@ def ho():
 
 def ok():
     print("what, yingshaoxo?")
+
+def hi():
+    pass

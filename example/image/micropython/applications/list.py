@@ -7,7 +7,18 @@ if not terminal_arguments.endswith("/"):
 
 import os
 import os_path as path
-all_files = os.listdir(terminal_arguments)
+
+try:
+    os.listdir("./")
+    pyboard = False
+except Exception as e:
+    pyboard = True
+
+if pyboard == True:
+    all_files = os.listdir(terminal_arguments.rstrip("/"))
+else:
+    all_files = os.listdir(terminal_arguments)
+
 folder_list = []
 file_list = []
 for one in all_files:

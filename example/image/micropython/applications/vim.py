@@ -168,7 +168,7 @@ def edit_file_process():
                 horizontal_position = line_length - 1
             else:
                 horizontal_position = last_horizontal_position
-            if (len(current_line_text) > 0) and (not is_ascii(current_line_text.strip()[0])):
+            if (len(current_line_text) > 0) and (len(current_line_text.strip()) > 0) and (not is_ascii(current_line_text.strip()[0])):
                 # is chinese
                 current_line_for_display = current_line_text[:-1] + "(change this line will create error)" + current_line_text[-1]
             else:

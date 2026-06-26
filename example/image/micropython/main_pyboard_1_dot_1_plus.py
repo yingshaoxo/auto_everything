@@ -185,15 +185,29 @@ def put_char_into_screen_cache(a_char, to_one_line_input=False):
 
     make_cursor_position_safe()
 
+def clear_screen():
+    display.clear()
+    for i in range(max_y*max_x):
+        put_char_into_screen_cache(" ")
+
 def print_char(a_char):
     put_char_into_screen_cache(a_char)
     render_and_refresh()
+
+def input_char():
+    while True:
+        a_char = get_keyboard_char()
+        if a_char != "":
+            return a_char
 
 def new_print(a_string):
     for one in a_string:
         put_char_into_screen_cache(one)
     put_char_into_screen_cache("\n")
     render_and_refresh()
+
+def real_print(a_string):
+    new_print(a_string)
 
 def run_shell_command(command):
     global display
@@ -209,7 +223,7 @@ def run_shell_command(command):
     if target_command in commands_list:
         with open("./applications/"+target_command+".py", "r") as f:
             some_code = f.read()
-        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_char_ = print_char\n" + "print_ = new_print\n" + "input_ = new_input\n" + "display_ = display\n" + "run_command_ = run_shell_command\n" + some_code
+        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_char_ = print_char\n" + "input_char_ = input_char\n" + "print_ = new_print\n" + "real_print_ = real_print\n" + "input_ = new_input\n" + "display_ = display\n" + "run_command_ = run_shell_command\n" + some_code
         try:
             exec(some_code)
             return "ok"
@@ -339,6 +353,8 @@ my_input_spi = Simple_Input_Soft_SPI(Pin("Y1"), Pin("Y2"))
 def get_keyboard_char():
     my_input_spi.read_until_bytes([0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0])
     data = my_input_spi.read_bytes()
+    if my_input_spi.end == 1:
+        return ""
     if data != None:
         if data[-1] == 0x04:
             return data[:-1].decode("ascii").lower()
@@ -348,6 +364,7 @@ def new_input(tip_string="", multiple_line=False):
     global a_char_from_keyboard
     print_heading_symbol(tip_string)
     while True:
+        sleep(0.05)
         if a_char_from_keyboard == "":
             pressed_key = get_pressed_key()
             if pressed_key != -1:
@@ -357,23 +374,29 @@ def new_input(tip_string="", multiple_line=False):
                 from gc import mem_free
                 print("Has memory of", mem_free()/1024, "KB.")
                 sleep(0.05)
-            sleep(0.05)
         else:
             temp_char = a_char_from_keyboard
-            a_char_from_keyboard = ""
             result = handle_pressed_key(a_number=-1, keyboard_input_char=temp_char)
+            a_char_from_keyboard = ""
             if result != None:
                 return result
 
 a_char_from_keyboard = ""
+from machine import Timer
+a_timer = None
 import _thread
 def thread_task():
-    global a_char_from_keyboard
+    # this is a fake thread, if main process has no sleep, this process will not go on. in another word, each time should only has one process is doing things.
+    global a_char_from_keyboard, a_timer, my_input_spi
+    def shit(t):
+        my_input_spi.end = 1
     while True:
+        a_timer = Timer(period=1000, mode=Timer.ONE_SHOT, callback=shit)
         a_char = get_keyboard_char()
         a_char_from_keyboard = a_char
         while a_char_from_keyboard != "":
             pass
+        my_input_spi.end = 0
 _thread.start_new_thread(thread_task, ())
 
 while True:
