@@ -1,4 +1,5 @@
-#!/usr/bin/env /usr/bin/python3
+#!/usr/bin/env /home/python3
+#!/usr/bin/env /home/yingshaoxo/Documents/static_python3.10.4_i386_or_i32_or_x86/python
 #!/usr/bin/env /home/python/use_docker_to_build_static_python3_binary_executable/data/Python-3.10.4/python
 # Run this to generate bash auto complete script: Tools -- --completion
 
@@ -867,6 +868,18 @@ adb shell
             t.run(command_line, cwd=abs_from)
         else:
             print("Do not support file yet.")
+
+    def install_auto_everything(self):
+        if os.path.exists("auto_everything"):
+            python_version_list = ["3.4", "3.5", "3.7", "3.10"]
+            for version in python_version_list:
+                command = """
+                sudo -S rm -fr /usr/lib/python{version}/auto_everything
+                sudo -S ln -s "$(pwd)/auto_everything" /usr/lib/python{version}/auto_everything
+                """.format(version=version)
+                t.run(command)
+        else:
+            print("you should do this inside of auto_everything folder")
 
     def hi(self):
         self.help()

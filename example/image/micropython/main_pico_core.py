@@ -4,7 +4,7 @@
 
 print("Booted.")
 from time import sleep, time
-sleep(1)
+sleep(5)
 print("Ready\n")
 from machine import freq
 freq(240000000)
@@ -14,8 +14,12 @@ from gc import collect, mem_free
 from machine import Pin
 from soft_spi import Simple_Output_Soft_SPI
 simple_output = Simple_Output_Soft_SPI(Pin(16), Pin(17), 250)
+p11 = Pin(11, Pin.IN)
 def send_command(data):
     simple_output.write(bytes([0x00]) + bytes([0x01, 0x02]) + data.encode("utf-8") + bytes([0x04]))
+    while True:
+        if p11.value() == 1:
+            break
 
 from soft_spi import Simple_Input_Soft_SPI
 my_input_spi = Simple_Input_Soft_SPI(Pin(14), Pin(15))
@@ -39,7 +43,7 @@ global_print_cache = ""
 class Display():
     def clear(self):
         send_command("clear_screen:")
-        sleep(0.25)
+        #sleep(0.25)
 display = Display()
 
 def clear_screen():
@@ -47,7 +51,7 @@ def clear_screen():
 
 def print_char(a_char):
     send_command("print_char:"+a_char)
-    sleep(0.05)
+    #sleep(0.05)
 
 def input_char():
     while True:
@@ -73,7 +77,7 @@ def real_print(a_string):
     except Exception as e:
         a_string = "\n" + str(e)
     send_command("print_string:"+a_string)
-    sleep(0.2)
+    #sleep(0.2)
 
 def new_input(a_string):
     if len(a_string) != 0:
@@ -153,4 +157,5 @@ while True:
     text_data = new_input(">")
     result = run_python_code(text_data)
     real_print("\n" + result + "\n")
+    run_python_code("\n")
     collect()

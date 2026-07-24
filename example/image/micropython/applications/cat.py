@@ -5,4 +5,4 @@ if terminal_arguments == "":
     print_("show contents of a file.")
 else:
     with open(terminal_arguments, "r") as f:
-        print_(f.read())
+        print_(f.read(5012))
