@@ -15,6 +15,14 @@ It seems like only 8MB memory micropython board "yd_esp32_s3_n16r8_8ram16flash" 
 
 Other boards, such as 'pi pico' will fail on loading font. Even if the font is less than 10kb. (But I managed to fix this problem by slowing down the process speed and use less memory.)
 
+## critical bugs
+
+even comments in code will increase memory, and you can not use garbage.collect() to reduce the memory usage. after you import a module, you can not use del module to reduce memory usage.
+
+it is like when you open a software, it takes more than 10mb plus memory, but when you close that software or application, the memory usage will not go down. so if you open and close some apps multiple times, the device simply go to died because memory is full.
+
+> maybe you can try 'from machine import soft_reset; soft_reset();', but what is the point? reboot can solve all memory bugs?
+
 ```
 2026: 我突然发现所有的micropython固件系统，都有一个bug，它连注释都算做内存占用，都要新增内存占用，并且用garbage.collect()都消除不了这种内存占用。代码注入执行越多，越容易内存耗尽而死机。
 
