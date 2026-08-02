@@ -531,6 +531,208 @@ class Yingshaoxo_Dict():
             return a_dict.has_key(key)
 
 
+class Yingshaoxo_Single_File_Dict():
+    """
+    a_dict = Yingshaoxo_Single_File_Dict("./memory.txt")
+
+    a_dict.set_value_by_key(key, value)
+    a_dict.get_value_by_key(key)
+    a_dict.has_key(key)
+    a_dict.delete_a_key(key)
+    a_dict.get_keys()
+    a_dict.clear()
+    """
+    def __init__(self, path="./memory.txt"):
+        self.path = path
+        self.key_and_value_splitor = "="
+        self.new_line_splitor = "\n"
+
+        try:
+            with open(self.path, "r") as f:
+                f.readline()
+        except Exception as e:
+            #print(e)
+            with open(self.path, "w") as f:
+                f.write("")
+
+        import os
+        self.os = os
+
+    def encode(self, text):
+        if type(text) == type(None):
+            return "none_"
+        elif type(text) == bytes:
+            return "bytes_"+"_".join([str(int(one)) for one in text])
+        elif type(text) == str:
+            #return "str_"+"_".join([str(int(ord(one))) for one in text])
+            return "str_"+text.replace("\n","%0a").replace("=","%3d")
+        elif type(text) == int:
+            return "int_"+str(text)
+        elif type(text) == float:
+            return "float_"+str(text)
+        elif type(text) == bool:
+            return "bool_"+str(text)
+        return "none_"
+
+    def decode(self, text):
+        if text.startswith("none_"):
+            return None
+        elif text.startswith("bytes_"):
+            text = text[6:]
+            if len(text) != 0:
+                return bytes([int(one) for one in text.split("_")])
+            else:
+                return b""
+        elif text.startswith("str_"):
+            text = text[4:]
+            if len(text) != 0:
+                #return "".join([chr(int(one)) for one in text.split("_")])
+                return text.replace("%0a","\n").replace("%3d","=")
+            else:
+                return ""
+        elif text.startswith("int_"):
+            return int(text[4:])
+        elif text.startswith("float_"):
+            return float(text[6:])
+        elif text.startswith("bool_"):
+            return bool(text[5:])
+        return None
+
+    def get_file_max_line_number(self, file_path):
+        index = 0
+        with open(file_path, "r") as input_file:
+            while True:
+                current_line = input_file.readline()
+                if current_line == None:
+                    break
+                if current_line == "":
+                    break
+                index += 1
+        return index
+
+    def read_a_line_in_file(self, file_path, line_index):
+        index = 0
+        with open(file_path, "r") as input_file:
+            while True:
+                current_line = input_file.readline()
+                if current_line == None:
+                    break
+                if current_line == "":
+                    break
+                if index == line_index:
+                    return current_line
+                index += 1
+        return None
+
+    def modify_a_line_in_file(self, file_path, line_index, new_content, delete=False, add=False):
+        temp_path = file_path + ".tmp"
+        index = 0
+        modified = False
+        with open(file_path, "r") as input_file:
+            with open(temp_path, "w") as output_file:
+                while True:
+                    current_line = input_file.readline()
+                    if current_line == None:
+                        break
+                    if current_line == "":
+                        break
+                    if index == line_index:
+                        if add == True:
+                            output_file.write(current_line)
+                            output_file.write(new_content)
+                            modified = True
+                        else:
+                            if delete == False:
+                                output_file.write(new_content)
+                                modified = True
+                    else:
+                        output_file.write(current_line)
+                    index += 1
+        self.os.remove(file_path)
+        self.os.rename(temp_path, file_path)
+
+        if delete == False:
+            if modified == False:
+                with open(file_path, "a") as output_file:
+                    output_file.write(new_content)
+
+    def set_value_by_key(self, key, value):
+        new_key = self.encode(key)
+        new_value = self.encode(value)
+        line_index = self.get_key_line_index(new_key)
+        if line_index != -1:
+            # modifying
+            self.modify_a_line_in_file(self.path, line_index, new_key + "=" + new_value + "\n", delete=False, add=False)
+        else:
+            # add new
+            with open(self.path, "a") as f:
+                f.write(new_key + "=" + new_value + "\n")
+
+    def get_key_line_index(self, fake_key):
+        with open(self.path, "r") as f:
+            index = 0
+            while True:
+                a_line = f.readline()
+                if a_line == None:
+                    break
+                elif a_line == "":
+                    break
+                if (fake_key + "=") in a_line:
+                    return index
+                index += 1
+        return -1
+
+    def has_key(self, key):
+        new_key = self.encode(key)
+        index = self.get_key_line_index(new_key)
+        if index == -1:
+            return False
+        return True
+
+    def get_value_by_key(self, key):
+        new_key = self.encode(key)
+        with open(self.path, "r") as f:
+            while True:
+                a_line = f.readline()
+                if a_line == None:
+                    break
+                elif a_line == "":
+                    break
+                if (new_key + "=") in a_line:
+                    return self.decode(a_line.split("=")[1].strip())
+        return None
+
+    def delete_a_key(self, key):
+        new_key = self.encode(key)
+        line_index = self.get_key_line_index(new_key)
+        if line_index != -1:
+            self.modify_a_line_in_file(self.path, line_index, "", delete=True, add=False)
+
+    def get_keys(self):
+        key_list = []
+        with open(self.path, "r") as f:
+            while True:
+                a_line = f.readline()
+                if a_line == None:
+                    break
+                elif a_line == "":
+                    break
+                if "=" in a_line:
+                    key_list.append(self.decode(a_line.split("=")[0]))
+        return key_list
+
+    def clear(self):
+        self.loads("")
+
+    def dumps(self):
+        with open(self.path, "r") as f:
+            return f.read()
+
+    def loads(self, a_string):
+        with open(self.path, "w") as f:
+            return f.write(a_string)
+
+
 class Yingshaoxo_Pure_String_Dict():
     def __init__(self):
         self.raw_string = ""

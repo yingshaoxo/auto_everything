@@ -449,9 +449,29 @@ git remote set-url --add --push origin {repo_url}
             print("target_folder:", target_code_folder)
             input("Does it looks fine for you? If so, hit enter.")
 
-            disk.delete_a_folder(target_code_folder)
-            disk.copy_a_folder(a_code_folder, target_code_folder, use_gitignore_file=True)
-            #self.delete_git_and_gitignore_file(target_folder=target_code_folder, also_delete_git_folder=True)
+            #disk.delete_a_folder(target_code_folder)
+            #disk.copy_a_folder(a_code_folder, target_code_folder, use_gitignore_file=True)
+
+            disk.delete_a_folder("/tmp/shit")
+            disk.copy_a_folder(a_code_folder, "/tmp/shit", use_gitignore_file=True)
+
+            abs_from = "/tmp/shit"
+            abs_to = target_code_folder
+            if os.path.isdir(abs_from):
+                os.chdir(abs_from)
+                command_line = [
+                    "rsync",
+                    #"-avzR",  # -R preserves relative path structure
+                    "-rlgoDR",
+                    "--delete",
+                    "-c", # based on file_content hash
+                    "--progress",
+                    '"./"',
+                    '"{}"'.format(abs_to),
+                ]
+                command_line = " ".join(command_line)
+                command_line = 'cd "{}"\n'.format(abs_from) + command_line
+                t.run(command_line, cwd=abs_from)
 
     def wake_up_the_light(self):
         while True:

@@ -11,9 +11,23 @@ But **pyboard** always has SD card support.
 ## About memory
 It seems like only 8MB memory micropython board "yd_esp32_s3_n16r8_8ram16flash" can handle this project. 
 
-"pywifi_esp32p_8M_ram" or "esp32_wroom_32_8M_ram" is also fine in this case. (MicroPython v1.22.1 on 2024-01-05)
+"pywifi_esp32p_8M_ram" is also fine in this case. (MicroPython v1.22.1 on 2024-01-05)
 
 Other boards, such as 'pi pico' will fail on loading font. Even if the font is less than 10kb. (But I managed to fix this problem by slowing down the process speed and use less memory.)
+
+```
+2026: 我突然发现所有的micropython固件系统，都有一个bug，它连注释都算做内存占用，都要新增内存占用，并且用garbage.collect()都消除不了这种内存占用。代码注入执行越多，越容易内存耗尽而死机。
+
+它是连代码本身也会增加内存消耗。"import xxx; del xxx;"并不会清除内存占用。
+
+这个bug截止2026年，有7、8年了，都没有人发现。
+
+> 据说是因为里面有个特别傻逼的qstr符号表，会把所有遇到的代码文本都永久性存储下来，删都删不掉，直接把内存撑爆，除非machine.soft_reset()。
+
+> 这个bug最明显的功效是，假设你搞了个命令行终端程序，动态执行不同的py小程序，慢慢的设备就内存爆炸死机了。或者用户不停的打开并关闭很多界面app，每次打开一个应用程序，内存增加几十MB，关掉后内存也清除不了，然后手机就死机了。
+
+> 比较明显的一个例子是这两行代码，运行一次内存少一点，特别是你在前面增加一个超长注释: from gc import mem_free, collect; print("Has memory of", mem_free()/1024, "KB.");
+```
 
 ## Some words
 ```
