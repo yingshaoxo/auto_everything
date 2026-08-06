@@ -253,6 +253,8 @@ class Display(object):
             self.font_cache[char] = data.read()
 
     def get_char_bytes_by_char(self, char):
+        if char == "\b":
+            char = " "
         if char in self.font_cache:
             return self.font_cache[char]
         else:

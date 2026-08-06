@@ -164,7 +164,7 @@ input_target_list = [
            #0_,.?!
 temp_input_1 = -1
 temp_input_tip = ""
-input_char = "\0"
+temp_input_char = "\0"
 one_line_input = ""
 
 def render_to_1d_text_array():
@@ -310,7 +310,7 @@ def add_index_to_char_selection(a_string):
     return new_string
 
 def handle_pressed_key(a_number, keyboard_input_char='\0'):
-    global terminal_text_2d_array, cursor_position_y, cursor_position_x, input_mode, temp_input_1, temp_input_tip, input_char, screen_sleep, one_line_input
+    global terminal_text_2d_array, cursor_position_y, cursor_position_x, input_mode, temp_input_1, temp_input_tip, input_char, screen_sleep, one_line_input, temp_input_char
     should_return = None
     if keyboard_input_char == '\0':
         if a_number == -1:
@@ -360,27 +360,27 @@ def handle_pressed_key(a_number, keyboard_input_char='\0'):
                 elif a_number == 11:
                     temp_input_tip = "select: " + add_index_to_char_selection("0_,.?!")
                 temp_input_1 = a_number
-                input_char = "\0"
+                temp_input_char = "\0"
             else:
                 if temp_input_1 == -1:
                     pass
                 elif 1 <= temp_input_1 <= 9:
                     a_index = temp_input_1 - 1
                     if a_number-1 < len(input_target_list[a_index]):
-                        input_char = input_target_list[a_index][a_number-1]
+                        temp_input_char = input_target_list[a_index][a_number-1]
                 elif temp_input_1 == 11:
                     if (a_number == 11):
-                        input_char = " "
+                        temp_input_char = " "
                     else:
                         if (a_number-1) < len("0_,.?!"):
-                            input_char = list("0_,.?!")[a_number-1]
+                            temp_input_char = list("0_,.?!")[a_number-1]
                 temp_input_tip = ""
                 temp_input_1 = -1
     else:
-        input_char = keyboard_input_char
+        temp_input_char = keyboard_input_char
 
-    if input_char != "\0" and input_char != "":
-        if input_char == "\n":
+    if temp_input_char != "\0" and temp_input_char != "":
+        if temp_input_char == "\n":
             terminal_text_2d_array[cursor_position_y][cursor_position_x] = " "
             cursor_position_y += 1
             cursor_position_x = 0
@@ -389,7 +389,7 @@ def handle_pressed_key(a_number, keyboard_input_char='\0'):
             #cursor_position_y += 1
             #cursor_position_x = 0
         else:
-            put_char_into_screen_cache(input_char[0], to_one_line_input=True)
+            put_char_into_screen_cache(temp_input_char[0], to_one_line_input=True)
 
     render_and_refresh()
     return should_return

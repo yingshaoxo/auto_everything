@@ -173,6 +173,8 @@ print(os.listdir("{folder_path}"))
 
         #if os.path.islink(source_file_path):
         #    return
+        if target_file_path.startswith("/./"):
+            target_file_path = target_file_path[3:]
 
         a_file = open(source_file_path, "rb")
         bytes_data = a_file.read()
@@ -198,8 +200,8 @@ except Exception as e:
     parent_folder = ""
     for part in folder_path_splits:
         try:
-            parent_folder += "/" + part
-            os.mkdir(parent_folder)
+            parent_folder += part + "/"
+            os.mkdir(parent_folder.strip("/"))
         except Exception as e:
             pass
         """.strip().format(
