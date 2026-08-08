@@ -109,6 +109,7 @@ display = create_display()
 print("Display ready.")
 
 display.draw_1d_text("hi, you.")
+display.clear()
 #display.draw_pixel(150, 150, display.color565(255,0,255))
 
 from gc import mem_free
@@ -203,6 +204,7 @@ def make_cursor_position_safe():
                 terminal_text_2d_array[old_index] = terminal_text_2d_array[new_index]
         terminal_text_2d_array[max_y-1] = new_row
         cursor_position_y = max_y - 1
+        display.clear()
 
     collect()
 
@@ -236,18 +238,14 @@ def put_char_into_screen_cache(a_char, to_one_line_input=False):
 
     make_cursor_position_safe()
 
-def clear_screen():
-    display.clear()
-    for i in range(max_y*max_x):
-        put_char_into_screen_cache(" ")
-
 def print_char(a_char):
     put_char_into_screen_cache(a_char)
     render_and_refresh()
 
 def input_char():
     while True:
-        a_char = get_keyboard_char()
+        #a_char = get_keyboard_char()
+        a_char = new_input(no_char_display=True)
         if a_char != "":
             return a_char
 
@@ -309,8 +307,10 @@ def add_index_to_char_selection(a_string):
         new_string += str(index+1) + one + " | "
     return new_string
 
-def handle_pressed_key(a_number, keyboard_input_char='\0'):
+def handle_pressed_key(a_number, keyboard_input_char='\0', no_char_display=False):
     global terminal_text_2d_array, cursor_position_y, cursor_position_x, input_mode, temp_input_1, temp_input_tip, input_char, screen_sleep, one_line_input, temp_input_char
+    if no_char_display == True:
+        temp_input_char = ""
     should_return = None
     if keyboard_input_char == '\0':
         if a_number == -1:
@@ -336,19 +336,34 @@ def handle_pressed_key(a_number, keyboard_input_char='\0'):
             # normal mode
             if a_number == 2:
                 # up
-                pass
+                temp_input_char = "k"
             elif a_number == 8:
                 # down
-                pass
+                temp_input_char = "j"
             elif a_number == 4:
                 # left
-                pass
+                temp_input_char = "h"
             elif a_number == 6:
                 # right
-                pass
+                temp_input_char = "l"
             elif a_number == 5:
-                # ok
-                pass
+                # insert a char
+                temp_input_char = "a"
+            elif a_number == 9:
+                # insert a line
+                temp_input_char = "o"
+            elif a_number == 3:
+                # delete
+                temp_input_char = "x"
+            elif a_number == 7:
+                # delete a line
+                temp_input_char = "d"
+            elif a_number == 1:
+                # esc and save
+                temp_input_char = "$"
+            elif a_number == 11:
+                # find
+                temp_input_char = "/"
         else:
             # input mode
             if temp_input_1 == -1:
@@ -380,16 +395,19 @@ def handle_pressed_key(a_number, keyboard_input_char='\0'):
         temp_input_char = keyboard_input_char
 
     if temp_input_char != "\0" and temp_input_char != "":
-        if temp_input_char == "\n":
-            terminal_text_2d_array[cursor_position_y][cursor_position_x] = " "
-            cursor_position_y += 1
-            cursor_position_x = 0
-            should_return = str(one_line_input)
-            one_line_input = ""
-            #cursor_position_y += 1
-            #cursor_position_x = 0
+        if no_char_display == False:
+            if temp_input_char == "\n":
+                terminal_text_2d_array[cursor_position_y][cursor_position_x] = " "
+                cursor_position_y += 1
+                cursor_position_x = 0
+                should_return = str(one_line_input)
+                one_line_input = ""
+                #cursor_position_y += 1
+                #cursor_position_x = 0
+            else:
+                put_char_into_screen_cache(temp_input_char[0], to_one_line_input=True)
         else:
-            put_char_into_screen_cache(temp_input_char[0], to_one_line_input=True)
+            should_return = temp_input_char
 
     render_and_refresh()
     return should_return
@@ -411,7 +429,7 @@ def get_keyboard_char():
             return data[:-1].decode("ascii").lower()
     return ""
 
-def new_input(tip_string="", multiple_line=False):
+def new_input(tip_string="", multiple_line=False, no_char_display=False):
     global a_char_from_keyboard
     print_heading_symbol(tip_string)
     while True:
@@ -419,7 +437,7 @@ def new_input(tip_string="", multiple_line=False):
         if a_char_from_keyboard == "":
             pressed_key = get_pressed_key()
             if pressed_key != -1:
-                result = handle_pressed_key(pressed_key)
+                result = handle_pressed_key(pressed_key, no_char_display=no_char_display)
                 if result != None:
                     return result
                 from gc import mem_free
@@ -427,7 +445,7 @@ def new_input(tip_string="", multiple_line=False):
                 sleep(0.05)
         else:
             temp_char = a_char_from_keyboard
-            result = handle_pressed_key(a_number=-1, keyboard_input_char=temp_char)
+            result = handle_pressed_key(a_number=-1, keyboard_input_char=temp_char, no_char_display=no_char_display)
             a_char_from_keyboard = ""
             if result != None:
                 return result
