@@ -1,4 +1,4 @@
-#terminal_arguments, input_=input, print_=print, display_=display, run_command_=run_shell_command
+#terminal_arguments, input_(), print_(), run_command_(), clear_screen_()
 
 if terminal_arguments == "":
     terminal_arguments = "./"

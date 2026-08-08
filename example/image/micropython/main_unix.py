@@ -6,6 +6,9 @@ class Display():
         os.system("clear")
 display = Display()
 
+def clear_screen():
+    display.clear()
+
 def print_char(a_char):
     print(a_char, end="", flush=True)
 
@@ -47,7 +50,7 @@ def run_shell_command(command):
     if target_command in commands_list:
         with open("./applications/"+target_command+".py", "r") as f:
             some_code = f.read()
-        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "input_char_ = input_char\n" + "print_char_ = print_char\n" + "print_ = new_print\n" + "real_print_ = real_print\n" + "input_ = new_input\n" + "display_ = display\n" + "run_command_ = run_shell_command\n" + some_code
+        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "input_char_ = input_char\n" + "print_char_ = print_char\n" + "print_ = new_print\n" + "real_print_ = real_print\n" + "input_ = new_input\n" + "display_ = display\n" + "run_command_ = run_shell_command\n" + "clear_screen_ = clear_screen\n" + some_code
         try:
             exec(some_code)
             temp = global_print_cache[:]

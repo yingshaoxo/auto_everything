@@ -124,7 +124,7 @@ elif edit_type == "folder":
     print_(return_value + '\n\n' + 'edit a file by: "vi *.txt" or "vi *.py"')
 
 def edit_file_process():
-    global display_, real_print_, input_char_, print_char_, terminal_arguments, read_a_line_in_file, modify_a_line_in_file, find_next_word_splited_by_space, find_previous_word_splited_by_space, get_file_max_line_number, search_string_in_file_and_get_line_index
+    global clear_screen_, real_print_, input_char_, print_char_, terminal_arguments, read_a_line_in_file, modify_a_line_in_file, find_next_word_splited_by_space, find_previous_word_splited_by_space, get_file_max_line_number, search_string_in_file_and_get_line_index
 
     def read_following_input_until_enter():
         some_input = ""
@@ -159,14 +159,14 @@ def edit_file_process():
 
         if in_insert_mode == False:
             current_line_for_display = current_line[0:horizontal_position] + "~" + current_line[horizontal_position+1:]
-            display_.clear()
+            clear_screen_()
             real_print_(current_line_for_display)
 
         if horizontal_position < 0:
             horizontal_position = 0
 
         if in_insert_mode == True:
-            display_.clear()
+            clear_screen_()
             real_print_("inserted_text:" + inserted_text)
             while True:
                 input_char = input_char_()
@@ -265,7 +265,7 @@ def edit_file_process():
                     horizontal_position = index
             if input_char == "/":
                 # find a string
-                display_.clear()
+                clear_screen_()
                 real_print_("search_text:")
                 search_string = read_following_input_until_enter()
                 vertical_position = search_string_in_file_and_get_line_index(terminal_arguments, search_string, start_index=vertical_position)

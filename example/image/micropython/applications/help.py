@@ -4,7 +4,7 @@ get "<note>"
 
 list <folder_path>
 cat <file_path>
-delete <file_path>
+remove <file_path>
 
 make_directory <folder path>
 vi <file_path>

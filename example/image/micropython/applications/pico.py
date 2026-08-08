@@ -1,4 +1,4 @@
-#terminal_arguments, input_char_=input_char, print_char_=print_char, input_=input, print_=print, real_print_=real_print, display_=display, run_command_=run_shell_command
+#terminal_arguments, input_char_(), print_char_(), input_(), print_(), real_print_(), run_command_(), clear_screen_()
 
 #terminal_arguments = "cat soft_spi.py"
 #terminal_arguments = "run_code print(1+1)"

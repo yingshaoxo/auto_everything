@@ -1,4 +1,4 @@
-def hi():
+def hi(you):
     #sb ma?
     #maybe it is working. for now.
     what(ho, ok_nice, haha, fuck_it_yeah)

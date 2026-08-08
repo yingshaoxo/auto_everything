@@ -238,6 +238,19 @@ def put_char_into_screen_cache(a_char, to_one_line_input=False):
 
     make_cursor_position_safe()
 
+def clear_screen(**args):
+    global terminal_text_2d_array, cursor_position_y, cursor_position_x
+    for y in range(0, max_y):
+        new_row = []
+        for x in range(max_x):
+            new_row.append(" ")
+        terminal_text_2d_array[y] = new_row
+    cursor_position_y = 0
+    cursor_position_x = 0
+    display.clear()
+    display.the_2d_text_cache = None
+    collect()
+
 def print_char(a_char):
     put_char_into_screen_cache(a_char)
     render_and_refresh()
@@ -272,7 +285,7 @@ def run_shell_command(command):
     if target_command in commands_list:
         with open("./applications/"+target_command+".py", "r") as f:
             some_code = f.read()
-        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_char_ = print_char\n" + "input_char_ = input_char\n" + "print_ = new_print\n" + "real_print_ = real_print\n" + "input_ = new_input\n" + "display_ = display\n" + "run_command_ = run_shell_command\n" + some_code
+        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_char_ = print_char\n" + "input_char_ = input_char\n" + "print_ = new_print\n" + "real_print_ = real_print\n" + "input_ = new_input\n" + "display_ = display\n" + "run_command_ = run_shell_command\n" + "clear_screen_ = clear_screen\n" + some_code
         try:
             exec(some_code)
             return "ok"
