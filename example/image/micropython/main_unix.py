@@ -2,8 +2,12 @@ global_print_cache = ""
 
 class Display():
     def clear(self):
-        import os
-        os.system("clear")
+        try:
+            import os
+            os.system("clear")
+        except Exception as e:
+            for i in range(10):
+                print("\n")
 display = Display()
 
 def clear_screen():

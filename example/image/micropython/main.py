@@ -24,7 +24,7 @@ if board_name == None:
 if board_name == None:
     try:
         from machine import Pin
-        Pin(32, Pin.OUT, value=0)
+        Pin(32, Pin.OUT, value=0) #maybe for another one such as esp32s3(ram 8mb,flash 16mb) should use pin 48
         del Pin
         board_name = "esp32"
     except Exception as e:

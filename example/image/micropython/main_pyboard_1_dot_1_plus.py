@@ -13,74 +13,11 @@ sleep(1)
 #freq(168000000)
 print("Ready")
 
-import os
-configuration_path = "computer_memory.txt"
 def string_encode(a_string):
     return str(a_string).replace("\n","%0a").replace("=","%3d")
 def string_decode(a_string):
     return str(a_string).replace("%0a","\n").replace("%3d","=")
-def modify_a_line_in_file(file_path, line_index, new_content, delete=False, add=False):
-    temp_path = file_path + ".tmp"
-    index = 0
-    modified = False
-    with open(file_path, "r") as input_file:
-        with open(temp_path, "w") as output_file:
-            while True:
-                current_line = input_file.readline()
-                if current_line == None:
-                    break
-                if current_line == "":
-                    break
-                if index == line_index:
-                    if add == True:
-                        output_file.write(current_line)
-                        output_file.write(new_content)
-                        modified = True
-                    else:
-                        if delete == False:
-                            output_file.write(new_content)
-                            modified = True
-                else:
-                    output_file.write(current_line)
-                index += 1
-    os.remove(file_path)
-    os.rename(temp_path, file_path)
-    if delete == False:
-        if modified == False:
-            with open(file_path, "a") as output_file:
-                output_file.write(new_content)
-def computer_memory_get(key, default="", get_index=False):
-    try:
-        with open(configuration_path, "r") as f:
-            a_line = f.readline()
-    except Exception as e:
-        with open(configuration_path, "w") as f:
-            f.write("")
-    encode_key = string_encode(key)
-    with open(configuration_path, "r") as f:
-        index = 0
-        while True:
-            a_line = f.readline()
-            if a_line == None:
-                break
-            if a_line == "":
-                break
-            temp_key, temp_value = a_line.split("=")
-            if encode_key == temp_key:
-                if get_index == False:
-                    return string_decode(temp_value.rstrip())
-                else:
-                    return index
-            index += 1
-    return None
-def computer_memory_set(key, value):
-    new_content = string_encode(key) + "=" + string_encode(value) + "\n"
-    a_index = computer_memory_get(key, get_index=True)
-    if a_index == None:
-        with open(configuration_path, "a") as f:
-            f.write(new_content)
-    else:
-        modify_a_line_in_file(configuration_path, a_index, new_content)
+
 
 """
 # Setup the LCD Display module
