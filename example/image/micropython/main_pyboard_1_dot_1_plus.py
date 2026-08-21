@@ -130,18 +130,22 @@ def make_cursor_position_safe():
         cursor_position_y += 1
 
     if cursor_position_y >= max_y:
-        # need to remove first line
-        new_row = []
-        for x in range(max_x):
-            new_row.append(" ")
-        for y in range(max_y):
-            old_index = y
-            new_index = y+1
-            if y+1 < max_y:
-                terminal_text_2d_array[old_index] = terminal_text_2d_array[new_index]
-        terminal_text_2d_array[max_y-1] = new_row
-        cursor_position_y = max_y - 1
-        display.clear()
+        ## need to remove first line
+        #new_row = []
+        #for x in range(max_x):
+        #    new_row.append(" ")
+        #for y in range(max_y):
+        #    old_index = y
+        #    new_index = y+1
+        #    if y+1 < max_y:
+        #        terminal_text_2d_array[old_index] = terminal_text_2d_array[new_index]
+        #terminal_text_2d_array[max_y-1] = new_row
+        #cursor_position_y = max_y - 1
+        #display.clear()
+        temp_text = render_to_1d_text_array()
+        display.draw_1d_text(temp_text)
+        sleep(3)
+        clear_screen()
 
     collect()
 
@@ -188,6 +192,9 @@ def clear_screen(**args):
     display.the_2d_text_cache = None
     collect()
 
+def draw_pixel(y,x,r,g,b):
+    display.draw_pixel(x, y, display.color565(r,g,b))
+
 def print_char(a_char):
     put_char_into_screen_cache(a_char)
     render_and_refresh()
@@ -208,21 +215,24 @@ def new_print(a_string):
 def real_print(a_string):
     new_print(a_string)
 
-def run_shell_command(command):
-    global display
+def get_command_list():
     try:
         from os import listdir
     except Exception as e:
         from uos import listdir
     commands_list = listdir("./applications")
     commands_list = [one[:-3] for one in commands_list if one.endswith(".py") and one[0] != '_']
-    del listdir
+    return commands_list
+
+def run_shell_command(command):
+    global display
+    commands_list = get_command_list()
     target_command = command.split(" ")[0]
     target_arguments = " ".join(command.split(" ")[1:])
     if target_command in commands_list:
         with open("./applications/"+target_command+".py", "r") as f:
             some_code = f.read()
-        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_char_ = print_char\n" + "input_char_ = input_char\n" + "print_ = new_print\n" + "real_print_ = real_print\n" + "input_ = new_input\n" + "display_ = display\n" + "run_command_ = run_shell_command\n" + "clear_screen_ = clear_screen\n" + some_code
+        some_code = 'terminal_arguments = "{}"\n'.format(target_arguments) + "print_char_ = print_char\n" + "input_char_ = input_char\n" + "print_ = new_print\n" + "real_print_ = real_print\n" + "input_ = new_input\n" + "display_ = display\n" + "run_command_ = run_shell_command\n" + "clear_screen_ = clear_screen\n" + "draw_pixel_ = draw_pixel\n" + some_code
         try:
             exec(some_code)
             return "ok"
@@ -272,15 +282,15 @@ def handle_pressed_key(a_number, keyboard_input_char='\0', no_char_display=False
             else:
                 input_mode = 0
 
-        if a_number == 12:
-            screen_sleep = not screen_sleep
-            if screen_sleep:
-                display.sleep(True)
-                background_light.low()
-            else:
-                display.sleep(False)
-                background_light.high()
-            return
+        #if a_number == 12:
+        #    screen_sleep = not screen_sleep
+        #    if screen_sleep:
+        #        display.sleep(True)
+        #        background_light.low()
+        #    else:
+        #        display.sleep(False)
+        #        background_light.high()
+        #    return
 
         if input_mode == 0:
             # normal mode
@@ -315,7 +325,7 @@ def handle_pressed_key(a_number, keyboard_input_char='\0', no_char_display=False
                 # find
                 temp_input_char = "/"
         else:
-            # input mode
+            # english input mode
             if temp_input_1 == -1:
                 if a_number == -1:
                     pass
@@ -326,6 +336,18 @@ def handle_pressed_key(a_number, keyboard_input_char='\0', no_char_display=False
                     temp_input_tip = "select: " + add_index_to_char_selection("0_,.?!")
                 temp_input_1 = a_number
                 temp_input_char = "\0"
+
+                if a_number == 12:
+                    # complete command
+                    if " " not in one_line_input:
+                        commands = get_command_list()
+                        for one_1 in commands:
+                            if one_1.startswith(one_line_input):
+                                for one_2 in one_1[len(one_line_input):]:
+                                    put_char_into_screen_cache(one_2, to_one_line_input=True)
+                                temp_input_char = " "
+                                temp_input_1 = -1
+                                break
             else:
                 if temp_input_1 == -1:
                     pass
