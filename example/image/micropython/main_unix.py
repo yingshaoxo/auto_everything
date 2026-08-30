@@ -1,5 +1,11 @@
 global_print_cache = ""
 
+try:
+    import os
+    os.mkdir("./applications")
+except Exception as e:
+    pass
+
 class Display():
     def clear(self):
         try:

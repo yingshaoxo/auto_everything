@@ -18,6 +18,12 @@ def string_encode(a_string):
 def string_decode(a_string):
     return str(a_string).replace("%0a","\n").replace("%3d","=")
 
+try:
+    import os
+    os.mkdir("./applications")
+except Exception as e:
+    pass
+
 
 """
 # Setup the LCD Display module

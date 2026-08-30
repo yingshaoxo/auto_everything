@@ -1,0 +1,253 @@
+i
+
+# linux or unix is so good for using, you type, you get target result, anything. others shell commands software is far away better than yours. they have level 9999 intelligent command line software that uses 1GB more if-else code to parse and execute human language in bash or shell.
+___
+
+\n
+
+___
+
+play
+
+add("action", "play")
+# next_word() should treat "./dd/aa.wav" as one word
+if (next_word()):
+    api_play_a_file(next_word())
+    go_to_line_end()
+___
+
+you
+
+if "who are" in previous_string():
+    run("what is your name?")
+    go_to_line_end()
+else:
+    if "do" == previous_word():
+        if "know" == next_word():
+            jump_to("know")
+
+    if (previous_word() == "do"):
+        add("task_type", "question")
+___
+
+remember
+
+if ("could " in previous_string()) or ("can " in previous_string()):
+    print1("yes, just try to say 'remember xxx.'")
+    go_to_line_end()
+else:
+    if (get("task_type") == "question"):
+        result = api_search_diary(next_string())
+        print2(result)
+        go_to_line_end()
+        add("task_type", "")
+    else:
+        api_save_diary(next_string())
+        print2("rememberd:" + next_string())
+        go_to_line_end()
+___
+
+forget
+
+if ("could " in previous_string()) or ("can " in previous_string()):
+    print1("yes, just try to say 'forget xxx.'")
+    go_to_line_end()
+else:
+    api_delete_one_record_in_diary(next_string())
+    print2("deleted:" + next_string())
+    go_to_line_end()
+___
+
+know
+
+if "do you" in previous_string():
+    if "?" in next_string():
+        result = api_search_diary(next_string())
+        print2(result)
+        go_to_line_end()
+        
+if (get("task_type") == "question"):
+    result = api_search_diary(next_string())
+    print2(result)
+    go_to_line_end()
+
+___
+
+:
+
+if (get("action") == "remember"):
+    some_string = next_string()
+    api_save_diary(some_string)
+    print2("rememberd:" + some_string)
+
+___
+
+?
+
+temp_string = previous_string()
+is_math = False
+for i in "+-*/":
+    if i in temp_string:
+        is_math = True
+        break
+if is_math:
+    result = str(eval(temp_string))
+else:
+    temp_string = string_.question_sentence_to_normal_sentence(temp_string)
+    print1("searching '{}'...".format(temp_string))
+    print1("\n")
+
+    result = api_search_diary(temp_string)
+print2(result)
+
+go_to_line_end()
+add("task_type", "")
+
+___
+
+.
+
+if ((next_word() == "") or (next_word() not in "01234567890")):
+    useful_text = get_useful_part_of_text(previous_string().lower()+".")
+    api_save_diary(useful_text)
+    print2("rememberd:" + useful_text)
+
+___
+
+about
+
+if "think" == previous_word():
+    next = next_string()
+    go_to_line_end()
+    run("what is " + next.strip("?") + "?")
+___
+
+is
+
+if previous_word() in ["what", "who", "where", "when"]:
+    next = next_string()
+    go_to_line_end()
+    run(next.strip("? ") + "?")
+___
+
+do
+
+if previous_word() in ["what", "who", "where", "how", "when", "why"]:
+    next = next_string()
+    go_to_line_end()
+    run(next.strip("? ") + "?")
+___
+
+did
+
+if previous_word() in ["what", "who", "where", "how", "when", "why"]:
+    next = next_string()
+    go_to_line_end()
+    run(next.strip("? ") + "?")
+___
+
+me
+
+if "help" == previous_word():
+    response = input2("why you need to '" + next_string() + "'? is that really necessary? ").strip()
+    if "yes" in response:
+        print2("ok, got it. now you do it by yourself. because that is the most reliable way.")
+    else:
+        while True:
+            response = input1("why '" + switch_you_and_me(response) + "'? ")
+            if ("it" in response) or ("need" in response) or ("because" in response):
+                continue
+            else:
+                print2("now you should know your situation better now, you do not know what you really need.")
+                break
+___
+
+repeat
+
+print2(next_string())
+
+___
+
+love
+
+if "make" in previous_string():
+    if "can we" in previous_string():
+        print2("sure, we can make love")
+___
+
+bot
+
+if "are you" in previous_string():
+    print2("i could be human if human add enough thinking code to me.")
+    #go_to_line_end()
+___
+
+hi
+
+print1("hi, you.")
+___
+
+name
+
+if "your" == previous_word():
+    if "?" == next_word():
+        print1("my name is yingshaoxo.")
+        go_to_line_end()
+___
+
+old
+
+if "how" == previous_word():
+    if "you" in next_string():
+        if "are?" in next_string():
+            print1("i young forever. i do not have age.")
+            go_to_line_end()
+___
+
+age
+
+if "your" == previous_word() or "you" == previous_word():
+    if "?" == next_word():
+        run("how old you are?")
+___
+
+create
+
+if "who" in previous_string():
+    if "you?" in next_string():
+        print1("i was created by the real world yingshaoxo.")
+        print1("but may get changed by others.")
+        go_to_line_end()
+___
+
+created
+
+if "get" == previous_word():
+    if "how" in previous_string():
+        if "you" in previous_string():
+            run("who create you" + "?")
+if "who" == previous_word():
+    if "you?" in next_string():
+        run("who create you" + "?")
+___
+
+creator
+
+if " of you?" in next_string():
+    run("who create you?")
+___
+
+teach
+
+if "can" in previous_string():
+    if "you" in next_string():
+        print1("yes, why not? just tell me a truth and end with dot(.)")
+        go_to_line_end()
+___
+
+___
+
+___
+
+___
+

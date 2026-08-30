@@ -43,7 +43,7 @@ try:
         from machine import Pin, SPI
         import os
         import sdcard # use 'from machine import SDCard; import vfs' will raise problems. the SD card I am using is a 2GB one with fat16 format. maybe fat32 will work, similar to pyboard
-        spi = SPI(1, baudrate=1000000, sck=Pin(10), mosi=Pin(11), miso=Pin(12))
+        spi = SPI(1, baudrate=150000000, sck=Pin(10), mosi=Pin(11), miso=Pin(12))
         sd = sdcard.SDCard(spi,Pin(13))
         print("mounting...")
         os.mount(sd,"/")

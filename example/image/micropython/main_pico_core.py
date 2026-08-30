@@ -10,6 +10,11 @@ from machine import freq
 freq(240000000)
 from gc import collect, mem_free
 
+try:
+    import os
+    os.mkdir("./applications")
+except Exception as e:
+    pass
 
 from machine import Pin
 from soft_spi import Simple_Output_Soft_SPI

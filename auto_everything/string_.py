@@ -24,7 +24,7 @@ class String:
         input_text = input_text.replace("的吧", "")
         input_text = input_text.replace("的呢", "")
 
-        for word in ["知道", "什么", "如何", "怎样", "怎么", "哪儿", "觉得", "认为", "哪些", "哪类", "哪个", " how ", " what ", " where ", " know ", " when ", " feel ", " think ", " which "]:
+        for word in ["知道", "什么", "如何", "怎样", "怎么", "哪儿", "觉得", "认为", "哪些", "哪类", "哪个", " how ", " what ", " where ", " know ", " when ", " feel ", " think ", " which ", " who "]:
             index = input_text.find(word)
             if index != -1:
                 next_2_char = input_text[index+len(word):index+len(word)+2]
@@ -51,6 +51,7 @@ class String:
         input_text = input_text.replace("would ", "")
         input_text = input_text.replace("which ", "")
         input_text = input_text.replace("when ", "")
+        input_text = input_text.replace("who ", "")
         input_text = input_text.strip()
         input_text = input_text.replace("is ", "")
         input_text = input_text.replace("are ", "")
@@ -386,6 +387,9 @@ class String:
                 new_words.append(new_word)
             input_text = " ".join(new_words)
             input_text = input_text.replace("you am ", "you are ")
+
+        input_text = input_text.replace("i are", "i am")
+        input_text = input_text.replace("you am", "you are")
 
         return input_text
 

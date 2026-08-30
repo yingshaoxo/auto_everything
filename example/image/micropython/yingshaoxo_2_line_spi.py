@@ -102,8 +102,7 @@ class Yingshaoxo_2_line_serial_protocol_interface:
             if self.end == 1:
                 return bytes(a_list)
             if (ticks_ms() - self.start_time) > self.timeout_in_ms:
-                #return bytes(a_list)
-                return None
+                return bytes(a_list)
         return bytes(a_list)
 
 
