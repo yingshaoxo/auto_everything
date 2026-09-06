@@ -99,6 +99,20 @@ class LCD_12864_ST7920():
             self.write_data(ord(char))
             time.sleep_us(100)
 
+    def print_bytes_string(self, y, x, bytes_string):
+        if y == 0:
+            self.write_command(0x80 + x)
+        elif y == 1:
+            self.write_command(0x90 + x)
+        elif y == 2:
+            self.write_command(0x88 + x)
+        elif y == 3:
+            self.write_command(0x98 + x)
+
+        for one in bytes_string:
+            self.write_data(one)
+            time.sleep_us(100)
+
     def draw_pixel(self, y, x, value):
         """0=off, 1=on"""
         # Coordinate validation
