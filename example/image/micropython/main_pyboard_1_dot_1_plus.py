@@ -11,6 +11,7 @@ sleep(3) #let keyboard init
 sleep(1)
 #from pyb import freq
 #freq(168000000)
+freq(42000000) # low frequency saves more power, can be 21mhz. lower frequency when no input.
 print("Ready")
 
 def string_encode(a_string):

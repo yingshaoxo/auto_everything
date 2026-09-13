@@ -7,7 +7,9 @@ from time import sleep, time
 sleep(5)
 print("Ready\n")
 from machine import freq
-freq(70000000)
+#freq(70000000) #low frequency saves power
+freq(240000000)
+
 
 
 """

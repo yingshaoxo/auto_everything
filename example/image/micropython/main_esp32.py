@@ -6,6 +6,9 @@ print("Has memory of", mem_free()/1024, "KB.")
 from time import sleep
 sleep(5)
 print("Ready")
+from machine import freq
+freq(240000000)
+#freq(20000000)
 
 
 """
