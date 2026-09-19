@@ -193,3 +193,22 @@ void *global_pointer_list[1024] = { NULL }; //we need to maintain a pointer list
 * we use global polution for speed. child function and parent function share same variable space. if they want to be different, let them use a unique name. (python 'global' keyword is bad, I often forget about add a global variable in function. but in c micro_controller or e_easy_language, it is comfortable to use global variable, a way that let you feel you are god.)
 * people mind are a state variable machine, the memory is in continus update, so as long as the software is running, the global dict can get updated by all code. c code assume you will not use others bad people code, so every function has equal rights.
 * "没有全局变量的代码，就像是一个官僚体系，发展太久，底层function就失去了对自身命运的掌控权。无法见到掌权的人，无法参与国家事务。变成了没有灵魂的机器。另外，因为代码写太多，导致后期无法修改，因为改function参数的工作量太大，并且增加通信成本。但如果有全局变量，我可以直接对着总统吼一句我的想法，然后问题就解决了。"
+
+## core thinking
+
+做一个10年增加一个function的编程语言(build a programming language by adding a function per 10 years):
+
+1.if-else, while, function define and call, try and when error happen
+2.string add, string length, string slicing, string char modification, string format
+3.open(), file related operations
+4.dict get key and value, dict update key and value, based on memory or disk_file. list append, pop, slice, index element change.
+5.print_char(), get_char_input(), clear_screen(), draw_pixel()
+6.search engine, call_ai()
+7.play_wav_sound(), record_sound_by_milliseconds_chunk(), take_picture_from_camera()
+8.robot body control, pin controls
+9.maintain...
+10.build computer such as disk from mud, build robot component such as motor and baterry from mud
+11.maintain...
+12.build a kindom that has freedom. (so you will not die by not working for others, so you can finish this project.)
+
+> i think for the function call part, we should add a function called 'raise_error_after_running_more_than_x_milliseconds(1000,a_function_that_may_have_infinite_loop)'. so that the boot program or any single flow program will not stuck to death.

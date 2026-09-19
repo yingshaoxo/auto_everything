@@ -70,5 +70,28 @@ try:
         import main_unix
 except Exception as e:
     print(e)
+    import sys
     with open("log.txt", "w") as f:
-        f.write(str(e))
+        sys.print_exception(e, f)
+
+"""
+in linux python, you can get debug info by:
+import traceback
+try:
+    1/0
+except Exception as e:
+    print(e)
+    traceback.print_exc()
+    #with open("log.txt", "w") as f:
+    #    traceback.print_exc(file=f)
+
+in micropython, you can get debug info by:
+try:
+    import sys
+    #import real_main
+    1/0
+except Exception as e:
+    sys.print_exception(e)
+    #with open("log.txt", "w") as f:
+    #    sys.print_exception(e, f)
+"""

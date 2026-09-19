@@ -9,9 +9,9 @@ sleep(3) #let keyboard init
 # use LED to debug when no console/shell/terminal/bash
 # from pyb import LED def light(): led = LED(2) while True: led.on() sleep(1) led.off()
 sleep(1)
-#from pyb import freq
-#freq(168000000)
-freq(42000000) # low frequency saves more power, can be 21mhz. lower frequency when no input.
+from pyb import freq
+freq(168000000)
+#freq(42000000) # low frequency saves more power, can be 21mhz. lower frequency when no input.
 print("Ready")
 
 def string_encode(a_string):
@@ -347,7 +347,7 @@ def handle_pressed_key(a_number, keyboard_input_char='\0', no_char_display=False
                 if a_number == 12:
                     # complete command
                     if " " not in one_line_input:
-                        commands = get_command_list()
+                        commands = get_command_list() + ["keyboard", "keypad"]
                         for one_1 in commands:
                             if one_1.startswith(one_line_input):
                                 for one_2 in one_1[len(one_line_input):]:
@@ -396,6 +396,17 @@ def print_heading_symbol(tip):
         put_char_into_screen_cache(one)
     render_and_refresh()
 
+from machine import Timer
+timer = Timer(-1)
+def run_with_timeout(a_function, timeout_in_ms, timeout_function):
+    def on_timeout(t):
+        timeout_function()
+        timer.deinit()
+    timer.init(period=timeout_in_ms, mode=Timer.ONE_SHOT, callback=on_timeout)
+    result = a_function()
+    timer.deinit()
+    return result
+
 from soft_spi import Simple_Input_Soft_SPI
 my_input_spi = Simple_Input_Soft_SPI(Pin("Y1"), Pin("Y2"))
 def get_keyboard_char():
@@ -404,50 +415,56 @@ def get_keyboard_char():
     if my_input_spi.end == 1:
         return ""
     if data != None:
-        if data[-1] == 0x04:
-            return data[:-1].decode("ascii").lower()
+        if len(data) > 0:
+            if data[-1] == 0x04:
+                return data[:-1].decode("ascii").lower()
     return ""
 
+def get_keyboard_timeout_function():
+    my_input_spi.end = 1
+
+use_keyboard = False
 def new_input(tip_string="", multiple_line=False, no_char_display=False):
-    global a_char_from_keyboard
     print_heading_symbol(tip_string)
     while True:
         sleep(0.05)
-        if a_char_from_keyboard == "":
+        if use_keyboard == False:
             pressed_key = get_pressed_key()
             if pressed_key != -1:
                 result = handle_pressed_key(pressed_key, no_char_display=no_char_display)
+                collect()
+                print("Has memory of", mem_free()/1024, "KB.")
                 if result != None:
                     return result
-                from gc import mem_free
-                print("Has memory of", mem_free()/1024, "KB.")
-                sleep(0.05)
         else:
-            temp_char = a_char_from_keyboard
-            result = handle_pressed_key(a_number=-1, keyboard_input_char=temp_char, no_char_display=no_char_display)
-            a_char_from_keyboard = ""
-            if result != None:
-                return result
+            temp_char = run_with_timeout(a_function=get_keyboard_char, timeout_in_ms=3000, timeout_function=get_keyboard_timeout_function)
+            my_input_spi.end = 0
+            if temp_char == "" or temp_char == None:
+                pass
+            else:
+                result = handle_pressed_key(a_number=-1, keyboard_input_char=temp_char, no_char_display=no_char_display)
+                collect()
+                print("Has memory of", mem_free()/1024, "KB.")
+                if result != None:
+                    return result
 
-a_char_from_keyboard = ""
-from machine import Timer
-a_timer = None
-import _thread
-def thread_task():
-    # this is a fake thread, if main process has no sleep, this process will not go on. in another word, each time should only has one process is doing things.
-    global a_char_from_keyboard, a_timer, my_input_spi
-    def shit(t):
-        my_input_spi.end = 1
-    while True:
-        a_timer = Timer(period=1000, mode=Timer.ONE_SHOT, callback=shit)
-        a_char = get_keyboard_char()
-        a_char_from_keyboard = a_char
-        while a_char_from_keyboard != "":
-            pass
-        my_input_spi.end = 0
-_thread.start_new_thread(thread_task, ())
+def pre_filter(code):
+    global use_keyboard
+    if code == "keyboard":
+        use_keyboard = True
+        return "use keyboard now"
+    elif code == "keypad":
+        use_keyboard = False
+        return "use keypad now"
+    return ""
+
 
 while True:
     one_line = new_input(">").strip()
+    result = pre_filter(one_line)
+    if result != "":
+        new_print(result)
+        continue
     result = run_python_code(one_line)
-    new_print(result)
+    if result != "":
+        new_print(result)
