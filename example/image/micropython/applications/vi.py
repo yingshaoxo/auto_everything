@@ -291,5 +291,5 @@ if edit_type == "file":
 elif edit_type == "create_new_file":
     #print_("you want to create a file")
     with open(terminal_arguments, "wb") as f:
-        f.write(b"")
+        f.write(b" ")
     edit_file_process()

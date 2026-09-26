@@ -5,6 +5,71 @@ There has many LCD in the market, i think the most useful one has following feat
 2. you can draw string or pixel by a single command: draw_string(y,x,text) and draw_pixel(y,x,(r,g,b)) and clear_screen(r,g,b).
 3. you will not need to manually handle font, because it takes memory and storage and processing speed. (for some LCD in the market, if you set cpu speed to 1000 per second, it will not work)
 
+## note for chinese and english mixed condition
+```
+clear()
+lcd.print_bytes_string(0, 0, utf8_string_to_gbk_bytes("草"))
+lcd.print_bytes_string(0, 1, utf8_string_to_gbk_bytes("he"))
+lcd.print_bytes_string(0, 2, utf8_string_to_gbk_bytes("ll"))
+lcd.print_bytes_string(0, 3, utf8_string_to_gbk_bytes("o "))
+lcd.print_bytes_string(0, 4, utf8_string_to_gbk_bytes("英"))
+lcd.print_bytes_string(0, 5, utf8_string_to_gbk_bytes("文"))
+lcd.print_bytes_string(0, 6, utf8_string_to_gbk_bytes("a "))
+lcd.print_bytes_string(0, 7, utf8_string_to_gbk_bytes("哦"))
+#一个中文占2个字节，每次必须发2个字节的英文，但是index是顺序增加的
+
+
+from convert_utf8_bytes_to_gbk import utf8_string_to_gbk_bytes
+def is_pure_abc(a_char):
+    if ord(a_char) <= 0x7F:
+        return True
+    return False
+def split_sentence_into_words_list(a_string):
+    word_list = []
+    temp_word = ""
+    for a_char in a_string:
+        if is_pure_abc(a_char):
+            temp_word += a_char
+        else:
+            if temp_word != "":
+                word_list.append(temp_word)
+            temp_word = ""
+            word_list.append(a_char)
+    if temp_word != "":
+        word_list.append(temp_word)
+    return word_list
+def draw_1d_text(a_string):
+    lcd.clear_text_screen()
+    lines = a_string.split("\n")
+    for y_index, line in enumerate(lines):
+        if y_index >= 4:
+            break
+        line = line[:16].rstrip()
+        word_list = split_sentence_into_words_list(line)
+        temp_x = 0
+        last_is = None
+        for word in word_list:
+            if is_pure_abc(word[0]):
+                last_is = "en"
+                part_list = []
+                temp_index = 0
+                while temp_index < len(word):
+                    the_part = word[temp_index: temp_index+2]
+                    if len(the_part) == 0:
+                        break
+                    if len(the_part) == 1:
+                        the_part += " "
+                    lcd.print_bytes_string(y_index, temp_x, the_part.encode("utf-8"))
+                    temp_x += 1
+                    temp_index += 2
+            else:
+                for char in word:
+                    lcd.print_bytes_string(y_index, temp_x, utf8_string_to_gbk_bytes(char))
+                    temp_x += 1
+                last_is = "cn"
+    return
+```
+
 ## ST7920 12864 LCD (or DV12864KZK-1_v1)
 
 you have to connect some point in the board to make it use 'serial mode'. it might be 'S' point. (or PSB pin set to 0, PSB means 'Parallel or Serial Binary')

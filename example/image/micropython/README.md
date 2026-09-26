@@ -37,6 +37,26 @@ it is like when you open a software, it takes more than 10mb plus memory, but wh
 > 比较明显的一个例子是这两行代码，运行一次内存少一点，特别是你在前面增加一个超长注释: from gc import mem_free, collect; print("Has memory of", mem_free()/1024, "KB.");
 ```
 
+## design thinking
+
+```
+target_arguments = string arguments split by space.
+
+print_char_(a_char) = a function that really allows you to print single char.
+input_char_() = a function that give you the user input by returning single char.
+
+print_(a_string) = a function you use to print only when you program do not have interaction, for example, one command will only print one string result.
+input_() = a function you use to get a line of input send by enter key.
+
+clear_screen_() = a function to clear screen, so you get a black screen again.
+
+real_print_(a_string) = a function you use when you want to have interaction with user, this will print to the screen directly as a whole 2d string. it fills the whole screen by the string you give for every time you use. the font size is fixed so far.
+
+draw_pixel_(y, x, r,g,b) = a function to draw pixel by point y and x and color.
+
+run_command_(a_string) = a function you use to call another shell command.
+```
+
 ## Some words
 ```
 mosi: master output, slave input; master send data, slave receive data.
@@ -45,7 +65,7 @@ master means the main micro_controller, slave means the outside device that uses
 ```
 
 
-## ili9341 led screen
+## ili9341 led screen. compared to black and white old screen, this wastes a lot of power.
 ```
 VCC(vcc, 3.3v)
 GND(ground)

@@ -220,7 +220,9 @@ def new_print(a_string):
     render_and_refresh()
 
 def real_print(a_string):
-    new_print(a_string)
+    for one in a_string:
+        put_char_into_screen_cache(one)
+    render_and_refresh()
 
 def get_command_list():
     try:

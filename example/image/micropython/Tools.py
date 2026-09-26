@@ -5,8 +5,15 @@ from auto_everything.terminal import Terminal
 py = Python()
 terminal = Terminal(debug=True)
 
+import time
 from dev_tools.ys_pyboard import Pyboard, exec_a_file, shell
-pyboard = Pyboard("/dev/ttyACM0")
+while True:
+    try:
+        pyboard = Pyboard("/dev/ttyACM0")
+        break
+    except Exception as e:
+        print(e)
+        time.sleep(3)
 
 class Tools():
     def monitor(self):

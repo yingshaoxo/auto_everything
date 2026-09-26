@@ -76,6 +76,7 @@ def new_print(a_string):
     global_print_cache += a_string + "\n"
 
 def real_print(a_string):
+    # actually this should be a full screen string flash after screen clear, so it should not add new line automatically
     try:
         if type(a_string) == bytes:
             a_string = a_string.decode("utf-8", "replace")
