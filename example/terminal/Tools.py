@@ -478,7 +478,7 @@ git remote set-url --add --push origin {repo_url}
             t.run('vlc --vout none /home/yingshaoxo/Documents/WakeUp.mp3 vlc://quit')
             sleep(21)
 
-    def compress_video(self, video_path, target_path, use_720p=None, use_1080p=None, special=None):
+    def compress_video(self, video_path, target_path, use_720p=None, use_1080p=None, special=None, special2=None):
         resolution = "640:360"
         kb_limit = "498k"
         if use_720p == "True":
@@ -492,8 +492,12 @@ git remote set-url --add --push origin {repo_url}
             resolution = "1920:1080"
             kb_limit = "1992k"
 
+        if special2 != None:
+            resolution = "-2:720"
+            kb_limit = "2400k"
+
         t.run("""
-            ffmpeg -i '{video_path}' -c:v libx264 -vf "scale={resolution}:flags=neighbor" -r 23.98 -b:v {kb_limit} -c:a copy '{target_path}'
+            ffmpeg -i '{video_path}' -c:v libx264 -profile:v baseline -vf "scale={resolution}:flags=neighbor" -r 24 -b:v {kb_limit} -preset slow -c:a copy '{target_path}'
         """.format(video_path=video_path, resolution=resolution, kb_limit=kb_limit, target_path=target_path))
         #ffmpeg -i input.mp4 -c:v libx264 -vf scale=640:360 -r 23.98 -b:v 498k -c:a aac -b:a 128k output.mp4
 
