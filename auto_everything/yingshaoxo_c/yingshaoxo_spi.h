@@ -35,7 +35,6 @@ unsigned char get_yingshaoxo_spi_input_single_byte() {
 int get_yingshaoxo_spi_input_simple_bytes() {
     // data must start with 0x01, 0x02, end with 0x04
     // sender must delay for 20us. 1 second == 1000 ms; 1 ms = 1000us;
-    // receive_data is valid only when return value > 0
     unsigned char a_byte = '\0';
     int i = 0;
     while (1) {
@@ -188,13 +187,13 @@ void send_yingshaoxo_spi_a_byte(unsigned char a_byte, int delay_in_millisecond) 
         digitalWrite(yingshaoxo_spi_output_data_pin, temp_0_or_1);
         digitalWrite(yingshaoxo_spi_output_clock_pin, LOW);
         if (delay_in_millisecond == 0) {
-            delay_in_us(2);
+            //delay_in_us(2);
         } else {
             delay(delay_in_millisecond);
         }
         digitalWrite(yingshaoxo_spi_output_clock_pin, HIGH);
         if (delay_in_millisecond == 0) {
-            delay_in_us(2);
+            //delay_in_us(2);
         } else {
             delay(delay_in_millisecond);
         }
