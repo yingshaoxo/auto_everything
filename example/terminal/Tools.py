@@ -551,6 +551,11 @@ git remote set-url --add --push origin {repo_url}
             ffmpeg -i '{video_path}' -i '{audio_path}' -c:v copy -c:a copy '{target_path}'
         """.format(video_path=video_path, audio_path=audio_path, target_path=target_path))
 
+    def replace_audio_in_video(self, video_path, audio_path, target_path):
+        t.run("""
+            ffmpeg -i '{video_path}' -i '{audio_path}' -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 192k -shortest '{target_path}'
+        """.format(video_path=video_path, audio_path=audio_path, target_path=target_path))
+
     def compress_audio(self, audio_path, target_path, kbps=128):
         t.run("""
             ffmpeg -i '{audio_path}' -b:a {kbps}k '{target_path}'

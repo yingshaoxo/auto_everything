@@ -95,11 +95,15 @@ class Pyboard:
         ret = ret.strip()
         return ret
 
-    def exec(self, command):
+    def exec(self, command, delay_time=0.001):
         command_bytes = bytes(command, encoding='utf-8')
-        for i in range(0, len(command_bytes), 32):
-            self.serial.write(command_bytes[i:min(i+32, len(command_bytes))])
-            time.sleep(0.01)
+        if delay_time != 0:
+            for i in range(0, len(command_bytes), 32):
+                self.serial.write(command_bytes[i:min(i+32, len(command_bytes))])
+                time.sleep(delay_time)
+        else:
+            for i in range(0, len(command_bytes), 9600):
+                self.serial.write(command_bytes[i:min(i+9600, len(command_bytes))])
         self.serial.write(b'\x04')
         data = self.read_until(2, b'\x04>')
         if not data.endswith(b'\x04>'):
@@ -180,18 +184,7 @@ print(os.listdir("{folder_path}"))
         bytes_data = a_file.read()
         a_file.close()
 
-#try:
-#    from machine import freq
-#    freq(200000000)
-#except Exception as e:
-#    pass
         script_content = """
-try:
-    from gc import collect
-    collect()
-except Exception as e:
-    pass
-
 import os
 try:
     os.stat("{folder_path}")
@@ -208,7 +201,31 @@ except Exception as e:
             folder_path=os.path.dirname(target_file_path)
         )
         self.exec(script_content)
-        self.fs_writefile(target_file_path, bytes_data, chunk_size=256)
+        self.fs_writefile(target_file_path, bytes_data, chunk_size=9600)
+        return
+
+        pre_defined_function = """
+def w_(the_bytes_list):
+    a_file = open("{file_path}", "wb")
+    a_file.write(the_bytes_list)
+    a_file.close()
+def a_(the_bytes_list):
+    a_file = open("{file_path}", "ab")
+    a_file.write(the_bytes_list)
+    a_file.close()
+""".format(file_path=target_file_path)
+        self.exec(pre_defined_function)
+
+        chunk_size = 1024*10
+        chunk = bytes_data[:chunk_size]
+        bytes_data = bytes_data[len(chunk):]
+
+        self.exec("w_(" + repr(chunk) + ")", delay_time=0)
+        while bytes_data:
+            chunk = bytes_data[:chunk_size]
+            self.exec("a_(" + repr(chunk) + ")", delay_time=0)
+            bytes_data = bytes_data[len(chunk):]
+        self.exec("print('done')")
         return
 
         script_content = """
